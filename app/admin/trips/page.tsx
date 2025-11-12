@@ -29,6 +29,7 @@ export default async function AdminTripsPage() {
       destination:destinations(name)
     `)
     .is("continent", null)
+    .eq("is_payment_link_trip", false)
     .order("created_at", { ascending: false })
 
   const { data: assignedTrips } = await supabase
@@ -38,6 +39,7 @@ export default async function AdminTripsPage() {
       destination:destinations(name)
     `)
     .not("continent", "is", null)
+    .eq("is_payment_link_trip", false)
     .order("continent", { ascending: true })
     .order("created_at", { ascending: false })
 

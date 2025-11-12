@@ -44,6 +44,7 @@ export interface Trip {
   courses_photo_url: string | null
   single_room_photo_url: string | null
   double_room_photo_url: string | null
+  is_payment_link_trip: boolean // Added to track payment link trips
   created_at: string
   updated_at: string
 }

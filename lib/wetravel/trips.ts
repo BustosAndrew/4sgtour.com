@@ -1,47 +1,74 @@
-import { getWeTravelClient } from "./client"
+import { weTravelFetch } from "./client"
 
 export interface WeTravelTrip {
   uuid: string
-  name: string
-  description?: string
-  start_date?: string
-  end_date?: string
-  price?: number
-  currency?: string
-  // Add more fields based on WeTravel API response
+  created_at: string
+  trip_id: string
+  url: string
+  title: string
+  destination: string
+  start_date: string
+  end_date: string
+  group_min: number
+  group_max: number
+  currency: string
+  participant_list_show_type: string
+  welcome_message: string
+  participant_fees: string
+  listing_status: string
+  published: number
+  waiting_list_enabled: boolean
+  can_contribute: boolean
+  carbon_offset: {
+    enabled: boolean
+    percentage: number
+    paid_by_participant: boolean
+  }
+}
+
+interface WeTravelListResponse {
+  data: WeTravelTrip[]
+}
+
+interface WeTravelSingleResponse {
+  data: WeTravelTrip
 }
 
 /**
- * List all trips from WeTravel
+ * List all draft trips from WeTravel
  */
 export async function listTrips(): Promise<WeTravelTrip[]> {
-  const client = await getWeTravelClient()
-  const response = await client.getTrips()
-  return response.data?.trips || []
+  const response = (await weTravelFetch("/draft_trips")) as WeTravelListResponse
+  return response.data || []
 }
 
 /**
  * Get a single trip by UUID
  */
 export async function getTrip(tripUuid: string): Promise<WeTravelTrip | null> {
-  const client = await getWeTravelClient()
-  const response = await client.getTrip({ trip_uuid: tripUuid })
-  return response.data || null
+  try {
+    const response = (await weTravelFetch(`/draft_trips/${tripUuid}`)) as WeTravelSingleResponse
+    return response.data || null
+  } catch (error) {
+    console.error(`Failed to fetch trip ${tripUuid}:`, error)
+    return null
+  }
 }
 
 /**
  * Create a new draft trip
  */
 export async function createTrip(tripData: {
-  name: string
-  description?: string
+  title: string
+  destination?: string
   start_date?: string
   end_date?: string
-  price?: number
   currency?: string
 }): Promise<WeTravelTrip> {
-  const client = await getWeTravelClient()
-  const response = await client.createDraftTrip(tripData)
+  const response = (await weTravelFetch("/draft_trips", {
+    method: "POST",
+    body: JSON.stringify(tripData),
+  })) as WeTravelSingleResponse
 
   if (!response.data) {
     throw new Error("Failed to create trip")
@@ -54,11 +81,10 @@ export async function createTrip(tripData: {
  * Update an existing trip
  */
 export async function updateTrip(tripUuid: string, tripData: Partial<WeTravelTrip>): Promise<WeTravelTrip> {
-  const client = await getWeTravelClient()
-  const response = await client.updateDraftTrip({
-    trip_uuid: tripUuid,
-    ...tripData,
-  })
+  const response = (await weTravelFetch(`/draft_trips/${tripUuid}`, {
+    method: "PUT",
+    body: JSON.stringify(tripData),
+  })) as WeTravelSingleResponse
 
   if (!response.data) {
     throw new Error("Failed to update trip")
@@ -71,6 +97,7 @@ export async function updateTrip(tripUuid: string, tripData: Partial<WeTravelTri
  * Delete a trip
  */
 export async function deleteTrip(tripUuid: string): Promise<void> {
-  const client = await getWeTravelClient()
-  await client.deleteDraftTrip({ trip_uuid: tripUuid })
+  await weTravelFetch(`/draft_trips/${tripUuid}`, {
+    method: "DELETE",
+  })
 }

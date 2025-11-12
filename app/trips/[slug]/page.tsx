@@ -90,13 +90,7 @@ export default async function TripPage({ params }: TripPageProps) {
 
             <div className="mt-8 flex gap-4">
               <Button asChild className="flex-1">
-                <Link
-                  href={bookingUrl}
-                  target={trip.booking_url ? "_blank" : undefined}
-                  rel={trip.booking_url ? "noopener noreferrer" : undefined}
-                >
-                  Book Now
-                </Link>
+                <Link href={`/trips/${trip.slug}/book`}>Book Now</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/contact">Contact Us</Link>

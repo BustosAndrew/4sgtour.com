@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getWeTravelClient } from "@/lib/wetravel/client"
+import { listTrips } from "@/lib/wetravel/trips"
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 
@@ -38,62 +38,73 @@ export async function POST() {
     }
 
     // Get trips from WeTravel
-    const weTravelClient = await getWeTravelClient()
-    const response = await weTravelClient.getTrips()
+    const weTravelTrips = await listTrips()
 
-    if (!response.data?.trips) {
+    if (!weTravelTrips || weTravelTrips.length === 0) {
       return NextResponse.json({ error: "No trips found in WeTravel" }, { status: 404 })
     }
 
-    const weTravelTrips = response.data.trips
     let syncedCount = 0
     let updatedCount = 0
+    const errors: string[] = []
 
     // Sync each trip to Supabase
     for (const trip of weTravelTrips) {
-      // Check if trip exists in Supabase
-      const { data: existingTrip } = await supabase
-        .from("trips")
-        .select("id, continent")
-        .eq("wetravel_uuid", trip.uuid)
-        .single()
-
-      const tripData = {
-        wetravel_uuid: trip.uuid,
-        title: trip.name || "Untitled Trip",
-        slug: trip.slug || trip.uuid,
-        description: trip.description || null,
-        location: trip.location || "Unknown",
-        price_regular: trip.price || 0,
-        duration_nights: trip.duration_days || 1,
-        max_guests: trip.max_spots || 20,
-        booking_url: trip.booking_url || null,
-        includes_breakfast: false,
-        includes_transport: false,
-        available_courses: [],
-      }
-
-      if (existingTrip) {
-        // Update existing trip, but preserve the continent assignment
-        await supabase
+      try {
+        // Check if trip exists in Supabase
+        const { data: existingTrip } = await supabase
           .from("trips")
-          .update({
-            ...tripData,
-            continent: existingTrip.continent, // Preserve continent
-          })
+          .select("id, continent")
           .eq("wetravel_uuid", trip.uuid)
-        updatedCount++
-      } else {
-        // Insert new trip (needs destination_id, use first destination or create default)
-        const { data: defaultDestination } = await supabase.from("destinations").select("id").limit(1).single()
+          .single()
 
-        if (defaultDestination) {
-          await supabase.from("trips").insert({
-            ...tripData,
-            destination_id: defaultDestination.id,
-          })
-          syncedCount++
+        const tripData = {
+          wetravel_uuid: trip.uuid,
+          title: trip.title || "Untitled Trip",
+          slug: trip.trip_id?.toLowerCase() || trip.uuid,
+          description: trip.welcome_message || null,
+          location: trip.destination || "Unknown",
+          booking_url: trip.url || null,
+          // Default values for fields not in WeTravel API
+          price_regular: 0,
+          duration_nights: 1,
+          max_guests: trip.group_max || 20,
+          includes_breakfast: false,
+          includes_transport: false,
+          available_courses: [],
         }
+
+        if (existingTrip) {
+          // Update existing trip, but preserve the continent assignment
+          const { error } = await supabase
+            .from("trips")
+            .update({
+              ...tripData,
+              continent: existingTrip.continent, // Preserve continent
+            })
+            .eq("wetravel_uuid", trip.uuid)
+
+          if (error) throw error
+          updatedCount++
+        } else {
+          // Insert new trip (needs destination_id, use first destination or create default)
+          const { data: defaultDestination } = await supabase.from("destinations").select("id").limit(1).single()
+
+          if (defaultDestination) {
+            const { error } = await supabase.from("trips").insert({
+              ...tripData,
+              destination_id: defaultDestination.id,
+            })
+
+            if (error) throw error
+            syncedCount++
+          } else {
+            errors.push(`No destinations found in database for trip ${trip.title}`)
+          }
+        }
+      } catch (error) {
+        console.error(`[v0] Error syncing trip ${trip.uuid}:`, error)
+        errors.push(`Failed to sync ${trip.title}: ${error instanceof Error ? error.message : "Unknown error"}`)
       }
     }
 
@@ -102,6 +113,7 @@ export async function POST() {
       synced: syncedCount,
       updated: updatedCount,
       total: weTravelTrips.length,
+      errors: errors.length > 0 ? errors : undefined,
     })
   } catch (error) {
     console.error("[v0] Error syncing WeTravel trips:", error)

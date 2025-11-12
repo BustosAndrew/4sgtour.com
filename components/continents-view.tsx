@@ -50,7 +50,9 @@ type ContinentsViewProps = {
 export function ContinentsView({ destinations }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
 
-  const filteredDestinations = selectedContinent ? destinations.filter((d) => d.continent === selectedContinent) : []
+  const filteredDestinations = selectedContinent
+    ? destinations.filter((d) => d.continent === selectedContinent && d.continent !== null)
+    : []
 
   if (!selectedContinent) {
     return (
