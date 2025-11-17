@@ -38,11 +38,11 @@ export default async function TripPage({ params }: TripPageProps) {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="container py-8">
+      <main className="container px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
             <div className="overflow-hidden rounded-lg">
-              <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-[400px] w-full object-cover" />
+              <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-[300px] w-full object-cover sm:h-[400px]" />
             </div>
             {trip.images && trip.images.length > 1 && (
               <div className="mt-4 grid grid-cols-4 gap-2">
@@ -51,7 +51,7 @@ export default async function TripPage({ params }: TripPageProps) {
                     <img
                       src={img.image_url || "/placeholder.svg"}
                       alt={`${trip.title} ${idx + 2}`}
-                      className="h-20 w-full object-cover"
+                      className="h-16 w-full object-cover sm:h-20"
                     />
                   </div>
                 ))}
@@ -64,8 +64,8 @@ export default async function TripPage({ params }: TripPageProps) {
               <MapPin className="mt-1 h-4 w-4" />
               <span>{trip.location}</span>
             </div>
-            <h1 className="mt-2 text-3xl font-bold text-foreground">{trip.title}</h1>
-            <p className="mt-4 text-4xl font-bold text-foreground">${price.toFixed(2)}</p>
+            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">{trip.title}</h1>
+            <p className="mt-4 text-3xl font-bold text-foreground sm:text-4xl">${price.toFixed(2)}</p>
 
             {trip.description && <p className="mt-6 text-muted-foreground">{trip.description}</p>}
 
@@ -88,11 +88,11 @@ export default async function TripPage({ params }: TripPageProps) {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-4">
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Button asChild className="flex-1">
                 <Link href={`/trips/${trip.slug}/book`}>Inquire Now</Link>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="flex-1 sm:flex-initial">
                 <Link href="/contact">Contact Us</Link>
               </Button>
             </div>

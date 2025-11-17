@@ -17,7 +17,9 @@ export default async function BookingPage({ params }: BookingPageProps) {
     .select(`
       *,
       images:trip_images(image_url, display_order),
-      destination:destinations(name, country)
+      destination:destinations(name, country),
+      packages(*),
+      add_ons(*)
     `)
     .eq("slug", slug)
     .single()
@@ -30,8 +32,8 @@ export default async function BookingPage({ params }: BookingPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="container py-8">
-        <h1 className="mb-8 text-3xl font-bold">Make A Reservation</h1>
+      <main className="container px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="mb-8 text-2xl font-bold sm:text-3xl">Make A Reservation</h1>
         <BookingForm trip={trip} />
       </main>
       <SiteFooter />

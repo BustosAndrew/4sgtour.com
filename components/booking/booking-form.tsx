@@ -14,51 +14,48 @@ interface BookingFormProps {
   trip: any
 }
 
-const ROOM_TYPES = [
-  { id: "double", name: "Double Occupancy", icon: Users, description: "Shared room for two guests" },
-  { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest" },
-]
-
-const COURSE_OPTIONS = [
-  { id: "course-a", name: "Course A", price: 10 },
-  { id: "course-b", name: "Course B", price: 50 },
-  { id: "course-c", name: "Course C", price: 75 },
-]
-
-const MEAL_OPTIONS = [
-  { id: "breakfast-included", name: "Breakfast Included (Recommended)", price: 0 },
-  { id: "breakfast-not-included", name: "Breakfast not Included", price: 0 },
-]
-
-const TRANSPORT_OPTIONS = [
-  { id: "private-car", name: "Private Car with Driver (Recommended)", price: 0 },
-  { id: "drive-yourself", name: "Drive Yourself", price: 0 },
+const DEFAULT_ROOM_TYPES = [
+  { id: "double", name: "Double Occupancy", icon: Users, description: "Shared room for two guests", price: 0 },
+  { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest", price: 0 },
 ]
 
 export function BookingForm({ trip }: BookingFormProps) {
+  const packages = trip.packages && trip.packages.length > 0 
+    ? trip.packages.map((pkg: any) => ({
+        id: pkg.id,
+        name: pkg.name,
+        description: pkg.description || '',
+        price: Number(pkg.price) || 0,
+        icon: pkg.name.toLowerCase().includes('double') ? Users : User
+      }))
+    : DEFAULT_ROOM_TYPES
+
+  const addOns = trip.add_ons || []
+
   // Form state
   const [customerName, setCustomerName] = useState("")
   const [customerEmail, setCustomerEmail] = useState("")
-  const [selectedRoomType, setSelectedRoomType] = useState<string>("")
+  const [selectedPackage, setSelectedPackage] = useState<string>("")
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
   })
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [rounds, setRounds] = useState(2)
-  const [selectedMeal, setSelectedMeal] = useState<string>("")
-  const [selectedTransport, setSelectedTransport] = useState<string>("")
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  // Calculate total price (base trip price + add-ons)
   const calculateTotal = () => {
-    let total = trip.price_regular || 0
+    let total = 0
 
-    // Course prices
-    selectedCourses.forEach((courseId) => {
-      const course = COURSE_OPTIONS.find((o) => o.id === courseId)
-      if (course) total += course.price
+    // Package price
+    const selectedPkg = packages.find((p: any) => p.id === selectedPackage)
+    if (selectedPkg) total += selectedPkg.price
+
+    // Add-ons prices
+    selectedAddOns.forEach((addOnId) => {
+      const addOn = addOns.find((a: any) => a.id === addOnId)
+      if (addOn) total += Number(addOn.price) || 0
     })
 
     // Rounds price (example: $20 per round)
@@ -73,8 +70,8 @@ export function BookingForm({ trip }: BookingFormProps) {
       return
     }
 
-    if (!selectedRoomType) {
-      alert("Please select a room type")
+    if (!selectedPackage) {
+      alert("Please select a package")
       return
     }
 
@@ -93,10 +90,8 @@ export function BookingForm({ trip }: BookingFormProps) {
       const endDate = dateRange.to.toISOString().split("T")[0]
 
       // Get selected option names for email
-      const roomTypeName = ROOM_TYPES.find((r) => r.id === selectedRoomType)?.name || ""
-      const courseNames = selectedCourses.map((id) => COURSE_OPTIONS.find((c) => c.id === id)?.name).filter(Boolean)
-      const mealName = MEAL_OPTIONS.find((m) => m.id === selectedMeal)?.name || "None"
-      const transportName = TRANSPORT_OPTIONS.find((t) => t.id === selectedTransport)?.name || "None"
+      const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
+      const addOnNames = selectedAddOns.map((id) => addOns.find((a: any) => a.id === id)?.name).filter(Boolean)
 
       // Send inquiry email
       const response = await fetch("/api/inquiry", {
@@ -108,13 +103,11 @@ export function BookingForm({ trip }: BookingFormProps) {
           tripTitle: trip.title,
           customerName,
           customerEmail,
-          roomType: roomTypeName,
+          packageName,
           startDate,
           endDate,
-          courses: courseNames,
+          addOns: addOnNames,
           rounds,
-          meal: mealName,
-          transport: transportName,
           additionalRequests,
           totalPrice: total,
         }),
@@ -129,15 +122,13 @@ export function BookingForm({ trip }: BookingFormProps) {
       // Reset form
       setCustomerName("")
       setCustomerEmail("")
-      setSelectedRoomType("")
+      setSelectedPackage("")
       setDateRange({ from: undefined, to: undefined })
-      setSelectedCourses([])
+      setSelectedAddOns([])
       setRounds(2)
-      setSelectedMeal("")
-      setSelectedTransport("")
       setAdditionalRequests("")
     } catch (error) {
-      console.error("[v0] Error submitting inquiry:", error)
+      console.error("Error submitting inquiry:", error)
       alert("Failed to submit inquiry. Please try again.")
     } finally {
       setSubmitting(false)
@@ -178,23 +169,26 @@ export function BookingForm({ trip }: BookingFormProps) {
           </div>
         </Card>
 
-        {/* Step 2: Select Room Type */}
+        {/* Step 2: Select Package */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
-            <h2 className="text-lg font-bold">Select Room Type</h2>
+            <h2 className="text-lg font-bold">Select Package</h2>
           </div>
-          <RadioGroup value={selectedRoomType} onValueChange={setSelectedRoomType} className="space-y-3">
-            {ROOM_TYPES.map((roomType) => {
-              const Icon = roomType.icon
+          <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
+            {packages.map((pkg: any) => {
+              const Icon = pkg.icon
               return (
-                <Card key={roomType.id} className="relative cursor-pointer p-4 transition-colors hover:bg-accent">
-                  <RadioGroupItem value={roomType.id} id={roomType.id} className="absolute right-4 top-4" />
-                  <label htmlFor={roomType.id} className="flex cursor-pointer items-start gap-3">
+                <Card key={pkg.id} className="relative cursor-pointer p-4 transition-colors hover:bg-accent">
+                  <RadioGroupItem value={pkg.id} id={pkg.id} className="absolute right-4 top-4" />
+                  <label htmlFor={pkg.id} className="flex cursor-pointer items-start gap-3">
                     <Icon className="mt-1 h-5 w-5" />
                     <div className="flex-1">
-                      <div className="font-bold">{roomType.name}</div>
-                      <div className="text-sm text-muted-foreground">{roomType.description}</div>
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold">{pkg.name}</div>
+                        <div className="font-bold">${pkg.price}</div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">{pkg.description}</div>
                     </div>
                   </label>
                 </Card>
@@ -215,112 +209,92 @@ export function BookingForm({ trip }: BookingFormProps) {
               <p className="mb-4 text-sm text-muted-foreground">
                 Choose your preferred travel dates for this golf trip
               </p>
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range: any) => setDateRange(range || { from: undefined, to: undefined })}
-                className="rounded-md border"
-              />
+              <div className="overflow-x-auto">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range: any) => setDateRange(range || { from: undefined, to: undefined })}
+                  className="rounded-md border"
+                />
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Step 4: Golf Courses & Rounds */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
-            <h2 className="text-lg font-bold">Golf Courses & Rounds</h2>
-          </div>
-          <div className="space-y-6">
-            <div>
-              <h3 className="mb-2 font-medium">Select Courses</h3>
-              <p className="mb-4 text-sm text-muted-foreground">Choose which courses you'd like to play</p>
-              <div className="space-y-2">
-                {COURSE_OPTIONS.map((course) => (
-                  <Card
-                    key={course.id}
-                    className={`cursor-pointer p-4 transition-colors hover:bg-accent ${
-                      selectedCourses.includes(course.id) ? "border-primary" : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedCourses((prev) =>
-                        prev.includes(course.id) ? prev.filter((id) => id !== course.id) : [...prev, course.id],
-                      )
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{course.name}</span>
-                      <span className="font-bold">${course.price}</span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+        {addOns.length > 0 && (
+          <Card className="bg-[#E8DCC4] p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+              <h2 className="text-lg font-bold">Select Add-ons</h2>
             </div>
-
-            <div>
-              <h3 className="mb-2 font-medium">Select Rounds</h3>
-              <p className="mb-4 text-sm text-muted-foreground">How many rounds would you like to play?</p>
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setRounds(Math.max(1, rounds - 1))}
-                  disabled={rounds <= 1}
+            <div className="space-y-2">
+              {addOns.map((addOn: any) => (
+                <Card
+                  key={addOn.id}
+                  className={`cursor-pointer p-4 transition-colors hover:bg-accent ${
+                    selectedAddOns.includes(addOn.id) ? "border-primary" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedAddOns((prev) =>
+                      prev.includes(addOn.id) ? prev.filter((id) => id !== addOn.id) : [...prev, addOn.id],
+                    )
+                  }}
                 >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground">Number of Rounds:</div>
-                  <div className="text-2xl font-bold">{rounds}</div>
-                </div>
-                <Button variant="outline" size="icon" onClick={() => setRounds(rounds + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-bold">{addOn.name}</div>
+                      {addOn.description && (
+                        <div className="text-sm text-muted-foreground">{addOn.description}</div>
+                      )}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {addOn.price_type === 'per_participant' ? 'Per participant' : 'Per booking'}
+                      </div>
+                    </div>
+                    <div className="font-bold">${addOn.price}</div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Step: Rounds */}
+        <Card className="bg-[#E8DCC4] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+              {addOns.length > 0 ? '5' : '4'}
+            </div>
+            <h2 className="text-lg font-bold">Golf Rounds</h2>
+          </div>
+          <div>
+            <h3 className="mb-2 font-medium">Select Rounds</h3>
+            <p className="mb-4 text-sm text-muted-foreground">How many rounds would you like to play?</p>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setRounds(Math.max(1, rounds - 1))}
+                disabled={rounds <= 1}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground">Number of Rounds:</div>
+                <div className="text-2xl font-bold">{rounds}</div>
               </div>
+              <Button variant="outline" size="icon" onClick={() => setRounds(rounds + 1)}>
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </Card>
 
-        {/* Step 5: Meals */}
+        {/* Step: Additional Requests */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
-            <h2 className="text-lg font-bold">Meals</h2>
-          </div>
-          <RadioGroup value={selectedMeal} onValueChange={setSelectedMeal} className="space-y-2">
-            {MEAL_OPTIONS.map((meal) => (
-              <Card key={meal.id} className="relative cursor-pointer p-4 transition-colors hover:bg-accent">
-                <RadioGroupItem value={meal.id} id={meal.id} className="absolute right-4 top-4" />
-                <label htmlFor={meal.id} className="flex cursor-pointer items-center justify-between">
-                  <span className="font-medium">{meal.name}</span>
-                </label>
-              </Card>
-            ))}
-          </RadioGroup>
-        </Card>
-
-        {/* Step 6: Transportation */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">6</div>
-            <h2 className="text-lg font-bold">Transportation</h2>
-          </div>
-          <RadioGroup value={selectedTransport} onValueChange={setSelectedTransport} className="space-y-2">
-            {TRANSPORT_OPTIONS.map((transport) => (
-              <Card key={transport.id} className="relative cursor-pointer p-4 transition-colors hover:bg-accent">
-                <RadioGroupItem value={transport.id} id={transport.id} className="absolute right-4 top-4" />
-                <label htmlFor={transport.id} className="flex cursor-pointer items-center justify-between">
-                  <span className="font-medium">{transport.name}</span>
-                </label>
-              </Card>
-            ))}
-          </RadioGroup>
-        </Card>
-
-        {/* Step 7: Additional Requests */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">7</div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+              {addOns.length > 0 ? '6' : '5'}
+            </div>
             <h2 className="text-lg font-bold">Additional Requests</h2>
           </div>
           <Textarea
@@ -345,19 +319,19 @@ export function BookingForm({ trip }: BookingFormProps) {
                 </span>
               </div>
             )}
-            {selectedRoomType && (
+            {selectedPackage && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">{ROOM_TYPES.find((r) => r.id === selectedRoomType)?.name}</span>
-                <span>${trip.price_regular}</span>
+                <span className="text-muted-foreground">{packages.find((p: any) => p.id === selectedPackage)?.name}</span>
+                <span>${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
               </div>
             )}
-            {selectedCourses.map((courseId) => {
-              const course = COURSE_OPTIONS.find((o) => o.id === courseId)
+            {selectedAddOns.map((addOnId) => {
+              const addOn = addOns.find((a: any) => a.id === addOnId)
               return (
-                course && (
-                  <div key={courseId} className="flex justify-between">
-                    <span className="text-muted-foreground">{course.name}</span>
-                    <span>${course.price}</span>
+                addOn && (
+                  <div key={addOnId} className="flex justify-between">
+                    <span className="text-muted-foreground">{addOn.name}</span>
+                    <span>${addOn.price}</span>
                   </div>
                 )
               )
@@ -366,20 +340,6 @@ export function BookingForm({ trip }: BookingFormProps) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{rounds} Rounds</span>
                 <span>${rounds * 20}</span>
-              </div>
-            )}
-            {selectedMeal && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{MEAL_OPTIONS.find((m) => m.id === selectedMeal)?.name}</span>
-                <span>Included</span>
-              </div>
-            )}
-            {selectedTransport && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  {TRANSPORT_OPTIONS.find((t) => t.id === selectedTransport)?.name}
-                </span>
-                <span>Included</span>
               </div>
             )}
           </div>
@@ -395,7 +355,7 @@ export function BookingForm({ trip }: BookingFormProps) {
             className="w-full bg-[#9CA986] hover:bg-[#8a9876]"
             size="lg"
             onClick={handleSubmit}
-            disabled={submitting || !dateRange.from || !dateRange.to || !selectedRoomType || !customerName || !customerEmail}
+            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage || !customerName || !customerEmail}
           >
             {submitting ? "Submitting..." : "Inquire Now"}
           </Button>

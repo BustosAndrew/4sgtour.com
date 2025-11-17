@@ -229,7 +229,7 @@ export function CreateTripForm() {
             <div key={step.id} className="flex flex-1 items-center">
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 font-semibold transition-colors ${
+                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors ${
                     currentStep === step.id
                       ? "border-[#6b705c] bg-[#6b705c] text-white"
                       : currentStep > step.id
@@ -248,7 +248,7 @@ export function CreateTripForm() {
               </div>
               {idx < STEPS.length - 1 && (
                 <div
-                  className={`mx-4 h-0.5 flex-1 ${
+                  className={`mx-2 h-0.5 flex-1 md:mx-4 ${
                     currentStep > step.id ? "bg-[#a4b96a]" : "bg-muted-foreground/30"
                   }`}
                 />
@@ -309,7 +309,7 @@ export function CreateTripForm() {
                     key={continent}
                     type="button"
                     onClick={() => setFormData({ ...formData, continent })}
-                    className={`rounded-full border px-6 py-2 text-sm transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-sm transition-colors sm:px-6 ${
                       formData.continent === continent
                         ? "border-[#6b705c] bg-[#6b705c] text-white"
                         : "border-muted-foreground/30 bg-background text-foreground hover:border-[#6b705c]/50"
@@ -819,7 +819,7 @@ export function CreateTripForm() {
                       "None"
                     )}
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4">
                     {photos.courses && (
                       <div>
                         <p className="mb-1 font-medium">Courses Photo</p>
@@ -910,12 +910,13 @@ export function CreateTripForm() {
           </div>
         )}
 
-        <div className="flex items-center justify-between border-t border-border pt-6">
+        <div className="flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
+            className="w-full sm:w-auto"
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Previous
@@ -926,13 +927,13 @@ export function CreateTripForm() {
               type="button"
               onClick={nextStep}
               disabled={!canProceedToNextStep()}
-              className="bg-[#a4b96a] hover:bg-[#93a55e]"
+              className="w-full bg-[#a4b96a] hover:bg-[#93a55e] sm:w-auto"
             >
               Next
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={loading} className="bg-[#6b705c] hover:bg-[#5a5e4d]">
+            <Button type="submit" disabled={loading} className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto">
               {loading ? "Creating Trip..." : "Publish Trip"}
             </Button>
           )}
