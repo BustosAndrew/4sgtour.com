@@ -1,25 +1,49 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
+    const supabase = await createClient()
     
     const body = await request.json()
     const {
+      tripId,
       tripTitle,
-      roomType,
+      customerName,
+      customerEmail,
+      packageName,
       startDate,
       endDate,
-      courses,
+      addOns,
       rounds,
-      meal,
-      transport,
       additionalRequests,
       totalPrice,
-      customerEmail,
-      customerName,
     } = body
+
+    const { data: inquiry, error: dbError } = await supabase
+      .from('inquiries')
+      .insert({
+        trip_id: tripId,
+        trip_title: tripTitle,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        package_name: packageName,
+        start_date: startDate,
+        end_date: endDate,
+        add_ons: addOns,
+        rounds: rounds,
+        additional_requests: additionalRequests,
+        total_price: totalPrice,
+        status: 'pending'
+      })
+      .select()
+      .single()
+
+    if (dbError) {
+      console.error("[v0] Database error:", dbError)
+    }
 
     // Format the email content
     const emailContent = `
@@ -28,16 +52,14 @@ New Trip Inquiry
 Trip: ${tripTitle}
 
 Customer Information:
-Name: ${customerName || "Not provided"}
-Email: ${customerEmail || "Not provided"}
+Name: ${customerName}
+Email: ${customerEmail}
 
 Booking Details:
-Room Type: ${roomType}
+Package: ${packageName}
 Travel Dates: ${startDate} to ${endDate}
-Selected Courses: ${courses.length > 0 ? courses.join(", ") : "None"}
+Selected Add-ons: ${addOns && addOns.length > 0 ? addOns.join(", ") : "None"}
 Number of Rounds: ${rounds}
-Meal Selection: ${meal || "None"}
-Transportation: ${transport || "None"}
 
 Total Price: $${totalPrice}
 
@@ -46,9 +68,10 @@ ${additionalRequests || "None"}
 
 ---
 This inquiry was submitted through the booking form.
+Inquiry ID: ${inquiry?.id || 'N/A'}
     `.trim()
 
-    // Send email (configure recipient in environment variable)
+    // Send email
     const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
 
     await resend.emails.send({
@@ -58,7 +81,7 @@ This inquiry was submitted through the booking form.
       text: emailContent,
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, inquiryId: inquiry?.id })
   } catch (error) {
     console.error("[v0] Error sending inquiry:", error)
     return NextResponse.json({ error: "Failed to send inquiry" }, { status: 500 })

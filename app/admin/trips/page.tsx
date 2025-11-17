@@ -4,6 +4,7 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 import { redirect } from 'next/navigation'
 import Link from "next/link"
 import { MapPin, Plus } from 'lucide-react'
+import { InquiriesList } from "@/components/admin/inquiries-list"
 
 export default async function AdminTripsPage() {
   const supabase = await createClient()
@@ -56,6 +57,16 @@ export default async function AdminTripsPage() {
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href="/admin">Back to Dashboard</Link>
             </Button>
+          </div>
+        </div>
+
+        <div className="mb-8 rounded-lg border border-border bg-card">
+          <div className="border-b border-border p-4 sm:p-6">
+            <h2 className="text-lg font-semibold">Recent Inquiries</h2>
+            <p className="text-sm text-muted-foreground">Customer booking inquiries from the website</p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <InquiriesList />
           </div>
         </div>
 

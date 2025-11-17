@@ -1,17 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
 import { Users, User, Minus, Plus } from 'lucide-react'
 
 interface BookingFormProps {
   trip: any
+  user: any
+  profile: any
 }
 
 const DEFAULT_ROOM_TYPES = [
@@ -19,7 +19,7 @@ const DEFAULT_ROOM_TYPES = [
   { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest", price: 0 },
 ]
 
-export function BookingForm({ trip }: BookingFormProps) {
+export function BookingForm({ trip, user, profile }: BookingFormProps) {
   const packages = trip.packages && trip.packages.length > 0 
     ? trip.packages.map((pkg: any) => ({
         id: pkg.id,
@@ -33,8 +33,6 @@ export function BookingForm({ trip }: BookingFormProps) {
   const addOns = trip.add_ons || []
 
   // Form state
-  const [customerName, setCustomerName] = useState("")
-  const [customerEmail, setCustomerEmail] = useState("")
   const [selectedPackage, setSelectedPackage] = useState<string>("")
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -65,6 +63,12 @@ export function BookingForm({ trip }: BookingFormProps) {
   }
 
   const handleSubmit = async () => {
+    if (!user) {
+      alert("Please sign in to submit an inquiry")
+      window.location.href = `/auth/login?redirect=/trips/${trip.slug}/book`
+      return
+    }
+
     if (!dateRange.from || !dateRange.to) {
       alert("Please select travel dates")
       return
@@ -72,11 +76,6 @@ export function BookingForm({ trip }: BookingFormProps) {
 
     if (!selectedPackage) {
       alert("Please select a package")
-      return
-    }
-
-    if (!customerName || !customerEmail) {
-      alert("Please provide your name and email")
       return
     }
 
@@ -93,16 +92,16 @@ export function BookingForm({ trip }: BookingFormProps) {
       const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
       const addOnNames = selectedAddOns.map((id) => addOns.find((a: any) => a.id === id)?.name).filter(Boolean)
 
-      // Send inquiry email
       const response = await fetch("/api/inquiry", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          tripId: trip.id,
           tripTitle: trip.title,
-          customerName,
-          customerEmail,
+          customerName: profile?.full_name || user?.email || "Unknown",
+          customerEmail: profile?.email || user?.email || "",
           packageName,
           startDate,
           endDate,
@@ -120,8 +119,6 @@ export function BookingForm({ trip }: BookingFormProps) {
       alert("Your inquiry has been submitted! We'll contact you shortly.")
       
       // Reset form
-      setCustomerName("")
-      setCustomerEmail("")
       setSelectedPackage("")
       setDateRange({ from: undefined, to: undefined })
       setSelectedAddOns([])
@@ -138,41 +135,10 @@ export function BookingForm({ trip }: BookingFormProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
-        {/* Contact Information */}
+        {/* Step 1: Select Package */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">1</div>
-            <h2 className="text-lg font-bold">Your Information</h2>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="John Doe"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="john@example.com"
-                required
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Step 2: Select Package */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
             <h2 className="text-lg font-bold">Select Package</h2>
           </div>
           <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
@@ -197,10 +163,10 @@ export function BookingForm({ trip }: BookingFormProps) {
           </RadioGroup>
         </Card>
 
-        {/* Step 3: Travel Duration */}
+        {/* Step 2: Travel Duration */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
             <h2 className="text-lg font-bold">Travel Duration</h2>
           </div>
           <div className="space-y-4">
@@ -224,7 +190,7 @@ export function BookingForm({ trip }: BookingFormProps) {
         {addOns.length > 0 && (
           <Card className="bg-[#E8DCC4] p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
               <h2 className="text-lg font-bold">Select Add-ons</h2>
             </div>
             <div className="space-y-2">
@@ -262,7 +228,7 @@ export function BookingForm({ trip }: BookingFormProps) {
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
-              {addOns.length > 0 ? '5' : '4'}
+              {addOns.length > 0 ? '4' : '3'}
             </div>
             <h2 className="text-lg font-bold">Golf Rounds</h2>
           </div>
@@ -293,9 +259,9 @@ export function BookingForm({ trip }: BookingFormProps) {
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
-              {addOns.length > 0 ? '6' : '5'}
+              {addOns.length > 0 ? '5' : '4'}
             </div>
-            <h2 className="text-lg font-bold">Additional Requests</h2>
+            <h2 className="text-lg font-bold">Additional Requests (Optional)</h2>
           </div>
           <Textarea
             placeholder="Any special requests or dietary requirements..."
@@ -355,7 +321,7 @@ export function BookingForm({ trip }: BookingFormProps) {
             className="w-full bg-[#9CA986] hover:bg-[#8a9876]"
             size="lg"
             onClick={handleSubmit}
-            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage || !customerName || !customerEmail}
+            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage}
           >
             {submitting ? "Submitting..." : "Inquire Now"}
           </Button>

@@ -105,3 +105,21 @@ export interface AddOn {
   created_at: string
   updated_at: string
 }
+
+export interface Inquiry {
+  id: string
+  trip_id: string | null
+  trip_title: string
+  customer_name: string
+  customer_email: string
+  package_name: string | null
+  start_date: string | null
+  end_date: string | null
+  add_ons: string[] | null
+  rounds: number
+  additional_requests: string | null
+  total_price: number
+  status: "pending" | "contacted" | "converted" | "cancelled"
+  created_at: string
+  updated_at: string
+}
