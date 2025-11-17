@@ -1,4 +1,4 @@
-import { SiteHeader } from "@/components/site-header"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from 'next/navigation'
@@ -28,10 +28,9 @@ export default async function BookingPage({ params }: BookingPageProps) {
     notFound()
   }
 
-
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main className="container px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="mb-8 text-2xl font-bold sm:text-3xl">Make A Reservation</h1>
         <BookingForm trip={trip} />

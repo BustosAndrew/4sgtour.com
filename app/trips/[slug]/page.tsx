@@ -1,4 +1,4 @@
-import { SiteHeader } from "@/components/site-header"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from 'next/navigation'
@@ -37,9 +37,9 @@ export default async function TripPage({ params }: TripPageProps) {
 
   return (
     <div className="min-h-screen">
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main className="container px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-8 sm:grid-cols-1 lg:grid-cols-2">
           <div>
             <div className="overflow-hidden rounded-lg">
               <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-[300px] w-full object-cover sm:h-[400px]" />

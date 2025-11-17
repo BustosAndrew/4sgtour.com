@@ -1,4 +1,4 @@
-import { SiteHeader } from "@/components/site-header"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { ContinentsView } from "@/components/continents-view"
 import { createClient } from "@/lib/supabase/server"
@@ -20,7 +20,7 @@ export default async function DestinationsPage() {
 
   return (
     <div className="min-h-screen">
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main>
         <ContinentsView destinations={destinations || []} />
       </main>

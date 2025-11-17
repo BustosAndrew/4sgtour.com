@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { RecommendationsCarousel } from "@/components/recommendations-carousel"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -18,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main>
         <section className="relative h-[400px] bg-muted">
           <img src="/placeholder.svg?height=400&width=1200" alt="Hero" className="h-full w-full object-cover" />

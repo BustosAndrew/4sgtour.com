@@ -1,11 +1,11 @@
-import { SiteHeader } from "@/components/site-header"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { ContactForm } from "@/components/contact-form"
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-muted/50">
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main className="container py-12 md:py-16 lg:py-20">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="rounded-3xl bg-card p-10 shadow-sm md:p-12">
