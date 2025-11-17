@@ -1,9 +1,9 @@
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
+import { notFound } from 'next/navigation'
 import Link from "next/link"
-import { MapPin } from "lucide-react"
+import { MapPin } from 'lucide-react'
 import { SiteFooter } from "@/components/site-footer"
 
 interface TripPageProps {
@@ -90,7 +90,7 @@ export default async function TripPage({ params }: TripPageProps) {
 
             <div className="mt-8 flex gap-4">
               <Button asChild className="flex-1">
-                <Link href={`/trips/${trip.slug}/book`}>Book Now</Link>
+                <Link href={`/trips/${trip.slug}/book`}>Inquire Now</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/contact">Contact Us</Link>

@@ -1,7 +1,7 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
+import { notFound } from 'next/navigation'
 import { BookingForm } from "@/components/booking/booking-form"
 
 interface BookingPageProps {
@@ -26,18 +26,6 @@ export default async function BookingPage({ params }: BookingPageProps) {
     notFound()
   }
 
-  if (!trip.wetravel_uuid) {
-    return (
-      <div className="min-h-screen">
-        <SiteHeader />
-        <main className="container py-16 text-center">
-          <h1 className="text-2xl font-bold">Booking Not Available</h1>
-          <p className="mt-4 text-muted-foreground">This trip is not available for online booking.</p>
-        </main>
-        <SiteFooter />
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-background">

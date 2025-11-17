@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useRouter } from "next/navigation"
-import { Upload, X } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import { Upload, X } from 'lucide-react'
 import Image from "next/image"
 
 interface EditTripFormProps {
@@ -20,8 +20,6 @@ interface EditTripFormProps {
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
-    wetravel_uuid?: string | null
-    booking_url?: string | null
   }
 }
 

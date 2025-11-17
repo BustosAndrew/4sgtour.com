@@ -28,8 +28,6 @@ export interface Destination {
 export interface Trip {
   id: string
   destination_id: string
-  wetravel_uuid: string | null
-  booking_url: string | null
   title: string
   slug: string
   description: string | null
@@ -44,7 +42,6 @@ export interface Trip {
   courses_photo_url: string | null
   single_room_photo_url: string | null
   double_room_photo_url: string | null
-  is_payment_link_trip: boolean // Added to track payment link trips
   created_at: string
   updated_at: string
 }
@@ -81,4 +78,30 @@ export interface Favorite {
   user_id: string
   trip_id: string
   created_at: string
+}
+
+export interface Package {
+  id: string
+  trip_id: string
+  name: string
+  description: string | null
+  price: number
+  availability: string
+  quantity: number | null
+  participants_per_booking: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AddOn {
+  id: string
+  trip_id: string
+  name: string
+  description: string | null
+  price: number
+  price_type: "per_participant" | "per_booking"
+  availability: string
+  quantity: number | null
+  created_at: string
+  updated_at: string
 }
