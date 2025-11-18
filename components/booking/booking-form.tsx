@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
 import { Users, User, Minus, Plus, Check } from 'lucide-react'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface BookingFormProps {
   trip: any
@@ -31,14 +33,8 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     : DEFAULT_ROOM_TYPES
 
   const golfCourses = trip.golf_courses || []
-  const mealOptions = trip.meal_options || {
-    breakfast_included_price: 0,
-    breakfast_not_included_price: 0
-  }
-  const transportationOptions = trip.transportation_options || {
-    private_car_price: 0,
-    self_drive_price: 0
-  }
+  const mealOptions = trip.meal_options || []
+  const transportationOptions = trip.transportation_options || []
 
   // Form state
   const [selectedPackage, setSelectedPackage] = useState<string>("")
@@ -46,12 +42,19 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     from: undefined,
     to: undefined,
   })
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
-  const [rounds, setRounds] = useState(2)
-  const [selectedMeal, setSelectedMeal] = useState<"included" | "not_included">("included")
-  const [selectedTransport, setSelectedTransport] = useState<"private" | "self">("private")
+  const [courseRounds, setCourseRounds] = useState<Record<string, number>>({})
+  const [selectedMeal, setSelectedMeal] = useState<string>("")
+  const [selectedTransport, setSelectedTransport] = useState<string>("")
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  const updateCourseRounds = (courseId: string, rounds: number, maxRounds: number) => {
+    const clampedRounds = Math.max(0, Math.min(rounds, maxRounds))
+    setCourseRounds(prev => ({
+      ...prev,
+      [courseId]: clampedRounds
+    }))
+  }
 
   const calculateTotal = () => {
     let total = 0
@@ -60,24 +63,23 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     const selectedPkg = packages.find((p: any) => p.id === selectedPackage)
     if (selectedPkg) total += selectedPkg.price
 
-    // Golf courses and rounds
-    selectedCourses.forEach((courseId) => {
-      const course = golfCourses.find((c: any) => c.id === courseId)
-      if (course) total += Number(course.price_per_round) * rounds
+    Object.entries(courseRounds).forEach(([courseId, rounds]) => {
+      if (rounds > 0) {
+        const course = golfCourses.find((c: any) => c.id === courseId)
+        if (course) total += Number(course.price_per_round) * rounds
+      }
     })
 
     // Meals
-    if (selectedMeal === "included") {
-      total += Number(mealOptions.breakfast_included_price)
-    } else {
-      total += Number(mealOptions.breakfast_not_included_price)
+    const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
+    if (selectedMealOption) {
+      total += Number(selectedMealOption.price)
     }
 
     // Transportation
-    if (selectedTransport === "private") {
-      total += Number(transportationOptions.private_car_price)
-    } else {
-      total += Number(transportationOptions.self_drive_price)
+    const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
+    if (selectedTransportOption) {
+      total += Number(selectedTransportOption.price)
     }
 
     return total
@@ -108,9 +110,16 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       const endDate = dateRange.to.toISOString().split("T")[0]
       const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
       
-      const courseNames = selectedCourses.map((id) => 
-        golfCourses.find((c: any) => c.id === id)?.course_name
-      ).filter(Boolean)
+      const courseDetails = Object.entries(courseRounds)
+        .filter(([_, rounds]) => rounds > 0)
+        .map(([courseId, rounds]) => {
+          const course = golfCourses.find((c: any) => c.id === courseId)
+          return course ? `${course.course_name} (${rounds} rounds)` : null
+        })
+        .filter(Boolean)
+
+      const mealOptionName = mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
+      const transportOptionName = transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name || "Private Car with Driver"
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -125,10 +134,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
           packageName,
           startDate,
           endDate,
-          golfCourses: courseNames,
-          rounds,
-          mealOption: selectedMeal === "included" ? "Breakfast Included" : "Breakfast Not Included",
-          transportOption: selectedTransport === "private" ? "Private Car with Driver" : "Drive Yourself",
+          golfCourses: courseDetails,
+          mealOption: mealOptionName,
+          transportOption: transportOptionName,
           additionalRequests,
           totalPrice: total,
         }),
@@ -143,10 +151,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       // Reset form
       setSelectedPackage("")
       setDateRange({ from: undefined, to: undefined })
-      setSelectedCourses([])
-      setRounds(2)
-      setSelectedMeal("included")
-      setSelectedTransport("private")
+      setCourseRounds({})
+      setSelectedMeal("")
+      setSelectedTransport("")
       setAdditionalRequests("")
     } catch (error) {
       console.error("Error submitting inquiry:", error)
@@ -212,130 +219,126 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         </Card>
 
         {/* Step 3: Golf Courses & Rounds */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
-            <h2 className="text-lg font-bold">Golf Courses & Rounds</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h3 className="mb-2 font-medium">Select Courses</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Choose which golf courses you want to play
-              </p>
-              <div className="space-y-2">
-                {golfCourses.map((course: any) => (
-                  <Card
-                    key={course.id}
-                    className={`cursor-pointer p-4 transition-colors hover:bg-accent ${
-                      selectedCourses.includes(course.id) ? "border-2 border-[#6b705c]" : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedCourses((prev) =>
-                        prev.includes(course.id) ? prev.filter((id) => id !== course.id) : [...prev, course.id],
-                      )
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold">{course.course_name}</span>
-                      <span className="font-bold">${course.price_per_round}</span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+        {golfCourses.length > 0 && (
+          <Card className="bg-[#E8DCC4] p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
+              <h2 className="text-lg font-bold">Golf Courses & Rounds</h2>
             </div>
-
-            <div>
-              <h3 className="mb-2 font-medium">Select Rounds</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                How many rounds would you like to play?
-              </p>
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setRounds(Math.max(1, rounds - 1))}
-                  disabled={rounds <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground">Number of Rounds:</div>
-                  <div className="text-2xl font-bold">{rounds}</div>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="mb-2 font-medium">Select Courses</h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Choose golf courses and number of rounds for each
+                </p>
+                <div className="space-y-3">
+                  {golfCourses.map((course: any) => {
+                    const rounds = courseRounds[course.id] || 0
+                    const maxRounds = course.max_rounds || 5
+                    
+                    return (
+                      <Card
+                        key={course.id}
+                        className="p-4 transition-colors"
+                      >
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="font-bold">{course.course_name}</span>
+                          <span className="font-bold">${course.price_per_round}/round</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => updateCourseRounds(course.id, rounds - 1, maxRounds)}
+                            disabled={rounds <= 0}
+                            className="h-8 w-8"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <div className="flex-1 text-center">
+                            <div className="text-sm text-muted-foreground">Rounds</div>
+                            <div className="text-xl font-bold">{rounds}</div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => updateCourseRounds(course.id, rounds + 1, maxRounds)}
+                            disabled={rounds >= maxRounds}
+                            className="h-8 w-8"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-2 text-center text-xs text-muted-foreground">
+                          Max: {maxRounds} rounds available
+                        </div>
+                      </Card>
+                    )
+                  })}
                 </div>
-                <Button variant="outline" size="icon" onClick={() => setRounds(rounds + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Step 4: Meals */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
-            <h2 className="text-lg font-bold">Meals</h2>
-          </div>
-          <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
-            <Card
-              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
-                selectedMeal === "included" ? "border-2 border-[#6b705c]" : ""
-              }`}
-              onClick={() => setSelectedMeal("included")}
-            >
-              <RadioGroupItem value="included" id="meal-included" className="absolute right-4 top-4" />
-              <label htmlFor="meal-included" className="flex cursor-pointer items-center gap-2">
-                <Check className="h-4 w-4" />
-                <span className="font-bold">Breakfast Included (Recommended)</span>
-              </label>
-            </Card>
-            <Card
-              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
-                selectedMeal === "not_included" ? "border-2 border-[#6b705c]" : ""
-              }`}
-              onClick={() => setSelectedMeal("not_included")}
-            >
-              <RadioGroupItem value="not_included" id="meal-not-included" className="absolute right-4 top-4" />
-              <label htmlFor="meal-not-included" className="cursor-pointer font-bold">
-                Breakfast not Included
-              </label>
-            </Card>
-          </RadioGroup>
-        </Card>
+        {mealOptions.length > 0 && (
+          <Card className="bg-[#E8DCC4] p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+              <h2 className="text-lg font-bold">Meals</h2>
+            </div>
+            <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
+              {mealOptions.map((meal: any, index: number) => (
+                <Card
+                  key={meal.id}
+                  className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                    selectedMeal === meal.id ? "border-2 border-[#6b705c]" : ""
+                  }`}
+                  onClick={() => setSelectedMeal(meal.id)}
+                >
+                  <RadioGroupItem value={meal.id} id={`meal-${meal.id}`} className="absolute right-4 top-4" />
+                  <label htmlFor={`meal-${meal.id}`} className="cursor-pointer">
+                    <div className="font-bold">{meal.name}</div>
+                    {meal.description && <div className="text-sm text-muted-foreground">{meal.description}</div>}
+                  </label>
+                </Card>
+              ))}
+            </RadioGroup>
+          </Card>
+        )}
 
         {/* Step 5: Transportation */}
-        <Card className="bg-[#E8DCC4] p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
-            <h2 className="text-lg font-bold">Transportation</h2>
-          </div>
-          <RadioGroup value={selectedTransport} onValueChange={(val: any) => setSelectedTransport(val)} className="space-y-2">
-            <Card
-              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
-                selectedTransport === "private" ? "border-2 border-[#6b705c]" : ""
-              }`}
-              onClick={() => setSelectedTransport("private")}
-            >
-              <RadioGroupItem value="private" id="transport-private" className="absolute right-4 top-4" />
-              <label htmlFor="transport-private" className="cursor-pointer font-bold">
-                Private Car with Driver (Recommended)
-              </label>
-            </Card>
-            <Card
-              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
-                selectedTransport === "self" ? "border-2 border-[#6b705c]" : ""
-              }`}
-              onClick={() => setSelectedTransport("self")}
-            >
-              <RadioGroupItem value="self" id="transport-self" className="absolute right-4 top-4" />
-              <label htmlFor="transport-self" className="cursor-pointer font-bold">
-                Drive Yourself
-              </label>
-            </Card>
-          </RadioGroup>
-        </Card>
+        {transportationOptions.length > 0 && (
+          <Card className="bg-[#E8DCC4] p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
+              <h2 className="text-lg font-bold">Transportation</h2>
+            </div>
+            <RadioGroup value={selectedTransport} onValueChange={(val: any) => setSelectedTransport(val)} className="space-y-2">
+              {transportationOptions.map((transport: any, index: number) => (
+                <Card
+                  key={transport.id}
+                  className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                    selectedTransport === transport.id ? "border-2 border-[#6b705c]" : ""
+                  }`}
+                  onClick={() => setSelectedTransport(transport.id)}
+                >
+                  <RadioGroupItem value={transport.id} id={`transport-${transport.id}`} className="absolute right-4 top-4" />
+                  <label htmlFor={`transport-${transport.id}`} className="cursor-pointer">
+                    <div className="font-bold">{transport.name}</div>
+                    {transport.description && <div className="text-sm text-muted-foreground">{transport.description}</div>}
+                  </label>
+                </Card>
+              ))}
+            </RadioGroup>
+          </Card>
+        )}
 
         {/* Step 6: Additional Requests */}
         <Card className="bg-[#E8DCC4] p-6">
@@ -371,27 +374,28 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                 <span>${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
               </div>
             )}
-            {selectedCourses.length > 0 && (
+            {Object.entries(courseRounds).filter(([_, rounds]) => rounds > 0).map(([courseId, rounds]) => {
+              const course = golfCourses.find((c: any) => c.id === courseId)
+              if (!course) return null
+              return (
+                <div key={courseId} className="flex justify-between">
+                  <span className="text-muted-foreground">{course.course_name} ({rounds} rounds)</span>
+                  <span>${Number(course.price_per_round) * rounds}</span>
+                </div>
+              )
+            })}
+            {selectedMeal && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">{rounds} Rounds ({selectedCourses.length} courses)</span>
-                <span>${selectedCourses.reduce((sum, id) => {
-                  const course = golfCourses.find((c: any) => c.id === id)
-                  return sum + (course ? Number(course.price_per_round) * rounds : 0)
-                }, 0)}</span>
+                <span className="text-muted-foreground">{mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}</span>
+                <span>${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                {selectedMeal === "included" ? "Breakfast Included" : "Breakfast Not Included"}
-              </span>
-              <span>${selectedMeal === "included" ? mealOptions.breakfast_included_price : mealOptions.breakfast_not_included_price}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                {selectedTransport === "private" ? "Private Car" : "Self Drive"}
-              </span>
-              <span>${selectedTransport === "private" ? transportationOptions.private_car_price : transportationOptions.self_drive_price}</span>
-            </div>
+            {selectedTransport && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}</span>
+                <span>${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}</span>
+              </div>
+            )}
           </div>
 
           <div className="my-4 border-t border-border pt-4">

@@ -8,31 +8,43 @@ import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import Image from "next/image"
 import { InquiriesList } from "@/components/admin/inquiries-list"
+import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type Trip = {
   id: string
   title: string
   location: string
   price_regular: number
-  continent: string | null
+  continent: string
   courses_photo_url: string | null
   booking_url: string | null
 }
 
 const CONTINENTS = ["Africa", "South America", "North America", "Asia", "Europe"] as const
 
-export function AdminCourses({ userName, trips }: { userName: string; trips: Trip[] }) {
+export function AdminCourses({ 
+  userName, 
+  trips,
+  userEmail,
+  userPhone,
+  userPhotoUrl
+}: { 
+  userName: string
+  trips: Trip[]
+  userEmail: string
+  userPhone: string | null
+  userPhotoUrl: string | null
+}) {
   const [activeTab, setActiveTab] = useState<"courses" | "inquiries">("courses")
   const [selectedContinent, setSelectedContinent] = useState<string>("All")
+  const [showAccountSettings, setShowAccountSettings] = useState(false)
   const router = useRouter()
 
-  const unassignedTrips = trips.filter((trip) => !trip.continent)
   const filteredTrips =
     selectedContinent === "All" 
       ? trips 
-      : selectedContinent === "Unassigned" 
-        ? unassignedTrips 
-        : trips.filter((trip) => trip.continent === selectedContinent)
+      : trips.filter((trip) => trip.continent === selectedContinent)
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -112,9 +124,20 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
               <p className="text-sm text-gray-600">Welcome Back!</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">{userName}</span>
               <span className="text-xs text-gray-500">Admin</span>
-              <div className="h-10 w-10 rounded-full bg-gray-300" />
+              <button
+                onClick={() => setShowAccountSettings(true)}
+                className="transition-opacity hover:opacity-80"
+              >
+                <Avatar className="h-10 w-10">
+                  {userPhotoUrl && (
+                    <AvatarImage src={userPhotoUrl || "/placeholder.svg"} alt={userName} />
+                  )}
+                  <AvatarFallback className="bg-gray-300 text-gray-600">
+                    {userName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
             </div>
           </div>
         </header>
@@ -138,16 +161,6 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
                     }`}
                   >
                     All ({trips.length})
-                  </button>
-                  <button
-                    onClick={() => setSelectedContinent("Unassigned")}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                      selectedContinent === "Unassigned"
-                        ? "bg-[#ff5f57] text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Unassigned {unassignedTrips.length > 0 && `(${unassignedTrips.length})`}
                   </button>
                   {CONTINENTS.map((continent) => (
                     <button
@@ -173,15 +186,6 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
                   </Button>
                 </Link>
               </div>
-
-              {selectedContinent === "Unassigned" && unassignedTrips.length > 0 && (
-                <div className="mb-6 rounded-lg bg-amber-50 border border-amber-200 p-4">
-                  <p className="text-sm text-amber-800">
-                    <strong>Action Required:</strong> These trips need to be assigned to a continent before they appear on
-                    the site. Click the edit button to assign each trip.
-                  </p>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredTrips.map((trip) => (
@@ -224,11 +228,9 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
                 {filteredTrips.length === 0 && (
                   <div className="col-span-full rounded-lg bg-white p-12 text-center">
                     <p className="text-gray-500">
-                      {selectedContinent === "Unassigned"
-                        ? "No unassigned courses. All trips have been organized!"
-                        : selectedContinent === "All"
-                          ? "No trips yet."
-                          : `No courses found for ${selectedContinent}.`}
+                      {selectedContinent === "All"
+                        ? "No trips yet."
+                        : `No courses found for ${selectedContinent}.`}
                     </p>
                     <p className="mt-2 text-sm text-gray-400">Click "Add Course" to create a new trip.</p>
                   </div>
@@ -249,6 +251,15 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
           )}
         </div>
       </main>
+
+      <AccountSettingsDialog
+        open={showAccountSettings}
+        onOpenChange={setShowAccountSettings}
+        userEmail={userEmail}
+        userName={userName}
+        userPhone={userPhone}
+        userPhotoUrl={userPhotoUrl}
+      />
     </div>
   )
 }

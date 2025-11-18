@@ -20,7 +20,11 @@ export default async function AdminDashboardPage() {
     redirect("/")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("display_name, email").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, email, phone, photo_url")
+    .eq("id", user.id)
+    .single()
 
   const { data: trips } = await supabase
     .from("trips")
@@ -28,5 +32,13 @@ export default async function AdminDashboardPage() {
     .order("continent", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true })
 
-  return <AdminCourses userName={profile?.display_name || profile?.email || "Admin"} trips={trips || []} />
+  return (
+    <AdminCourses 
+      userName={profile?.display_name || profile?.email || "Admin"} 
+      trips={trips || []}
+      userEmail={profile?.email || user.email || ""}
+      userPhone={profile?.phone || null}
+      userPhotoUrl={profile?.photo_url || null}
+    />
+  )
 }

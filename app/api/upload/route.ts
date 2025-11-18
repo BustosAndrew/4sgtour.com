@@ -1,7 +1,7 @@
 import { put } from "@vercel/blob"
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getUserType } from "@/lib/supabase/get-user-type"
+// import { getUserType } from "@/lib/supabase/get-user-type" // Removed as no longer needed
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -14,11 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const userType = await getUserType()
-
-  if (userType !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  // No userType check needed - authenticated users can upload
 
   const formData = await request.formData()
   const file = formData.get("file") as File

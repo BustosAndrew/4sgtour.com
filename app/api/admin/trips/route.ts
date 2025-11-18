@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       double_room_photo_url,
       packages, // Added packages
       addOns, // Added add-ons
+      golfCourses, // Added golfCourses
     } = body
 
     // Generate slug from title
@@ -101,6 +102,22 @@ export async function POST(request: Request) {
 
       if (addOnsError) {
         console.error("[v0] Error creating add-ons:", addOnsError)
+        // Don't fail the whole operation, just log the error
+      }
+    }
+
+    if (golfCourses && golfCourses.length > 0) {
+      const golfCoursesData = golfCourses.map((course) => ({
+        trip_id: tripData.id,
+        course_name: course.course_name,
+        price_per_round: Number(course.price_per_round),
+        max_rounds: Number(course.max_rounds), // Added max_rounds field
+      }))
+
+      const { error: golfCoursesError } = await supabase.from("golf_courses").insert(golfCoursesData)
+
+      if (golfCoursesError) {
+        console.error("[v0] Error creating golf courses:", golfCoursesError)
         // Don't fail the whole operation, just log the error
       }
     }

@@ -59,14 +59,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const [packages, setPackages] = useState(trip.packages || [])
   const [golfCourses, setGolfCourses] = useState(trip.golf_courses || [])
-  const [mealOptions, setMealOptions] = useState(trip.meal_options || [
-    { id: 'breakfast-included', name: 'Breakfast Included', description: 'Daily breakfast at hotel', price: 0, is_recommended: true },
-    { id: 'breakfast-not-included', name: 'Breakfast not Included', description: 'No meals included', price: 0, is_recommended: false }
-  ])
-  const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [
-    { id: 'private-car', name: 'Private Car with Driver', description: 'Recommended for convenience', price: 0, is_recommended: true },
-    { id: 'drive-yourself', name: 'Drive Yourself', description: 'Rent a car independently', price: 0, is_recommended: false }
-  ])
+  const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
+  const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [])
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -131,7 +125,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       id: `new-${Date.now()}`, 
       name: '', 
       description: '', 
-      price: 0
+      price: 0,
+      max_rounds: 5 // Added max_rounds with default value
     }])
   }
 
@@ -145,10 +140,42 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setGolfCourses(updated)
   }
 
+  const addMealOption = () => {
+    setMealOptions([
+      ...mealOptions,
+      {
+        id: `new-${Date.now()}`,
+        name: "",
+        description: "",
+        price: 0,
+      },
+    ])
+  }
+
+  const removeMealOption = (index: number) => {
+    setMealOptions(mealOptions.filter((_, i) => i !== index))
+  }
+
   const handleMealOptionChange = (index: number, field: string, value: any) => {
     const updated = [...mealOptions]
     updated[index] = { ...updated[index], [field]: value }
     setMealOptions(updated)
+  }
+
+  const addTransportationOption = () => {
+    setTransportationOptions([
+      ...transportationOptions,
+      {
+        id: `new-${Date.now()}`,
+        name: "",
+        description: "",
+        price: 0,
+      },
+    ])
+  }
+
+  const removeTransportationOption = (index: number) => {
+    setTransportationOptions(transportationOptions.filter((_, i) => i !== index))
   }
 
   const handleTransportationOptionChange = (index: number, field: string, value: any) => {
@@ -602,7 +629,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Trip Options</h2>
-              <p className="text-sm text-muted-foreground">Configure golf courses, meals, and transportation</p>
+              <p className="text-sm text-muted-foreground">Configure golf courses, meals, and transportation (all optional)</p>
             </div>
 
             <div className="space-y-4">
@@ -627,7 +654,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-3">
                       <div>
                         <Label>Course Name *</Label>
                         <Input
@@ -647,6 +674,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           required
                         />
                       </div>
+                      <div>
+                        <Label>Max Rounds *</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={course.max_rounds || 5}
+                          onChange={(e) => handleGolfCourseChange(index, 'max_rounds', Number(e.target.value))}
+                          placeholder="5"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">Max rounds (min: 0)</p>
+                      </div>
                     </div>
                     <div>
                       <Label>Description</Label>
@@ -663,18 +702,33 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
               {golfCourses.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No golf courses added yet. Click "Add Course" to add courses.
+                  No golf courses added (optional). Click "Add Course" to add courses.
                 </div>
               )}
             </div>
 
             <div className="space-y-4">
-              <Label className="text-base">Meal Options</Label>
-              <p className="text-sm text-muted-foreground">Configure the two meal options for this trip</p>
+              <div className="flex items-center justify-between">
+                <Label className="text-base">Meal Options</Label>
+                <Button type="button" onClick={addMealOption} variant="outline" size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Meal Option
+                </Button>
+              </div>
               {mealOptions.map((meal, index) => (
                 <Card key={meal.id} className="p-4">
                   <div className="space-y-4">
-                    <h4 className="font-medium">{index === 0 ? 'Option 1 (Recommended)' : 'Option 2'}</h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Meal Option {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeMealOption(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <Label>Option Name *</Label>
@@ -707,15 +761,36 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </div>
                 </Card>
               ))}
+
+              {mealOptions.length === 0 && (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  No meal options added (optional). Click "Add Meal Option" to add options.
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
-              <Label className="text-base">Transportation Options</Label>
-              <p className="text-sm text-muted-foreground">Configure the two transportation options for this trip</p>
+              <div className="flex items-center justify-between">
+                <Label className="text-base">Transportation Options</Label>
+                <Button type="button" onClick={addTransportationOption} variant="outline" size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Transportation Option
+                </Button>
+              </div>
               {transportationOptions.map((transport, index) => (
                 <Card key={transport.id} className="p-4">
                   <div className="space-y-4">
-                    <h4 className="font-medium">{index === 0 ? 'Option 1 (Recommended)' : 'Option 2'}</h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Transportation Option {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTransportationOption(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <Label>Option Name *</Label>
@@ -748,6 +823,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </div>
                 </Card>
               ))}
+
+              {transportationOptions.length === 0 && (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  No transportation options added (optional). Click "Add Transportation Option" to add options.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -848,6 +929,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <div>
                           <span className="font-medium">Price per Round:</span> ${course.price}
                         </div>
+                        <div>
+                          <span className="font-medium">Max Rounds:</span> {course.max_rounds || 5}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -870,6 +954,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     </div>
                   ))}
                 </div>
+                {mealOptions.length === 0 && <p className="text-sm text-muted-foreground">No meal options added</p>}
               </div>
 
               {/* Transportation Options Summary */}
@@ -886,6 +971,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     </div>
                   ))}
                 </div>
+                {transportationOptions.length === 0 && <p className="text-sm text-muted-foreground">No transportation options added</p>}
               </div>
             </div>
           </div>
