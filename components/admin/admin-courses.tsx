@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, Pencil, Trash2, RefreshCw } from "lucide-react"
+import { LogOut, Pencil, Trash2 } from 'lucide-react'
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import Image from "next/image"
 
@@ -22,8 +22,6 @@ const CONTINENTS = ["Africa", "South America", "North America", "Asia", "Europe"
 
 export function AdminCourses({ userName, trips }: { userName: string; trips: Trip[] }) {
   const [selectedContinent, setSelectedContinent] = useState<string>("Unassigned")
-  const [isPending, startTransition] = useTransition()
-  const [syncStatus, setSyncStatus] = useState<string>("")
   const router = useRouter()
 
   const unassignedTrips = trips.filter((trip) => !trip.continent)
@@ -34,28 +32,6 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/auth/login")
-  }
-
-  const handleSync = async () => {
-    startTransition(async () => {
-      try {
-        setSyncStatus("Syncing trips from WeTravel...")
-        const response = await fetch("/api/wetravel/sync", { method: "POST" })
-        const data = await response.json()
-
-        if (data.error) {
-          setSyncStatus(`Error: ${data.message || data.error}`)
-          setTimeout(() => setSyncStatus(""), 5000)
-        } else {
-          setSyncStatus(`Success! Synced ${data.synced} new trips, updated ${data.updated} existing trips.`)
-          router.refresh()
-          setTimeout(() => setSyncStatus(""), 5000)
-        }
-      } catch (error) {
-        setSyncStatus("Failed to sync. Please check your WeTravel API configuration.")
-        setTimeout(() => setSyncStatus(""), 5000)
-      }
-    })
   }
 
   return (
@@ -126,14 +102,6 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
             <p className="text-sm text-gray-600">Create, delete, and edit courses</p>
           </div>
 
-          {syncStatus && (
-            <div
-              className={`mb-4 rounded-lg p-4 ${syncStatus.startsWith("Error") ? "bg-red-100 text-red-800" : syncStatus.startsWith("Success") ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}`}
-            >
-              {syncStatus}
-            </div>
-          )}
-
           <div className="mb-6 flex items-center justify-between rounded-lg bg-white p-6 shadow-sm">
             <div className="flex gap-2">
               <button
@@ -164,16 +132,11 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
                 </button>
               ))}
             </div>
-            <Button onClick={handleSync} disabled={isPending} className="bg-[#adc178] text-white hover:bg-[#9ab368]">
-              {isPending ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Syncing...
-                </>
-              ) : (
-                <>+ Add Course</>
-              )}
-            </Button>
+            <Link href="/admin/trips/new">
+              <Button className="bg-[#adc178] text-white hover:bg-[#9ab368]">
+                + Add Course
+              </Button>
+            </Link>
           </div>
 
           {selectedContinent === "Unassigned" && unassignedTrips.length > 0 && (
@@ -231,7 +194,7 @@ export function AdminCourses({ userName, trips }: { userName: string; trips: Tri
                     : `No courses found for ${selectedContinent}.`}
                 </p>
                 {selectedContinent === "Unassigned" && (
-                  <p className="mt-2 text-sm text-gray-400">Click "Add Course" to sync from WeTravel.</p>
+                  <p className="mt-2 text-sm text-gray-400">Click "Add Course" to create a new trip.</p>
                 )}
               </div>
             )}
