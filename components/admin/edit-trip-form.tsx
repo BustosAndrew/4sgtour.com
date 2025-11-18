@@ -186,7 +186,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       if (!response.ok) throw new Error("Failed to update trip")
 
       router.refresh()
-      router.push('/admin/trips')
+      router.push('/admin') // Updated code here
       alert("Trip updated successfully")
     } catch (error) {
       console.error("Error updating trip:", error)
@@ -207,7 +207,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       if (!response.ok) throw new Error("Failed to delete trip")
 
       router.refresh()
-      router.push('/admin/trips')
+      router.push('/admin') // Updated code here
       alert("Trip deleted successfully")
     } catch (error) {
       console.error("Error deleting trip:", error)

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { redirect } from "next/navigation"
+import { redirect } from 'next/navigation'
 import { AdminCourses } from "@/components/admin/admin-courses"
 
 export default async function AdminDashboardPage() {
@@ -25,13 +25,8 @@ export default async function AdminDashboardPage() {
   const { data: trips } = await supabase
     .from("trips")
     .select("*")
-    .not("continent", "is", null)
-    .order("continent", { ascending: true })
+    .order("continent", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true })
 
-  return (
-    <div className="min-h-screen bg-background">
-      <AdminCourses userName={profile?.display_name || profile?.email || "Admin"} trips={trips || []} />
-    </div>
-  )
+  return <AdminCourses userName={profile?.display_name || profile?.email || "Admin"} trips={trips || []} />
 }

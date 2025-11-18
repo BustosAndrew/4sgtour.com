@@ -52,7 +52,6 @@ export function CreateTripForm() {
     location: "",
     continent: "",
     price_regular: "",
-    price_wholesale: "",
     duration_nights: "7",
     max_guests: "20",
     includes_breakfast: false,
@@ -113,7 +112,6 @@ export function CreateTripForm() {
         body: JSON.stringify({
           ...formData,
           price_regular: Number(formData.price_regular),
-          price_wholesale: Number(formData.price_wholesale),
           duration_nights: Number(formData.duration_nights),
           max_guests: Number(formData.max_guests),
           courses_photo_url: photos.courses || null,
@@ -140,7 +138,7 @@ export function CreateTripForm() {
 
       if (!response.ok) throw new Error("Failed to create trip")
 
-      router.push("/admin/trips")
+      router.push("/admin")
       router.refresh()
     } catch (error) {
       console.error("Error creating trip:", error)
@@ -199,11 +197,11 @@ export function CreateTripForm() {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return formData.title && formData.location && formData.continent && formData.price_regular && formData.price_wholesale
+        return formData.title && formData.location && formData.continent && formData.price_regular
       case 2:
-        return true // Packages are optional
+        return true
       case 3:
-        return true // Add-ons are optional
+        return true
       default:
         return true
     }
@@ -339,21 +337,6 @@ export function CreateTripForm() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="price_wholesale">Wholesale Price ($) *</Label>
-                <Input
-                  id="price_wholesale"
-                  type="number"
-                  step="0.01"
-                  value={formData.price_wholesale}
-                  onChange={(e) => setFormData({ ...formData, price_wholesale: e.target.value })}
-                  placeholder="2250.00"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="duration_nights">Duration (nights)</Label>
                 <Input
@@ -791,13 +774,8 @@ export function CreateTripForm() {
                       "Not set"
                     )}
                   </div>
-                  <div className="grid gap-2 md:grid-cols-2">
-                    <div>
-                      <span className="font-medium">Regular Price:</span> ${formData.price_regular || "0.00"}
-                    </div>
-                    <div>
-                      <span className="font-medium">Wholesale Price:</span> ${formData.price_wholesale || "0.00"}
-                    </div>
+                  <div>
+                    <span className="font-medium">Regular Price:</span> ${formData.price_regular || "0.00"}
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
                     <div>

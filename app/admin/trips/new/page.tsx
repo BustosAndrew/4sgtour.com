@@ -28,7 +28,7 @@ export default async function NewTripPage() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Create New Trip</h1>
           <Button asChild variant="outline">
-            <Link href="/admin/trips">Back to Trips</Link>
+            <Link href="/admin">Back to Admin</Link>
           </Button>
         </div>
         <CreateTripForm />
