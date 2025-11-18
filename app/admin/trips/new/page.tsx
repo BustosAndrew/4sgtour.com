@@ -24,10 +24,10 @@ export default async function NewTripPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Create New Trip</h1>
-          <Button asChild variant="outline">
+      <main className="container px-4 py-6 sm:px-6 sm:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-xl font-semibold sm:text-2xl">Create New Trip</h1>
+          <Button asChild variant="outline" className="w-full sm:w-auto">
             <Link href="/admin">Back to Admin</Link>
           </Button>
         </div>

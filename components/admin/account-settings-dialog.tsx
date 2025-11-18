@@ -186,8 +186,8 @@ export function AccountSettingsDialog({
           {/* Profile Picture */}
           <div className="space-y-2">
             <Label>Profile Picture</Label>
-            <div className="flex items-center gap-4">
-              <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 mx-auto sm:mx-0">
                 {photoUrl ? (
                   <Image src={photoUrl || "/placeholder.svg"} alt="Profile" fill className="object-cover" />
                 ) : (
@@ -197,13 +197,13 @@ export function AccountSettingsDialog({
                 )}
               </div>
               <div className="flex-1 space-y-2">
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     type="button"
                     variant={uploadMode === "url" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setUploadMode("url")}
-                    className="flex-1"
+                    className="w-full"
                   >
                     URL
                   </Button>
@@ -212,7 +212,7 @@ export function AccountSettingsDialog({
                     variant={uploadMode === "upload" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setUploadMode("upload")}
-                    className="flex-1"
+                    className="w-full"
                   >
                     Upload
                   </Button>
@@ -224,6 +224,7 @@ export function AccountSettingsDialog({
                       placeholder="Enter image URL"
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
+                      className="text-sm"
                     />
                   </div>
                 ) : (
@@ -233,7 +234,7 @@ export function AccountSettingsDialog({
                       accept="image/*"
                       onChange={handleFileUpload}
                       disabled={isUploading}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-sm"
                     />
                     {isUploading && (
                       <p className="mt-1 text-xs text-gray-500">Uploading...</p>
@@ -321,19 +322,19 @@ export function AccountSettingsDialog({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateProfile}
               disabled={isLoading || isUploading}
-              className="flex-1 bg-[#6b705c] hover:bg-[#5a5f4d]"
+              className="w-full bg-[#6b705c] hover:bg-[#5a5f4d] sm:flex-1"
             >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>

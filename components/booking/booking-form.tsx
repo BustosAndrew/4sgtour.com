@@ -167,25 +167,25 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
         {/* Step 1: Select Room Type */}
-        <Card className="bg-[#E8DCC4] p-6">
+        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">1</div>
-            <h2 className="text-lg font-bold">Select Room Type</h2>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">1</div>
+            <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
           </div>
           <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
             {packages.map((pkg: any) => {
               const Icon = pkg.icon
               return (
-                <Card key={pkg.id} className="relative cursor-pointer p-4 transition-colors hover:bg-accent">
-                  <RadioGroupItem value={pkg.id} id={pkg.id} className="absolute right-4 top-4" />
+                <Card key={pkg.id} className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4">
+                  <RadioGroupItem value={pkg.id} id={pkg.id} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
                   <label htmlFor={pkg.id} className="flex cursor-pointer items-start gap-3">
-                    <Icon className="mt-1 h-5 w-5" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold">{pkg.name}</div>
-                        <div className="font-bold">${pkg.price}</div>
+                    <Icon className="mt-1 h-5 w-5 flex-shrink-0" />
+                    <div className="flex-1 pr-8">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="font-bold text-sm sm:text-base">{pkg.name}</div>
+                        <div className="font-bold text-sm sm:text-base">${pkg.price}</div>
                       </div>
-                      <div className="text-sm text-muted-foreground">{pkg.description}</div>
+                      <div className="text-xs text-muted-foreground sm:text-sm">{pkg.description}</div>
                     </div>
                   </label>
                 </Card>
@@ -195,15 +195,15 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         </Card>
 
         {/* Step 2: Travel Duration */}
-        <Card className="bg-[#E8DCC4] p-6">
+        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
-            <h2 className="text-lg font-bold">Travel Duration</h2>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
+            <h2 className="text-base font-bold sm:text-lg">Travel Duration</h2>
           </div>
           <div className="space-y-4">
             <div>
-              <h3 className="mb-2 font-medium">Select Dates</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <h3 className="mb-2 text-sm font-medium sm:text-base">Select Dates</h3>
+              <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
                 Choose your preferred travel dates for this golf trip
               </p>
               <div className="overflow-x-auto">
@@ -220,16 +220,16 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
 
         {/* Step 3: Golf Courses & Rounds */}
         {golfCourses.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-6">
+          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
-              <h2 className="text-lg font-bold">Golf Courses & Rounds</h2>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
+              <h2 className="text-base font-bold sm:text-lg">Golf Courses & Rounds</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <h3 className="mb-2 font-medium">Select Courses</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
+                <h3 className="mb-2 text-sm font-medium sm:text-base">Select Courses</h3>
+                <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
                   Choose golf courses and number of rounds for each
                 </p>
                 <div className="space-y-3">
@@ -240,27 +240,27 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                     return (
                       <Card
                         key={course.id}
-                        className="p-4 transition-colors"
+                        className="p-3 transition-colors sm:p-4"
                       >
-                        <div className="mb-3 flex items-center justify-between">
-                          <span className="font-bold">{course.course_name}</span>
-                          <span className="font-bold">${course.price_per_round}/round</span>
+                        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <span className="font-bold text-sm sm:text-base">{course.course_name}</span>
+                          <span className="font-bold text-sm sm:text-base">${course.price_per_round}/round</span>
                         </div>
                         
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
                             onClick={() => updateCourseRounds(course.id, rounds - 1, maxRounds)}
                             disabled={rounds <= 0}
-                            className="h-8 w-8"
+                            className="h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10"
                           >
-                            <Minus className="h-4 w-4" />
+                            <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <div className="flex-1 text-center">
-                            <div className="text-sm text-muted-foreground">Rounds</div>
-                            <div className="text-xl font-bold">{rounds}</div>
+                            <div className="text-xs text-muted-foreground sm:text-sm">Rounds</div>
+                            <div className="text-lg font-bold sm:text-xl">{rounds}</div>
                           </div>
                           <Button
                             type="button"
@@ -268,9 +268,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                             size="icon"
                             onClick={() => updateCourseRounds(course.id, rounds + 1, maxRounds)}
                             disabled={rounds >= maxRounds}
-                            className="h-8 w-8"
+                            className="h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                         
@@ -288,24 +288,24 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
 
         {/* Step 4: Meals */}
         {mealOptions.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-6">
+          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
-              <h2 className="text-lg font-bold">Meals</h2>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+              <h2 className="text-base font-bold sm:text-lg">Meals</h2>
             </div>
             <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
               {mealOptions.map((meal: any, index: number) => (
                 <Card
                   key={meal.id}
-                  className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                  className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
                     selectedMeal === meal.id ? "border-2 border-[#6b705c]" : ""
                   }`}
                   onClick={() => setSelectedMeal(meal.id)}
                 >
-                  <RadioGroupItem value={meal.id} id={`meal-${meal.id}`} className="absolute right-4 top-4" />
-                  <label htmlFor={`meal-${meal.id}`} className="cursor-pointer">
-                    <div className="font-bold">{meal.name}</div>
-                    {meal.description && <div className="text-sm text-muted-foreground">{meal.description}</div>}
+                  <RadioGroupItem value={meal.id} id={`meal-${meal.id}`} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+                  <label htmlFor={`meal-${meal.id}`} className="cursor-pointer pr-8">
+                    <div className="font-bold text-sm sm:text-base">{meal.name}</div>
+                    {meal.description && <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>}
                   </label>
                 </Card>
               ))}
@@ -315,24 +315,24 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
 
         {/* Step 5: Transportation */}
         {transportationOptions.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-6">
+          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
-              <h2 className="text-lg font-bold">Transportation</h2>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
+              <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
             </div>
             <RadioGroup value={selectedTransport} onValueChange={(val: any) => setSelectedTransport(val)} className="space-y-2">
               {transportationOptions.map((transport: any, index: number) => (
                 <Card
                   key={transport.id}
-                  className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                  className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
                     selectedTransport === transport.id ? "border-2 border-[#6b705c]" : ""
                   }`}
                   onClick={() => setSelectedTransport(transport.id)}
                 >
-                  <RadioGroupItem value={transport.id} id={`transport-${transport.id}`} className="absolute right-4 top-4" />
-                  <label htmlFor={`transport-${transport.id}`} className="cursor-pointer">
-                    <div className="font-bold">{transport.name}</div>
-                    {transport.description && <div className="text-sm text-muted-foreground">{transport.description}</div>}
+                  <RadioGroupItem value={transport.id} id={`transport-${transport.id}`} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+                  <label htmlFor={`transport-${transport.id}`} className="cursor-pointer pr-8">
+                    <div className="font-bold text-sm sm:text-base">{transport.name}</div>
+                    {transport.description && <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>}
                   </label>
                 </Card>
               ))}
@@ -341,72 +341,72 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         )}
 
         {/* Step 6: Additional Requests */}
-        <Card className="bg-[#E8DCC4] p-6">
+        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">6</div>
-            <h2 className="text-lg font-bold">Additional Requests</h2>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">6</div>
+            <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
           </div>
           <Textarea
             placeholder="Any special requests or dietary requirements..."
             value={additionalRequests}
             onChange={(e) => setAdditionalRequests(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[100px] text-sm"
           />
         </Card>
       </div>
 
       {/* Confirmation Panel */}
       <div className="lg:sticky lg:top-8 lg:self-start">
-        <Card className="bg-[#F8F8F8] p-6">
-          <h2 className="mb-4 text-lg font-bold">Confirmation</h2>
-          <div className="space-y-2 text-sm">
+        <Card className="bg-[#F8F8F8] p-4 sm:p-6">
+          <h2 className="mb-4 text-base font-bold sm:text-lg">Confirmation</h2>
+          <div className="space-y-2 text-xs sm:text-sm">
             {dateRange.from && dateRange.to && (
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">Reservation for:</span>
-                <span>
+                <span className="font-medium">
                   {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
                 </span>
               </div>
             )}
             {selectedPackage && (
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">{packages.find((p: any) => p.id === selectedPackage)?.name}</span>
-                <span>${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
+                <span className="font-medium">${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
               </div>
             )}
             {Object.entries(courseRounds).filter(([_, rounds]) => rounds > 0).map(([courseId, rounds]) => {
               const course = golfCourses.find((c: any) => c.id === courseId)
               if (!course) return null
               return (
-                <div key={courseId} className="flex justify-between">
+                <div key={courseId} className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="text-muted-foreground">{course.course_name} ({rounds} rounds)</span>
-                  <span>${Number(course.price_per_round) * rounds}</span>
+                  <span className="font-medium">${Number(course.price_per_round) * rounds}</span>
                 </div>
               )
             })}
             {selectedMeal && (
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">{mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}</span>
-                <span>${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
+                <span className="font-medium">${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
               </div>
             )}
             {selectedTransport && (
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">{transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}</span>
-                <span>${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}</span>
+                <span className="font-medium">${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}</span>
               </div>
             )}
           </div>
 
           <div className="my-4 border-t border-border pt-4">
-            <div className="flex justify-between text-lg font-bold">
+            <div className="flex justify-between text-base font-bold sm:text-lg">
               <span>Total:</span>
               <span>${calculateTotal()}</span>
             </div>
           </div>
 
           <Button
-            className="w-full bg-[#9CA986] hover:bg-[#8a9876]"
+            className="w-full bg-[#9CA986] text-sm hover:bg-[#8a9876] sm:text-base"
             size="lg"
             onClick={handleSubmit}
             disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage}
@@ -426,9 +426,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
           </div>
         )}
 
-        <Card className="mt-4 bg-muted/50 p-4">
-          <h3 className="font-bold">{trip.title}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Location: {trip.location}</p>
+        <Card className="mt-4 bg-muted/50 p-3 sm:p-4">
+          <h3 className="text-sm font-bold sm:text-base">{trip.title}</h3>
+          <p className="mt-2 text-xs text-muted-foreground sm:text-sm">Location: {trip.location}</p>
         </Card>
       </div>
     </div>
