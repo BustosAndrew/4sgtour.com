@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
-import { Users, User, Minus, Plus } from 'lucide-react'
+import { Users, User, Minus, Plus, Check } from 'lucide-react'
 
 interface BookingFormProps {
   trip: any
@@ -30,7 +30,15 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       }))
     : DEFAULT_ROOM_TYPES
 
-  const addOns = trip.add_ons || []
+  const golfCourses = trip.golf_courses || []
+  const mealOptions = trip.meal_options || {
+    breakfast_included_price: 0,
+    breakfast_not_included_price: 0
+  }
+  const transportationOptions = trip.transportation_options || {
+    private_car_price: 0,
+    self_drive_price: 0
+  }
 
   // Form state
   const [selectedPackage, setSelectedPackage] = useState<string>("")
@@ -38,8 +46,10 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     from: undefined,
     to: undefined,
   })
-  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
   const [rounds, setRounds] = useState(2)
+  const [selectedMeal, setSelectedMeal] = useState<"included" | "not_included">("included")
+  const [selectedTransport, setSelectedTransport] = useState<"private" | "self">("private")
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -50,14 +60,25 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     const selectedPkg = packages.find((p: any) => p.id === selectedPackage)
     if (selectedPkg) total += selectedPkg.price
 
-    // Add-ons prices
-    selectedAddOns.forEach((addOnId) => {
-      const addOn = addOns.find((a: any) => a.id === addOnId)
-      if (addOn) total += Number(addOn.price) || 0
+    // Golf courses and rounds
+    selectedCourses.forEach((courseId) => {
+      const course = golfCourses.find((c: any) => c.id === courseId)
+      if (course) total += Number(course.price_per_round) * rounds
     })
 
-    // Rounds price (example: $20 per round)
-    total += rounds * 20
+    // Meals
+    if (selectedMeal === "included") {
+      total += Number(mealOptions.breakfast_included_price)
+    } else {
+      total += Number(mealOptions.breakfast_not_included_price)
+    }
+
+    // Transportation
+    if (selectedTransport === "private") {
+      total += Number(transportationOptions.private_car_price)
+    } else {
+      total += Number(transportationOptions.self_drive_price)
+    }
 
     return total
   }
@@ -75,7 +96,7 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
     }
 
     if (!selectedPackage) {
-      alert("Please select a package")
+      alert("Please select a room type")
       return
     }
 
@@ -83,14 +104,13 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
 
     try {
       const total = calculateTotal()
-
-      // Format dates
       const startDate = dateRange.from.toISOString().split("T")[0]
       const endDate = dateRange.to.toISOString().split("T")[0]
-
-      // Get selected option names for email
       const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
-      const addOnNames = selectedAddOns.map((id) => addOns.find((a: any) => a.id === id)?.name).filter(Boolean)
+      
+      const courseNames = selectedCourses.map((id) => 
+        golfCourses.find((c: any) => c.id === id)?.course_name
+      ).filter(Boolean)
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -105,8 +125,10 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
           packageName,
           startDate,
           endDate,
-          addOns: addOnNames,
+          golfCourses: courseNames,
           rounds,
+          mealOption: selectedMeal === "included" ? "Breakfast Included" : "Breakfast Not Included",
+          transportOption: selectedTransport === "private" ? "Private Car with Driver" : "Drive Yourself",
           additionalRequests,
           totalPrice: total,
         }),
@@ -121,8 +143,10 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       // Reset form
       setSelectedPackage("")
       setDateRange({ from: undefined, to: undefined })
-      setSelectedAddOns([])
+      setSelectedCourses([])
       setRounds(2)
+      setSelectedMeal("included")
+      setSelectedTransport("private")
       setAdditionalRequests("")
     } catch (error) {
       console.error("Error submitting inquiry:", error)
@@ -135,11 +159,11 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
-        {/* Step 1: Select Package */}
+        {/* Step 1: Select Room Type */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">1</div>
-            <h2 className="text-lg font-bold">Select Package</h2>
+            <h2 className="text-lg font-bold">Select Room Type</h2>
           </div>
           <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
             {packages.map((pkg: any) => {
@@ -187,81 +211,137 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
           </div>
         </Card>
 
-        {addOns.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
-              <h2 className="text-lg font-bold">Select Add-ons</h2>
-            </div>
-            <div className="space-y-2">
-              {addOns.map((addOn: any) => (
-                <Card
-                  key={addOn.id}
-                  className={`cursor-pointer p-4 transition-colors hover:bg-accent ${
-                    selectedAddOns.includes(addOn.id) ? "border-primary" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedAddOns((prev) =>
-                      prev.includes(addOn.id) ? prev.filter((id) => id !== addOn.id) : [...prev, addOn.id],
-                    )
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="font-bold">{addOn.name}</div>
-                      {addOn.description && (
-                        <div className="text-sm text-muted-foreground">{addOn.description}</div>
-                      )}
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {addOn.price_type === 'per_participant' ? 'Per participant' : 'Per booking'}
-                      </div>
-                    </div>
-                    <div className="font-bold">${addOn.price}</div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Step: Rounds */}
+        {/* Step 3: Golf Courses & Rounds */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
-              {addOns.length > 0 ? '4' : '3'}
-            </div>
-            <h2 className="text-lg font-bold">Golf Rounds</h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
+            <h2 className="text-lg font-bold">Golf Courses & Rounds</h2>
           </div>
-          <div>
-            <h3 className="mb-2 font-medium">Select Rounds</h3>
-            <p className="mb-4 text-sm text-muted-foreground">How many rounds would you like to play?</p>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setRounds(Math.max(1, rounds - 1))}
-                disabled={rounds <= 1}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground">Number of Rounds:</div>
-                <div className="text-2xl font-bold">{rounds}</div>
+          
+          <div className="space-y-4">
+            <div>
+              <h3 className="mb-2 font-medium">Select Courses</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Choose which golf courses you want to play
+              </p>
+              <div className="space-y-2">
+                {golfCourses.map((course: any) => (
+                  <Card
+                    key={course.id}
+                    className={`cursor-pointer p-4 transition-colors hover:bg-accent ${
+                      selectedCourses.includes(course.id) ? "border-2 border-[#6b705c]" : ""
+                    }`}
+                    onClick={() => {
+                      setSelectedCourses((prev) =>
+                        prev.includes(course.id) ? prev.filter((id) => id !== course.id) : [...prev, course.id],
+                      )
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">{course.course_name}</span>
+                      <span className="font-bold">${course.price_per_round}</span>
+                    </div>
+                  </Card>
+                ))}
               </div>
-              <Button variant="outline" size="icon" onClick={() => setRounds(rounds + 1)}>
-                <Plus className="h-4 w-4" />
-              </Button>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-medium">Select Rounds</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                How many rounds would you like to play?
+              </p>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setRounds(Math.max(1, rounds - 1))}
+                  disabled={rounds <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">Number of Rounds:</div>
+                  <div className="text-2xl font-bold">{rounds}</div>
+                </div>
+                <Button variant="outline" size="icon" onClick={() => setRounds(rounds + 1)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Step: Additional Requests */}
+        {/* Step 4: Meals */}
         <Card className="bg-[#E8DCC4] p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
-              {addOns.length > 0 ? '5' : '4'}
-            </div>
-            <h2 className="text-lg font-bold">Additional Requests (Optional)</h2>
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+            <h2 className="text-lg font-bold">Meals</h2>
+          </div>
+          <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
+            <Card
+              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                selectedMeal === "included" ? "border-2 border-[#6b705c]" : ""
+              }`}
+              onClick={() => setSelectedMeal("included")}
+            >
+              <RadioGroupItem value="included" id="meal-included" className="absolute right-4 top-4" />
+              <label htmlFor="meal-included" className="flex cursor-pointer items-center gap-2">
+                <Check className="h-4 w-4" />
+                <span className="font-bold">Breakfast Included (Recommended)</span>
+              </label>
+            </Card>
+            <Card
+              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                selectedMeal === "not_included" ? "border-2 border-[#6b705c]" : ""
+              }`}
+              onClick={() => setSelectedMeal("not_included")}
+            >
+              <RadioGroupItem value="not_included" id="meal-not-included" className="absolute right-4 top-4" />
+              <label htmlFor="meal-not-included" className="cursor-pointer font-bold">
+                Breakfast not Included
+              </label>
+            </Card>
+          </RadioGroup>
+        </Card>
+
+        {/* Step 5: Transportation */}
+        <Card className="bg-[#E8DCC4] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
+            <h2 className="text-lg font-bold">Transportation</h2>
+          </div>
+          <RadioGroup value={selectedTransport} onValueChange={(val: any) => setSelectedTransport(val)} className="space-y-2">
+            <Card
+              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                selectedTransport === "private" ? "border-2 border-[#6b705c]" : ""
+              }`}
+              onClick={() => setSelectedTransport("private")}
+            >
+              <RadioGroupItem value="private" id="transport-private" className="absolute right-4 top-4" />
+              <label htmlFor="transport-private" className="cursor-pointer font-bold">
+                Private Car with Driver (Recommended)
+              </label>
+            </Card>
+            <Card
+              className={`relative cursor-pointer p-4 transition-colors hover:bg-accent ${
+                selectedTransport === "self" ? "border-2 border-[#6b705c]" : ""
+              }`}
+              onClick={() => setSelectedTransport("self")}
+            >
+              <RadioGroupItem value="self" id="transport-self" className="absolute right-4 top-4" />
+              <label htmlFor="transport-self" className="cursor-pointer font-bold">
+                Drive Yourself
+              </label>
+            </Card>
+          </RadioGroup>
+        </Card>
+
+        {/* Step 6: Additional Requests */}
+        <Card className="bg-[#E8DCC4] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">6</div>
+            <h2 className="text-lg font-bold">Additional Requests</h2>
           </div>
           <Textarea
             placeholder="Any special requests or dietary requirements..."
@@ -291,23 +371,27 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                 <span>${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
               </div>
             )}
-            {selectedAddOns.map((addOnId) => {
-              const addOn = addOns.find((a: any) => a.id === addOnId)
-              return (
-                addOn && (
-                  <div key={addOnId} className="flex justify-between">
-                    <span className="text-muted-foreground">{addOn.name}</span>
-                    <span>${addOn.price}</span>
-                  </div>
-                )
-              )
-            })}
-            {rounds > 0 && (
+            {selectedCourses.length > 0 && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">{rounds} Rounds</span>
-                <span>${rounds * 20}</span>
+                <span className="text-muted-foreground">{rounds} Rounds ({selectedCourses.length} courses)</span>
+                <span>${selectedCourses.reduce((sum, id) => {
+                  const course = golfCourses.find((c: any) => c.id === id)
+                  return sum + (course ? Number(course.price_per_round) * rounds : 0)
+                }, 0)}</span>
               </div>
             )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                {selectedMeal === "included" ? "Breakfast Included" : "Breakfast Not Included"}
+              </span>
+              <span>${selectedMeal === "included" ? mealOptions.breakfast_included_price : mealOptions.breakfast_not_included_price}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                {selectedTransport === "private" ? "Private Car" : "Self Drive"}
+              </span>
+              <span>${selectedTransport === "private" ? transportationOptions.private_car_price : transportationOptions.self_drive_price}</span>
+            </div>
           </div>
 
           <div className="my-4 border-t border-border pt-4">

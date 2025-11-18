@@ -23,7 +23,9 @@ interface EditTripFormProps {
     single_room_photo_url: string | null
     double_room_photo_url: string | null
     packages?: any[]
-    add_ons?: any[]
+    golf_courses?: any[]
+    meal_options?: any[]
+    transportation_options?: any[]
   }
 }
 
@@ -32,7 +34,7 @@ const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"
 const STEPS = [
   { id: 1, title: "Trip Basics", description: "Title, description, and images" },
   { id: 2, title: "Packages", description: "Room types and accommodation" },
-  { id: 3, title: "Add-ons", description: "Optional extras and services" },
+  { id: 3, title: "Trip Options", description: "Configure golf courses, meals, and transportation" },
   { id: 4, title: "Review & Submit", description: "Review and save changes" },
 ]
 
@@ -56,7 +58,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
 
   const [packages, setPackages] = useState(trip.packages || [])
-  const [addOns, setAddOns] = useState(trip.add_ons || [])
+  const [golfCourses, setGolfCourses] = useState(trip.golf_courses || [])
+  const [mealOptions, setMealOptions] = useState(trip.meal_options || [
+    { id: 'breakfast-included', name: 'Breakfast Included', description: 'Daily breakfast at hotel', price: 0, is_recommended: true },
+    { id: 'breakfast-not-included', name: 'Breakfast not Included', description: 'No meals included', price: 0, is_recommended: false }
+  ])
+  const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [
+    { id: 'private-car', name: 'Private Car with Driver', description: 'Recommended for convenience', price: 0, is_recommended: true },
+    { id: 'drive-yourself', name: 'Drive Yourself', description: 'Rent a car independently', price: 0, is_recommended: false }
+  ])
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -116,26 +126,35 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setPackages(updated)
   }
 
-  const handleAddAddOn = () => {
-    setAddOns([...addOns, { 
+  const handleAddGolfCourse = () => {
+    setGolfCourses([...golfCourses, { 
       id: `new-${Date.now()}`, 
       name: '', 
       description: '', 
-      price: 0,
-      price_type: 'per_participant',
-      availability: 'unlimited',
-      quantity: null
+      price: 0
     }])
   }
 
-  const handleRemoveAddOn = (index: number) => {
-    setAddOns(addOns.filter((_, i) => i !== index))
+  const handleRemoveGolfCourse = (index: number) => {
+    setGolfCourses(golfCourses.filter((_, i) => i !== index))
   }
 
-  const handleAddOnChange = (index: number, field: string, value: any) => {
-    const updated = [...addOns]
+  const handleGolfCourseChange = (index: number, field: string, value: any) => {
+    const updated = [...golfCourses]
     updated[index] = { ...updated[index], [field]: value }
-    setAddOns(updated)
+    setGolfCourses(updated)
+  }
+
+  const handleMealOptionChange = (index: number, field: string, value: any) => {
+    const updated = [...mealOptions]
+    updated[index] = { ...updated[index], [field]: value }
+    setMealOptions(updated)
+  }
+
+  const handleTransportationOptionChange = (index: number, field: string, value: any) => {
+    const updated = [...transportationOptions]
+    updated[index] = { ...updated[index], [field]: value }
+    setTransportationOptions(updated)
   }
 
   const canProceedToNextStep = () => {
@@ -145,7 +164,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       case 2:
         return true // Packages are optional
       case 3:
-        return true // Add-ons are optional
+        return true // Trip options are optional
       default:
         return true
     }
@@ -179,7 +198,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
           packages,
-          add_ons: addOns,
+          golf_courses: golfCourses,
+          meal_options: mealOptions,
+          transportation_options: transportationOptions,
         }),
       })
 
@@ -580,48 +601,48 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         {currentStep === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-semibold">Add-ons</h2>
-              <p className="text-sm text-muted-foreground">Manage optional extras and services</p>
+              <h2 className="text-2xl font-semibold">Trip Options</h2>
+              <p className="text-sm text-muted-foreground">Configure golf courses, meals, and transportation</p>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Add-ons</Label>
-                <Button type="button" onClick={handleAddAddOn} variant="outline" size="sm">
+                <Label className="text-base">Golf Courses</Label>
+                <Button type="button" onClick={handleAddGolfCourse} variant="outline" size="sm">
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Add-on
+                  Add Course
                 </Button>
               </div>
-              {addOns.map((addOn, index) => (
-                <Card key={addOn.id} className="p-4">
+              {golfCourses.map((course, index) => (
+                <Card key={course.id} className="p-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Add-on {index + 1}</h4>
+                      <h4 className="font-medium">Course {index + 1}</h4>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveAddOn(index)}
+                        onClick={() => handleRemoveGolfCourse(index)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <Label>Add-on Name *</Label>
+                        <Label>Course Name *</Label>
                         <Input
-                          value={addOn.name}
-                          onChange={(e) => handleAddOnChange(index, 'name', e.target.value)}
-                          placeholder="e.g., Golf Course A"
+                          value={course.name}
+                          onChange={(e) => handleGolfCourseChange(index, 'name', e.target.value)}
+                          placeholder="e.g., Course A"
                           required
                         />
                       </div>
                       <div>
-                        <Label>Price (USD) *</Label>
+                        <Label>Price per Round (USD) *</Label>
                         <Input
                           type="number"
-                          value={addOn.price}
-                          onChange={(e) => handleAddOnChange(index, 'price', Number(e.target.value))}
+                          value={course.price}
+                          onChange={(e) => handleGolfCourseChange(index, 'price', Number(e.target.value))}
                           placeholder="0"
                           required
                         />
@@ -630,64 +651,103 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div>
                       <Label>Description</Label>
                       <Textarea
-                        value={addOn.description || ''}
-                        onChange={(e) => handleAddOnChange(index, 'description', e.target.value)}
-                        placeholder="Add-on description (optional)"
+                        value={course.description || ''}
+                        onChange={(e) => handleGolfCourseChange(index, 'description', e.target.value)}
+                        placeholder="Course description (optional)"
                         rows={2}
                       />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <div>
-                        <Label>Price Type</Label>
-                        <Select
-                          value={addOn.price_type}
-                          onValueChange={(value) => handleAddOnChange(index, 'price_type', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="per_participant">Per Participant</SelectItem>
-                            <SelectItem value="per_booking">Per Booking</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Availability</Label>
-                        <Select
-                          value={addOn.availability}
-                          onValueChange={(value) => handleAddOnChange(index, 'availability', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unlimited">Unlimited</SelectItem>
-                            <SelectItem value="limited">Limited</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {addOn.availability === 'limited' && (
-                        <div>
-                          <Label>Quantity</Label>
-                          <Input
-                            type="number"
-                            value={addOn.quantity || ''}
-                            onChange={(e) => handleAddOnChange(index, 'quantity', Number(e.target.value))}
-                            placeholder="0"
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
                 </Card>
               ))}
 
-              {addOns.length === 0 && (
-                <div className="py-12 text-center text-sm text-muted-foreground">
-                  No add-ons added yet. Click "Add Add-on" to create optional extras.
+              {golfCourses.length === 0 && (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  No golf courses added yet. Click "Add Course" to add courses.
                 </div>
               )}
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-base">Meal Options</Label>
+              <p className="text-sm text-muted-foreground">Configure the two meal options for this trip</p>
+              {mealOptions.map((meal, index) => (
+                <Card key={meal.id} className="p-4">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">{index === 0 ? 'Option 1 (Recommended)' : 'Option 2'}</h4>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <Label>Option Name *</Label>
+                        <Input
+                          value={meal.name}
+                          onChange={(e) => handleMealOptionChange(index, 'name', e.target.value)}
+                          placeholder="e.g., Breakfast Included"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Additional Price (USD)</Label>
+                        <Input
+                          type="number"
+                          value={meal.price}
+                          onChange={(e) => handleMealOptionChange(index, 'price', Number(e.target.value))}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={meal.description || ''}
+                        onChange={(e) => handleMealOptionChange(index, 'description', e.target.value)}
+                        placeholder="Meal option description"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-base">Transportation Options</Label>
+              <p className="text-sm text-muted-foreground">Configure the two transportation options for this trip</p>
+              {transportationOptions.map((transport, index) => (
+                <Card key={transport.id} className="p-4">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">{index === 0 ? 'Option 1 (Recommended)' : 'Option 2'}</h4>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <Label>Option Name *</Label>
+                        <Input
+                          value={transport.name}
+                          onChange={(e) => handleTransportationOptionChange(index, 'name', e.target.value)}
+                          placeholder="e.g., Private Car with Driver"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Additional Price (USD)</Label>
+                        <Input
+                          type="number"
+                          value={transport.price}
+                          onChange={(e) => handleTransportationOptionChange(index, 'price', Number(e.target.value))}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={transport.description || ''}
+                        onChange={(e) => handleTransportationOptionChange(index, 'description', e.target.value)}
+                        placeholder="Transportation option description"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
         )}
@@ -776,34 +836,56 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 )}
               </div>
 
-              {/* Add-ons Summary */}
+              {/* Golf Courses Summary */}
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Add-ons ({addOns.length})</h3>
-                {addOns.length > 0 ? (
+                <h3 className="mb-4 text-lg font-semibold">Golf Courses ({golfCourses.length})</h3>
+                {golfCourses.length > 0 ? (
                   <div className="space-y-4">
-                    {addOns.map((addon, idx) => (
-                      <div key={addon.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                        <p className="mb-2 font-medium">{addon.name || `Add-on ${idx + 1}`}</p>
-                        {addon.description && <p className="mb-2 text-muted-foreground">{addon.description}</p>}
-                        <div className="grid gap-2 md:grid-cols-2">
-                          <div>
-                            <span className="font-medium">Price:</span> ${addon.price}
-                          </div>
-                          <div>
-                            <span className="font-medium">Type:</span>{" "}
-                            {addon.price_type === "per_participant" ? "Per participant" : "Per booking"}
-                          </div>
-                          <div>
-                            <span className="font-medium">Availability:</span> {addon.availability}
-                            {addon.availability === "limited" && addon.quantity && ` (${addon.quantity} available)`}
-                          </div>
+                    {golfCourses.map((course, idx) => (
+                      <div key={course.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
+                        <p className="mb-2 font-medium">{course.name || `Course ${idx + 1}`}</p>
+                        {course.description && <p className="mb-2 text-muted-foreground">{course.description}</p>}
+                        <div>
+                          <span className="font-medium">Price per Round:</span> ${course.price}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No add-ons added</p>
+                  <p className="text-sm text-muted-foreground">No golf courses added</p>
                 )}
+              </div>
+
+              {/* Meal Options Summary */}
+              <div className="rounded-lg border border-border p-6">
+                <h3 className="mb-4 text-lg font-semibold">Meal Options</h3>
+                <div className="space-y-4">
+                  {mealOptions.map((meal, idx) => (
+                    <div key={meal.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
+                      <p className="mb-2 font-medium">{meal.name} {idx === 0 && '(Recommended)'}</p>
+                      {meal.description && <p className="mb-2 text-muted-foreground">{meal.description}</p>}
+                      <div>
+                        <span className="font-medium">Additional Price:</span> ${meal.price}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Transportation Options Summary */}
+              <div className="rounded-lg border border-border p-6">
+                <h3 className="mb-4 text-lg font-semibold">Transportation Options</h3>
+                <div className="space-y-4">
+                  {transportationOptions.map((transport, idx) => (
+                    <div key={transport.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
+                      <p className="mb-2 font-medium">{transport.name} {idx === 0 && '(Recommended)'}</p>
+                      {transport.description && <p className="mb-2 text-muted-foreground">{transport.description}</p>}
+                      <div>
+                        <span className="font-medium">Additional Price:</span> ${transport.price}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
