@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 
 const CONTINENTS = [
@@ -66,9 +66,9 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {CONTINENTS.map((continent) => (
-            <button
+            <Link
               key={continent.slug}
-              onClick={() => setSelectedContinent(continent.name)}
+              href={`/destinations/${continent.slug}`}
               className="group block transition-transform hover:scale-[1.02]"
             >
               <div className="relative h-[400px] overflow-hidden rounded-2xl border-4 border-border bg-card lg:h-[500px]">
@@ -82,7 +82,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                   <h2 className="text-balance text-xl font-bold text-white lg:text-2xl">{continent.name}</h2>
                 </div>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </div>

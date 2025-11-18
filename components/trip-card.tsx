@@ -3,11 +3,11 @@
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
-import { Heart } from "lucide-react"
+import { Heart } from 'lucide-react'
 import Link from "next/link"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import type { Trip } from "@/lib/types/database"
 
 interface TripCardProps {
@@ -67,18 +67,20 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         </div>
-        <div className="p-4">
-          <p className="text-sm text-muted-foreground">{trip.location}</p>
-          <h3 className="mt-1 font-semibold text-foreground">{trip.title}</h3>
-          <p className="mt-2 text-lg font-bold text-foreground">${price.toFixed(2)}</p>
-          <div className="mt-4 flex items-center gap-2">
-            <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Book Now</Button>
+        <div className="p-3 sm:p-4">
+          <p className="text-xs text-muted-foreground sm:text-sm">{trip.location}</p>
+          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{trip.title}</h3>
+          <p className="mt-2 text-base font-bold text-foreground sm:text-lg">${price.toFixed(2)}</p>
+          <div className="mt-3 flex items-center gap-2 sm:mt-4">
+            <Button className="flex-1 text-sm sm:text-base bg-primary text-primary-foreground hover:bg-primary/90">
+              Book Now
+            </Button>
             <Button
               variant="outline"
               size="icon"
               onClick={handleFavoriteToggle}
               disabled={isLoading}
-              className="shrink-0 bg-transparent"
+              className="h-9 w-9 shrink-0 bg-transparent sm:h-10 sm:w-10"
             >
               <Heart className={`h-4 w-4 ${favorite ? "fill-current text-red-500" : ""}`} />
             </Button>
