@@ -255,17 +255,19 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           {STEPS.map((step, idx) => (
             <div key={step.id} className="flex flex-1 items-center">
               <div className="flex items-center gap-3">
-                <div
-                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors ${
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(step.id)}
+                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors hover:opacity-80 ${
                     currentStep === step.id
                       ? "border-[#6b705c] bg-[#6b705c] text-white"
                       : currentStep > step.id
                         ? "border-[#a4b96a] bg-[#a4b96a] text-white"
-                        : "border-muted-foreground/30 text-muted-foreground"
+                        : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
                   }`}
                 >
                   {step.id}
-                </div>
+                </button>
                 <div className="hidden md:block">
                   <p className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}>
                     {step.title}
