@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useRouter } from 'next/navigation'
-import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -44,7 +44,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  
+
   const [formData, setFormData] = useState({
     title: trip.title || "",
     description: trip.description || "",
@@ -57,7 +57,40 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
 
-  const [packages, setPackages] = useState(trip.packages || [])
+  const initializePackages = () => {
+    const existingPackages = trip.packages || []
+    const regularPkg = existingPackages.find((p: any) => p.name === "Regular")
+    const premiumPkg = existingPackages.find((p: any) => p.name === "Premium")
+
+    const pkgs = []
+    // Always include Regular
+    if (regularPkg) {
+      pkgs.push(regularPkg)
+    } else {
+      pkgs.push({
+        id: "regular",
+        name: "Regular",
+        description: "",
+        price: 0,
+        availability: "unlimited",
+        quantity: null,
+        participants_per_booking: 1,
+      })
+    }
+
+    // Include Premium if it exists
+    if (premiumPkg) {
+      pkgs.push(premiumPkg)
+    }
+
+    return pkgs
+  }
+
+  const [packages, setPackages] = useState(initializePackages())
+  const [hasPremiumPackage, setHasPremiumPackage] = useState(() =>
+    (trip.packages || []).some((p: any) => p.name === "Premium"),
+  )
+
   const [golfCourses, setGolfCourses] = useState(trip.golf_courses || [])
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
   const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [])
@@ -98,20 +131,27 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setPhotos((prev) => ({ ...prev, [photoType]: "" }))
   }
 
-  const handleAddPackage = () => {
-    setPackages([...packages, { 
-      id: `new-${Date.now()}`, 
-      name: '', 
-      description: '', 
-      price: 0,
-      availability: 'unlimited',
-      quantity: null,
-      participants_per_booking: 1
-    }])
+  const addPremiumPackage = () => {
+    if (!hasPremiumPackage) {
+      setPackages([
+        ...packages,
+        {
+          id: "premium",
+          name: "Premium",
+          description: "",
+          price: 0,
+          availability: "unlimited",
+          quantity: null,
+          participants_per_booking: 1,
+        },
+      ])
+      setHasPremiumPackage(true)
+    }
   }
 
-  const handleRemovePackage = (index: number) => {
-    setPackages(packages.filter((_, i) => i !== index))
+  const removePremiumPackage = () => {
+    setPackages(packages.filter((pkg) => pkg.name !== "Premium"))
+    setHasPremiumPackage(false)
   }
 
   const handlePackageChange = (index: number, field: string, value: any) => {
@@ -121,13 +161,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   }
 
   const handleAddGolfCourse = () => {
-    setGolfCourses([...golfCourses, { 
-      id: `new-${Date.now()}`, 
-      name: '', 
-      description: '', 
-      price: 0,
-      max_rounds: 5 // Added max_rounds with default value
-    }])
+    setGolfCourses([
+      ...golfCourses,
+      {
+        id: `new-${Date.now()}`,
+        name: "",
+        description: "",
+        price: 0,
+        max_rounds: 5, // Added max_rounds with default value
+      },
+    ])
   }
 
   const handleRemoveGolfCourse = (index: number) => {
@@ -189,7 +232,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       case 1:
         return formData.title && formData.continent
       case 2:
-        return true // Packages are optional
+        // Ensure Regular package has a price
+        const regularPackage = packages.find((p) => p.name === "Regular")
+        return regularPackage?.price !== undefined && regularPackage?.price !== null && regularPackage?.price >= 0
       case 3:
         return true // Trip options are optional
       default:
@@ -234,7 +279,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       if (!response.ok) throw new Error("Failed to update trip")
 
       router.refresh()
-      router.push('/admin') // Updated code here
+      router.push("/admin") // Updated code here
       alert("Trip updated successfully")
     } catch (error) {
       console.error("Error updating trip:", error)
@@ -255,7 +300,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       if (!response.ok) throw new Error("Failed to delete trip")
 
       router.refresh()
-      router.push('/admin') // Updated code here
+      router.push("/admin") // Updated code here
       alert("Trip deleted successfully")
     } catch (error) {
       console.error("Error deleting trip:", error)
@@ -273,8 +318,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
             <h3 className="mb-4 text-lg font-semibold">Delete Trip</h3>
             <p className="mb-6 text-sm text-muted-foreground">
-              Are you sure you want to delete this trip? This action cannot be undone. All packages, add-ons, and bookings
-              associated with this trip will also be deleted.
+              Are you sure you want to delete this trip? This action cannot be undone. All packages, add-ons, and
+              bookings associated with this trip will also be deleted.
             </p>
             <div className="flex gap-3">
               <Button
@@ -285,12 +330,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               >
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1"
-              >
+              <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="flex-1">
                 {deleting ? "Deleting..." : "Delete Trip"}
               </Button>
             </div>
@@ -317,7 +357,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   {step.id}
                 </button>
                 <div className="hidden md:block">
-                  <p className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}>
+                  <p
+                    className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}
+                  >
                     {step.title}
                   </p>
                   <p className="text-xs text-muted-foreground">{step.description}</p>
@@ -519,106 +561,235 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
-              <p className="text-sm text-muted-foreground">Manage room types and accommodation options</p>
+              <p className="text-sm text-muted-foreground">
+                Configure room types - Regular is required, Premium is optional
+              </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base">Packages</Label>
-                <Button type="button" onClick={handleAddPackage} variant="outline" size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Package
-                </Button>
-              </div>
-              {packages.map((pkg, index) => (
-                <Card key={pkg.id} className="p-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Package {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemovePackage(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <Label>Package Name *</Label>
-                        <Input
-                          value={pkg.name}
-                          onChange={(e) => handlePackageChange(index, 'name', e.target.value)}
-                          placeholder="e.g., Single Room"
-                          required
-                        />
+            <div className="space-y-4 rounded-lg border border-border p-6">
+              {packages
+                .filter((pkg) => pkg.name === "Regular")
+                .map((pkg, index) => (
+                  <Card key={pkg.id} className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Regular Package (Required)</h4>
                       </div>
-                      <div>
-                        <Label>Price (USD) *</Label>
-                        <Input
-                          type="number"
-                          value={pkg.price}
-                          onChange={(e) => handlePackageChange(index, 'price', Number(e.target.value))}
-                          placeholder="0"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea
-                        value={pkg.description || ''}
-                        onChange={(e) => handlePackageChange(index, 'description', e.target.value)}
-                        placeholder="Package description (optional)"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <div>
-                        <Label>Availability</Label>
-                        <Select
-                          value={pkg.availability}
-                          onValueChange={(value) => handlePackageChange(index, 'availability', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unlimited">Unlimited</SelectItem>
-                            <SelectItem value="limited">Limited</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {pkg.availability === 'limited' && (
+                      <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                          <Label>Quantity</Label>
+                          <Label>Price (USD) *</Label>
                           <Input
                             type="number"
-                            value={pkg.quantity || ''}
-                            onChange={(e) => handlePackageChange(index, 'quantity', Number(e.target.value))}
+                            value={pkg.price}
+                            onChange={(e) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "price",
+                                Number(e.target.value),
+                              )
+                            }
                             placeholder="0"
+                            required
                           />
                         </div>
-                      )}
+                        <div>
+                          <Label>Participants Per Booking</Label>
+                          <Input
+                            type="number"
+                            value={pkg.participants_per_booking}
+                            onChange={(e) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "participants_per_booking",
+                                Number(e.target.value),
+                              )
+                            }
+                            placeholder="1"
+                            min="1"
+                          />
+                        </div>
+                      </div>
                       <div>
-                        <Label>Participants Per Booking</Label>
-                        <Input
-                          type="number"
-                          value={pkg.participants_per_booking}
-                          onChange={(e) => handlePackageChange(index, 'participants_per_booking', Number(e.target.value))}
-                          placeholder="1"
-                          min="1"
+                        <Label>Description</Label>
+                        <Textarea
+                          value={pkg.description || ""}
+                          onChange={(e) =>
+                            handlePackageChange(
+                              packages.findIndex((p) => p.id === pkg.id),
+                              "description",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="Package description (optional)"
+                          rows={2}
                         />
                       </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <Label>Availability</Label>
+                          <Select
+                            value={pkg.availability}
+                            onValueChange={(value) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "availability",
+                                value,
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unlimited">Unlimited</SelectItem>
+                              <SelectItem value="limited">Limited</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {pkg.availability === "limited" && (
+                          <div>
+                            <Label>Quantity</Label>
+                            <Input
+                              type="number"
+                              value={pkg.quantity || ""}
+                              onChange={(e) =>
+                                handlePackageChange(
+                                  packages.findIndex((p) => p.id === pkg.id),
+                                  "quantity",
+                                  Number(e.target.value),
+                                )
+                              }
+                              placeholder="0"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
 
-              {packages.length === 0 && (
-                <div className="py-12 text-center text-sm text-muted-foreground">
-                  No packages added yet. Click "Add Package" to create room types.
+              {hasPremiumPackage ? (
+                packages
+                  .filter((pkg) => pkg.name === "Premium")
+                  .map((pkg) => (
+                    <Card key={pkg.id} className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">Premium Package (Optional)</h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={removePremiumPackage}
+                            className="text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <Label>Price (USD) *</Label>
+                            <Input
+                              type="number"
+                              value={pkg.price}
+                              onChange={(e) =>
+                                handlePackageChange(
+                                  packages.findIndex((p) => p.id === pkg.id),
+                                  "price",
+                                  Number(e.target.value),
+                                )
+                              }
+                              placeholder="0"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label>Participants Per Booking</Label>
+                            <Input
+                              type="number"
+                              value={pkg.participants_per_booking}
+                              onChange={(e) =>
+                                handlePackageChange(
+                                  packages.findIndex((p) => p.id === pkg.id),
+                                  "participants_per_booking",
+                                  Number(e.target.value),
+                                )
+                              }
+                              placeholder="1"
+                              min="1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea
+                            value={pkg.description || ""}
+                            onChange={(e) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Package description (optional)"
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <Label>Availability</Label>
+                            <Select
+                              value={pkg.availability}
+                              onValueChange={(value) =>
+                                handlePackageChange(
+                                  packages.findIndex((p) => p.id === pkg.id),
+                                  "availability",
+                                  value,
+                                )
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unlimited">Unlimited</SelectItem>
+                                <SelectItem value="limited">Limited</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {pkg.availability === "limited" && (
+                            <div>
+                              <Label>Quantity</Label>
+                              <Input
+                                type="number"
+                                value={pkg.quantity || ""}
+                                onChange={(e) =>
+                                  handlePackageChange(
+                                    packages.findIndex((p) => p.id === pkg.id),
+                                    "quantity",
+                                    Number(e.target.value),
+                                  )
+                                }
+                                placeholder="0"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="mb-4 text-sm text-muted-foreground">Premium package not added (optional)</p>
+                  <Button
+                    type="button"
+                    onClick={addPremiumPackage}
+                    size="sm"
+                    className="bg-[#a4b96a] hover:bg-[#93a55e]"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Premium Package
+                  </Button>
                 </div>
               )}
             </div>
@@ -629,7 +800,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Trip Options</h2>
-              <p className="text-sm text-muted-foreground">Configure golf courses, meals, and transportation (all optional)</p>
+              <p className="text-sm text-muted-foreground">
+                Configure golf courses, meals, and transportation (all optional)
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -645,12 +818,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Course {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveGolfCourse(index)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveGolfCourse(index)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -659,7 +827,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Label>Course Name *</Label>
                         <Input
                           value={course.name}
-                          onChange={(e) => handleGolfCourseChange(index, 'name', e.target.value)}
+                          onChange={(e) => handleGolfCourseChange(index, "name", e.target.value)}
                           placeholder="e.g., Course A"
                           required
                         />
@@ -669,7 +837,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Input
                           type="number"
                           value={course.price}
-                          onChange={(e) => handleGolfCourseChange(index, 'price', Number(e.target.value))}
+                          onChange={(e) => handleGolfCourseChange(index, "price", Number(e.target.value))}
                           placeholder="0"
                           required
                         />
@@ -680,7 +848,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           type="number"
                           min="0"
                           value={course.max_rounds || 5}
-                          onChange={(e) => handleGolfCourseChange(index, 'max_rounds', Number(e.target.value))}
+                          onChange={(e) => handleGolfCourseChange(index, "max_rounds", Number(e.target.value))}
                           placeholder="5"
                           required
                         />
@@ -690,8 +858,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div>
                       <Label>Description</Label>
                       <Textarea
-                        value={course.description || ''}
-                        onChange={(e) => handleGolfCourseChange(index, 'description', e.target.value)}
+                        value={course.description || ""}
+                        onChange={(e) => handleGolfCourseChange(index, "description", e.target.value)}
                         placeholder="Course description (optional)"
                         rows={2}
                       />
@@ -720,12 +888,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Meal Option {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMealOption(index)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeMealOption(index)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -734,7 +897,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Label>Option Name *</Label>
                         <Input
                           value={meal.name}
-                          onChange={(e) => handleMealOptionChange(index, 'name', e.target.value)}
+                          onChange={(e) => handleMealOptionChange(index, "name", e.target.value)}
                           placeholder="e.g., Breakfast Included"
                           required
                         />
@@ -744,7 +907,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Input
                           type="number"
                           value={meal.price}
-                          onChange={(e) => handleMealOptionChange(index, 'price', Number(e.target.value))}
+                          onChange={(e) => handleMealOptionChange(index, "price", Number(e.target.value))}
                           placeholder="0"
                         />
                       </div>
@@ -752,8 +915,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div>
                       <Label>Description</Label>
                       <Textarea
-                        value={meal.description || ''}
-                        onChange={(e) => handleMealOptionChange(index, 'description', e.target.value)}
+                        value={meal.description || ""}
+                        onChange={(e) => handleMealOptionChange(index, "description", e.target.value)}
                         placeholder="Meal option description"
                         rows={2}
                       />
@@ -782,12 +945,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Transportation Option {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTransportationOption(index)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeTransportationOption(index)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -796,7 +954,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Label>Option Name *</Label>
                         <Input
                           value={transport.name}
-                          onChange={(e) => handleTransportationOptionChange(index, 'name', e.target.value)}
+                          onChange={(e) => handleTransportationOptionChange(index, "name", e.target.value)}
                           placeholder="e.g., Private Car with Driver"
                           required
                         />
@@ -806,7 +964,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         <Input
                           type="number"
                           value={transport.price}
-                          onChange={(e) => handleTransportationOptionChange(index, 'price', Number(e.target.value))}
+                          onChange={(e) => handleTransportationOptionChange(index, "price", Number(e.target.value))}
                           placeholder="0"
                         />
                       </div>
@@ -814,8 +972,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div>
                       <Label>Description</Label>
                       <Textarea
-                        value={transport.description || ''}
-                        onChange={(e) => handleTransportationOptionChange(index, 'description', e.target.value)}
+                        value={transport.description || ""}
+                        onChange={(e) => handleTransportationOptionChange(index, "description", e.target.value)}
                         placeholder="Transportation option description"
                         rows={2}
                       />
@@ -864,7 +1022,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <div>
                         <p className="mb-1 font-medium">Courses Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.courses || "/placeholder.svg"} alt="Courses" fill className="object-cover" />
+                          <Image
+                            src={photos.courses || "/placeholder.svg"}
+                            alt="Courses"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -872,7 +1035,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <div>
                         <p className="mb-1 font-medium">Single Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.singleRoom || "/placeholder.svg"} alt="Single Room" fill className="object-cover" />
+                          <Image
+                            src={photos.singleRoom || "/placeholder.svg"}
+                            alt="Single Room"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -880,7 +1048,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <div>
                         <p className="mb-1 font-medium">Double Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.doubleRoom || "/placeholder.svg"} alt="Double Room" fill className="object-cover" />
+                          <Image
+                            src={photos.doubleRoom || "/placeholder.svg"}
+                            alt="Double Room"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -946,7 +1119,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <div className="space-y-4">
                   {mealOptions.map((meal, idx) => (
                     <div key={meal.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                      <p className="mb-2 font-medium">{meal.name} {idx === 0 && '(Recommended)'}</p>
+                      <p className="mb-2 font-medium">
+                        {meal.name} {idx === 0 && "(Recommended)"}
+                      </p>
                       {meal.description && <p className="mb-2 text-muted-foreground">{meal.description}</p>}
                       <div>
                         <span className="font-medium">Additional Price:</span> ${meal.price}
@@ -963,7 +1138,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <div className="space-y-4">
                   {transportationOptions.map((transport, idx) => (
                     <div key={transport.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                      <p className="mb-2 font-medium">{transport.name} {idx === 0 && '(Recommended)'}</p>
+                      <p className="mb-2 font-medium">
+                        {transport.name} {idx === 0 && "(Recommended)"}
+                      </p>
                       {transport.description && <p className="mb-2 text-muted-foreground">{transport.description}</p>}
                       <div>
                         <span className="font-medium">Additional Price:</span> ${transport.price}
@@ -971,7 +1148,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     </div>
                   ))}
                 </div>
-                {transportationOptions.length === 0 && <p className="text-sm text-muted-foreground">No transportation options added</p>}
+                {transportationOptions.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No transportation options added</p>
+                )}
               </div>
             </div>
           </div>
@@ -984,7 +1163,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto bg-transparent"
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
               Previous

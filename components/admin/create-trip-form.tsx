@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useRouter } from 'next/navigation'
-import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
 import Image from "next/image"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,7 +16,7 @@ const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"
 
 type Package = {
   id: string
-  name: string
+  name: "Regular" | "Premium" // Fixed package names
   description: string
   price: string
   availability: string
@@ -58,7 +58,7 @@ export function CreateTripForm() {
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -76,9 +76,21 @@ export function CreateTripForm() {
     doubleRoom: "",
   })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
-  
-  const [packages, setPackages] = useState<Package[]>([])
-  
+
+  const [packages, setPackages] = useState<Package[]>([
+    {
+      id: "regular",
+      name: "Regular",
+      description: "",
+      price: "",
+      availability: "unlimited",
+      quantity: "",
+      participants_per_booking: "1",
+    },
+  ])
+
+  const [hasPremiumPackage, setHasPremiumPackage] = useState(false)
+
   const [golfCourses, setGolfCourses] = useState<GolfCourse[]>([])
   // Changed to arrays to allow multiple options
   const [mealOptions, setMealOptions] = useState<MealOption[]>([])
@@ -125,19 +137,35 @@ export function CreateTripForm() {
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
     if (!formData.continent) errors.push("Continent selection is required (Step 1)")
-    if (!formData.price_regular || Number(formData.price_regular) <= 0) errors.push("Valid regular price is required (Step 1)")
+    if (!formData.price_regular || Number(formData.price_regular) <= 0)
+      errors.push("Valid regular price is required (Step 1)")
 
-    // Step 2 validation - packages are optional but if added must be valid
-    packages.forEach((pkg, idx) => {
-      if (!pkg.name.trim()) errors.push(`Package ${idx + 1} name is required (Step 2)`)
-      if (!pkg.price || Number(pkg.price) < 0) errors.push(`Package ${idx + 1} must have a valid price (Step 2)`)
-      if (!pkg.participants_per_booking || Number(pkg.participants_per_booking) <= 0) {
-        errors.push(`Package ${idx + 1} must have valid participants per booking (Step 2)`)
+    const regularPkg = packages.find((p) => p.name === "Regular")
+    if (!regularPkg) {
+      errors.push("Regular package is required (Step 2)")
+    } else {
+      if (!regularPkg.price || Number(regularPkg.price) < 0)
+        errors.push("Regular package must have a valid price (Step 2)")
+      if (!regularPkg.participants_per_booking || Number(regularPkg.participants_per_booking) <= 0) {
+        errors.push("Regular package must have valid participants per booking (Step 2)")
       }
-      if (pkg.availability === "limited" && (!pkg.quantity || Number(pkg.quantity) <= 0)) {
-        errors.push(`Package ${idx + 1} must have valid quantity for limited availability (Step 2)`)
+      if (regularPkg.availability === "limited" && (!regularPkg.quantity || Number(regularPkg.quantity) <= 0)) {
+        errors.push("Regular package must have valid quantity for limited availability (Step 2)")
       }
-    })
+    }
+
+    // Validate Premium package if it exists
+    const premiumPkg = packages.find((p) => p.name === "Premium")
+    if (premiumPkg) {
+      if (!premiumPkg.price || Number(premiumPkg.price) < 0)
+        errors.push("Premium package must have a valid price (Step 2)")
+      if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
+        errors.push("Premium package must have valid participants per booking (Step 2)")
+      }
+      if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
+        errors.push("Premium package must have valid quantity for limited availability (Step 2)")
+      }
+    }
 
     // Step 3 validation - all optional but if added must be valid
     golfCourses.forEach((course, idx) => {
@@ -173,7 +201,7 @@ export function CreateTripForm() {
     const validation = validateForm()
     if (!validation.valid) {
       setValidationErrors(validation.errors)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: "smooth" })
       return
     }
 
@@ -181,7 +209,7 @@ export function CreateTripForm() {
     setLoading(true)
 
     try {
-      console.log('[v0] Submitting trip with data:', {
+      console.log("[v0] Submitting trip with data:", {
         ...formData,
         packagesCount: packages.length,
         golfCoursesCount: golfCourses.length,
@@ -227,7 +255,7 @@ export function CreateTripForm() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('[v0] Error creating trip:', errorData)
+        console.error("[v0] Error creating trip:", errorData)
         throw new Error(errorData.error || "Failed to create trip")
       }
 
@@ -235,33 +263,37 @@ export function CreateTripForm() {
       router.refresh()
     } catch (error) {
       console.error("[v0] Error creating trip:", error)
-      alert(`Failed to create trip: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`Failed to create trip: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setLoading(false)
     }
   }
 
-  const addPackage = () => {
-    setPackages([
-      ...packages,
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        description: "",
-        price: "",
-        availability: "unlimited",
-        quantity: "",
-        participants_per_booking: "1",
-      },
-    ])
+  const addPremiumPackage = () => {
+    if (!hasPremiumPackage) {
+      setPackages([
+        ...packages,
+        {
+          id: "premium",
+          name: "Premium",
+          description: "",
+          price: "",
+          availability: "unlimited",
+          quantity: "",
+          participants_per_booking: "1",
+        },
+      ])
+      setHasPremiumPackage(true)
+    }
   }
 
   const updatePackage = (id: string, field: keyof Package, value: string) => {
     setPackages(packages.map((pkg) => (pkg.id === id ? { ...pkg, [field]: value } : pkg)))
   }
 
-  const removePackage = (id: string) => {
-    setPackages(packages.filter((pkg) => pkg.id !== id))
+  const removePremiumPackage = () => {
+    setPackages(packages.filter((pkg) => pkg.name !== "Premium"))
+    setHasPremiumPackage(false)
   }
 
   const addGolfCourse = () => {
@@ -319,7 +351,9 @@ export function CreateTripForm() {
   }
 
   const updateTransportationOption = (id: string, field: keyof TransportationOption, value: string) => {
-    setTransportationOptions(transportationOptions.map((transport) => (transport.id === id ? { ...transport, [field]: value } : transport)))
+    setTransportationOptions(
+      transportationOptions.map((transport) => (transport.id === id ? { ...transport, [field]: value } : transport)),
+    )
   }
 
   const removeTransportationOption = (id: string) => {
@@ -331,7 +365,9 @@ export function CreateTripForm() {
       case 1:
         return formData.title && formData.location && formData.continent && formData.price_regular
       case 2:
-        return true
+        // Check if Regular package has valid price before proceeding
+        const regularPkg = packages.find((p) => p.name === "Regular")
+        return !!regularPkg && Number(regularPkg.price) > 0
       case 3:
         return true
       default:
@@ -344,7 +380,7 @@ export function CreateTripForm() {
     const validation = validateForm()
     if (!validation.valid) {
       setValidationErrors(validation.errors)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: "smooth" })
       return
     }
     setValidationErrors([]) // Clear previous errors if moving forward
@@ -392,7 +428,9 @@ export function CreateTripForm() {
                   {step.id}
                 </button>
                 <div className="hidden md:block">
-                  <p className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}>
+                  <p
+                    className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}
+                  >
                     {step.title}
                   </p>
                   <p className="text-xs text-muted-foreground">{step.description}</p>
@@ -662,113 +700,183 @@ export function CreateTripForm() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
-              <p className="text-sm text-muted-foreground">Add room types and accommodation options for your trip</p>
+              <p className="text-sm text-muted-foreground">
+                Configure room types - Regular is required, Premium is optional
+              </p>
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Packages</h3>
-                  <p className="text-sm text-muted-foreground">Add room types and accommodation options</p>
-                </div>
-                <Button type="button" onClick={addPackage} size="sm" className="bg-[#a4b96a] hover:bg-[#93a55e]">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Package
-                </Button>
-              </div>
+              {packages
+                .filter((pkg) => pkg.name === "Regular")
+                .map((pkg) => (
+                  <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Regular Package (Required)</h4>
+                    </div>
 
-              {packages.map((pkg, index) => (
-                <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Package {index + 1}</h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removePackage(pkg.id)}
-                      className="text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Package name *</Label>
-                    <Input
-                      value={pkg.name}
-                      onChange={(e) => updatePackage(pkg.id, "name", e.target.value)}
-                      placeholder="Enter package name (e.g. Europe Trip or Single Room)"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Description (optional)</Label>
-                    <Textarea
-                      value={pkg.description}
-                      onChange={(e) => updatePackage(pkg.id, "description", e.target.value)}
-                      placeholder="Enter package description (optional)"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Full price per person *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={pkg.price}
-                        onChange={(e) => updatePackage(pkg.id, "price", e.target.value)}
-                        placeholder="100"
-                        required
+                      <Label>Description (optional)</Label>
+                      <Textarea
+                        value={pkg.description}
+                        onChange={(e) => updatePackage(pkg.id, "description", e.target.value)}
+                        placeholder="Enter package description (optional)"
+                        rows={3}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Participants per booking *</Label>
-                      <Input
-                        type="number"
-                        value={pkg.participants_per_booking}
-                        onChange={(e) => updatePackage(pkg.id, "participants_per_booking", e.target.value)}
-                        placeholder="2"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Availability</Label>
-                      <Select value={pkg.availability} onValueChange={(value) => updatePackage(pkg.id, "availability", value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unlimited">Unlimited</SelectItem>
-                          <SelectItem value="limited">Limited</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {pkg.availability === "limited" && (
+                    <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Quantity</Label>
+                        <Label>Full price per person *</Label>
                         <Input
                           type="number"
-                          value={pkg.quantity}
-                          onChange={(e) => updatePackage(pkg.id, "quantity", e.target.value)}
-                          placeholder="10"
+                          step="0.01"
+                          value={pkg.price}
+                          onChange={(e) => updatePackage(pkg.id, "price", e.target.value)}
+                          placeholder="100"
+                          required
                         />
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
 
-              {packages.length === 0 && (
-                <div className="py-12 text-center text-sm text-muted-foreground">
-                  No packages added yet. Click "Add Package" to create room types.
+                      <div className="space-y-2">
+                        <Label>Participants per booking *</Label>
+                        <Input
+                          type="number"
+                          value={pkg.participants_per_booking}
+                          onChange={(e) => updatePackage(pkg.id, "participants_per_booking", e.target.value)}
+                          placeholder="2"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Availability</Label>
+                        <Select
+                          value={pkg.availability}
+                          onValueChange={(value) => updatePackage(pkg.id, "availability", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unlimited">Unlimited</SelectItem>
+                            <SelectItem value="limited">Limited</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {pkg.availability === "limited" && (
+                        <div className="space-y-2">
+                          <Label>Quantity</Label>
+                          <Input
+                            type="number"
+                            value={pkg.quantity}
+                            onChange={(e) => updatePackage(pkg.id, "quantity", e.target.value)}
+                            placeholder="10"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+              {hasPremiumPackage ? (
+                packages
+                  .filter((pkg) => pkg.name === "Premium")
+                  .map((pkg) => (
+                    <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Premium Package (Optional)</h4>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removePremiumPackage}
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Description (optional)</Label>
+                        <Textarea
+                          value={pkg.description}
+                          onChange={(e) => updatePackage(pkg.id, "description", e.target.value)}
+                          placeholder="Enter package description (optional)"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Full price per person *</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={pkg.price}
+                            onChange={(e) => updatePackage(pkg.id, "price", e.target.value)}
+                            placeholder="200"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Participants per booking *</Label>
+                          <Input
+                            type="number"
+                            value={pkg.participants_per_booking}
+                            onChange={(e) => updatePackage(pkg.id, "participants_per_booking", e.target.value)}
+                            placeholder="2"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Availability</Label>
+                          <Select
+                            value={pkg.availability}
+                            onValueChange={(value) => updatePackage(pkg.id, "availability", value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unlimited">Unlimited</SelectItem>
+                              <SelectItem value="limited">Limited</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {pkg.availability === "limited" && (
+                          <div className="space-y-2">
+                            <Label>Quantity</Label>
+                            <Input
+                              type="number"
+                              value={pkg.quantity}
+                              onChange={(e) => updatePackage(pkg.id, "quantity", e.target.value)}
+                              placeholder="10"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="mb-4 text-sm text-muted-foreground">Premium package not added (optional)</p>
+                  <Button
+                    type="button"
+                    onClick={addPremiumPackage}
+                    size="sm"
+                    className="bg-[#a4b96a] hover:bg-[#93a55e]"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Premium Package
+                  </Button>
                 </div>
               )}
             </div>
@@ -779,7 +887,9 @@ export function CreateTripForm() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Booking Options</h2>
-              <p className="text-sm text-muted-foreground">Configure golf courses, meals, and transportation options (all optional)</p>
+              <p className="text-sm text-muted-foreground">
+                Configure golf courses, meals, and transportation options (all optional)
+              </p>
             </div>
 
             {/* Golf Courses Section */}
@@ -787,7 +897,9 @@ export function CreateTripForm() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">Golf Courses & Rounds</h3>
-                  <p className="text-sm text-muted-foreground">Add available golf courses with pricing per round (optional)</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add available golf courses with pricing per round (optional)
+                  </p>
                 </div>
                 <Button type="button" onClick={addGolfCourse} size="sm" className="bg-[#a4b96a] hover:bg-[#93a55e]">
                   <Plus className="mr-2 h-4 w-4" />
@@ -932,7 +1044,12 @@ export function CreateTripForm() {
                   <h3 className="text-lg font-semibold">Transportation</h3>
                   <p className="text-sm text-muted-foreground">Add transportation options for this trip (optional)</p>
                 </div>
-                <Button type="button" onClick={addTransportationOption} size="sm" className="bg-[#a4b96a] hover:bg-[#93a55e]">
+                <Button
+                  type="button"
+                  onClick={addTransportationOption}
+                  size="sm"
+                  className="bg-[#a4b96a] hover:bg-[#93a55e]"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Transportation Option
                 </Button>
@@ -1055,7 +1172,12 @@ export function CreateTripForm() {
                       <div>
                         <p className="mb-1 font-medium">Courses Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.courses || "/placeholder.svg"} alt="Courses" fill className="object-cover" />
+                          <Image
+                            src={photos.courses || "/placeholder.svg"}
+                            alt="Courses"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -1063,7 +1185,12 @@ export function CreateTripForm() {
                       <div>
                         <p className="mb-1 font-medium">Single Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.singleRoom || "/placeholder.svg"} alt="Single Room" fill className="object-cover" />
+                          <Image
+                            src={photos.singleRoom || "/placeholder.svg"}
+                            alt="Single Room"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -1071,7 +1198,12 @@ export function CreateTripForm() {
                       <div>
                         <p className="mb-1 font-medium">Double Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image src={photos.doubleRoom || "/placeholder.svg"} alt="Double Room" fill className="object-cover" />
+                          <Image
+                            src={photos.doubleRoom || "/placeholder.svg"}
+                            alt="Double Room"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -1115,7 +1247,9 @@ export function CreateTripForm() {
                     {golfCourses.map((course, idx) => (
                       <div key={course.id} className="flex justify-between text-sm">
                         <span>{course.course_name || `Course ${String.fromCharCode(65 + idx)}`}</span>
-                        <span className="font-medium">${course.price_per_round}/round (max: {course.max_rounds})</span>
+                        <span className="font-medium">
+                          ${course.price_per_round}/round (max: {course.max_rounds})
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1165,7 +1299,7 @@ export function CreateTripForm() {
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-transparent"
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Previous

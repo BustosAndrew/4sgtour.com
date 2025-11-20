@@ -19,7 +19,6 @@ export default async function TripPage({ params }: TripPageProps) {
     .from("trips")
     .select(`
       *,
-      images:trip_images(image_url, display_order),
       destination:destinations(name, country),
       packages(id, name, description, price)
     `)
@@ -31,9 +30,9 @@ export default async function TripPage({ params }: TripPageProps) {
   }
 
   const mainImage =
-    trip.images?.[0]?.image_url || `/placeholder.svg?height=600&width=1200&query=golf course ${trip.location}`
+    trip.courses_photo_url || `/placeholder.svg?height=600&width=1200&query=golf course ${trip.location}`
 
-  const additionalImages = trip.images?.slice(1, 4) || []
+  const additionalImages = [trip.double_room_photo_url, trip.single_room_photo_url].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,7 +64,7 @@ export default async function TripPage({ params }: TripPageProps) {
           {additionalImages[0] && (
             <div className="overflow-hidden rounded-lg sm:rounded-xl">
               <img
-                src={additionalImages[0].image_url || "/placeholder.svg"}
+                src={additionalImages[0] || "/placeholder.svg"}
                 alt={`${trip.title} view`}
                 className="h-[200px] w-full object-cover sm:h-[250px] md:h-[300px]"
               />
@@ -91,7 +90,7 @@ export default async function TripPage({ params }: TripPageProps) {
                 {additionalImages.slice(1, 3).map((img, idx) => (
                   <div key={idx} className="overflow-hidden rounded-lg sm:rounded-xl">
                     <img
-                      src={img.image_url || "/placeholder.svg"}
+                      src={img || "/placeholder.svg"}
                       alt={`${trip.title} highlight ${idx + 1}`}
                       className="h-[100px] w-full object-cover sm:h-[120px] md:h-[150px]"
                     />
