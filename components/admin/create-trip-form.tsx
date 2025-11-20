@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
 import Image from "next/image"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
@@ -65,11 +64,10 @@ export function CreateTripForm() {
     location: "",
     continent: "",
     price_regular: "",
-    duration_nights: "7",
     max_guests: "20",
-    includes_breakfast: false,
-    includes_transport: false,
   })
+  const [highlights, setHighlights] = useState<string[]>([])
+
   const [photos, setPhotos] = useState({
     courses: "",
     singleRoom: "",
@@ -128,6 +126,78 @@ export function CreateTripForm() {
 
   const handleRemovePhoto = (photoType: "courses" | "singleRoom" | "doubleRoom") => {
     setPhotos((prev) => ({ ...prev, [photoType]: "" }))
+  }
+
+  const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
+    const errors: string[] = []
+
+    switch (currentStep) {
+      case 1:
+        if (!formData.title.trim()) errors.push("Trip title is required")
+        if (!formData.location.trim()) errors.push("Location is required")
+        if (!formData.continent) errors.push("Continent selection is required")
+        if (!formData.price_regular || Number(formData.price_regular) <= 0)
+          errors.push("Valid regular price is required")
+        break
+
+      case 2:
+        const regularPkg = packages.find((p) => p.name === "Regular")
+        if (!regularPkg) {
+          errors.push("Regular package is required")
+        } else {
+          if (!regularPkg.price || Number(regularPkg.price) < 0) errors.push("Regular package must have a valid price")
+          if (!regularPkg.participants_per_booking || Number(regularPkg.participants_per_booking) <= 0) {
+            errors.push("Regular package must have valid participants per booking")
+          }
+          if (regularPkg.availability === "limited" && (!regularPkg.quantity || Number(regularPkg.quantity) <= 0)) {
+            errors.push("Regular package must have valid quantity for limited availability")
+          }
+        }
+
+        const premiumPkg = packages.find((p) => p.name === "Premium")
+        if (premiumPkg) {
+          if (!premiumPkg.price || Number(premiumPkg.price) < 0) errors.push("Premium package must have a valid price")
+          if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
+            errors.push("Premium package must have valid participants per booking")
+          }
+          if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
+            errors.push("Premium package must have valid quantity for limited availability")
+          }
+        }
+        break
+
+      case 3:
+        golfCourses.forEach((course, idx) => {
+          if (!course.course_name.trim()) errors.push(`Golf course ${idx + 1} name is required`)
+          if (!course.price_per_round || Number(course.price_per_round) < 0) {
+            errors.push(`Golf course ${idx + 1} must have a valid price per round`)
+          }
+          if (!course.max_rounds || Number(course.max_rounds) < 0) {
+            errors.push(`Golf course ${idx + 1} must have valid max rounds`)
+          }
+        })
+
+        mealOptions.forEach((meal, idx) => {
+          if (!meal.name.trim()) errors.push(`Meal option ${idx + 1} name is required`)
+          if (!meal.price || Number(meal.price) < 0) {
+            errors.push(`Meal option ${idx + 1} must have a valid price`)
+          }
+        })
+
+        transportationOptions.forEach((transport, idx) => {
+          if (!transport.name.trim()) errors.push(`Transportation option ${idx + 1} name is required`)
+          if (!transport.price || Number(transport.price) < 0) {
+            errors.push(`Transportation option ${idx + 1} must have a valid price`)
+          }
+        })
+        break
+
+      case 4:
+        // Review step - no validation needed
+        break
+    }
+
+    return { valid: errors.length === 0, errors }
   }
 
   const validateForm = (): { valid: boolean; errors: string[] } => {
@@ -221,11 +291,11 @@ export function CreateTripForm() {
         body: JSON.stringify({
           ...formData,
           price_regular: Number(formData.price_regular),
-          duration_nights: Number(formData.duration_nights),
           max_guests: Number(formData.max_guests),
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
+          highlights: highlights.filter((h) => h.trim() !== ""),
           packages: packages.map((pkg) => ({
             name: pkg.name,
             description: pkg.description,
@@ -360,6 +430,20 @@ export function CreateTripForm() {
     setTransportationOptions(transportationOptions.filter((transport) => transport.id !== id))
   }
 
+  const addHighlight = () => {
+    setHighlights([...highlights, ""])
+  }
+
+  const updateHighlight = (index: number, value: string) => {
+    const updated = [...highlights]
+    updated[index] = value
+    setHighlights(updated)
+  }
+
+  const removeHighlight = (index: number) => {
+    setHighlights(highlights.filter((_, i) => i !== index))
+  }
+
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
@@ -376,8 +460,7 @@ export function CreateTripForm() {
   }
 
   const nextStep = () => {
-    // Call validateForm before proceeding
-    const validation = validateForm()
+    const validation = validateCurrentStep()
     if (!validation.valid) {
       setValidationErrors(validation.errors)
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -492,6 +575,40 @@ export function CreateTripForm() {
             </div>
 
             <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Highlights (Optional)</Label>
+                <Button type="button" onClick={addHighlight} size="sm" variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Highlight
+                </Button>
+              </div>
+              {highlights.length > 0 ? (
+                <div className="space-y-2">
+                  {highlights.map((highlight, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={highlight}
+                        onChange={(e) => updateHighlight(index, e.target.value)}
+                        placeholder="e.g., Stay at this nice hotel"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeHighlight(index)}
+                        className="flex-shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No highlights added yet</p>
+              )}
+            </div>
+
+            <div className="space-y-3">
               <Label>Choose Continent *</Label>
               <div className="flex flex-wrap gap-2">
                 {CONTINENTS.map((continent) => (
@@ -530,17 +647,6 @@ export function CreateTripForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="duration_nights">Duration (nights)</Label>
-                <Input
-                  id="duration_nights"
-                  type="number"
-                  value={formData.duration_nights}
-                  onChange={(e) => setFormData({ ...formData, duration_nights: e.target.value })}
-                  placeholder="7"
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="max_guests">Max Guests</Label>
                 <Input
                   id="max_guests"
@@ -549,36 +655,6 @@ export function CreateTripForm() {
                   onChange={(e) => setFormData({ ...formData, max_guests: e.target.value })}
                   placeholder="20"
                 />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Inclusions</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includes_breakfast"
-                  checked={formData.includes_breakfast}
-                  onCheckedChange={(checked) => setFormData({ ...formData, includes_breakfast: checked as boolean })}
-                />
-                <label
-                  htmlFor="includes_breakfast"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Includes Breakfast
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includes_transport"
-                  checked={formData.includes_transport}
-                  onCheckedChange={(checked) => setFormData({ ...formData, includes_transport: checked as boolean })}
-                />
-                <label
-                  htmlFor="includes_transport"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Includes Transportation
-                </label>
               </div>
             </div>
 
@@ -1144,28 +1220,25 @@ export function CreateTripForm() {
                       "Not set"
                     )}
                   </div>
+                  {highlights.length > 0 && (
+                    <div>
+                      <span className="font-medium">Highlights:</span>
+                      <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
+                        {highlights
+                          .filter((h) => h.trim())
+                          .map((highlight, idx) => (
+                            <li key={idx}>{highlight}</li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
                   <div>
                     <span className="font-medium">Regular Price:</span> ${formData.price_regular || "0.00"}
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
                     <div>
-                      <span className="font-medium">Duration:</span> {formData.duration_nights} nights
-                    </div>
-                    <div>
                       <span className="font-medium">Max Guests:</span> {formData.max_guests}
                     </div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Inclusions:</span>{" "}
-                    {formData.includes_breakfast || formData.includes_transport ? (
-                      <span>
-                        {formData.includes_breakfast && "Breakfast"}
-                        {formData.includes_breakfast && formData.includes_transport && ", "}
-                        {formData.includes_transport && "Transportation"}
-                      </span>
-                    ) : (
-                      "None"
-                    )}
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (

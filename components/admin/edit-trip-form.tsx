@@ -22,6 +22,7 @@ interface EditTripFormProps {
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
+    highlights?: string[]
     packages?: any[]
     golf_courses?: any[]
     meal_options?: any[]
@@ -50,6 +51,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     description: trip.description || "",
     continent: trip.continent || "",
   })
+  const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
+
   const [photos, setPhotos] = useState({
     courses: trip.courses_photo_url || "",
     singleRoom: trip.single_room_photo_url || "",
@@ -227,6 +230,20 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setTransportationOptions(updated)
   }
 
+  const addHighlight = () => {
+    setHighlights([...highlights, ""])
+  }
+
+  const updateHighlight = (index: number, value: string) => {
+    const updated = [...highlights]
+    updated[index] = value
+    setHighlights(updated)
+  }
+
+  const removeHighlight = (index: number) => {
+    setHighlights(highlights.filter((_, i) => i !== index))
+  }
+
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
@@ -269,6 +286,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
+          highlights: highlights.filter((h) => h.trim() !== ""),
           packages,
           golf_courses: golfCourses,
           meal_options: mealOptions,
@@ -413,6 +431,41 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 rows={6}
                 className="resize-none"
               />
+            </div>
+
+            {/* Highlights */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base">Highlights (Optional)</Label>
+                <Button type="button" onClick={addHighlight} size="sm" variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Highlight
+                </Button>
+              </div>
+              {highlights.length > 0 ? (
+                <div className="space-y-2">
+                  {highlights.map((highlight, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={highlight}
+                        onChange={(e) => updateHighlight(index, e.target.value)}
+                        placeholder="e.g., Stay at this nice hotel"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeHighlight(index)}
+                        className="flex-shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No highlights added yet</p>
+              )}
             </div>
 
             {/* Choose Continent */}
@@ -1017,6 +1070,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       "Not set"
                     )}
                   </div>
+                  {highlights.length > 0 && (
+                    <div>
+                      <span className="font-medium">Highlights:</span>
+                      <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
+                        {highlights
+                          .filter((h) => h.trim())
+                          .map((highlight, idx) => (
+                            <li key={idx}>{highlight}</li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
                       <div>
