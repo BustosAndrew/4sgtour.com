@@ -40,6 +40,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     from: undefined,
     to: undefined,
   })
+  const [dateRangeError, setDateRangeError] = useState<string>("")
   const [courseRounds, setCourseRounds] = useState<Record<string, number>>({})
   const [selectedMeal, setSelectedMeal] = useState<string>("")
   const [selectedTransport, setSelectedTransport] = useState<string>("")
@@ -83,6 +84,34 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     return total
   }
 
+  const handleDateSelect = (range: any) => {
+    const newRange = range || { from: undefined, to: undefined }
+
+    // Clear error when deselecting
+    if (!newRange.from || !newRange.to) {
+      setDateRange(newRange)
+      setDateRangeError("")
+      return
+    }
+
+    // Check if max_days limit is set and validate
+    if (trip.max_days && newRange.from && newRange.to) {
+      const daysDiff = Math.ceil((newRange.to.getTime() - newRange.from.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (daysDiff > trip.max_days) {
+        setDateRangeError(
+          `Selected date range (${daysDiff} days) exceeds the maximum trip duration of ${trip.max_days} ${trip.max_days === 1 ? "day" : "days"}.`,
+        )
+        // Don't update the date range if it exceeds max_days
+        return
+      }
+    }
+
+    // Valid selection, clear any error and update range
+    setDateRangeError("")
+    setDateRange(newRange)
+  }
+
   const handleSubmit = async () => {
     if (!user) {
       alert("Please sign in to submit an inquiry")
@@ -93,6 +122,16 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     if (!dateRange.from || !dateRange.to) {
       alert("Please select travel dates")
       return
+    }
+
+    if (trip.max_days) {
+      const daysDiff = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysDiff > trip.max_days) {
+        alert(
+          `Your selected date range exceeds the maximum trip duration of ${trip.max_days} days. Please select a shorter date range.`,
+        )
+        return
+      }
     }
 
     if (!selectedPackage) {
@@ -167,9 +206,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
         {/* Step 1: Select Room Type */}
-        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+        <Card className="border-2 border-blue-400 p-4 sm:p-6 border-none bg-transparent shadow-none sm:px-[0] sm:py-[0]">
+          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
               1
             </div>
             <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
@@ -178,7 +217,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
             {packages.map((pkg: any) => {
               const Icon = pkg.icon
               return (
-                <Card key={pkg.id} className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4">
+                <Card
+                  key={pkg.id}
+                  className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
+                >
                   <RadioGroupItem value={pkg.id} id={pkg.id} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
                   <label htmlFor={pkg.id} className="flex cursor-pointer items-start gap-3">
                     <Icon className="mt-1 h-5 w-5 flex-shrink-0" />
@@ -197,9 +239,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         </Card>
 
         {/* Step 2: Travel Duration */}
-        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,233,209,1)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
               2
             </div>
             <h2 className="text-base font-bold sm:text-lg">Travel Duration</h2>
@@ -207,16 +249,21 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 text-sm font-medium sm:text-base">Select Dates</h3>
+              {trip.max_days && (
+                <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
+                  Maximum trip duration: {trip.max_days} {trip.max_days === 1 ? "day" : "days"}
+                </p>
+              )}
               <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
                 Choose your preferred travel dates for this golf trip
               </p>
+              {dateRangeError && (
+                <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3">
+                  <p className="text-xs text-red-600 sm:text-sm">{dateRangeError}</p>
+                </div>
+              )}
               <div className="overflow-x-auto">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range: any) => setDateRange(range || { from: undefined, to: undefined })}
-                  className="rounded-md border"
-                />
+                <Calendar mode="range" selected={dateRange} onSelect={handleDateSelect} className="rounded-md border" />
               </div>
             </div>
           </div>
@@ -224,9 +271,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
         {/* Step 3: Golf Courses & Rounds */}
         {golfCourses.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
                 3
               </div>
               <h2 className="text-base font-bold sm:text-lg">Golf Courses & Rounds</h2>
@@ -291,9 +338,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
         {/* Step 4: Meals */}
         {mealOptions.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
                 4
               </div>
               <h2 className="text-base font-bold sm:text-lg">Meals</h2>
@@ -326,9 +373,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
         {/* Step 5: Transportation */}
         {transportationOptions.length > 0 && (
-          <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
                 5
               </div>
               <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
@@ -364,9 +411,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         )}
 
         {/* Step 6: Additional Requests */}
-        <Card className="bg-[#E8DCC4] p-4 sm:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:py-[0] border-none shadow-none sm:px-[0] bg-transparent">
+          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,232,209,1)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
               6
             </div>
             <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
@@ -382,9 +429,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
       {/* Confirmation Panel */}
       <div className="lg:sticky lg:top-8 lg:self-start">
-        <Card className="bg-[#F8F8F8] p-4 sm:p-6">
-          <h2 className="mb-4 text-base font-bold sm:text-lg">Confirmation</h2>
-          <div className="space-y-2 text-xs sm:text-sm">
+        <Card className="p-4 sm:p-6 shadow-none sm:px-[0] sm:py-[0] pl-0 py-0 bg-destructive-foreground sm:pb-2.5 rounded-md border-primary border-solid border-2">
+          <div className="mb-4 bg-[rgba(240,234,210,1)] px-3 py-2 flex pl-0 pt-0 pb-0 gap-2">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
+            </div>
+            <h2 className="text-base font-bold sm:text-lg">Confirmation</h2>
+          </div>
+          <div className="space-y-2 text-xs sm:text-sm px-12">
             {dateRange.from && dateRange.to && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">Reservation for:</span>
@@ -435,7 +486,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
             )}
           </div>
 
-          <div className="my-4 border-t border-border pt-4">
+          <div className="my-4 border-t border-border pt-4 px-12 border-none">
             <div className="flex justify-between text-base font-bold sm:text-lg">
               <span>Total:</span>
               <span>${calculateTotal()}</span>
@@ -443,7 +494,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </div>
 
           <Button
-            className="w-full bg-[#9CA986] text-sm hover:bg-[#8a9876] sm:text-base"
+            className="w-3/4 bg-[#9CA986] text-sm hover:bg-[#8a9876] sm:text-base mx-auto"
             size="lg"
             onClick={handleSubmit}
             disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage}
@@ -467,7 +518,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </div>
         )}
 
-        <Card className="mt-4 bg-muted/50 p-3 sm:p-4">
+        <Card className="mt-4 p-3 sm:p-4 sm:px-[0] sm:py-[0] border-none bg-transparent shadow-none">
           <h3 className="text-sm font-bold sm:text-base">{trip.title}</h3>
           <p className="mt-2 text-xs text-muted-foreground sm:text-sm">Location: {trip.location}</p>
         </Card>

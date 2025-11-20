@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, Pencil, Trash2, FileText } from 'lucide-react'
+import { LogOut, Pencil, Trash2, FileText, Home } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { InquiriesList } from "@/components/admin/inquiries-list"
@@ -23,13 +23,13 @@ type Trip = {
 
 const CONTINENTS = ["Africa", "South America", "North America", "Asia", "Europe"] as const
 
-export function AdminCourses({ 
-  userName, 
+export function AdminCourses({
+  userName,
   trips,
   userEmail,
   userPhone,
-  userPhotoUrl
-}: { 
+  userPhotoUrl,
+}: {
   userName: string
   trips: Trip[]
   userEmail: string
@@ -42,9 +42,7 @@ export function AdminCourses({
   const router = useRouter()
 
   const filteredTrips =
-    selectedContinent === "All" 
-      ? trips 
-      : trips.filter((trip) => trip.continent === selectedContinent)
+    selectedContinent === "All" ? trips : trips.filter((trip) => trip.continent === selectedContinent)
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -71,12 +69,17 @@ export function AdminCourses({
         </div>
 
         <nav className="space-y-2">
+          <Link href="/">
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+              <Home className="h-5 w-5" />
+              <span className="font-medium">Home</span>
+            </button>
+          </Link>
+
           <button
             onClick={() => setActiveTab("courses")}
             className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "courses"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
+              activeTab === "courses" ? "bg-white/20 text-white" : "text-white hover:bg-white/10"
             }`}
           >
             <svg
@@ -97,9 +100,7 @@ export function AdminCourses({
           <button
             onClick={() => setActiveTab("inquiries")}
             className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "inquiries"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
+              activeTab === "inquiries" ? "bg-white/20 text-white" : "text-white hover:bg-white/10"
             }`}
           >
             <FileText className="h-5 w-5" />
@@ -125,14 +126,9 @@ export function AdminCourses({
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-gray-500">Admin</span>
-              <button
-                onClick={() => setShowAccountSettings(true)}
-                className="transition-opacity hover:opacity-80"
-              >
+              <button onClick={() => setShowAccountSettings(true)} className="transition-opacity hover:opacity-80">
                 <Avatar className="h-10 w-10">
-                  {userPhotoUrl && (
-                    <AvatarImage src={userPhotoUrl || "/placeholder.svg"} alt={userName} />
-                  )}
+                  {userPhotoUrl && <AvatarImage src={userPhotoUrl || "/placeholder.svg"} alt={userName} />}
                   <AvatarFallback className="bg-gray-300 text-gray-600">
                     {userName.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -181,9 +177,7 @@ export function AdminCourses({
                   ))}
                 </div>
                 <Link href="/admin/trips/new">
-                  <Button className="bg-[#adc178] text-white hover:bg-[#9ab368]">
-                    + Add Course
-                  </Button>
+                  <Button className="bg-[#adc178] text-white hover:bg-[#9ab368]">+ Add Course</Button>
                 </Link>
               </div>
 
@@ -228,9 +222,7 @@ export function AdminCourses({
                 {filteredTrips.length === 0 && (
                   <div className="col-span-full rounded-lg bg-white p-12 text-center">
                     <p className="text-gray-500">
-                      {selectedContinent === "All"
-                        ? "No trips yet."
-                        : `No courses found for ${selectedContinent}.`}
+                      {selectedContinent === "All" ? "No trips yet." : `No courses found for ${selectedContinent}.`}
                     </p>
                     <p className="mt-2 text-sm text-gray-400">Click "Add Course" to create a new trip.</p>
                   </div>

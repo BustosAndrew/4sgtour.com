@@ -28,6 +28,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       title: body.title,
       description: body.description,
       continent: body.continent,
+      max_days: body.max_days,
+      highlights: body.highlights,
+      overview_content: body.overview_content,
       courses_photo_url: body.courses_photo_url,
       single_room_photo_url: body.single_room_photo_url,
       double_room_photo_url: body.double_room_photo_url,
@@ -51,8 +54,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         name: pkg.name,
         description: pkg.description || null,
         price: pkg.price || 0,
-        availability: pkg.availability || 'unlimited',
-        quantity: pkg.availability === 'limited' ? pkg.quantity : null,
+        availability: pkg.availability || "unlimited",
+        quantity: pkg.availability === "limited" ? pkg.quantity : null,
         participants_per_booking: pkg.participants_per_booking || 1,
       }))
 
@@ -75,9 +78,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         name: addOn.name,
         description: addOn.description || null,
         price: addOn.price || 0,
-        price_type: addOn.price_type || 'per_participant',
-        availability: addOn.availability || 'unlimited',
-        quantity: addOn.availability === 'limited' ? addOn.quantity : null,
+        price_type: addOn.price_type || "per_participant",
+        availability: addOn.availability || "unlimited",
+        quantity: addOn.availability === "limited" ? addOn.quantity : null,
       }))
 
       const { error: addOnError } = await supabase.from("add_ons").insert(addOnsToInsert)
@@ -88,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   if (body.golf_courses) {
-    await supabase.from("golf_courses").delete().eq("trip_id", id)
+    await supabase.from("trip_golf_courses").delete().eq("trip_id", id)
 
     const validCourses = body.golf_courses.filter((course: any) => course.name?.trim())
     if (validCourses.length > 0) {
@@ -96,10 +99,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         trip_id: id,
         name: course.name,
         description: course.description || null,
-        price: course.price || 0,
+        price_per_round: course.price || 0,
+        max_rounds: course.max_rounds || 5,
       }))
 
-      const { error: courseError } = await supabase.from("golf_courses").insert(coursesToInsert)
+      const { error: courseError } = await supabase.from("trip_golf_courses").insert(coursesToInsert)
       if (courseError) {
         console.error("Error updating golf courses:", courseError)
       }
@@ -107,7 +111,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   if (body.meal_options) {
-    await supabase.from("meal_options").delete().eq("trip_id", id)
+    await supabase.from("trip_meal_options").delete().eq("trip_id", id)
 
     const validMeals = body.meal_options.filter((meal: any) => meal.name?.trim())
     if (validMeals.length > 0) {
@@ -116,10 +120,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         name: meal.name,
         description: meal.description || null,
         price: meal.price || 0,
-        is_recommended: idx === 0, // First option is recommended
+        is_recommended: idx === 0,
       }))
 
-      const { error: mealError } = await supabase.from("meal_options").insert(mealsToInsert)
+      const { error: mealError } = await supabase.from("trip_meal_options").insert(mealsToInsert)
       if (mealError) {
         console.error("Error updating meal options:", mealError)
       }
@@ -127,7 +131,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   if (body.transportation_options) {
-    await supabase.from("transportation_options").delete().eq("trip_id", id)
+    await supabase.from("trip_transportation_options").delete().eq("trip_id", id)
 
     const validTransport = body.transportation_options.filter((transport: any) => transport.name?.trim())
     if (validTransport.length > 0) {
@@ -136,10 +140,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         name: transport.name,
         description: transport.description || null,
         price: transport.price || 0,
-        is_recommended: idx === 0, // First option is recommended
+        is_recommended: idx === 0,
       }))
 
-      const { error: transportError } = await supabase.from("transportation_options").insert(transportToInsert)
+      const { error: transportError } = await supabase.from("trip_transportation_options").insert(transportToInsert)
       if (transportError) {
         console.error("Error updating transportation options:", transportError)
       }

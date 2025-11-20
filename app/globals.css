@@ -5,13 +5,13 @@
 
 :root {
   /* Updated color scheme to match golf website design with sage green and beige tones */
-  --background: oklch(0.98 0.01 85);
+  --background: rgb(255, 255, 255);
   --foreground: oklch(0.2 0.01 85);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.01 85);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.01 85);
-  --primary: oklch(0.55 0.08 135);
+  --primary: rgb(173, 193, 120);
   --primary-foreground: oklch(0.98 0.01 85);
   --secondary: oklch(0.88 0.02 85);
   --secondary-foreground: oklch(0.2 0.01 85);

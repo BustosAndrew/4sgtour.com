@@ -1,6 +1,5 @@
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -112,43 +111,60 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
 
           {trip.packages && trip.packages.length > 0 ? (
-            <div className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-8">
-              {trip.packages.map((pkg: any) => (
-                <Card key={pkg.id} className="flex flex-col border-2 p-4 transition-shadow hover:shadow-lg sm:p-6">
-                  <div className="text-center">
-                    <h3 className="text-base font-bold text-foreground sm:text-lg md:text-xl">{pkg.name}</h3>
-                    <p className="mt-3 text-2xl font-bold text-foreground sm:mt-4 sm:text-3xl md:text-4xl">
-                      ${pkg.price.toFixed(0)}
-                    </p>
-                  </div>
+            <div
+              className={`mt-6 grid gap-4 sm:mt-8 sm:gap-6 lg:gap-8 ${
+                trip.packages.length === 1
+                  ? "grid-cols-1 mx-auto max-w-md" // Center single package
+                  : "sm:grid-cols-2" // Two columns for multiple packages
+              }`}
+            >
+              {trip.packages.map((pkg: any) => {
+                const displayName = pkg.name === "Regular" ? "Basic" : pkg.name
+                const isPremium = displayName === "Premium"
+                const headerBg = isPremium ? "bg-[#d4c5a0]" : "bg-[#c8d5a0]"
+                const borderColor = isPremium ? "border-[#d4c5a0]" : "border-[#c8d5a0]"
+                const headerText = "text-black"
 
-                  {pkg.description && (
-                    <div className="mt-4 space-y-2 sm:mt-6 sm:space-y-3">
-                      {pkg.description.split("\n").map((item: string, idx: number) => {
-                        const isIncluded = !item.trim().toLowerCase().startsWith("no ")
-                        const text = item.replace(/^no /i, "").trim()
-                        return (
-                          <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
-                            {isIncluded ? (
-                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600 sm:h-4 sm:w-4" />
-                            ) : (
-                              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600 sm:h-4 sm:w-4" />
-                            )}
-                            <span className={isIncluded ? "text-foreground" : "text-muted-foreground"}>{text}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  <Button
-                    asChild
-                    className="mt-4 w-full bg-primary text-sm text-primary-foreground hover:bg-primary/90 sm:mt-6 sm:text-base"
+                return (
+                  <div
+                    key={pkg.id}
+                    className={`flex flex-col overflow-hidden rounded-2xl border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl`}
                   >
-                    <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`}>Book Now</Link>
-                  </Button>
-                </Card>
-              ))}
+                    <div className={`${headerBg} px-6 py-6 text-center`}>
+                      <h3 className={`text-xl font-bold ${headerText} sm:text-2xl`}>{displayName}</h3>
+                    </div>
+
+                    <div className="flex flex-1 flex-col p-6">
+                      <p className="mb-6 text-center text-3xl font-bold text-foreground sm:text-4xl">
+                        ${pkg.price.toFixed(0)}
+                      </p>
+
+                      {pkg.description && (
+                        <div className="mb-6 space-y-3">
+                          {pkg.description.split("\n").map((item: string, idx: number) => {
+                            const isIncluded = !item.trim().toLowerCase().startsWith("no ")
+                            const text = item.replace(/^no /i, "").trim()
+                            return (
+                              <div key={idx} className="flex items-start gap-3 text-sm sm:text-base">
+                                {isIncluded ? (
+                                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                ) : (
+                                  <X className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                                )}
+                                <span className={isIncluded ? "text-foreground" : "text-muted-foreground"}>{text}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      <Button asChild className="mt-auto w-full bg-[#a4b96a] text-base text-white hover:bg-[#93a55e]">
+                        <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`}>Book Now</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div className="mt-6 text-center sm:mt-8">

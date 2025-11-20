@@ -27,23 +27,24 @@ export async function POST(request: Request) {
       location,
       continent,
       price_regular,
-      duration_nights,
       max_guests,
-      includes_breakfast,
-      includes_transport,
       courses_photo_url,
       single_room_photo_url,
       double_room_photo_url,
-      packages, // Added packages
-      addOns, // Added add-ons
-      golfCourses, // Added golfCourses
+      highlights,
+      packages,
+      golfCourses,
+      mealOptions,
+      transportationOptions,
     } = body
 
-    // Generate slug from title
-    const slug = title
+    const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
+
+    // Add timestamp to ensure uniqueness
+    const slug = `${baseSlug}-${Date.now()}`
 
     const { data: tripData, error: tripError } = await supabase
       .from("trips")
@@ -54,19 +55,20 @@ export async function POST(request: Request) {
         continent,
         slug,
         price_regular: price_regular || 0,
-        duration_nights: duration_nights || 7,
         max_guests: max_guests || 20,
-        includes_breakfast: includes_breakfast || false,
-        includes_transport: includes_transport || false,
         courses_photo_url,
         single_room_photo_url,
         double_room_photo_url,
+        highlights: highlights || [],
         is_payment_link_trip: false,
       })
       .select()
       .single()
 
-    if (tripError) throw tripError
+    if (tripError) {
+      console.error("[v0] Error creating trip:", tripError.message)
+      throw tripError
+    }
 
     if (packages && packages.length > 0) {
       const packagesData = packages.map((pkg: any) => ({
@@ -79,46 +81,55 @@ export async function POST(request: Request) {
         participants_per_booking: pkg.participants_per_booking,
       }))
 
-      const { error: packagesError } = await supabase.from("packages").insert(packagesData)
+      const { error: packagesError } = await supabase.from("trip_packages").insert(packagesData)
 
       if (packagesError) {
         console.error("[v0] Error creating packages:", packagesError)
-        // Don't fail the whole operation, just log the error
-      }
-    }
-
-    if (addOns && addOns.length > 0) {
-      const addOnsData = addOns.map((addon: any) => ({
-        trip_id: tripData.id,
-        name: addon.name,
-        description: addon.description || null,
-        price: addon.price,
-        price_type: addon.price_type,
-        availability: addon.availability,
-        quantity: addon.quantity,
-      }))
-
-      const { error: addOnsError } = await supabase.from("add_ons").insert(addOnsData)
-
-      if (addOnsError) {
-        console.error("[v0] Error creating add-ons:", addOnsError)
-        // Don't fail the whole operation, just log the error
       }
     }
 
     if (golfCourses && golfCourses.length > 0) {
-      const golfCoursesData = golfCourses.map((course) => ({
+      const golfCoursesData = golfCourses.map((course: any) => ({
         trip_id: tripData.id,
         course_name: course.course_name,
         price_per_round: Number(course.price_per_round),
-        max_rounds: Number(course.max_rounds), // Added max_rounds field
+        max_rounds: Number(course.max_rounds),
       }))
 
       const { error: golfCoursesError } = await supabase.from("golf_courses").insert(golfCoursesData)
 
       if (golfCoursesError) {
         console.error("[v0] Error creating golf courses:", golfCoursesError)
-        // Don't fail the whole operation, just log the error
+      }
+    }
+
+    if (mealOptions && mealOptions.length > 0) {
+      const mealOptionsData = mealOptions.map((meal: any) => ({
+        trip_id: tripData.id,
+        name: meal.name,
+        description: meal.description || null,
+        price: Number(meal.price),
+      }))
+
+      const { error: mealsError } = await supabase.from("meal_options").insert(mealOptionsData)
+
+      if (mealsError) {
+        console.error("[v0] Error creating meal options:", mealsError)
+      }
+    }
+
+    if (transportationOptions && transportationOptions.length > 0) {
+      const transportOptionsData = transportationOptions.map((transport: any) => ({
+        trip_id: tripData.id,
+        name: transport.name,
+        description: transport.description || null,
+        price: Number(transport.price),
+      }))
+
+      const { error: transportError } = await supabase.from("transportation_options").insert(transportOptionsData)
+
+      if (transportError) {
+        console.error("[v0] Error creating transportation options:", transportError)
       }
     }
 

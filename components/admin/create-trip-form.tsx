@@ -15,7 +15,7 @@ const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"
 
 type Package = {
   id: string
-  name: "Regular" | "Premium" // Fixed package names
+  name: "Basic" | "Premium" // Renamed Regular to Basic
   description: string
   price: string
   availability: string
@@ -65,6 +65,7 @@ export function CreateTripForm() {
     continent: "",
     price_regular: "",
     max_guests: "20",
+    max_days: "",
   })
   const [highlights, setHighlights] = useState<string[]>([])
 
@@ -77,8 +78,8 @@ export function CreateTripForm() {
 
   const [packages, setPackages] = useState<Package[]>([
     {
-      id: "regular",
-      name: "Regular",
+      id: "basic",
+      name: "Basic", // Renamed Regular to Basic
       description: "",
       price: "",
       availability: "unlimited",
@@ -136,21 +137,21 @@ export function CreateTripForm() {
         if (!formData.title.trim()) errors.push("Trip title is required")
         if (!formData.location.trim()) errors.push("Location is required")
         if (!formData.continent) errors.push("Continent selection is required")
-        if (!formData.price_regular || Number(formData.price_regular) <= 0)
-          errors.push("Valid regular price is required")
+        if (!formData.price_regular || Number(formData.price_regular) <= 0) errors.push("Valid basic price is required") // Updated error message
+
         break
 
       case 2:
-        const regularPkg = packages.find((p) => p.name === "Regular")
-        if (!regularPkg) {
-          errors.push("Regular package is required")
+        const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
+        if (!basicPkg) {
+          errors.push("Basic package is required") // Updated error message
         } else {
-          if (!regularPkg.price || Number(regularPkg.price) < 0) errors.push("Regular package must have a valid price")
-          if (!regularPkg.participants_per_booking || Number(regularPkg.participants_per_booking) <= 0) {
-            errors.push("Regular package must have valid participants per booking")
+          if (!basicPkg.price || Number(basicPkg.price) < 0) errors.push("Basic package must have a valid price") // Updated error message
+          if (!basicPkg.participants_per_booking || Number(basicPkg.participants_per_booking) <= 0) {
+            errors.push("Basic package must have valid participants per booking") // Updated error message
           }
-          if (regularPkg.availability === "limited" && (!regularPkg.quantity || Number(regularPkg.quantity) <= 0)) {
-            errors.push("Regular package must have valid quantity for limited availability")
+          if (basicPkg.availability === "limited" && (!basicPkg.quantity || Number(basicPkg.quantity) <= 0)) {
+            errors.push("Basic package must have valid quantity for limited availability") // Updated error message
           }
         }
 
@@ -208,19 +209,22 @@ export function CreateTripForm() {
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
     if (!formData.continent) errors.push("Continent selection is required (Step 1)")
     if (!formData.price_regular || Number(formData.price_regular) <= 0)
-      errors.push("Valid regular price is required (Step 1)")
+      errors.push("Valid basic price is required (Step 1)") // Updated error message
+    // Added validation for max_days
+    if (formData.max_days && Number(formData.max_days) <= 0) {
+      errors.push("Maximum trip duration must be a positive number (Step 1)")
+    }
 
-    const regularPkg = packages.find((p) => p.name === "Regular")
-    if (!regularPkg) {
-      errors.push("Regular package is required (Step 2)")
+    const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
+    if (!basicPkg) {
+      errors.push("Basic package is required (Step 2)") // Updated error message
     } else {
-      if (!regularPkg.price || Number(regularPkg.price) < 0)
-        errors.push("Regular package must have a valid price (Step 2)")
-      if (!regularPkg.participants_per_booking || Number(regularPkg.participants_per_booking) <= 0) {
-        errors.push("Regular package must have valid participants per booking (Step 2)")
+      if (!basicPkg.price || Number(basicPkg.price) < 0) errors.push("Basic package must have a valid price (Step 2)") // Updated error message
+      if (!basicPkg.participants_per_booking || Number(basicPkg.participants_per_booking) <= 0) {
+        errors.push("Basic package must have valid participants per booking (Step 2)") // Updated error message
       }
-      if (regularPkg.availability === "limited" && (!regularPkg.quantity || Number(regularPkg.quantity) <= 0)) {
-        errors.push("Regular package must have valid quantity for limited availability (Step 2)")
+      if (basicPkg.availability === "limited" && (!basicPkg.quantity || Number(basicPkg.quantity) <= 0)) {
+        errors.push("Basic package must have valid quantity for limited availability (Step 2)") // Updated error message
       }
     }
 
@@ -268,6 +272,12 @@ export function CreateTripForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (currentStep !== 4) {
+      return
+    }
+
+    if (loading) return
+
     const validation = validateForm()
     if (!validation.valid) {
       setValidationErrors(validation.errors)
@@ -292,6 +302,7 @@ export function CreateTripForm() {
           ...formData,
           price_regular: Number(formData.price_regular),
           max_guests: Number(formData.max_guests),
+          max_days: formData.max_days ? Number(formData.max_days) : null,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -307,9 +318,8 @@ export function CreateTripForm() {
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
             price_per_round: Number(course.price_per_round),
-            max_rounds: Number(course.max_rounds), // Include max_rounds in submission
+            max_rounds: Number(course.max_rounds),
           })),
-          // Map mealOptions and transportationOptions to an array of objects
           mealOptions: mealOptions.map((meal) => ({
             name: meal.name,
             description: meal.description,
@@ -329,12 +339,10 @@ export function CreateTripForm() {
         throw new Error(errorData.error || "Failed to create trip")
       }
 
-      router.push("/admin")
-      router.refresh()
+      window.location.href = "/admin"
     } catch (error) {
       console.error("[v0] Error creating trip:", error)
       alert(`Failed to create trip: ${error instanceof Error ? error.message : "Unknown error"}`)
-    } finally {
       setLoading(false)
     }
   }
@@ -447,11 +455,18 @@ export function CreateTripForm() {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return formData.title && formData.location && formData.continent && formData.price_regular
+        // Updated to include max_days check if it's provided and invalid
+        return (
+          formData.title &&
+          formData.location &&
+          formData.continent &&
+          formData.price_regular &&
+          (!formData.max_days || Number(formData.max_days) > 0)
+        )
       case 2:
-        // Check if Regular package has valid price before proceeding
-        const regularPkg = packages.find((p) => p.name === "Regular")
-        return !!regularPkg && Number(regularPkg.price) > 0
+        // Check if Basic package has valid price before proceeding
+        const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
+        return !!basicPkg && Number(basicPkg.price) > 0
       case 3:
         return true
       default:
@@ -634,7 +649,7 @@ export function CreateTripForm() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="price_regular">Regular Price ($) *</Label>
+                <Label htmlFor="price_regular">Basic Price ($) *</Label> {/* Updated label */}
                 <Input
                   id="price_regular"
                   type="number"
@@ -656,6 +671,21 @@ export function CreateTripForm() {
                   placeholder="20"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="max_days">Maximum Trip Duration (Days)</Label>
+              <Input
+                id="max_days"
+                type="number"
+                min="1"
+                value={formData.max_days}
+                onChange={(e) => setFormData({ ...formData, max_days: e.target.value })}
+                placeholder="e.g., 7"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Set a maximum number of days guests can book for this trip
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -777,17 +807,17 @@ export function CreateTripForm() {
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
               <p className="text-sm text-muted-foreground">
-                Configure room types - Regular is required, Premium is optional
+                Configure room types - Basic is required, Premium is optional
               </p>
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
-                .filter((pkg) => pkg.name === "Regular")
+                .filter((pkg) => pkg.name === "Basic") // Renamed Regular to Basic
                 .map((pkg) => (
                   <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Regular Package (Required)</h4>
+                      <h4 className="font-medium">Basic Package (Required)</h4> {/* Updated heading */}
                     </div>
 
                     <div className="space-y-2">
@@ -1233,12 +1263,17 @@ export function CreateTripForm() {
                     </div>
                   )}
                   <div>
-                    <span className="font-medium">Regular Price:</span> ${formData.price_regular || "0.00"}
+                    <span className="font-medium">Basic Price:</span> ${formData.price_regular || "0.00"}
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
                     <div>
                       <span className="font-medium">Max Guests:</span> {formData.max_guests}
                     </div>
+                    {formData.max_days && (
+                      <div>
+                        <span className="font-medium">Max Days:</span> {formData.max_days}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
@@ -1389,7 +1424,12 @@ export function CreateTripForm() {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={loading} className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto">
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto"
+            >
               {loading ? "Creating Trip..." : "Publish Trip"}
             </Button>
           )}

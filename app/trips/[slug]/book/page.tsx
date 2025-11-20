@@ -38,7 +38,7 @@ export default async function BookingPage({ params, searchParams }: BookingPageP
     notFound()
   }
 
-  const { data: profile } = await supabase.from("profiles").select("full_name, email").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("display_name, email").eq("id", user.id).single()
 
   return (
     <div className="min-h-screen bg-background">

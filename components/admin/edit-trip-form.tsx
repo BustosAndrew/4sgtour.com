@@ -19,6 +19,7 @@ interface EditTripFormProps {
     title: string
     description: string | null
     continent: string | null
+    max_days?: number | null
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
@@ -50,6 +51,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     title: trip.title || "",
     description: trip.description || "",
     continent: trip.continent || "",
+    max_days: trip.max_days?.toString() || "",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
 
@@ -62,17 +64,21 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const initializePackages = () => {
     const existingPackages = trip.packages || []
-    const regularPkg = existingPackages.find((p: any) => p.name === "Regular")
+    const basicPkg = existingPackages.find((p: any) => p.name === "Basic" || p.name === "Regular")
     const premiumPkg = existingPackages.find((p: any) => p.name === "Premium")
 
     const pkgs = []
-    // Always include Regular
-    if (regularPkg) {
-      pkgs.push(regularPkg)
+    // Always include Basic
+    if (basicPkg) {
+      pkgs.push({
+        ...basicPkg,
+        name: "Basic", // Normalize to "Basic"
+        price: basicPkg.price || 0, // Ensure price is defined
+      })
     } else {
       pkgs.push({
-        id: "regular",
-        name: "Regular",
+        id: "basic",
+        name: "Basic",
         description: "",
         price: 0,
         availability: "unlimited",
@@ -83,7 +89,10 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
     // Include Premium if it exists
     if (premiumPkg) {
-      pkgs.push(premiumPkg)
+      pkgs.push({
+        ...premiumPkg,
+        price: premiumPkg.price || 0, // Ensure price is defined
+      })
     }
 
     return pkgs
@@ -94,7 +103,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     (trip.packages || []).some((p: any) => p.name === "Premium"),
   )
 
-  const [golfCourses, setGolfCourses] = useState(trip.golf_courses || [])
+  const [golfCourses, setGolfCourses] = useState(() => {
+    return (trip.golf_courses || []).map((course: any) => ({
+      id: course.id,
+      name: course.name || "",
+      description: course.description || "",
+      price: course.price_per_round || 0,
+      max_rounds: course.max_rounds || 5,
+    }))
+  })
+  // </CHANGE>
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
   const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [])
 
@@ -249,9 +267,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       case 1:
         return formData.title && formData.continent
       case 2:
-        // Ensure Regular package has a price
-        const regularPackage = packages.find((p) => p.name === "Regular")
-        return regularPackage?.price !== undefined && regularPackage?.price !== null && regularPackage?.price >= 0
+        // Ensure Basic package has a price
+        const basicPackage = packages.find((p) => p.name === "Basic") // Renamed from Regular to Basic
+        return basicPackage?.price !== undefined && basicPackage?.price !== null && basicPackage?.price >= 0
       case 3:
         return true // Trip options are optional
       default:
@@ -273,6 +291,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (currentStep !== 4) {
+      return
+    }
+
+    if (loading) return
+
     setLoading(true)
 
     try {
@@ -283,12 +308,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           title: formData.title,
           description: formData.description,
           continent: formData.continent,
+          max_days: formData.max_days ? Number(formData.max_days) : null,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages,
-          golf_courses: golfCourses,
+          golf_courses: golfCourses.map((course) => ({
+            ...course,
+            price_per_round: course.price, // Map component field name back to database field name
+          })),
           meal_options: mealOptions,
           transportation_options: transportationOptions,
         }),
@@ -296,14 +325,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
       if (!response.ok) throw new Error("Failed to update trip")
 
-      router.refresh()
-      router.push("/admin") // Updated code here
-      alert("Trip updated successfully")
+      window.location.href = "/admin"
     } catch (error) {
       console.error("Error updating trip:", error)
       alert("Failed to update trip")
-    } finally {
-      setLoading(false)
+      setLoading(false) // Re-enable button on error
     }
   }
 
@@ -493,6 +519,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="max_days" className="text-base">
+                Maximum Trip Duration (Days)
+              </Label>
+              <Input
+                id="max_days"
+                type="number"
+                min="1"
+                value={formData.max_days}
+                onChange={(e) => setFormData({ ...formData, max_days: e.target.value })}
+                placeholder="e.g., 7"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Set a maximum number of days guests can book for this trip
+              </p>
+            </div>
+
             {/* Upload Photos for Courses */}
             <div className="space-y-3">
               <Label className="text-base">Upload Photos for Courses</Label>
@@ -615,18 +658,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
               <p className="text-sm text-muted-foreground">
-                Configure room types - Regular is required, Premium is optional
+                Configure room types - Basic is required, Premium is optional
               </p>
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
-                .filter((pkg) => pkg.name === "Regular")
+                .filter((pkg) => pkg.name === "Basic") // Renamed from Regular to Basic
                 .map((pkg, index) => (
                   <Card key={pkg.id} className="p-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Regular Package (Required)</h4>
+                        <h4 className="font-medium">Basic Package (Required)</h4> {/* Updated heading */}
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -1082,6 +1125,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       </ul>
                     </div>
                   )}
+                  {formData.max_days && (
+                    <div>
+                      <span className="font-medium">Max Days:</span> {formData.max_days}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
                       <div>
@@ -1256,7 +1304,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={loading} className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto">
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto"
+            >
               {loading ? "Saving Changes..." : "Save Changes"}
             </Button>
           )}
