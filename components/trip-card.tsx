@@ -3,11 +3,11 @@
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
-import { Heart } from 'lucide-react'
+import { Heart } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
 
 interface TripCardProps {
@@ -20,7 +20,10 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const price = trip.price_regular
+  const price =
+    trip.packages && trip.packages.length > 0
+      ? Math.min(...trip.packages.map((pkg: any) => Number(pkg.price)))
+      : trip.price_regular
 
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -70,7 +73,9 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
         <div className="p-3 sm:p-4">
           <p className="text-xs text-muted-foreground sm:text-sm">{trip.location}</p>
           <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{trip.title}</h3>
-          <p className="mt-2 text-base font-bold text-foreground sm:text-lg">${price.toFixed(2)}</p>
+          <p className="mt-2 text-base font-bold text-foreground sm:text-lg">
+            {trip.packages && trip.packages.length > 1 ? "From " : ""}${price.toFixed(2)}
+          </p>
           <div className="mt-3 flex items-center gap-2 sm:mt-4">
             <Button className="flex-1 text-sm sm:text-base bg-primary text-primary-foreground hover:bg-primary/90">
               Book Now

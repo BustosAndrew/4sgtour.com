@@ -146,7 +146,7 @@ export default async function TripPage({ params }: TripPageProps) {
                     asChild
                     className="mt-4 w-full bg-primary text-sm text-primary-foreground hover:bg-primary/90 sm:mt-6 sm:text-base"
                   >
-                    <Link href={`/trips/${trip.slug}/book`}>Book Now</Link>
+                    <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`}>Book Now</Link>
                   </Button>
                 </Card>
               ))}

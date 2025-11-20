@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
@@ -12,7 +11,8 @@ export default async function HomePage() {
     .from("trips")
     .select(`
       *,
-      images:trip_images(image_url)
+      images:trip_images(image_url),
+      packages(id, name, price)
     `)
     .order("created_at", { ascending: false })
     .limit(4)

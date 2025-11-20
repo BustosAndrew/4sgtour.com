@@ -6,38 +6,36 @@ import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
-import { Users, User, Minus, Plus, Check } from 'lucide-react'
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Users, User, Minus, Plus } from "lucide-react"
 
 interface BookingFormProps {
   trip: any
   user: any
   profile: any
+  preSelectedPackageId?: string
 }
 
-const DEFAULT_ROOM_TYPES = [
-  { id: "double", name: "Double Occupancy", icon: Users, description: "Shared room for two guests", price: 0 },
-  { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest", price: 0 },
-]
-
-export function BookingForm({ trip, user, profile }: BookingFormProps) {
-  const packages = trip.packages && trip.packages.length > 0 
-    ? trip.packages.map((pkg: any) => ({
-        id: pkg.id,
-        name: pkg.name,
-        description: pkg.description || '',
-        price: Number(pkg.price) || 0,
-        icon: pkg.name.toLowerCase().includes('double') ? Users : User
-      }))
-    : DEFAULT_ROOM_TYPES
+export function BookingForm({ trip, user, profile, preSelectedPackageId }: BookingFormProps) {
+  const packages =
+    trip.packages && trip.packages.length > 0
+      ? trip.packages.map((pkg: any) => ({
+          id: pkg.id,
+          name: pkg.name,
+          description: pkg.description || "",
+          price: Number(pkg.price) || 0,
+          icon: pkg.name.toLowerCase().includes("double") ? Users : User,
+        }))
+      : [
+          { id: "double", name: "Double Occupancy", icon: Users, description: "Shared room for two guests", price: 0 },
+          { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest", price: 0 },
+        ]
 
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
   const transportationOptions = trip.transportation_options || []
 
   // Form state
-  const [selectedPackage, setSelectedPackage] = useState<string>("")
+  const [selectedPackage, setSelectedPackage] = useState<string>(preSelectedPackageId || "")
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
@@ -50,9 +48,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
 
   const updateCourseRounds = (courseId: string, rounds: number, maxRounds: number) => {
     const clampedRounds = Math.max(0, Math.min(rounds, maxRounds))
-    setCourseRounds(prev => ({
+    setCourseRounds((prev) => ({
       ...prev,
-      [courseId]: clampedRounds
+      [courseId]: clampedRounds,
     }))
   }
 
@@ -109,7 +107,7 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       const startDate = dateRange.from.toISOString().split("T")[0]
       const endDate = dateRange.to.toISOString().split("T")[0]
       const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
-      
+
       const courseDetails = Object.entries(courseRounds)
         .filter(([_, rounds]) => rounds > 0)
         .map(([courseId, rounds]) => {
@@ -119,7 +117,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         .filter(Boolean)
 
       const mealOptionName = mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
-      const transportOptionName = transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name || "Private Car with Driver"
+      const transportOptionName =
+        transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name ||
+        "Private Car with Driver"
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -147,7 +147,7 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
       }
 
       alert("Your inquiry has been submitted! We'll contact you shortly.")
-      
+
       // Reset form
       setSelectedPackage("")
       setDateRange({ from: undefined, to: undefined })
@@ -169,7 +169,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {/* Step 1: Select Room Type */}
         <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">1</div>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+              1
+            </div>
             <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
           </div>
           <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
@@ -197,7 +199,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {/* Step 2: Travel Duration */}
         <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">2</div>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+              2
+            </div>
             <h2 className="text-base font-bold sm:text-lg">Travel Duration</h2>
           </div>
           <div className="space-y-4">
@@ -222,10 +226,12 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {golfCourses.length > 0 && (
           <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">3</div>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+                3
+              </div>
               <h2 className="text-base font-bold sm:text-lg">Golf Courses & Rounds</h2>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h3 className="mb-2 text-sm font-medium sm:text-base">Select Courses</h3>
@@ -236,17 +242,14 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                   {golfCourses.map((course: any) => {
                     const rounds = courseRounds[course.id] || 0
                     const maxRounds = course.max_rounds || 5
-                    
+
                     return (
-                      <Card
-                        key={course.id}
-                        className="p-3 transition-colors sm:p-4"
-                      >
+                      <Card key={course.id} className="p-3 transition-colors sm:p-4">
                         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <span className="font-bold text-sm sm:text-base">{course.course_name}</span>
                           <span className="font-bold text-sm sm:text-base">${course.price_per_round}/round</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-3 sm:gap-4">
                           <Button
                             type="button"
@@ -273,7 +276,7 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                             <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
-                        
+
                         <div className="mt-2 text-center text-xs text-muted-foreground">
                           Max: {maxRounds} rounds available
                         </div>
@@ -290,7 +293,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {mealOptions.length > 0 && (
           <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">4</div>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+                4
+              </div>
               <h2 className="text-base font-bold sm:text-lg">Meals</h2>
             </div>
             <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
@@ -302,10 +307,16 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                   }`}
                   onClick={() => setSelectedMeal(meal.id)}
                 >
-                  <RadioGroupItem value={meal.id} id={`meal-${meal.id}`} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+                  <RadioGroupItem
+                    value={meal.id}
+                    id={`meal-${meal.id}`}
+                    className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                  />
                   <label htmlFor={`meal-${meal.id}`} className="cursor-pointer pr-8">
                     <div className="font-bold text-sm sm:text-base">{meal.name}</div>
-                    {meal.description && <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>}
+                    {meal.description && (
+                      <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>
+                    )}
                   </label>
                 </Card>
               ))}
@@ -317,10 +328,16 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {transportationOptions.length > 0 && (
           <Card className="bg-[#E8DCC4] p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">5</div>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+                5
+              </div>
               <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
             </div>
-            <RadioGroup value={selectedTransport} onValueChange={(val: any) => setSelectedTransport(val)} className="space-y-2">
+            <RadioGroup
+              value={selectedTransport}
+              onValueChange={(val: any) => setSelectedTransport(val)}
+              className="space-y-2"
+            >
               {transportationOptions.map((transport: any, index: number) => (
                 <Card
                   key={transport.id}
@@ -329,10 +346,16 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
                   }`}
                   onClick={() => setSelectedTransport(transport.id)}
                 >
-                  <RadioGroupItem value={transport.id} id={`transport-${transport.id}`} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+                  <RadioGroupItem
+                    value={transport.id}
+                    id={`transport-${transport.id}`}
+                    className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                  />
                   <label htmlFor={`transport-${transport.id}`} className="cursor-pointer pr-8">
                     <div className="font-bold text-sm sm:text-base">{transport.name}</div>
-                    {transport.description && <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>}
+                    {transport.description && (
+                      <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>
+                    )}
                   </label>
                 </Card>
               ))}
@@ -343,7 +366,9 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
         {/* Step 6: Additional Requests */}
         <Card className="bg-[#E8DCC4] p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">6</div>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#C9B896] text-sm font-bold">
+              6
+            </div>
             <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
           </div>
           <Textarea
@@ -370,30 +395,42 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
             )}
             {selectedPackage && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">{packages.find((p: any) => p.id === selectedPackage)?.name}</span>
+                <span className="text-muted-foreground">
+                  {packages.find((p: any) => p.id === selectedPackage)?.name}
+                </span>
                 <span className="font-medium">${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
               </div>
             )}
-            {Object.entries(courseRounds).filter(([_, rounds]) => rounds > 0).map(([courseId, rounds]) => {
-              const course = golfCourses.find((c: any) => c.id === courseId)
-              if (!course) return null
-              return (
-                <div key={courseId} className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                  <span className="text-muted-foreground">{course.course_name} ({rounds} rounds)</span>
-                  <span className="font-medium">${Number(course.price_per_round) * rounds}</span>
-                </div>
-              )
-            })}
+            {Object.entries(courseRounds)
+              .filter(([_, rounds]) => rounds > 0)
+              .map(([courseId, rounds]) => {
+                const course = golfCourses.find((c: any) => c.id === courseId)
+                if (!course) return null
+                return (
+                  <div key={courseId} className="flex flex-col gap-1 sm:flex-row sm:justify-between">
+                    <span className="text-muted-foreground">
+                      {course.course_name} ({rounds} rounds)
+                    </span>
+                    <span className="font-medium">${Number(course.price_per_round) * rounds}</span>
+                  </div>
+                )
+              })}
             {selectedMeal && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">{mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}</span>
+                <span className="text-muted-foreground">
+                  {mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}
+                </span>
                 <span className="font-medium">${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
               </div>
             )}
             {selectedTransport && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">{transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}</span>
-                <span className="font-medium">${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}</span>
+                <span className="text-muted-foreground">
+                  {transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}
+                </span>
+                <span className="font-medium">
+                  ${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}
+                </span>
               </div>
             )}
           </div>
@@ -420,7 +457,11 @@ export function BookingForm({ trip, user, profile }: BookingFormProps) {
           <div className="mt-4 grid grid-cols-2 gap-2">
             {trip.images.slice(0, 4).map((img: any, idx: number) => (
               <div key={idx} className="aspect-square overflow-hidden rounded-lg bg-muted">
-                <img src={img.image_url || "/placeholder.svg"} alt={trip.title} className="h-full w-full object-cover" />
+                <img
+                  src={img.image_url || "/placeholder.svg"}
+                  alt={trip.title}
+                  className="h-full w-full object-cover"
+                />
               </div>
             ))}
           </div>

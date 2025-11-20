@@ -2,7 +2,7 @@ import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { TripCard } from "@/components/trip-card"
 import { createClient } from "@/lib/supabase/server"
-import { notFound } from 'next/navigation'
+import { notFound } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
 
 interface ContinentTripsPageProps {
@@ -31,17 +31,19 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
     .from("trips")
     .select(`
       *,
-      images:trip_images(image_url)
+      images:trip_images(image_url),
+      packages(id, name, price)
     `)
     .eq("continent", continentName)
     .order("created_at", { ascending: false })
 
-  const heroImage = trips?.[0]?.images?.[0]?.image_url || `/placeholder.svg?height=600&width=1200&query=golf+course+${continentName}`
+  const heroImage =
+    trips?.[0]?.images?.[0]?.image_url || `/placeholder.svg?height=600&width=1200&query=golf+course+${continentName}`
 
   return (
     <div className="min-h-screen">
       <SiteHeaderWrapper />
-      
+
       <section className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
         <img
           src={heroImage || "/placeholder.svg"}
@@ -51,9 +53,7 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center px-4">
           <div className="container text-center text-white">
-            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl">
-              4 Seasons Golf Tour
-            </h1>
+            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl">4 Seasons Golf Tour</h1>
             <p className="mt-2 text-lg sm:mt-4 sm:text-xl md:text-2xl">Courses in {continentName}</p>
           </div>
         </div>
@@ -79,7 +79,9 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
           </div>
         ) : (
           <div className="py-8 text-center sm:py-12">
-            <p className="text-sm text-muted-foreground sm:text-base">No courses available in {continentName} at the moment.</p>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              No courses available in {continentName} at the moment.
+            </p>
           </div>
         )}
       </main>
