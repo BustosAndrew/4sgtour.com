@@ -57,8 +57,7 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
     }
   }
 
-  const imageUrl =
-    trip.images?.[0]?.image_url || `/placeholder.svg?height=300&width=400&query=golf course ${trip.location}`
+  const imageUrl = trip.courses_photo_url || `/placeholder.svg?height=300&width=400&query=golf course ${trip.location}`
 
   return (
     <Link href={`/trips/${trip.slug}`} className="group block">

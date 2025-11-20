@@ -31,14 +31,13 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
     .from("trips")
     .select(`
       *,
-      images:trip_images(image_url),
       packages(id, name, price)
     `)
     .eq("continent", continentName)
     .order("created_at", { ascending: false })
 
   const heroImage =
-    trips?.[0]?.images?.[0]?.image_url || `/placeholder.svg?height=600&width=1200&query=golf+course+${continentName}`
+    trips?.[0]?.courses_photo_url || `/placeholder.svg?height=600&width=1200&query=golf+course+${continentName}`
 
   return (
     <div className="min-h-screen">
@@ -70,11 +69,7 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
         {trips && trips.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {trips.map((trip) => (
-              <TripCard
-                key={trip.id}
-                trip={trip as Trip & { images?: Array<{ image_url: string }> }}
-                isFavorite={false}
-              />
+              <TripCard key={trip.id} trip={trip as Trip} isFavorite={false} />
             ))}
           </div>
         ) : (

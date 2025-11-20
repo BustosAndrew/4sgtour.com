@@ -11,8 +11,8 @@ export default async function HomePage() {
     .from("trips")
     .select(`
       *,
-      images:trip_images(image_url),
-      packages(id, name, price)
+      packages(id, name, price),
+      courses_photo_url
     `)
     .order("created_at", { ascending: false })
     .limit(4)
