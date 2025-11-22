@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TripCard } from "@/components/trip-card"
+import Link from "next/link"
 import type { Trip } from "@/lib/types/database"
 
 interface RecommendationsCarouselProps {
@@ -16,7 +16,7 @@ export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps)
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return
 
-    const scrollAmount = 320 // Width of card (280px) + gap (40px)
+    const scrollAmount = 320 // Width of image (280px) + gap (40px)
     const newScrollPosition =
       scrollContainerRef.current.scrollLeft + (direction === "left" ? -scrollAmount : scrollAmount)
 
@@ -32,85 +32,29 @@ export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps)
       : ([
           {
             id: "placeholder-1",
-            destination_id: "placeholder-dest-1",
             title: "Luxury Golf Retreat",
             slug: "luxury-golf-retreat",
-            location: "Pebble Beach, CA",
-            price_regular: 2500,
-            duration_nights: 4,
-            max_guests: 4,
-            includes_breakfast: true,
-            includes_transport: true,
-            available_courses: [
-              { name: "Pebble Beach Golf Links", price: 595 },
-              { name: "Spyglass Hill", price: 425 },
-            ],
-            description: "Experience world-class golf at iconic Pebble Beach",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            images: [{ image_url: "/placeholder.svg?height=400&width=600" }],
+            courses_photo_url: "/placeholder.svg?height=400&width=400",
           },
           {
             id: "placeholder-2",
-            destination_id: "placeholder-dest-2",
             title: "Scottish Highlands Tour",
             slug: "scottish-highlands-tour",
-            location: "St Andrews, Scotland",
-            price_regular: 3200,
-            duration_nights: 7,
-            max_guests: 4,
-            includes_breakfast: true,
-            includes_transport: true,
-            available_courses: [
-              { name: "Old Course", price: 295 },
-              { name: "New Course", price: 195 },
-            ],
-            description: "Play the historic courses of Scotland",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            images: [{ image_url: "/placeholder.svg?height=400&width=600" }],
+            courses_photo_url: "/placeholder.svg?height=400&width=400",
           },
           {
             id: "placeholder-3",
-            destination_id: "placeholder-dest-3",
             title: "Desert Golf Experience",
             slug: "desert-golf-experience",
-            location: "Scottsdale, AZ",
-            price_regular: 1800,
-            duration_nights: 3,
-            max_guests: 4,
-            includes_breakfast: true,
-            includes_transport: false,
-            available_courses: [
-              { name: "TPC Scottsdale", price: 299 },
-              { name: "Troon North", price: 275 },
-            ],
-            description: "Stunning desert landscapes and championship golf",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            images: [{ image_url: "/placeholder.svg?height=400&width=600" }],
+            courses_photo_url: "/placeholder.svg?height=400&width=400",
           },
           {
             id: "placeholder-4",
-            destination_id: "placeholder-dest-4",
             title: "Coastal Golf Paradise",
             slug: "coastal-golf-paradise",
-            location: "Monterey, CA",
-            price_regular: 2200,
-            duration_nights: 5,
-            max_guests: 4,
-            includes_breakfast: true,
-            includes_transport: true,
-            available_courses: [
-              { name: "Spanish Bay", price: 325 },
-              { name: "Poppy Hills", price: 275 },
-            ],
-            description: "Breathtaking ocean views and pristine fairways",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            images: [{ image_url: "/placeholder.svg?height=400&width=600" }],
+            courses_photo_url: "/placeholder.svg?height=400&width=400",
           },
-        ] as (Trip & { images?: Array<{ image_url: string }> })[])
+        ] as Trip[])
 
   return (
     <div className="relative px-12">
@@ -139,9 +83,16 @@ export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps)
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {displayTrips.map((trip) => (
-          <div key={trip.id} className="w-[280px] flex-shrink-0">
-            <TripCard trip={trip} />
-          </div>
+          <Link key={trip.id} href={`/trips/${trip.slug}`} className="group w-[280px] flex-shrink-0">
+            <div className="relative aspect-square overflow-hidden rounded-lg transition-transform group-hover:scale-105">
+              <img
+                src={trip.courses_photo_url || "/placeholder.svg?height=400&width=400&query=golf+course"}
+                alt={trip.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            </div>
+          </Link>
         ))}
       </div>
     </div>

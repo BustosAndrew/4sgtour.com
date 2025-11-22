@@ -97,7 +97,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-white/20 pt-8 text-center">
+        <div className="mt-8 border-t border-white/20 pt-8">
           <BackToTopButton />
         </div>
       </div>

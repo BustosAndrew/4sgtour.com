@@ -16,26 +16,16 @@ interface BookingFormProps {
 }
 
 export function BookingForm({ trip, user, profile, preSelectedPackageId }: BookingFormProps) {
-  const packages =
-    trip.packages && trip.packages.length > 0
-      ? trip.packages.map((pkg: any) => ({
-          id: pkg.id,
-          name: pkg.name,
-          description: pkg.description || "",
-          price: Number(pkg.price) || 0,
-          icon: pkg.name.toLowerCase().includes("double") ? Users : User,
-        }))
-      : [
-          { id: "double", name: "Double Occupancy", icon: Users, description: "Shared room for two guests", price: 0 },
-          { id: "single", name: "Single Occupancy", icon: User, description: "Private room for one guest", price: 0 },
-        ]
+  const packages = trip.packages || []
+  const basicPackage = packages.find((pkg: any) => pkg.name === "Basic" || pkg.name === "Regular")
+  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium")
 
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
   const transportationOptions = trip.transportation_options || []
 
-  // Form state
-  const [selectedPackage, setSelectedPackage] = useState<string>(preSelectedPackageId || "")
+  const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || basicPackage?.id || "")
+  const [roomType, setRoomType] = useState<string>("")
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
@@ -58,10 +48,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const calculateTotal = () => {
     let total = 0
 
-    // Package price
-    const selectedPkg = packages.find((p: any) => p.id === selectedPackage)
-    if (selectedPkg) total += selectedPkg.price
+    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+    if (selectedPackage) total += Number(selectedPackage.price)
 
+    // Golf courses
     Object.entries(courseRounds).forEach(([courseId, rounds]) => {
       if (rounds > 0) {
         const course = golfCourses.find((c: any) => c.id === courseId)
@@ -87,14 +77,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const handleDateSelect = (range: any) => {
     const newRange = range || { from: undefined, to: undefined }
 
-    // Clear error when deselecting
     if (!newRange.from || !newRange.to) {
       setDateRange(newRange)
       setDateRangeError("")
       return
     }
 
-    // Check if max_days limit is set and validate
     if (trip.max_days && newRange.from && newRange.to) {
       const daysDiff = Math.ceil((newRange.to.getTime() - newRange.from.getTime()) / (1000 * 60 * 60 * 24))
 
@@ -102,12 +90,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         setDateRangeError(
           `Selected date range (${daysDiff} days) exceeds the maximum trip duration of ${trip.max_days} ${trip.max_days === 1 ? "day" : "days"}.`,
         )
-        // Don't update the date range if it exceeds max_days
         return
       }
     }
 
-    // Valid selection, clear any error and update range
     setDateRangeError("")
     setDateRange(newRange)
   }
@@ -134,8 +120,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       }
     }
 
-    if (!selectedPackage) {
-      alert("Please select a room type")
+    if (!selectedPlan) {
+      alert("Please select a plan (Basic or Premium)")
+      return
+    }
+
+    if (!roomType) {
+      alert("Please select a room type (Double or Single Occupancy)")
       return
     }
 
@@ -145,7 +136,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       const total = calculateTotal()
       const startDate = dateRange.from.toISOString().split("T")[0]
       const endDate = dateRange.to.toISOString().split("T")[0]
-      const packageName = packages.find((p: any) => p.id === selectedPackage)?.name || ""
+
+      const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+      const packageName = selectedPackage?.name || ""
+      const occupancyType = roomType === "double" ? "Double Occupancy" : "Single Occupancy"
 
       const courseDetails = Object.entries(courseRounds)
         .filter(([_, rounds]) => rounds > 0)
@@ -168,9 +162,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         body: JSON.stringify({
           tripId: trip.id,
           tripTitle: trip.title,
-          customerName: profile?.full_name || user?.email || "Unknown",
+          customerName: profile?.display_name || user?.email || "Unknown",
           customerEmail: profile?.email || user?.email || "",
-          packageName,
+          packageName: `${packageName} - ${occupancyType}`, // Include room type in package name
           startDate,
           endDate,
           golfCourses: courseDetails,
@@ -178,6 +172,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           transportOption: transportOptionName,
           additionalRequests,
           totalPrice: total,
+          roomType: occupancyType, // Send room type separately
         }),
       })
 
@@ -187,8 +182,8 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
       alert("Your inquiry has been submitted! We'll contact you shortly.")
 
-      // Reset form
-      setSelectedPackage("")
+      setSelectedPlan(basicPackage?.id || "")
+      setRoomType("")
       setDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
       setSelectedMeal("")
@@ -205,44 +200,98 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
-        {/* Step 1: Select Room Type */}
         <Card className="border-2 border-blue-400 p-4 sm:p-6 border-none bg-transparent shadow-none sm:px-[0] sm:py-[0]">
           <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
               1
             </div>
-            <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
+            <h2 className="text-base font-bold sm:text-lg">Select Your Plan</h2>
           </div>
-          <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage} className="space-y-3">
-            {packages.map((pkg: any) => {
-              const Icon = pkg.icon
-              return (
-                <Card
-                  key={pkg.id}
-                  className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
-                >
-                  <RadioGroupItem value={pkg.id} id={pkg.id} className="absolute right-3 top-3 sm:right-4 sm:top-4" />
-                  <label htmlFor={pkg.id} className="flex cursor-pointer items-start gap-3">
-                    <Icon className="mt-1 h-5 w-5 flex-shrink-0" />
-                    <div className="flex-1 pr-8">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="font-bold text-sm sm:text-base">{pkg.name}</div>
-                        <div className="font-bold text-sm sm:text-base">${pkg.price}</div>
-                      </div>
-                      <div className="text-xs text-muted-foreground sm:text-sm">{pkg.description}</div>
+          <RadioGroup value={selectedPlan} onValueChange={setSelectedPlan} className="space-y-3">
+            {basicPackage && (
+              <Card
+                key={basicPackage.id}
+                className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
+              >
+                <RadioGroupItem
+                  value={basicPackage.id}
+                  id={basicPackage.id}
+                  className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                />
+                <label htmlFor={basicPackage.id} className="flex cursor-pointer items-start gap-3">
+                  <div className="flex-1 pr-8">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="font-bold text-sm sm:text-base">Basic Package</div>
+                      <div className="font-bold text-sm sm:text-base">${basicPackage.price}</div>
                     </div>
-                  </label>
-                </Card>
-              )
-            })}
+                    <div className="text-xs text-muted-foreground sm:text-sm">
+                      {basicPackage.description || "Essential golf trip experience"}
+                    </div>
+                  </div>
+                </label>
+              </Card>
+            )}
+            {premiumPackage && (
+              <Card
+                key={premiumPackage.id}
+                className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
+              >
+                <RadioGroupItem
+                  value={premiumPackage.id}
+                  id={premiumPackage.id}
+                  className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                />
+                <label htmlFor={premiumPackage.id} className="flex cursor-pointer items-start gap-3">
+                  <div className="flex-1 pr-8">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="font-bold text-sm sm:text-base">Premium Package</div>
+                      <div className="font-bold text-sm sm:text-base">${premiumPackage.price}</div>
+                    </div>
+                    <div className="text-xs text-muted-foreground sm:text-sm">
+                      {premiumPackage.description || "Enhanced golf trip with premium amenities"}
+                    </div>
+                  </div>
+                </label>
+              </Card>
+            )}
           </RadioGroup>
         </Card>
 
-        {/* Step 2: Travel Duration */}
+        <Card className="border-2 border-blue-400 p-4 sm:p-6 border-none bg-transparent shadow-none sm:px-[0] sm:py-[0]">
+          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
+              2
+            </div>
+            <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
+          </div>
+          <RadioGroup value={roomType} onValueChange={setRoomType} className="space-y-3">
+            <Card className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2">
+              <RadioGroupItem value="double" id="double" className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+              <label htmlFor="double" className="flex cursor-pointer items-start gap-3">
+                <Users className="mt-1 h-5 w-5 flex-shrink-0" />
+                <div className="flex-1 pr-8">
+                  <div className="font-bold text-sm sm:text-base">Double Occupancy</div>
+                  <div className="text-xs text-muted-foreground sm:text-sm">Shared room for two guests</div>
+                </div>
+              </label>
+            </Card>
+            <Card className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2">
+              <RadioGroupItem value="single" id="single" className="absolute right-3 top-3 sm:right-4 sm:top-4" />
+              <label htmlFor="single" className="flex cursor-pointer items-start gap-3">
+                <User className="mt-1 h-5 w-5 flex-shrink-0" />
+                <div className="flex-1 pr-8">
+                  <div className="font-bold text-sm sm:text-base">Single Occupancy</div>
+                  <div className="text-xs text-muted-foreground sm:text-sm">Private room for one guest</div>
+                </div>
+              </label>
+            </Card>
+          </RadioGroup>
+        </Card>
+
         <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
           <div className="mb-4 flex items-center gap-2 bg-[rgba(240,233,209,1)]">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
-              2
+              3
             </div>
             <h2 className="text-base font-bold sm:text-lg">Travel Duration</h2>
           </div>
@@ -269,12 +318,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </div>
         </Card>
 
-        {/* Step 3: Golf Courses & Rounds */}
         {golfCourses.length > 0 && (
           <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
             <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                3
+                4
               </div>
               <h2 className="text-base font-bold sm:text-lg">Golf Courses & Rounds</h2>
             </div>
@@ -336,12 +384,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </Card>
         )}
 
-        {/* Step 4: Meals */}
         {mealOptions.length > 0 && (
           <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
             <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                4
+                5
               </div>
               <h2 className="text-base font-bold sm:text-lg">Meals</h2>
             </div>
@@ -371,12 +418,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </Card>
         )}
 
-        {/* Step 5: Transportation */}
         {transportationOptions.length > 0 && (
           <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
             <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                5
+                6
               </div>
               <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
             </div>
@@ -410,11 +456,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </Card>
         )}
 
-        {/* Step 6: Additional Requests */}
         <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:py-[0] border-none shadow-none sm:px-[0] bg-transparent">
           <div className="mb-4 flex items-center gap-2 bg-[rgba(240,232,209,1)]">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
-              6
+              7
             </div>
             <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
           </div>
@@ -431,8 +476,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       <div className="lg:sticky lg:top-8 lg:self-start">
         <Card className="p-4 sm:p-6 shadow-none sm:px-[0] sm:py-[0] pl-0 py-0 bg-destructive-foreground sm:pb-2.5 rounded-md border-primary border-solid border-2">
           <div className="mb-4 bg-[rgba(240,234,210,1)] px-3 py-2 flex pl-0 pt-0 pb-0 gap-2">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
-            </div>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none"></div>
             <h2 className="text-base font-bold sm:text-lg">Confirmation</h2>
           </div>
           <div className="space-y-2 text-xs sm:text-sm px-12">
@@ -444,12 +488,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </span>
               </div>
             )}
-            {selectedPackage && (
+            {selectedPlan && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">
-                  {packages.find((p: any) => p.id === selectedPackage)?.name}
+                  {packages.find((p: any) => p.id === selectedPlan)?.name === "Regular"
+                    ? "Basic"
+                    : packages.find((p: any) => p.id === selectedPlan)?.name}
+                  {roomType && ` (${roomType === "double" ? "Double" : "Single"})`}
                 </span>
-                <span className="font-medium">${packages.find((p: any) => p.id === selectedPackage)?.price}</span>
+                <span className="font-medium">${packages.find((p: any) => p.id === selectedPlan)?.price}</span>
               </div>
             )}
             {Object.entries(courseRounds)
@@ -497,7 +544,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
             className="w-3/4 bg-[#9CA986] text-sm hover:bg-[#8a9876] sm:text-base mx-auto"
             size="lg"
             onClick={handleSubmit}
-            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPackage}
+            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPlan || !roomType}
           >
             {submitting ? "Submitting..." : "Inquire Now"}
           </Button>

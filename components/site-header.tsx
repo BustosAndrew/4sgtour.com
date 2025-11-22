@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/user-nav"
-import { Menu, X } from 'lucide-react'
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
 
 type SiteHeaderProps = {
@@ -15,7 +15,7 @@ export function SiteHeader({ user, userType = "regular" }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-background">
+    <header className="sticky top-0 z-50 w-full border-b-1 border-black bg-white/100">
       <div className="container">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="text-xl font-semibold">
@@ -23,8 +23,8 @@ export function SiteHeader({ user, userType = "regular" }: SiteHeaderProps) {
           </Link>
 
           <div className="hidden items-center gap-4 md:flex">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-foreground">🇺🇸 English</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden">
+              <img src="https://flagcdn.com/w40/us.png" alt="US" className="h-full w-full object-cover" />
             </div>
             {user ? (
               <UserNav user={user} userType={userType} />
@@ -40,32 +40,10 @@ export function SiteHeader({ user, userType = "regular" }: SiteHeaderProps) {
             )}
           </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden"
-            aria-label="Toggle menu"
-          >
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden" aria-label="Toggle menu">
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
-
-        <nav className="hidden items-center justify-center gap-8 border-t border-border/40 py-4 md:flex">
-          <Link href="/" className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
-            Home
-          </Link>
-          <Link
-            href="/destinations"
-            className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
-          >
-            Destinations
-          </Link>
-          <Link
-            href="/contact"
-            className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
-          >
-            Contact Us
-          </Link>
-        </nav>
 
         {mobileMenuOpen && (
           <div className="border-t border-border/40 py-4 md:hidden">
@@ -112,6 +90,20 @@ export function SiteHeader({ user, userType = "regular" }: SiteHeaderProps) {
             </nav>
           </div>
         )}
+      </div>
+
+      <div className="hidden border-t-[1px] border-black md:block w-full">
+        <nav className="container flex items-center justify-center gap-8 py-4">
+          <Link href="/" className="font-medium transition-colors hover:text-foreground text-xl text-black">
+            Home
+          </Link>
+          <Link href="/destinations" className="font-medium transition-colors hover:text-foreground text-xl text-black">
+            Destinations
+          </Link>
+          <Link href="/contact" className="font-medium transition-colors hover:text-foreground text-xl text-black">
+            Contact Us
+          </Link>
+        </nav>
       </div>
     </header>
   )
