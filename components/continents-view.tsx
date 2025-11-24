@@ -2,34 +2,34 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const CONTINENTS = [
   {
     name: "Africa",
     slug: "africa",
-    image: "/placeholder.svg?height=600&width=400",
-  },
-  {
-    name: "Asia",
-    slug: "asia",
-    image: "/placeholder.svg?height=600&width=400",
-  },
-  {
-    name: "Europe",
-    slug: "europe",
-    image: "/placeholder.svg?height=600&width=400",
-  },
-  {
-    name: "North America",
-    slug: "north-america",
-    image: "/placeholder.svg?height=600&width=400",
+    image: "/placeholder.svg?height=1080&width=1920",
   },
   {
     name: "South America",
     slug: "south-america",
-    image: "/placeholder.svg?height=600&width=400",
+    image: "/placeholder.svg?height=1080&width=1920",
+  },
+  {
+    name: "North America",
+    slug: "north-america",
+    image: "/placeholder.svg?height=1080&width=1920",
+  },
+  {
+    name: "Asia",
+    slug: "asia",
+    image: "/placeholder.svg?height=1080&width=1920",
+  },
+  {
+    name: "Europe",
+    slug: "europe",
+    image: "/placeholder.svg?height=1080&width=1920",
   },
 ]
 
@@ -56,31 +56,35 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
   if (!selectedContinent) {
     return (
-      <div className="container py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-balance text-4xl font-bold text-foreground">Explore Golf Destinations</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-pretty text-muted-foreground">
-            Choose a continent to discover world-class golf destinations and unforgettable experiences.
+      <div className="relative min-h-screen">
+        <div className="absolute left-0 right-0 top-0 z-10 hidden px-4 pt-32 text-center lg:block">
+          <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-7xl">
+            Explore Golf Destinations
+          </h1>
+          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl leading-relaxed text-white drop-shadow-lg xl:text-2xl">
+            Choose a continent to discover world-class golf destinations and unforgettable experiences
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <div className="flex h-screen w-full flex-col lg:flex-row">
           {CONTINENTS.map((continent) => (
             <Link
               key={continent.slug}
               href={`/destinations/${continent.slug}`}
-              className="group block transition-transform hover:scale-[1.02]"
+              className="group relative flex-1 overflow-hidden"
             >
-              <div className="relative h-[400px] overflow-hidden rounded-2xl border-4 border-border bg-card lg:h-[500px]">
+              <div className="absolute inset-0 overflow-hidden">
                 <img
                   src={continent.image || "/placeholder.svg"}
                   alt={continent.name}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full scale-100 object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h2 className="text-balance text-xl font-bold text-white lg:text-2xl">{continent.name}</h2>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-center sm:p-6 md:p-8">
+                <h2 className="text-balance text-xl font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl lg:text-4xl">
+                  {continent.name}
+                </h2>
               </div>
             </Link>
           ))}
