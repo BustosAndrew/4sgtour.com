@@ -1,5 +1,6 @@
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { Button } from "@/components/ui/button"
+import { AnimatedButton } from "@/components/ui/animated-button"
+import { AnimatedHr } from "@/components/ui/animated-hr"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -54,6 +55,7 @@ export default async function TripPage({ params }: TripPageProps) {
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
           <div>
             <h2 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">Overview</h2>
+            <AnimatedHr maxWidth="100%" />
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
               {trip.overview_content ||
                 trip.description ||
@@ -75,12 +77,13 @@ export default async function TripPage({ params }: TripPageProps) {
       {trip.highlights && trip.highlights.length > 0 && (
         <section className="container px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
           <h2 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">Highlights</h2>
+          <AnimatedHr maxWidth="100%" />
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:gap-8">
             <ul className="space-y-2">
-              {trip.highlights.map((highlight, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-foreground sm:text-base">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
-                  {highlight}
+              {trip.highlights.map((highlight: string, idx: number) => (
+                <li key={idx} className="flex items-center gap-3 text-sm text-foreground sm:text-base">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-foreground" />
+                  <span>{highlight}</span>
                 </li>
               ))}
             </ul>
@@ -104,7 +107,7 @@ export default async function TripPage({ params }: TripPageProps) {
       <section className="bg-muted/30 py-8 sm:py-10 md:py-12">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Book Now</h2>
+            <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Inquire Now</h2>
             <p className="mt-2 text-xs text-muted-foreground sm:text-sm md:text-base">
               Choose your perfect package and start your golf adventure today
             </p>
@@ -113,9 +116,7 @@ export default async function TripPage({ params }: TripPageProps) {
           {trip.packages && trip.packages.length > 0 ? (
             <div
               className={`mt-6 grid gap-4 sm:mt-8 sm:gap-6 lg:gap-8 ${
-                trip.packages.length === 1
-                  ? "grid-cols-1 mx-auto max-w-md" // Center single package
-                  : "sm:grid-cols-2" // Two columns for multiple packages
+                trip.packages.length === 1 ? "grid-cols-1 mx-auto max-w-md" : "sm:grid-cols-2"
               }`}
             >
               {trip.packages.map((pkg: any) => {
@@ -124,6 +125,7 @@ export default async function TripPage({ params }: TripPageProps) {
                 const headerBg = isPremium ? "bg-[#d4c5a0]" : "bg-[#c8d5a0]"
                 const borderColor = isPremium ? "border-[#d4c5a0]" : "border-[#c8d5a0]"
                 const headerText = "text-black"
+                const buttonColor = "#9CA986"
 
                 return (
                   <div
@@ -158,9 +160,16 @@ export default async function TripPage({ params }: TripPageProps) {
                         </div>
                       )}
 
-                      <Button asChild className="mt-auto w-full bg-[#a4b96a] text-base text-white hover:bg-[#93a55e]">
-                        <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`}>Book Now</Link>
-                      </Button>
+                      <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`} className="mt-auto w-full">
+                        <AnimatedButton
+                          startColor="#9CA986"
+                          endColor="#6B705C"
+                          hoverText="Let's Go!"
+                          className="w-full"
+                        >
+                          Inquire Now
+                        </AnimatedButton>
+                      </Link>
                     </div>
                   </div>
                 )
@@ -168,9 +177,16 @@ export default async function TripPage({ params }: TripPageProps) {
             </div>
           ) : (
             <div className="mt-6 text-center sm:mt-8">
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href={`/trips/${trip.slug}/book`}>Inquire Now</Link>
-              </Button>
+              <Link href={`/trips/${trip.slug}/book`}>
+                <AnimatedButton
+                  startColor="#9CA986"
+                  endColor="#6B705C"
+                  hoverText="Let's Go!"
+                  className="w-full sm:w-auto"
+                >
+                  Inquire Now
+                </AnimatedButton>
+              </Link>
             </div>
           )}
         </div>

@@ -19,7 +19,7 @@ export function SiteFooter() {
                 <div className="text-sm font-semibold leading-tight">GOLF TOUR</div>
               </div>
             </div>
-            <p className="text-sm leading-relaxed text-white/80">
+            <p className="text-sm leading-relaxed text-white/80 font-medium font-serif">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
               dolore magna aliqua.
             </p>

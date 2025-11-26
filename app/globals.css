@@ -76,8 +76,9 @@
 }
 
 @theme inline {
-  /* Updated font to Space Grotesk */
-  --font-sans: "Space Grotesk", "Space Grotesk Fallback";
+  /* Updated font-sans and font-serif to use Playfair Display */
+  --font-sans: "Playfair Display", "Playfair Display Fallback";
+  --font-serif: "Playfair Display", "Playfair Display Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);

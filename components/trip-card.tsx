@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import { AnimatedButton } from "@/components/ui/animated-button"
 import { Button } from "@/components/ui/button"
 import { Heart } from "lucide-react"
 import Link from "next/link"
@@ -76,9 +77,14 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             {trip.packages && trip.packages.length > 1 ? "From " : ""}${price.toFixed(2)}
           </p>
           <div className="mt-3 flex items-center gap-2 sm:mt-4">
-            <Button className="flex-1 text-sm sm:text-base bg-primary text-primary-foreground hover:bg-primary/90">
-              Book Now
-            </Button>
+            <AnimatedButton
+              startColor="#9CA986"
+              endColor="#6B705C"
+              hoverText="Let's Go!"
+              className="flex-1 text-sm sm:text-base py-2"
+            >
+              Inquire Now
+            </AnimatedButton>
             <Button
               variant="outline"
               size="icon"

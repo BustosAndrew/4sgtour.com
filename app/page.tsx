@@ -1,8 +1,10 @@
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
-import { Button } from "@/components/ui/button"
 import { RecommendationsCarousel } from "@/components/recommendations-carousel"
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
+import { AnimatedButton } from "@/components/ui/animated-button"
+import { AnimatedHr } from "@/components/ui/animated-hr"
+import Link from "next/link"
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -27,8 +29,8 @@ export default async function HomePage() {
         </section>
 
         <section className="container py-12 text-center">
-          <h1 className="text-balance text-4xl font-bold text-foreground">Lorem ipsum dolor</h1>
-          <p className="mx-auto mt-4 max-w-3xl text-pretty leading-relaxed text-muted-foreground">
+          <h1 className="text-balance text-4xl font-bold text-foreground font-serif">Lorem ipsum dolor</h1>
+          <p className="mx-auto mt-4 max-w-3xl text-pretty leading-relaxed font-serif text-left text-black font-medium">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
             dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
             ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
@@ -38,9 +40,9 @@ export default async function HomePage() {
 
         <section className="bg-background py-12">
           <div className="container">
-            <h2 className="mb-8 text-center text-3xl font-bold text-foreground">Recommendations</h2>
+            <h2 className="mb-8 text-center text-3xl font-bold text-foreground font-serif">Recommendations</h2>
             <RecommendationsCarousel trips={featuredTrips || []} />
-            <p className="mx-auto mt-8 max-w-3xl text-center text-pretty leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-8 max-w-3xl text-pretty leading-relaxed font-serif text-left text-black font-medium">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
               dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
               ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
@@ -51,36 +53,52 @@ export default async function HomePage() {
 
         <section className="container py-12">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+            <div
+              className="aspect-video overflow-hidden rounded-lg bg-muted"
+              style={{ boxShadow: "0 8px 10px rgba(0, 0, 0, 0.25)" }}
+            >
               <img src="/placeholder.svg?height=400&width=600" alt="Feature 1" className="h-full w-full object-cover" />
             </div>
             <div className="flex flex-col justify-center">
-              <h2 className="text-balance text-3xl font-bold text-foreground">Lorem ipsum dolor</h2>
-              <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
+              <h2 className="text-balance text-3xl font-bold text-foreground font-serif">Lorem ipsum dolor</h2>
+              <AnimatedHr maxWidth="75%" />
+              <p className="mt-4 w-3/4 text-pretty leading-relaxed font-serif font-medium text-black">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
                 dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
                 ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
                 fugiat nulla pariatur.
               </p>
-              <Button className="mt-6 w-fit bg-[#9CA986] hover:bg-[#8a9876]">Lorem ipsum dolor</Button>
+              <Link href="/destinations" className="mt-6 w-fit">
+                <AnimatedButton startColor="#6B705C" endColor="#9CA986" hoverText="Explore!">
+                  Lorem ipsum dolor
+                </AnimatedButton>
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="bg-muted/30 py-12">
+        <section className="py-12">
           <div className="container">
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-              <div className="flex flex-col justify-center lg:order-2">
-                <h2 className="text-balance text-3xl font-bold text-foreground">Lorem ipsum dolor</h2>
-                <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
+              <div className="flex flex-col justify-center">
+                <h2 className="text-balance text-3xl font-bold text-foreground font-serif">Lorem ipsum dolor</h2>
+                <AnimatedHr maxWidth="75%" />
+                <p className="mt-4 w-3/4 text-pretty leading-relaxed font-medium text-black font-serif">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
                   dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
                   aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
                   dolore eu fugiat nulla pariatur.
                 </p>
-                <Button className="mt-6 w-fit bg-[#9CA986] hover:bg-[#8a9876]">Lorem ipsum dolor</Button>
+                <Link href="/destinations" className="mt-6 w-fit">
+                  <AnimatedButton startColor="#6B705C" endColor="#9CA986" hoverText="Explore!">
+                    Lorem ipsum dolor
+                  </AnimatedButton>
+                </Link>
               </div>
-              <div className="aspect-video overflow-hidden rounded-lg bg-muted lg:order-1">
+              <div
+                className="aspect-video overflow-hidden rounded-lg bg-muted lg:order-1"
+                style={{ boxShadow: "0 8px 10px rgba(0, 0, 0, 0.25)" }}
+              >
                 <img
                   src="/placeholder.svg?height=400&width=600"
                   alt="Feature 2"
