@@ -30,7 +30,7 @@ export default async function TripPage({ params }: TripPageProps) {
   }
 
   const mainImage =
-    trip.courses_photo_url || `/placeholder.svg?height=600&width=1200&query=golf course ${trip.location}`
+    trip.courses_photo_url || `/placeholder.svg?height=800&width=1920&query=golf course ${trip.location}`
 
   const additionalImages = [trip.double_room_photo_url, trip.single_room_photo_url].filter(Boolean)
 
@@ -38,16 +38,14 @@ export default async function TripPage({ params }: TripPageProps) {
     <div className="min-h-screen bg-background">
       <SiteHeaderWrapper />
 
-      <section className="container px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{trip.title}</h1>
-        <p className="mt-1 text-xs text-muted-foreground sm:text-sm md:text-base">{trip.location}</p>
-
-        <div className="mt-4 overflow-hidden rounded-lg sm:mt-6 sm:rounded-xl">
-          <img
-            src={mainImage || "/placeholder.svg"}
-            alt={trip.title}
-            className="h-[250px] w-full object-cover sm:h-[350px] md:h-[450px] lg:h-[500px]"
-          />
+      <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] w-full">
+        <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute left-0 top-0 p-4 pt-24 sm:p-6 sm:pt-28 md:p-8 md:pt-32 lg:p-12 lg:pt-36">
+          <h1 className="text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-5xl">
+            {trip.title}
+          </h1>
+          <p className="mt-1 text-sm text-white/90 drop-shadow-lg sm:text-base md:text-lg">{trip.location}</p>
         </div>
       </section>
 

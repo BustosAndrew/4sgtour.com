@@ -9,27 +9,27 @@ const CONTINENTS = [
   {
     name: "Africa",
     slug: "africa",
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/placeholder.svg?height=1080&width=400",
   },
   {
     name: "South America",
     slug: "south-america",
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/placeholder.svg?height=1080&width=400",
   },
   {
     name: "North America",
     slug: "north-america",
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/placeholder.svg?height=1080&width=400",
   },
   {
     name: "Asia",
     slug: "asia",
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/placeholder.svg?height=1080&width=400",
   },
   {
     name: "Europe",
     slug: "europe",
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/placeholder.svg?height=1080&width=400",
   },
 ]
 
@@ -56,7 +56,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
   if (!selectedContinent) {
     return (
-      <div className="relative min-h-screen">
+      <div className="relative h-screen">
         <div className="absolute left-0 right-0 top-0 z-10 hidden px-4 pt-32 text-center lg:block">
           <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-7xl">
             Explore Golf Destinations

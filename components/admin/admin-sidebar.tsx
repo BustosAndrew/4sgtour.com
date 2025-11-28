@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Flag, LogOut, BarChart3 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -25,20 +24,8 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
     <aside className="flex w-[230px] flex-col bg-[#6b705c] text-white">
       {/* Logo */}
       <div className="border-b border-white/10 p-6">
-        <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12">
-            <Image
-              src="/placeholder.svg?height=48&width=48"
-              alt="4 Seasons Golf Tour"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div>
-            <div className="text-sm font-semibold uppercase tracking-wide">4 SEASONS</div>
-            <div className="text-sm font-semibold uppercase tracking-wide">GOLF TOUR</div>
-            <div className="text-[10px] opacity-80">Customize Golf Journey</div>
-          </div>
+        <div className="flex items-center justify-center">
+          <img src="/logo.png" alt="4 Seasons Golf Tour" className="h-16 w-auto object-contain" />
         </div>
       </div>
 

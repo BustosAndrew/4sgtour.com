@@ -17,6 +17,14 @@ const CONTINENT_NAMES: Record<string, string> = {
   "south-america": "South America",
 }
 
+const CONTINENT_IMAGES: Record<string, string> = {
+  africa: "/placeholder.svg?height=800&width=1920",
+  asia: "/placeholder.svg?height=800&width=1920",
+  europe: "/placeholder.svg?height=800&width=1920",
+  "north-america": "/placeholder.svg?height=800&width=1920",
+  "south-america": "/placeholder.svg?height=800&width=1920",
+}
+
 export default async function ContinentTripsPage({ params }: ContinentTripsPageProps) {
   const { continent: continentSlug } = await params
   const continentName = CONTINENT_NAMES[continentSlug]
@@ -37,13 +45,13 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
     .order("created_at", { ascending: false })
 
   const heroImage =
-    trips?.[0]?.courses_photo_url || `/placeholder.svg?height=600&width=1200&query=golf+course+${continentName}`
+    CONTINENT_IMAGES[continentSlug] || `/placeholder.svg?height=800&width=1920&query=golf+course+${continentName}`
 
   return (
     <div className="min-h-screen">
       <SiteHeaderWrapper />
 
-      <section className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
+      <section className="relative h-screen">
         <img
           src={heroImage || "/placeholder.svg"}
           alt={`Golf courses in ${continentName}`}

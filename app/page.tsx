@@ -23,8 +23,8 @@ export default async function HomePage() {
     <div className="min-h-screen">
       <SiteHeaderWrapper />
       <main>
-        <section className="relative h-[400px] bg-muted">
-          <img src="/placeholder.svg?height=400&width=1200" alt="Hero" className="h-full w-full object-cover" />
+        <section className="relative h-[500px] sm:h-[600px] md:h-[700px] bg-muted">
+          <img src="/placeholder.svg?height=700&width=1920" alt="Hero" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </section>
 
