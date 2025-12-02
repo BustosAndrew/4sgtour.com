@@ -17,7 +17,7 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
   return (
     <header className={`fixed top-0 z-50 w-full ${className}`}>
       <div className="relative h-[87px] bg-black/40 backdrop-blur-[7.5px]">
-        <div className="container bg-white/30 w-full h-full">
+        <div className="px-30 bg-white/30 w-full h-full">
           <div className="flex h-full items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center">
