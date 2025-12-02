@@ -4,6 +4,7 @@ import Link from "next/link"
 import { UserNav } from "@/components/user-nav"
 import { Globe, Menu, X } from "lucide-react"
 import { useState } from "react"
+import "./glass.css"
 
 type SiteHeaderProps = {
   user?: any
@@ -15,9 +16,19 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className={`fixed top-0 z-50 w-full ${className}`}>
-      <div className="relative h-[87px] bg-black/40 backdrop-blur-[7.5px]">
-        <div className="px-30 bg-white/30 w-full h-full">
+    <header className={`fixed top-0 left-0 right-0 z-50 w-full GlassContainer ${className}`}>
+      <div className="GlassContent relative h-[87px]">
+        <div className="GlassMaterial">
+          <div className="GlassEdgeReflection"></div>
+          <div className="GlassEmbossReflection"></div>
+          <div className="GlassRefraction"></div>
+          <div className="GlassBlur"></div>
+          <div className="BlendLayers"></div>
+          <div className="BlendEdge"></div>
+          <div className="Highlight"></div>
+          <div className="Brightness"></div>
+        </div>
+        <div className="px-30 w-full h-full relative z-[100]">
           <div className="flex h-full items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -79,8 +90,8 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white/30 backdrop-blur-[7.5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.40),inset_1px_0_0_rgba(255,255,255,0.32),inset_0_-1px_5px_rgba(0,0,0,0.20),inset_-1px_0_5px_rgba(0,0,0,0.16)] border-t border-white/20 py-4 md:hidden">
-            <div className="container">
+          <div className="absolute top-full left-0 right-0 bg-black/60 backdrop-blur-lg border-t border-white/20 py-4 md:hidden shadow-lg">
+            <div className="px-30">
               <nav className="flex flex-col gap-4">
                 <Link
                   href="/"
