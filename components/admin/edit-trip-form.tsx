@@ -20,6 +20,7 @@ interface EditTripFormProps {
     description: string | null
     continent: string | null
     max_days?: number | null
+    min_days_advance?: number | null
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
@@ -52,6 +53,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     description: trip.description || "",
     continent: trip.continent || "",
     max_days: trip.max_days?.toString() || "",
+    min_days_advance: trip.min_days_advance?.toString() || "0",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
 
@@ -309,6 +311,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           description: formData.description,
           continent: formData.continent,
           max_days: formData.max_days ? Number(formData.max_days) : null,
+          min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -533,6 +536,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               />
               <p className="text-xs text-muted-foreground">
                 Optional: Set a maximum number of days guests can book for this trip
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_days_advance" className="text-base">
+                Minimum Advance Booking Period (Days)
+              </Label>
+              <Input
+                id="min_days_advance"
+                type="number"
+                min="0"
+                value={formData.min_days_advance}
+                onChange={(e) => setFormData({ ...formData, min_days_advance: e.target.value })}
+                placeholder="e.g., 30"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Minimum days in advance required to book (0 = no restriction)
               </p>
             </div>
 
@@ -1129,6 +1149,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div>
                       <span className="font-medium">Max Days:</span> {formData.max_days}
                     </div>
+                  )}
+                  {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (
+                    <p>
+                      <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
+                    </p>
                   )}
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (

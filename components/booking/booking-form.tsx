@@ -83,6 +83,19 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       return
     }
 
+    if (trip.min_days_advance && newRange.from) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const daysUntilStart = Math.ceil((newRange.from.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (daysUntilStart < trip.min_days_advance) {
+        setDateRangeError(
+          `This trip requires booking at least ${trip.min_days_advance} days in advance. Please select a start date that is at least ${trip.min_days_advance} days from today.`,
+        )
+        return
+      }
+    }
+
     if (trip.max_days && newRange.from && newRange.to) {
       const daysDiff = Math.ceil((newRange.to.getTime() - newRange.from.getTime()) / (1000 * 60 * 60 * 24))
 
@@ -298,6 +311,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 text-sm font-medium sm:text-base">Select Dates</h3>
+              {trip.min_days_advance && trip.min_days_advance > 0 && (
+                <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
+                  Minimum advance booking: {trip.min_days_advance} {trip.min_days_advance === 1 ? "day" : "days"}
+                </p>
+              )}
               {trip.max_days && (
                 <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
                   Maximum trip duration: {trip.max_days} {trip.max_days === 1 ? "day" : "days"}
@@ -312,7 +330,28 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </div>
               )}
               <div className="overflow-x-auto">
-                <Calendar mode="range" selected={dateRange} onSelect={handleDateSelect} className="rounded-md border" />
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDateSelect}
+                  className="rounded-md border"
+                  disabled={(date) => {
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+
+                    // Disable past dates
+                    if (date < today) return true
+
+                    // Disable dates within minimum advance period
+                    if (trip.min_days_advance && trip.min_days_advance > 0) {
+                      const minDate = new Date(today)
+                      minDate.setDate(minDate.getDate() + trip.min_days_advance)
+                      return date < minDate
+                    }
+
+                    return false
+                  }}
+                />
               </div>
             </div>
           </div>

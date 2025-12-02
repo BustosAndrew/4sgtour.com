@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   const supabase = await createClient()
 
   const {
@@ -29,6 +29,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       description: body.description,
       continent: body.continent,
       max_days: body.max_days,
+      min_days_advance: body.min_days_advance,
       highlights: body.highlights,
       overview_content: body.overview_content,
       courses_photo_url: body.courses_photo_url,
@@ -153,8 +154,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   const supabase = await createClient()
 
   const {

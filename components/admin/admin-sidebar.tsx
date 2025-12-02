@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Flag, LogOut, BarChart3 } from "lucide-react"
+import { Flag, LogOut, BarChart3, MessageSquare } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -41,13 +41,15 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
           Courses
         </Link>
 
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/10"
+        <Link
+          href="/admin/inbox"
+          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
+            pathname === "/admin/inbox" ? "bg-white/20" : "hover:bg-white/10"
+          }`}
         >
-          <LogOut className="h-5 w-5" />
-          Log Out
-        </button>
+          <MessageSquare className="h-5 w-5" />
+          Inbox
+        </Link>
 
         <Link
           href="/admin/analytics"
@@ -58,6 +60,14 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
           <BarChart3 className="h-5 w-5" />
           Analytics
         </Link>
+
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/10"
+        >
+          <LogOut className="h-5 w-5" />
+          Log Out
+        </button>
       </nav>
     </aside>
   )

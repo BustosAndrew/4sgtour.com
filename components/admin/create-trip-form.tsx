@@ -66,6 +66,7 @@ export function CreateTripForm() {
     price_regular: "",
     max_guests: "20",
     max_days: "",
+    min_days_advance: "0",
   })
   const [highlights, setHighlights] = useState<string[]>([])
 
@@ -214,6 +215,10 @@ export function CreateTripForm() {
     if (formData.max_days && Number(formData.max_days) <= 0) {
       errors.push("Maximum trip duration must be a positive number (Step 1)")
     }
+    // Added validation for min_days_advance
+    if (formData.min_days_advance && Number(formData.min_days_advance) < 0) {
+      errors.push("Minimum advance booking period cannot be negative (Step 1)")
+    }
 
     const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
     if (!basicPkg) {
@@ -303,6 +308,7 @@ export function CreateTripForm() {
           price_regular: Number(formData.price_regular),
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
+          min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -461,7 +467,8 @@ export function CreateTripForm() {
           formData.location &&
           formData.continent &&
           formData.price_regular &&
-          (!formData.max_days || Number(formData.max_days) > 0)
+          (!formData.max_days || Number(formData.max_days) > 0) &&
+          (!formData.min_days_advance || Number(formData.min_days_advance) >= 0) // Added check for min_days_advance
         )
       case 2:
         // Check if Basic package has valid price before proceeding
@@ -685,6 +692,22 @@ export function CreateTripForm() {
               />
               <p className="text-xs text-muted-foreground">
                 Optional: Set a maximum number of days guests can book for this trip
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_days_advance">Minimum Advance Booking Period (Days)</Label>
+              <Input
+                id="min_days_advance"
+                type="number"
+                min="0"
+                value={formData.min_days_advance}
+                onChange={(e) => setFormData({ ...formData, min_days_advance: e.target.value })}
+                placeholder="e.g., 30"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Minimum days in advance required to book (0 = no restriction, 30 = must book at least 30 days
+                before trip)
               </p>
             </div>
 
@@ -1273,6 +1296,11 @@ export function CreateTripForm() {
                       <div>
                         <span className="font-medium">Max Days:</span> {formData.max_days}
                       </div>
+                    )}
+                    {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (
+                      <p>
+                        <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
+                      </p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-4">

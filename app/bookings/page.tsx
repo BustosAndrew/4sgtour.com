@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { CheckCircle2, Calendar, MapPin, Users, Clock } from "lucide-react"
 import Link from "next/link"
+import { UserInquiryMessages } from "@/components/user-inquiry-messages"
 
 export default async function BookingsPage({
   searchParams,
@@ -23,7 +24,7 @@ export default async function BookingsPage({
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("email").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("email, display_name").eq("id", user.id).single()
 
   const { data: inquiries } = await supabase
     .from("inquiries")
@@ -129,6 +130,12 @@ export default async function BookingsPage({
                     )}
                   </div>
                 </div>
+
+                <UserInquiryMessages
+                  inquiryId={inquiry.id}
+                  userName={profile?.display_name || profile?.email || "Guest"}
+                  userEmail={profile?.email || user.email || ""}
+                />
               </div>
             ))}
           </div>

@@ -28,6 +28,8 @@ export async function POST(request: Request) {
       continent,
       price_regular,
       max_guests,
+      max_days,
+      min_days_advance,
       courses_photo_url,
       single_room_photo_url,
       double_room_photo_url,
@@ -56,6 +58,8 @@ export async function POST(request: Request) {
         slug,
         price_regular: price_regular || 0,
         max_guests: max_guests || 20,
+        max_days: max_days || null,
+        min_days_advance: min_days_advance || 0,
         courses_photo_url,
         single_room_photo_url,
         double_room_photo_url,
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
         participants_per_booking: pkg.participants_per_booking,
       }))
 
-      const { error: packagesError } = await supabase.from("trip_packages").insert(packagesData)
+      const { error: packagesError } = await supabase.from("packages").insert(packagesData)
 
       if (packagesError) {
         console.error("[v0] Error creating packages:", packagesError)
@@ -96,7 +100,7 @@ export async function POST(request: Request) {
         max_rounds: Number(course.max_rounds),
       }))
 
-      const { error: golfCoursesError } = await supabase.from("golf_courses").insert(golfCoursesData)
+      const { error: golfCoursesError } = await supabase.from("trip_golf_courses").insert(golfCoursesData)
 
       if (golfCoursesError) {
         console.error("[v0] Error creating golf courses:", golfCoursesError)
@@ -111,7 +115,7 @@ export async function POST(request: Request) {
         price: Number(meal.price),
       }))
 
-      const { error: mealsError } = await supabase.from("meal_options").insert(mealOptionsData)
+      const { error: mealsError } = await supabase.from("trip_meal_options").insert(mealOptionsData)
 
       if (mealsError) {
         console.error("[v0] Error creating meal options:", mealsError)
@@ -126,7 +130,7 @@ export async function POST(request: Request) {
         price: Number(transport.price),
       }))
 
-      const { error: transportError } = await supabase.from("transportation_options").insert(transportOptionsData)
+      const { error: transportError } = await supabase.from("trip_transportation_options").insert(transportOptionsData)
 
       if (transportError) {
         console.error("[v0] Error creating transportation options:", transportError)
