@@ -25,7 +25,7 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
             </Link>
 
             {/* Center Navigation */}
-            <nav className="hidden md:flex items-center justify-center gap-10">
+            <nav className="hidden md:flex items-center justify-center gap-10 absolute left-1/2 -translate-x-1/2">
               <Link href="/" className="text-white text-lg font-medium hover:text-white/80 transition-colors">
                 Home
               </Link>
