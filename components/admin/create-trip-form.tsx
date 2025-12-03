@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 
 const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
 
@@ -67,6 +68,7 @@ export function CreateTripForm() {
     max_guests: "20",
     max_days: "",
     min_days_advance: "0",
+    is_all_inclusive: false,
   })
   const [highlights, setHighlights] = useState<string[]>([])
 
@@ -309,6 +311,7 @@ export function CreateTripForm() {
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
+          is_all_inclusive: formData.is_all_inclusive,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -709,6 +712,20 @@ export function CreateTripForm() {
                 Optional: Minimum days in advance required to book (0 = no restriction, 30 = must book at least 30 days
                 before trip)
               </p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="is_all_inclusive" className="text-base font-medium">All-Inclusive Trip</Label>
+                <p className="text-sm text-muted-foreground">
+                  Trip includes transportation and meals by default
+                </p>
+              </div>
+              <Switch
+                id="is_all_inclusive"
+                checked={formData.is_all_inclusive}
+                onCheckedChange={(checked: boolean) => setFormData({ ...formData, is_all_inclusive: checked })}
+              />
             </div>
 
             <div className="space-y-3">
@@ -1302,6 +1319,14 @@ export function CreateTripForm() {
                         <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
                       </p>
                     )}
+                    <div>
+                      <span className="font-medium">All-Inclusive:</span>{" "}
+                      {formData.is_all_inclusive ? (
+                        <span className="text-green-600">Yes (includes meals & transport)</span>
+                      ) : (
+                        <span className="text-muted-foreground">No</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (

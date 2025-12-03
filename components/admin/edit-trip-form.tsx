@@ -12,6 +12,7 @@ import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 
 interface EditTripFormProps {
   trip: {
@@ -21,6 +22,7 @@ interface EditTripFormProps {
     continent: string | null
     max_days?: number | null
     min_days_advance?: number | null
+    is_all_inclusive?: boolean
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
@@ -54,6 +56,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     continent: trip.continent || "",
     max_days: trip.max_days?.toString() || "",
     min_days_advance: trip.min_days_advance?.toString() || "0",
+    is_all_inclusive: trip.is_all_inclusive || false,
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
 
@@ -312,6 +315,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           continent: formData.continent,
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
+          is_all_inclusive: formData.is_all_inclusive,
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -554,6 +558,20 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <p className="text-xs text-muted-foreground">
                 Optional: Minimum days in advance required to book (0 = no restriction)
               </p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="is_all_inclusive" className="text-base font-medium">All-Inclusive Trip</Label>
+                <p className="text-sm text-muted-foreground">
+                  Trip includes transportation and meals by default
+                </p>
+              </div>
+              <Switch
+                id="is_all_inclusive"
+                checked={formData.is_all_inclusive}
+                onCheckedChange={(checked: boolean) => setFormData({ ...formData, is_all_inclusive: checked })}
+              />
             </div>
 
             {/* Upload Photos for Courses */}
@@ -1155,6 +1173,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
                     </p>
                   )}
+                  <div>
+                    <span className="font-medium">All-Inclusive:</span>{" "}
+                    {formData.is_all_inclusive ? (
+                      <span className="text-green-600">Yes (includes meals & transport)</span>
+                    ) : (
+                      <span className="text-muted-foreground">No</span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
                       <div>

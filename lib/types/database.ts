@@ -37,6 +37,7 @@ export interface Trip {
   max_guests: number
   includes_breakfast: boolean
   includes_transport: boolean
+  is_all_inclusive: boolean
   available_courses: Array<{ name: string; price: number }>
   continent: string | null
   courses_photo_url: string | null

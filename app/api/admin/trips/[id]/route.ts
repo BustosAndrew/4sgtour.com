@@ -30,6 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       continent: body.continent,
       max_days: body.max_days,
       min_days_advance: body.min_days_advance,
+      is_all_inclusive: body.is_all_inclusive,
       highlights: body.highlights,
       overview_content: body.overview_content,
       courses_photo_url: body.courses_photo_url,

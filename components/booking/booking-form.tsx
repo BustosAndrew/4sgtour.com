@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
-import { Users, User, Minus, Plus } from "lucide-react"
+import { Users, User, Minus, Plus, Check } from "lucide-react"
 
 interface BookingFormProps {
   trip: any
@@ -23,6 +23,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
   const transportationOptions = trip.transportation_options || []
+  const isAllInclusive = trip.is_all_inclusive || false
 
   const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || basicPackage?.id || "")
   const [roomType, setRoomType] = useState<string>("")
@@ -59,16 +60,20 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       }
     })
 
-    // Meals
-    const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
-    if (selectedMealOption) {
-      total += Number(selectedMealOption.price)
+    // Meals (only if not all-inclusive)
+    if (!isAllInclusive) {
+      const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
+      if (selectedMealOption) {
+        total += Number(selectedMealOption.price)
+      }
     }
 
-    // Transportation
-    const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
-    if (selectedTransportOption) {
-      total += Number(selectedTransportOption.price)
+    // Transportation (only if not all-inclusive)
+    if (!isAllInclusive) {
+      const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
+      if (selectedTransportOption) {
+        total += Number(selectedTransportOption.price)
+      }
     }
 
     return total
@@ -162,9 +167,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         })
         .filter(Boolean)
 
-      const mealOptionName = mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
-      const transportOptionName =
-        transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name ||
+      const mealOptionName = isAllInclusive 
+        ? "Included (All-Inclusive)" 
+        : mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
+      const transportOptionName = isAllInclusive
+        ? "Included (All-Inclusive)"
+        : transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name ||
         "Private Car with Driver"
 
       const response = await fetch("/api/inquiry", {
@@ -423,7 +431,28 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </Card>
         )}
 
-        {mealOptions.length > 0 && (
+        {/* Meals Section */}
+        {isAllInclusive ? (
+          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
+                5
+              </div>
+              <h2 className="text-base font-bold sm:text-lg">Meals</h2>
+            </div>
+            <Card className="border-2 border-green-500 bg-green-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
+                  <Check className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-bold text-sm sm:text-base text-green-800">Included with All-Inclusive Package</div>
+                  <div className="text-xs text-green-700 sm:text-sm">Meals are included with your trip</div>
+                </div>
+              </div>
+            </Card>
+          </Card>
+        ) : mealOptions.length > 0 && (
           <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
             <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
@@ -457,7 +486,28 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </Card>
         )}
 
-        {transportationOptions.length > 0 && (
+        {/* Transportation Section */}
+        {isAllInclusive ? (
+          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
+                6
+              </div>
+              <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
+            </div>
+            <Card className="border-2 border-green-500 bg-green-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
+                  <Check className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-bold text-sm sm:text-base text-green-800">Included with All-Inclusive Package</div>
+                  <div className="text-xs text-green-700 sm:text-sm">Transportation is included with your trip</div>
+                </div>
+              </div>
+            </Card>
+          </Card>
+        ) : transportationOptions.length > 0 && (
           <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
             <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
@@ -552,7 +602,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   </div>
                 )
               })}
-            {selectedMeal && (
+            {selectedMeal && !isAllInclusive && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">
                   {mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}
@@ -560,7 +610,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 <span className="font-medium">${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
               </div>
             )}
-            {selectedTransport && (
+            {isAllInclusive && (
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
+                <span className="text-muted-foreground">Meals</span>
+                <span className="font-medium text-green-600">Included</span>
+              </div>
+            )}
+            {selectedTransport && !isAllInclusive && (
               <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                 <span className="text-muted-foreground">
                   {transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}
@@ -568,6 +624,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 <span className="font-medium">
                   ${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}
                 </span>
+              </div>
+            )}
+            {isAllInclusive && (
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
+                <span className="text-muted-foreground">Transportation</span>
+                <span className="font-medium text-green-600">Included</span>
               </div>
             )}
           </div>
