@@ -6,7 +6,7 @@ import { BackToTopButton } from "./back-to-top-button"
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#062047] text-white">
+    <footer className="bg-[#274C77] text-white">
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>

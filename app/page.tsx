@@ -30,7 +30,7 @@ export default async function HomePage() {
 
         <section className="container py-12 text-center">
           <h1 className="text-balance text-4xl font-bold text-foreground font-serif">Lorem ipsum dolor</h1>
-          <p className="mx-auto mt-4 max-w-3xl text-pretty leading-relaxed font-serif text-left text-black font-medium">
+          <p className="mx-auto mt-4 max-w-3xl text-pretty leading-relaxed font-serif text-black font-medium text-center">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
             dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
             ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
@@ -42,7 +42,7 @@ export default async function HomePage() {
           <div className="container">
             <h2 className="mb-8 text-center text-3xl font-bold text-foreground font-serif">Recommendations</h2>
             <RecommendationsCarousel trips={featuredTrips || []} />
-            <p className="mx-auto mt-8 max-w-3xl text-pretty leading-relaxed font-serif text-left text-black font-medium">
+            <p className="mx-auto mt-8 max-w-3xl text-pretty leading-relaxed font-serif text-black font-medium text-center">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
               dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
               ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
@@ -69,7 +69,7 @@ export default async function HomePage() {
                 fugiat nulla pariatur.
               </p>
               <Link href="/destinations" className="mt-6 w-fit">
-                <AnimatedButton startColor="#062047" endColor="#0a3470" hoverText="Explore!">
+                <AnimatedButton startColor="#6096BA" endColor="#7ab0d0" hoverText="Explore!">
                   Lorem ipsum dolor
                 </AnimatedButton>
               </Link>
@@ -90,7 +90,7 @@ export default async function HomePage() {
                   dolore eu fugiat nulla pariatur.
                 </p>
                 <Link href="/destinations" className="mt-6 w-fit">
-                  <AnimatedButton startColor="#062047" endColor="#0a3470" hoverText="Explore!">
+                  <AnimatedButton startColor="#6096BA" endColor="#7ab0d0" hoverText="Explore!">
                     Lorem ipsum dolor
                   </AnimatedButton>
                 </Link>

@@ -58,10 +58,10 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
     return (
       <div className="relative h-screen">
         <div className="absolute left-0 right-0 top-0 z-10 hidden px-4 pt-32 text-center lg:block">
-          <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-7xl">
+          <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-4xl">
             Explore Golf Destinations
           </h1>
-          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl leading-relaxed text-white drop-shadow-lg xl:text-2xl">
+          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl leading-relaxed text-white drop-shadow-lg xl:text-xl">
             Choose a continent to discover world-class golf destinations and unforgettable experiences
           </p>
         </div>

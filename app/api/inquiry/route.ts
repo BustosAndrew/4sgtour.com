@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const supabase = await createClient()
-    
+
     const body = await request.json()
     const {
       tripId,
@@ -16,6 +16,8 @@ export async function POST(request: Request) {
       packageName,
       startDate,
       endDate,
+      courseStartDate,
+      courseEndDate,
       addOns,
       rounds,
       additionalRequests,
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
     } = body
 
     const { data: inquiry, error: dbError } = await supabase
-      .from('inquiries')
+      .from("inquiries")
       .insert({
         trip_id: tripId,
         trip_title: tripTitle,
@@ -32,11 +34,13 @@ export async function POST(request: Request) {
         package_name: packageName,
         start_date: startDate,
         end_date: endDate,
+        course_start_date: courseStartDate,
+        course_end_date: courseEndDate,
         add_ons: addOns,
         rounds: rounds,
         additional_requests: additionalRequests,
         total_price: totalPrice,
-        status: 'pending'
+        status: "pending",
       })
       .select()
       .single()
@@ -58,6 +62,7 @@ Email: ${customerEmail}
 Booking Details:
 Package: ${packageName}
 Travel Dates: ${startDate} to ${endDate}
+Course Dates: ${courseStartDate} to ${courseEndDate}
 Selected Add-ons: ${addOns && addOns.length > 0 ? addOns.join(", ") : "None"}
 Number of Rounds: ${rounds}
 
@@ -68,7 +73,7 @@ ${additionalRequests || "None"}
 
 ---
 This inquiry was submitted through the booking form.
-Inquiry ID: ${inquiry?.id || 'N/A'}
+Inquiry ID: ${inquiry?.id || "N/A"}
     `.trim()
 
     // Send email

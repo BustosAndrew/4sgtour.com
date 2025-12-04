@@ -21,7 +21,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
   }
 
   return (
-    <aside className="flex w-[230px] flex-col bg-[#6b705c] text-white">
+    <aside className="flex w-[230px] flex-col bg-[#274C77] text-white">
       {/* Logo */}
       <div className="border-b border-white/10 p-6">
         <div className="flex items-center justify-center">

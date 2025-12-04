@@ -120,9 +120,9 @@ export default async function TripPage({ params }: TripPageProps) {
               {trip.packages.map((pkg: any) => {
                 const displayName = pkg.name === "Regular" ? "Basic" : pkg.name
                 const isPremium = displayName === "Premium"
-                const headerBg = isPremium ? "bg-[#d4c5a0]" : "bg-[#062047]"
-                const borderColor = isPremium ? "border-[#d4c5a0]" : "border-[#062047]"
-                const headerText = isPremium ? "text-foreground" : "text-white"
+                const headerBg = isPremium ? "bg-[#274C77]" : "bg-[#6096BA]"
+                const borderColor = isPremium ? "border-[#274C77]" : "border-[#6096BA]"
+                const headerText = "text-white"
 
                 return (
                   <div
@@ -159,8 +159,8 @@ export default async function TripPage({ params }: TripPageProps) {
 
                       <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`} className="mt-auto w-full">
                         <AnimatedButton
-                          startColor={isPremium ? "#d4c5a0" : "#062047"}
-                          endColor={isPremium ? "#c4b590" : "#0a3470"}
+                          startColor={isPremium ? "#274C77" : "#6096BA"}
+                          endColor={isPremium ? "#1a3a5c" : "#4a7a9e"}
                           hoverText="Let's Go!"
                           className="w-full"
                         >
@@ -176,8 +176,8 @@ export default async function TripPage({ params }: TripPageProps) {
             <div className="mt-6 text-center sm:mt-8">
               <Link href={`/trips/${trip.slug}/book`}>
                 <AnimatedButton
-                  startColor="#062047"
-                  endColor="#0a3470"
+                  startColor="#6096BA"
+                  endColor="#4a7a9e"
                   hoverText="Let's Go!"
                   className="w-full sm:w-auto"
                 >

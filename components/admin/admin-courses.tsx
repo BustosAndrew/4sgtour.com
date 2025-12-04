@@ -177,7 +177,7 @@ export function AdminCourses({
                   ))}
                 </div>
                 <Link href="/admin/trips/new">
-                  <Button className="bg-primary text-white hover:bg-primary/90">+ Add Course</Button>
+                  <Button className="bg-[#274C77] text-white hover:bg-[#274C77]/90">+ Add Course</Button>
                 </Link>
               </div>
 

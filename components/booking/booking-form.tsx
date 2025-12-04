@@ -27,10 +27,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
   const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || basicPackage?.id || "")
   const [roomType, setRoomType] = useState<string>("")
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [travelDateRange, setTravelDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
   })
+  const [courseDateRange, setCourseDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  })
+  const [dateSelectionMode, setDateSelectionMode] = useState<"travel" | "course">("travel")
   const [dateRangeError, setDateRangeError] = useState<string>("")
   const [courseRounds, setCourseRounds] = useState<Record<string, number>>({})
   const [selectedMeal, setSelectedMeal] = useState<string>("")
@@ -79,12 +84,16 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     return total
   }
 
-  const handleDateSelect = (range: any) => {
+  const handleTravelDateSelect = (range: any) => {
     const newRange = range || { from: undefined, to: undefined }
 
     if (!newRange.from || !newRange.to) {
-      setDateRange(newRange)
+      setTravelDateRange(newRange)
       setDateRangeError("")
+      // Reset course dates if travel dates are cleared
+      if (!newRange.from && !newRange.to) {
+        setCourseDateRange({ from: undefined, to: undefined })
+      }
       return
     }
 
@@ -113,7 +122,36 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     }
 
     setDateRangeError("")
-    setDateRange(newRange)
+    setTravelDateRange(newRange)
+
+    // Reset course dates if they fall outside new travel dates
+    if (courseDateRange.from && courseDateRange.to) {
+      if (courseDateRange.from < newRange.from || courseDateRange.to > newRange.to) {
+        setCourseDateRange({ from: undefined, to: undefined })
+      }
+    }
+  }
+
+  const handleCourseDateSelect = (range: any) => {
+    const newRange = range || { from: undefined, to: undefined }
+
+    if (!travelDateRange.from || !travelDateRange.to) {
+      setDateRangeError("Please select travel dates first before selecting course dates.")
+      return
+    }
+
+    if (newRange.from && newRange.from < travelDateRange.from) {
+      setDateRangeError("Course dates must be within your travel dates.")
+      return
+    }
+
+    if (newRange.to && newRange.to > travelDateRange.to) {
+      setDateRangeError("Course dates must be within your travel dates.")
+      return
+    }
+
+    setDateRangeError("")
+    setCourseDateRange(newRange)
   }
 
   const handleSubmit = async () => {
@@ -123,13 +161,20 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       return
     }
 
-    if (!dateRange.from || !dateRange.to) {
+    if (!travelDateRange.from || !travelDateRange.to) {
       alert("Please select travel dates")
       return
     }
 
+    if (!courseDateRange.from || !courseDateRange.to) {
+      alert("Please select course dates")
+      return
+    }
+
     if (trip.max_days) {
-      const daysDiff = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
+      const daysDiff = Math.ceil(
+        (travelDateRange.to.getTime() - travelDateRange.from.getTime()) / (1000 * 60 * 60 * 24),
+      )
       if (daysDiff > trip.max_days) {
         alert(
           `Your selected date range exceeds the maximum trip duration of ${trip.max_days} days. Please select a shorter date range.`,
@@ -152,8 +197,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
     try {
       const total = calculateTotal()
-      const startDate = dateRange.from.toISOString().split("T")[0]
-      const endDate = dateRange.to.toISOString().split("T")[0]
+      const startDate = travelDateRange.from.toISOString().split("T")[0]
+      const endDate = travelDateRange.to.toISOString().split("T")[0]
+      const courseStartDate = courseDateRange.from.toISOString().split("T")[0]
+      const courseEndDate = courseDateRange.to.toISOString().split("T")[0]
 
       const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
       const packageName = selectedPackage?.name || ""
@@ -185,15 +232,17 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           tripTitle: trip.title,
           customerName: profile?.display_name || user?.email || "Unknown",
           customerEmail: profile?.email || user?.email || "",
-          packageName: `${packageName} - ${occupancyType}`, // Include room type in package name
+          packageName: `${packageName} - ${occupancyType}`,
           startDate,
           endDate,
+          courseStartDate,
+          courseEndDate,
           golfCourses: courseDetails,
           mealOption: mealOptionName,
           transportOption: transportOptionName,
           additionalRequests,
           totalPrice: total,
-          roomType: occupancyType, // Send room type separately
+          roomType: occupancyType,
         }),
       })
 
@@ -205,7 +254,8 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
       setSelectedPlan(basicPackage?.id || "")
       setRoomType("")
-      setDateRange({ from: undefined, to: undefined })
+      setTravelDateRange({ from: undefined, to: undefined })
+      setCourseDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
       setSelectedMeal("")
       setSelectedTransport("")
@@ -217,6 +267,31 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       setSubmitting(false)
     }
   }
+
+  const getCalendarModifiers = () => {
+    const modifiers: any = {}
+
+    if (travelDateRange.from && travelDateRange.to) {
+      modifiers.travelDays = { from: travelDateRange.from, to: travelDateRange.to }
+    }
+
+    if (courseDateRange.from && courseDateRange.to) {
+      modifiers.courseDays = { from: courseDateRange.from, to: courseDateRange.to }
+    }
+
+    return modifiers
+  }
+
+  const getCalendarModifiersStyles = () => ({
+    travelDays: {
+      backgroundColor: "#274C77",
+      color: "white",
+    },
+    courseDays: {
+      backgroundColor: "#6096BA",
+      color: "white",
+    },
+  })
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
@@ -319,48 +394,129 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 text-sm font-medium sm:text-base">Select Dates</h3>
-              {trip.min_days_advance && trip.min_days_advance > 0 && (
-                <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
-                  Minimum advance booking: {trip.min_days_advance} {trip.min_days_advance === 1 ? "day" : "days"}
-                </p>
-              )}
+              <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              </p>
               {trip.max_days && (
                 <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
-                  Maximum trip duration: {trip.max_days} {trip.max_days === 1 ? "day" : "days"}
+                  Maximum stay: {trip.max_days} {trip.max_days === 1 ? "night" : "nights"}
                 </p>
               )}
-              <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
-                Choose your preferred travel dates for this golf trip
-              </p>
               {dateRangeError && (
                 <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3">
                   <p className="text-xs text-red-600 sm:text-sm">{dateRangeError}</p>
                 </div>
               )}
-              <div className="overflow-x-auto">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateSelect}
-                  className="rounded-md border"
-                  disabled={(date) => {
-                    const today = new Date()
-                    today.setHours(0, 0, 0, 0)
 
-                    // Disable past dates
-                    if (date < today) return true
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="overflow-x-auto flex-1">
+                  <Calendar
+                    mode="range"
+                    selected={dateSelectionMode === "travel" ? travelDateRange : courseDateRange}
+                    onSelect={dateSelectionMode === "travel" ? handleTravelDateSelect : handleCourseDateSelect}
+                    className="rounded-md border"
+                    modifiers={getCalendarModifiers()}
+                    modifiersStyles={getCalendarModifiersStyles()}
+                    disabled={(date) => {
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
 
-                    // Disable dates within minimum advance period
-                    if (trip.min_days_advance && trip.min_days_advance > 0) {
-                      const minDate = new Date(today)
-                      minDate.setDate(minDate.getDate() + trip.min_days_advance)
-                      return date < minDate
-                    }
+                      // Disable past dates
+                      if (date < today) return true
 
-                    return false
-                  }}
-                />
+                      // For course dates, only allow dates within travel range
+                      if (dateSelectionMode === "course" && travelDateRange.from && travelDateRange.to) {
+                        return date < travelDateRange.from || date > travelDateRange.to
+                      }
+
+                      // Disable dates within minimum advance period for travel dates
+                      if (dateSelectionMode === "travel" && trip.min_days_advance && trip.min_days_advance > 0) {
+                        const minDate = new Date(today)
+                        minDate.setDate(minDate.getDate() + trip.min_days_advance)
+                        return date < minDate
+                      }
+
+                      return false
+                    }}
+                  />
+                </div>
+
+                {/* Date selection mode buttons */}
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Select Travel Dates</p>
+                    <Button
+                      type="button"
+                      onClick={() => setDateSelectionMode("travel")}
+                      className={`w-full flex items-center gap-2 ${
+                        dateSelectionMode === "travel"
+                          ? "bg-[#274C77] text-white hover:bg-[#1a3a5c]"
+                          : "bg-white text-[#274C77] border-2 border-[#274C77] hover:bg-[#274C77]/10"
+                      }`}
+                    >
+                      <span className="w-4 h-4 rounded-sm bg-[#274C77] border border-white"></span>
+                      Travel Days
+                    </Button>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Select Course Dates</p>
+                    <Button
+                      type="button"
+                      onClick={() => setDateSelectionMode("course")}
+                      disabled={!travelDateRange.from || !travelDateRange.to}
+                      className={`w-full flex items-center gap-2 ${
+                        dateSelectionMode === "course"
+                          ? "bg-[#6096BA] text-white hover:bg-[#4a7a9e]"
+                          : "bg-white text-[#6096BA] border-2 border-[#6096BA] hover:bg-[#6096BA]/10"
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <span className="w-4 h-4 rounded-sm bg-[#6096BA] border border-white"></span>
+                      Course Days
+                    </Button>
+                  </div>
+                </div>
               </div>
+
+              {/* Reservation summary */}
+              {travelDateRange.from && travelDateRange.to && (
+                <div className="mt-4 p-4 bg-[rgba(240,234,210,1)] border-t-4 border-[rgba(221,190,169,1)]">
+                  <p className="text-sm">
+                    <span className="font-medium">Reservation for: </span>
+                    <span className="font-bold">
+                      {travelDateRange.from.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                      {" - "}
+                      {travelDateRange.to.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </p>
+                  {courseDateRange.from && courseDateRange.to && (
+                    <p className="text-sm mt-1">
+                      <span className="font-medium">Course dates: </span>
+                      <span className="font-bold">
+                        {courseDateRange.from.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                        {" - "}
+                        {courseDateRange.to.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -463,25 +619,27 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </div>
                 <h2 className="text-base font-bold sm:text-lg">Meals</h2>
               </div>
-              <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
-                {mealOptions.map((meal: any, index: number) => (
+              <RadioGroup value={selectedMeal} onValueChange={setSelectedMeal} className="space-y-3">
+                {mealOptions.map((meal: any) => (
                   <Card
                     key={meal.id}
-                    className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
-                      selectedMeal === meal.id ? "border-2 border-[#6b705c]" : ""
-                    }`}
-                    onClick={() => setSelectedMeal(meal.id)}
+                    className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
                   >
                     <RadioGroupItem
                       value={meal.id}
-                      id={`meal-${meal.id}`}
+                      id={meal.id}
                       className="absolute right-3 top-3 sm:right-4 sm:top-4"
                     />
-                    <label htmlFor={`meal-${meal.id}`} className="cursor-pointer pr-8">
-                      <div className="font-bold text-sm sm:text-base">{meal.name}</div>
-                      {meal.description && (
-                        <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>
-                      )}
+                    <label htmlFor={meal.id} className="flex cursor-pointer items-start gap-3">
+                      <div className="flex-1 pr-8">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="font-bold text-sm sm:text-base">{meal.name}</div>
+                          <div className="font-bold text-sm sm:text-base">${meal.price}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground sm:text-sm">
+                          {meal.description || "Meal option"}
+                        </div>
+                      </div>
                     </label>
                   </Card>
                 ))}
@@ -522,29 +680,27 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </div>
                 <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
               </div>
-              <RadioGroup
-                value={selectedTransport}
-                onValueChange={(val: any) => setSelectedTransport(val)}
-                className="space-y-2"
-              >
-                {transportationOptions.map((transport: any, index: number) => (
+              <RadioGroup value={selectedTransport} onValueChange={setSelectedTransport} className="space-y-3">
+                {transportationOptions.map((transport: any) => (
                   <Card
                     key={transport.id}
-                    className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
-                      selectedTransport === transport.id ? "border-2 border-[#6b705c]" : ""
-                    }`}
-                    onClick={() => setSelectedTransport(transport.id)}
+                    className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
                   >
                     <RadioGroupItem
                       value={transport.id}
-                      id={`transport-${transport.id}`}
+                      id={transport.id}
                       className="absolute right-3 top-3 sm:right-4 sm:top-4"
                     />
-                    <label htmlFor={`transport-${transport.id}`} className="cursor-pointer pr-8">
-                      <div className="font-bold text-sm sm:text-base">{transport.name}</div>
-                      {transport.description && (
-                        <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>
-                      )}
+                    <label htmlFor={transport.id} className="flex cursor-pointer items-start gap-3">
+                      <div className="flex-1 pr-8">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="font-bold text-sm sm:text-base">{transport.name}</div>
+                          <div className="font-bold text-sm sm:text-base">${transport.price}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground sm:text-sm">
+                          {transport.description || "Transportation option"}
+                        </div>
+                      </div>
                     </label>
                   </Card>
                 ))}
@@ -553,130 +709,78 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           )
         )}
 
-        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:py-[0] border-none shadow-none sm:px-[0] bg-transparent">
-          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,232,209,1)]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
+        {/* Additional Requests */}
+        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
               7
             </div>
             <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
           </div>
           <Textarea
-            placeholder="Any special requests or dietary requirements..."
+            placeholder="Any special requests or requirements..."
             value={additionalRequests}
             onChange={(e) => setAdditionalRequests(e.target.value)}
-            className="min-h-[100px] text-sm"
+            className="min-h-[100px]"
           />
         </Card>
       </div>
 
-      {/* Confirmation Panel */}
-      <div className="lg:sticky lg:top-8 lg:self-start">
-        <Card className="p-4 sm:p-6 shadow-none sm:px-[0] sm:py-[0] pl-0 py-0 bg-destructive-foreground sm:pb-2.5 rounded-md border-primary border-solid border-2">
-          <div className="mb-4 bg-[rgba(240,234,210,1)] px-3 py-2 flex pl-0 pt-0 pb-0 gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none"></div>
-            <h2 className="text-base font-bold sm:text-lg">Confirmation</h2>
-          </div>
-          <div className="space-y-2 text-xs sm:text-sm px-12">
-            {dateRange.from && dateRange.to && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">Reservation for:</span>
-                <span className="font-medium">
-                  {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
-                </span>
-              </div>
-            )}
+      {/* Summary Sidebar */}
+      <div className="lg:sticky lg:top-24 h-fit">
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
+
+          <div className="space-y-3 text-sm">
             {selectedPlan && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">
-                  {packages.find((p: any) => p.id === selectedPlan)?.name === "Regular"
-                    ? "Basic"
-                    : packages.find((p: any) => p.id === selectedPlan)?.name}
-                  {roomType && ` (${roomType === "double" ? "Double" : "Single"})`}
-                </span>
-                <span className="font-medium">${packages.find((p: any) => p.id === selectedPlan)?.price}</span>
-              </div>
-            )}
-            {Object.entries(courseRounds)
-              .filter(([_, rounds]) => rounds > 0)
-              .map(([courseId, rounds]) => {
-                const course = golfCourses.find((c: any) => c.id === courseId)
-                if (!course) return null
-                return (
-                  <div key={courseId} className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                    <span className="text-muted-foreground">
-                      {course.course_name} ({rounds} rounds)
-                    </span>
-                    <span className="font-medium">${Number(course.price_per_round) * rounds}</span>
-                  </div>
-                )
-              })}
-            {selectedMeal && !isAllInclusive && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">
-                  {mealOptions.find((meal: any) => meal.id === selectedMeal)?.name}
-                </span>
-                <span className="font-medium">${mealOptions.find((meal: any) => meal.id === selectedMeal)?.price}</span>
-              </div>
-            )}
-            {isAllInclusive && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">Meals</span>
-                <span className="font-medium text-green-600">Included</span>
-              </div>
-            )}
-            {selectedTransport && !isAllInclusive && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">
-                  {transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name}
-                </span>
+              <div className="flex justify-between">
+                <span>Package:</span>
                 <span className="font-medium">
-                  ${transportationOptions.find((transport: any) => transport.id === selectedTransport)?.price}
+                  {packages.find((p: any) => p.id === selectedPlan)?.name || "Not selected"}
                 </span>
               </div>
             )}
-            {isAllInclusive && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                <span className="text-muted-foreground">Transportation</span>
-                <span className="font-medium text-green-600">Included</span>
+
+            {roomType && (
+              <div className="flex justify-between">
+                <span>Room:</span>
+                <span className="font-medium">{roomType === "double" ? "Double Occupancy" : "Single Occupancy"}</span>
+              </div>
+            )}
+
+            {travelDateRange.from && travelDateRange.to && (
+              <div className="flex justify-between">
+                <span>Travel:</span>
+                <span className="font-medium">
+                  {travelDateRange.from.toLocaleDateString()} - {travelDateRange.to.toLocaleDateString()}
+                </span>
+              </div>
+            )}
+
+            {courseDateRange.from && courseDateRange.to && (
+              <div className="flex justify-between">
+                <span>Course:</span>
+                <span className="font-medium">
+                  {courseDateRange.from.toLocaleDateString()} - {courseDateRange.to.toLocaleDateString()}
+                </span>
               </div>
             )}
           </div>
 
-          <div className="my-4 border-t border-border pt-4 px-12 border-none">
-            <div className="flex justify-between text-base font-bold sm:text-lg">
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex justify-between text-lg font-bold">
               <span>Total:</span>
-              <span>${calculateTotal()}</span>
+              <span>${calculateTotal().toFixed(2)}</span>
             </div>
           </div>
 
           <Button
-            className="w-3/4 bg-primary text-sm hover:bg-primary/90 sm:text-base mx-auto"
-            size="lg"
             onClick={handleSubmit}
-            disabled={submitting || !dateRange.from || !dateRange.to || !selectedPlan || !roomType}
+            disabled={submitting}
+            className="w-full mt-6 bg-[#6096BA] hover:bg-[#4a7a9e] text-white"
           >
-            {submitting ? "Submitting..." : "Inquire Now"}
+            {submitting ? "Submitting..." : "Submit Inquiry"}
           </Button>
-        </Card>
-
-        {/* Trip Images */}
-        {trip.images && trip.images.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {trip.images.slice(0, 4).map((img: any, idx: number) => (
-              <div key={idx} className="aspect-square overflow-hidden rounded-lg bg-muted">
-                <img
-                  src={img.image_url || "/placeholder.svg"}
-                  alt={trip.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Card className="mt-4 p-3 sm:p-4 sm:px-[0] sm:py-[0] border-none bg-transparent shadow-none">
-          <h3 className="text-sm font-bold sm:text-base">{trip.title}</h3>
-          <p className="mt-2 text-xs text-muted-foreground sm:text-sm">Location: {trip.location}</p>
         </Card>
       </div>
     </div>

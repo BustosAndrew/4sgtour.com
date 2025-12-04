@@ -86,10 +86,10 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
           <div className="mt-2 flex items-center gap-3">
             {hasBothPackages ? (
               <>
-                <p className="text-base font-bold text-[#d4c5a0] sm:text-lg">
+                <p className="text-base font-bold text-[#274C77] sm:text-lg">
                   ${Number(premiumPackage.price).toFixed(2)}
                 </p>
-                <p className="text-base font-bold text-[#062047] sm:text-lg">
+                <p className="text-base font-bold text-[#6096BA] sm:text-lg">
                   ${Number(basicPackage.price).toFixed(2)}
                 </p>
               </>
@@ -106,17 +106,17 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             {hasBothPackages ? (
               <>
                 <AnimatedButton
-                  startColor="#d4c5a0"
-                  endColor="#c4b590"
+                  startColor="#274C77"
+                  endColor="#1a3a5c"
                   hoverText="Inquire!"
-                  className="flex-1 text-foreground text-sm sm:text-base py-2"
+                  className="flex-1 text-white text-sm sm:text-base py-2"
                   onClick={(e) => handlePackageClick(e, premiumPackage.id)}
                 >
                   Premium
                 </AnimatedButton>
                 <AnimatedButton
-                  startColor="#062047"
-                  endColor="#0a3470"
+                  startColor="#6096BA"
+                  endColor="#4a7a9e"
                   hoverText="Inquire!"
                   className="flex-1 text-white text-sm sm:text-base py-2"
                   onClick={(e) => handlePackageClick(e, basicPackage.id)}
@@ -126,8 +126,8 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
               </>
             ) : (
               <AnimatedButton
-                startColor="#062047"
-                endColor="#0a3470"
+                startColor="#6096BA"
+                endColor="#4a7a9e"
                 hoverText="Inquire!"
                 className="flex-1 text-white text-sm sm:text-base py-2"
                 onClick={(e) => {
