@@ -16,7 +16,7 @@ const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"
 
 type Package = {
   id: string
-  name: "Basic" | "Premium" // Renamed Regular to Basic
+  name: "Premium" | "Upgrade"
   description: string
   price: string
   availability: string
@@ -36,14 +36,14 @@ type MealOption = {
   id: string
   name: string
   description: string
-  price: string
+  is_included: boolean
 }
 
 type TransportationOption = {
   id: string
   name: string
   description: string
-  price: string
+  is_included: boolean
 }
 
 const STEPS = [
@@ -68,7 +68,7 @@ export function CreateTripForm() {
     max_guests: "20",
     max_days: "",
     min_days_advance: "0",
-    is_all_inclusive: false,
+    // is_all_inclusive: false, Removed is_all_inclusive
   })
   const [highlights, setHighlights] = useState<string[]>([])
 
@@ -81,8 +81,8 @@ export function CreateTripForm() {
 
   const [packages, setPackages] = useState<Package[]>([
     {
-      id: "basic",
-      name: "Basic", // Renamed Regular to Basic
+      id: "premium",
+      name: "Premium",
       description: "",
       price: "",
       availability: "unlimited",
@@ -91,7 +91,7 @@ export function CreateTripForm() {
     },
   ])
 
-  const [hasPremiumPackage, setHasPremiumPackage] = useState(false)
+  const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
 
   const [golfCourses, setGolfCourses] = useState<GolfCourse[]>([])
   // Changed to arrays to allow multiple options
@@ -145,27 +145,31 @@ export function CreateTripForm() {
         break
 
       case 2:
-        const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
-        if (!basicPkg) {
-          errors.push("Basic package is required") // Updated error message
+        const premiumPackage = packages.find((p) => p.name === "Premium")
+        if (!premiumPackage) {
+          errors.push("Premium package is required") // Updated error message
         } else {
-          if (!basicPkg.price || Number(basicPkg.price) < 0) errors.push("Basic package must have a valid price") // Updated error message
-          if (!basicPkg.participants_per_booking || Number(basicPkg.participants_per_booking) <= 0) {
-            errors.push("Basic package must have valid participants per booking") // Updated error message
+          if (!premiumPackage.price || Number(premiumPackage.price) < 0)
+            errors.push("Premium package must have a valid price") // Updated error message
+          if (!premiumPackage.participants_per_booking || Number(premiumPackage.participants_per_booking) <= 0) {
+            errors.push("Premium package must have valid participants per booking") // Updated error message
           }
-          if (basicPkg.availability === "limited" && (!basicPkg.quantity || Number(basicPkg.quantity) <= 0)) {
-            errors.push("Basic package must have valid quantity for limited availability") // Updated error message
+          if (
+            premiumPackage.availability === "limited" &&
+            (!premiumPackage.quantity || Number(premiumPackage.quantity) <= 0)
+          ) {
+            errors.push("Premium package must have valid quantity for limited availability") // Updated error message
           }
         }
 
-        const premiumPkg = packages.find((p) => p.name === "Premium")
-        if (premiumPkg) {
-          if (!premiumPkg.price || Number(premiumPkg.price) < 0) errors.push("Premium package must have a valid price")
-          if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
-            errors.push("Premium package must have valid participants per booking")
+        const upgradePkg = packages.find((p) => p.name === "Upgrade")
+        if (upgradePkg) {
+          if (!upgradePkg.price || Number(upgradePkg.price) < 0) errors.push("Upgrade package must have a valid price")
+          if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
+            errors.push("Upgrade package must have valid participants per booking")
           }
-          if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
-            errors.push("Premium package must have valid quantity for limited availability")
+          if (upgradePkg.availability === "limited" && (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)) {
+            errors.push("Upgrade package must have valid quantity for limited availability")
           }
         }
         break
@@ -222,29 +226,30 @@ export function CreateTripForm() {
       errors.push("Minimum advance booking period cannot be negative (Step 1)")
     }
 
-    const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
-    if (!basicPkg) {
-      errors.push("Basic package is required (Step 2)") // Updated error message
+    const premiumPkg = packages.find((p) => p.name === "Premium")
+    if (!premiumPkg) {
+      errors.push("Premium package is required (Step 2)") // Updated error message
     } else {
-      if (!basicPkg.price || Number(basicPkg.price) < 0) errors.push("Basic package must have a valid price (Step 2)") // Updated error message
-      if (!basicPkg.participants_per_booking || Number(basicPkg.participants_per_booking) <= 0) {
-        errors.push("Basic package must have valid participants per booking (Step 2)") // Updated error message
+      if (!premiumPkg.price || Number(premiumPkg.price) < 0)
+        errors.push("Premium package must have a valid price (Step 2)") // Updated error message
+      if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
+        errors.push("Premium package must have valid participants per booking (Step 2)") // Updated error message
       }
-      if (basicPkg.availability === "limited" && (!basicPkg.quantity || Number(basicPkg.quantity) <= 0)) {
-        errors.push("Basic package must have valid quantity for limited availability (Step 2)") // Updated error message
+      if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
+        errors.push("Premium package must have valid quantity for limited availability (Step 2)") // Updated error message
       }
     }
 
-    // Validate Premium package if it exists
-    const premiumPkg = packages.find((p) => p.name === "Premium")
-    if (premiumPkg) {
-      if (!premiumPkg.price || Number(premiumPkg.price) < 0)
-        errors.push("Premium package must have a valid price (Step 2)")
-      if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
-        errors.push("Premium package must have valid participants per booking (Step 2)")
+    // Validate Upgrade package if it exists
+    const upgradePkg = packages.find((p) => p.name === "Upgrade")
+    if (upgradePkg) {
+      if (!upgradePkg.price || Number(upgradePkg.price) < 0)
+        errors.push("Upgrade package must have a valid price (Step 2)")
+      if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
+        errors.push("Upgrade package must have valid participants per booking (Step 2)")
       }
-      if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
-        errors.push("Premium package must have valid quantity for limited availability (Step 2)")
+      if (upgradePkg.availability === "limited" && (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)) {
+        errors.push("Upgrade package must have valid quantity for limited availability (Step 2)")
       }
     }
 
@@ -311,7 +316,7 @@ export function CreateTripForm() {
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
-          is_all_inclusive: formData.is_all_inclusive,
+          // is_all_inclusive: formData.is_all_inclusive, Removed is_all_inclusive
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -333,11 +338,13 @@ export function CreateTripForm() {
             name: meal.name,
             description: meal.description,
             price: Number(meal.price),
+            is_included: meal.is_included,
           })),
           transportationOptions: transportationOptions.map((transport) => ({
             name: transport.name,
             description: transport.description,
             price: Number(transport.price),
+            is_included: transport.is_included,
           })),
         }),
       })
@@ -356,13 +363,13 @@ export function CreateTripForm() {
     }
   }
 
-  const addPremiumPackage = () => {
-    if (!hasPremiumPackage) {
+  const addUpgradePackage = () => {
+    if (!hasUpgradePackage) {
       setPackages([
         ...packages,
         {
-          id: "premium",
-          name: "Premium",
+          id: "upgrade",
+          name: "Upgrade",
           description: "",
           price: "",
           availability: "unlimited",
@@ -370,7 +377,7 @@ export function CreateTripForm() {
           participants_per_booking: "1",
         },
       ])
-      setHasPremiumPackage(true)
+      setHasUpgradePackage(true)
     }
   }
 
@@ -378,9 +385,9 @@ export function CreateTripForm() {
     setPackages(packages.map((pkg) => (pkg.id === id ? { ...pkg, [field]: value } : pkg)))
   }
 
-  const removePremiumPackage = () => {
-    setPackages(packages.filter((pkg) => pkg.name !== "Premium"))
-    setHasPremiumPackage(false)
+  const removeUpgradePackage = () => {
+    setPackages(packages.filter((pkg) => pkg.name !== "Upgrade"))
+    setHasUpgradePackage(false)
   }
 
   const addGolfCourse = () => {
@@ -411,12 +418,12 @@ export function CreateTripForm() {
         id: crypto.randomUUID(),
         name: "",
         description: "",
-        price: "0",
+        is_included: false, // Updated to include is_included
       },
     ])
   }
 
-  const updateMealOption = (id: string, field: keyof MealOption, value: string) => {
+  const updateMealOption = (id: string, field: keyof MealOption, value: string | boolean) => {
     setMealOptions(mealOptions.map((meal) => (meal.id === id ? { ...meal, [field]: value } : meal)))
   }
 
@@ -432,12 +439,12 @@ export function CreateTripForm() {
         id: crypto.randomUUID(),
         name: "",
         description: "",
-        price: "0",
+        is_included: false, // Updated to include is_included
       },
     ])
   }
 
-  const updateTransportationOption = (id: string, field: keyof TransportationOption, value: string) => {
+  const updateTransportationOption = (id: string, field: keyof TransportationOption, value: string | boolean) => {
     setTransportationOptions(
       transportationOptions.map((transport) => (transport.id === id ? { ...transport, [field]: value } : transport)),
     )
@@ -474,9 +481,13 @@ export function CreateTripForm() {
           (!formData.min_days_advance || Number(formData.min_days_advance) >= 0) // Added check for min_days_advance
         )
       case 2:
-        // Check if Basic package has valid price before proceeding
-        const basicPkg = packages.find((p) => p.name === "Basic") // Renamed Regular to Basic
-        return !!basicPkg && Number(basicPkg.price) > 0
+        // Check if Premium package has valid price before proceeding
+        const premiumPackageCheck = packages.find((p) => p.name === "Premium")
+        return (
+          premiumPackageCheck?.price !== undefined &&
+          premiumPackageCheck?.price !== null &&
+          Number(premiumPackageCheck?.price) >= 0
+        )
       case 3:
         return true
       default:
@@ -847,17 +858,17 @@ export function CreateTripForm() {
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
               <p className="text-sm text-muted-foreground">
-                Configure room types - Basic is required, Premium is optional
+                Configure room types - Premium is required, Upgrade is optional
               </p>
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
-                .filter((pkg) => pkg.name === "Basic") // Renamed Regular to Basic
+                .filter((pkg) => pkg.name === "Premium") // Updated to check Premium package (was Basic)
                 .map((pkg) => (
                   <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Basic Package (Required)</h4> {/* Updated heading */}
+                      <h4 className="font-medium">Premium Package (Required)</h4>
                     </div>
 
                     <div className="space-y-2">
@@ -927,18 +938,18 @@ export function CreateTripForm() {
                   </div>
                 ))}
 
-              {hasPremiumPackage ? (
+              {hasUpgradePackage ? (
                 packages
-                  .filter((pkg) => pkg.name === "Premium")
+                  .filter((pkg) => pkg.name === "Upgrade")
                   .map((pkg) => (
                     <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Premium Package (Optional)</h4>
+                        <h4 className="font-medium">Upgrade Package (Optional)</h4>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={removePremiumPackage}
+                          onClick={removeUpgradePackage}
                           className="text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1013,15 +1024,15 @@ export function CreateTripForm() {
                   ))
               ) : (
                 <div className="py-8 text-center">
-                  <p className="mb-4 text-sm text-muted-foreground">Premium package not added (optional)</p>
+                  <p className="mb-4 text-sm text-muted-foreground">Upgrade package not added (optional)</p>
                   <Button
                     type="button"
-                    onClick={addPremiumPackage}
+                    onClick={addUpgradePackage}
                     size="sm"
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Premium Package
+                    Add Upgrade Package
                   </Button>
                 </div>
               )}
@@ -1174,6 +1185,14 @@ export function CreateTripForm() {
                       rows={2}
                     />
                   </div>
+                  <div className="flex items-center justify-start gap-2">
+                    <Switch
+                      id={`meal-included-${meal.id}`}
+                      checked={meal.is_included}
+                      onCheckedChange={(checked) => updateMealOption(meal.id, "is_included", checked)}
+                    />
+                    <Label htmlFor={`meal-included-${meal.id}`}>Included in Package</Label>
+                  </div>
                 </div>
               ))}
 
@@ -1249,6 +1268,14 @@ export function CreateTripForm() {
                       rows={2}
                     />
                   </div>
+                  <div className="flex items-center justify-start gap-2">
+                    <Switch
+                      id={`transport-included-${transport.id}`}
+                      checked={transport.is_included}
+                      onCheckedChange={(checked) => updateTransportationOption(transport.id, "is_included", checked)}
+                    />
+                    <Label htmlFor={`transport-included-${transport.id}`}>Included in Package</Label>
+                  </div>
                 </div>
               ))}
 
@@ -1319,14 +1346,7 @@ export function CreateTripForm() {
                         <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
                       </p>
                     )}
-                    <div>
-                      <span className="font-medium">All-Inclusive:</span>{" "}
-                      {formData.is_all_inclusive ? (
-                        <span className="text-green-600">Yes (includes meals & transport)</span>
-                      ) : (
-                        <span className="text-muted-foreground">No</span>
-                      )}
-                    </div>
+                    {/* Removed All-Inclusive display */}
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
@@ -1425,8 +1445,10 @@ export function CreateTripForm() {
                   <div className="space-y-2">
                     {mealOptions.map((meal) => (
                       <div key={meal.id} className="flex justify-between text-sm">
-                        <span>{meal.name}</span>
-                        <span className="font-medium">+${meal.price}</span>
+                        <span>
+                          {meal.name} {meal.is_included && "(Included)"}
+                        </span>
+                        <span className="font-medium">{meal.is_included ? "" : `+$${meal.price}`}</span>
                       </div>
                     ))}
                   </div>
@@ -1441,8 +1463,10 @@ export function CreateTripForm() {
                   <div className="space-y-2">
                     {transportationOptions.map((transport) => (
                       <div key={transport.id} className="flex justify-between text-sm">
-                        <span>{transport.name}</span>
-                        <span className="font-medium">+${transport.price}</span>
+                        <span>
+                          {transport.name} {transport.is_included && "(Included)"}
+                        </span>
+                        <span className="font-medium">{transport.is_included ? "" : `+$${transport.price}`}</span>
                       </div>
                     ))}
                   </div>

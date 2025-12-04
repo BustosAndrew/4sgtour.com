@@ -118,10 +118,11 @@ export default async function TripPage({ params }: TripPageProps) {
               }`}
             >
               {trip.packages.map((pkg: any) => {
-                const displayName = pkg.name === "Regular" ? "Basic" : pkg.name
-                const isPremium = displayName === "Premium"
-                const headerBg = isPremium ? "bg-[#274C77]" : "bg-[#6096BA]"
-                const borderColor = isPremium ? "border-[#274C77]" : "border-[#6096BA]"
+                const displayName = pkg.name === "Basic" ? "Premium" : pkg.name === "Premium" ? "Upgrade" : pkg.name
+                const isUpgrade = pkg.name === "Premium"
+                const isPremium = pkg.name === "Basic"
+                const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
+                const borderColor = isUpgrade ? "border-[#274C77]" : "border-[#6096BA]"
                 const headerText = "text-white"
 
                 return (
@@ -159,8 +160,8 @@ export default async function TripPage({ params }: TripPageProps) {
 
                       <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`} className="mt-auto w-full">
                         <AnimatedButton
-                          startColor={isPremium ? "#274C77" : "#6096BA"}
-                          endColor={isPremium ? "#1a3a5c" : "#4a7a9e"}
+                          startColor={isUpgrade ? "#274C77" : "#6096BA"}
+                          endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
                           hoverText="Let's Go!"
                           className="w-full"
                         >

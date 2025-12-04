@@ -16,8 +16,6 @@ export async function POST(request: Request) {
       packageName,
       startDate,
       endDate,
-      courseStartDate,
-      courseEndDate,
       addOns,
       rounds,
       additionalRequests,
@@ -34,8 +32,6 @@ export async function POST(request: Request) {
         package_name: packageName,
         start_date: startDate,
         end_date: endDate,
-        course_start_date: courseStartDate,
-        course_end_date: courseEndDate,
         add_ons: addOns,
         rounds: rounds,
         additional_requests: additionalRequests,
@@ -49,7 +45,6 @@ export async function POST(request: Request) {
       console.error("[v0] Database error:", dbError)
     }
 
-    // Format the email content
     const emailContent = `
 New Trip Inquiry
 
@@ -62,7 +57,6 @@ Email: ${customerEmail}
 Booking Details:
 Package: ${packageName}
 Travel Dates: ${startDate} to ${endDate}
-Course Dates: ${courseStartDate} to ${courseEndDate}
 Selected Add-ons: ${addOns && addOns.length > 0 ? addOns.join(", ") : "None"}
 Number of Rounds: ${rounds}
 

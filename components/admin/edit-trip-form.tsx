@@ -19,10 +19,13 @@ interface EditTripFormProps {
     id: string
     title: string
     description: string | null
+    location: string // Added location
     continent: string | null
+    price_regular: number // Added price_regular
+    max_guests: number // Added max_guests
     max_days?: number | null
     min_days_advance?: number | null
-    is_all_inclusive?: boolean
+    is_all_inclusive?: boolean // REMOVED is_all_inclusive
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
@@ -32,6 +35,27 @@ interface EditTripFormProps {
     meal_options?: any[]
     transportation_options?: any[]
   }
+}
+
+interface TripData {
+  // Added TripData interface
+  id: string
+  title: string
+  description: string
+  location: string
+  continent: string
+  price_regular: number
+  max_guests: number
+  max_days: number | null
+  min_days_advance: number
+  courses_photo_url: string | null
+  single_room_photo_url: string | null
+  double_room_photo_url: string | null
+  highlights?: string[]
+  packages?: any[]
+  golf_courses?: any[]
+  meal_options?: any[]
+  transportation_options?: any[]
 }
 
 const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
@@ -50,13 +74,17 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [deleting, setDeleting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TripData>({
+    // Updated formData type
     title: trip.title || "",
     description: trip.description || "",
+    location: trip.location || "", // Added location
     continent: trip.continent || "",
+    price_regular: trip.price_regular?.toString() || "0", // Added price_regular
+    max_guests: trip.max_guests?.toString() || "20", // Added max_guests
     max_days: trip.max_days?.toString() || "",
     min_days_advance: trip.min_days_advance?.toString() || "0",
-    is_all_inclusive: trip.is_all_inclusive || false,
+    // is_all_inclusive: trip.is_all_inclusive || false, // REMOVED is_all_inclusive
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
 
@@ -69,21 +97,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const initializePackages = () => {
     const existingPackages = trip.packages || []
-    const basicPkg = existingPackages.find((p: any) => p.name === "Basic" || p.name === "Regular")
-    const premiumPkg = existingPackages.find((p: any) => p.name === "Premium")
+    const premiumPkg = existingPackages.find(
+      (p: any) => p.name === "Premium" || p.name === "Basic" || p.name === "Regular",
+    )
+    const upgradePkg = existingPackages.find((p: any) => p.name === "Upgrade")
 
     const pkgs = []
-    // Always include Basic
-    if (basicPkg) {
+    // Always include Premium
+    if (premiumPkg) {
       pkgs.push({
-        ...basicPkg,
-        name: "Basic", // Normalize to "Basic"
-        price: basicPkg.price || 0, // Ensure price is defined
+        ...premiumPkg,
+        name: "Premium", // Normalize to "Premium"
+        price: premiumPkg.price || 0,
       })
     } else {
       pkgs.push({
-        id: "basic",
-        name: "Basic",
+        id: "premium",
+        name: "Premium",
         description: "",
         price: 0,
         availability: "unlimited",
@@ -92,11 +122,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       })
     }
 
-    // Include Premium if it exists
-    if (premiumPkg) {
+    // Include Upgrade if it exists
+    if (upgradePkg) {
       pkgs.push({
-        ...premiumPkg,
-        price: premiumPkg.price || 0, // Ensure price is defined
+        ...upgradePkg,
+        name: "Upgrade", // Normalize to "Upgrade"
+        price: upgradePkg.price || 0,
       })
     }
 
@@ -104,8 +135,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   }
 
   const [packages, setPackages] = useState(initializePackages())
-  const [hasPremiumPackage, setHasPremiumPackage] = useState(() =>
-    (trip.packages || []).some((p: any) => p.name === "Premium"),
+  const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
+    (trip.packages || []).some((p: any) => p.name === "Upgrade" || p.name === "Premium"),
   )
 
   const [golfCourses, setGolfCourses] = useState(() => {
@@ -156,13 +187,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setPhotos((prev) => ({ ...prev, [photoType]: "" }))
   }
 
-  const addPremiumPackage = () => {
-    if (!hasPremiumPackage) {
+  const addUpgradePackage = () => {
+    if (!hasUpgradePackage) {
       setPackages([
         ...packages,
         {
-          id: "premium",
-          name: "Premium",
+          id: "upgrade",
+          name: "Upgrade",
           description: "",
           price: 0,
           availability: "unlimited",
@@ -170,13 +201,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           participants_per_booking: 1,
         },
       ])
-      setHasPremiumPackage(true)
+      setHasUpgradePackage(true)
     }
   }
 
-  const removePremiumPackage = () => {
-    setPackages(packages.filter((pkg) => pkg.name !== "Premium"))
-    setHasPremiumPackage(false)
+  const removeUpgradePackage = () => {
+    setPackages(packages.filter((pkg) => pkg.name !== "Upgrade"))
+    setHasUpgradePackage(false)
   }
 
   const handlePackageChange = (index: number, field: string, value: any) => {
@@ -216,6 +247,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         name: "",
         description: "",
         price: 0,
+        is_included: false, // Added is_included field
       },
     ])
   }
@@ -238,6 +270,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         name: "",
         description: "",
         price: 0,
+        is_included: false, // Added is_included field
       },
     ])
   }
@@ -271,9 +304,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       case 1:
         return formData.title && formData.continent
       case 2:
-        // Ensure Basic package has a price
-        const basicPackage = packages.find((p) => p.name === "Basic") // Renamed from Regular to Basic
-        return basicPackage?.price !== undefined && basicPackage?.price !== null && basicPackage?.price >= 0
+        const premiumPackage = packages.find((p) => p.name === "Premium")
+        return premiumPackage?.price !== undefined && premiumPackage?.price !== null && premiumPackage?.price >= 0
       case 3:
         return true // Trip options are optional
       default:
@@ -311,10 +343,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
+          location: formData.location, // Added location
           continent: formData.continent,
+          price_regular: Number(formData.price_regular), // Added price_regular
+          max_guests: Number(formData.max_guests), // Added max_guests
           max_days: formData.max_days ? Number(formData.max_days) : null,
-          min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
-          is_all_inclusive: formData.is_all_inclusive,
+          min_days_advance: Number(formData.min_days_advance), // Removed .toString()
+          // is_all_inclusive: formData.is_all_inclusive, // REMOVED is_all_inclusive
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -465,6 +500,21 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               />
             </div>
 
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-base">
+                Location *
+              </Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="e.g., Pebble Beach, California"
+                required
+                className="h-12"
+              />
+            </div>
+
             {/* Highlights */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -559,19 +609,41 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="is_all_inclusive" className="text-base font-medium">
-                  All-Inclusive Trip
-                </Label>
-                <p className="text-sm text-muted-foreground">Trip includes transportation and meals by default</p>
-              </div>
-              <Switch
-                id="is_all_inclusive"
-                checked={formData.is_all_inclusive}
-                onCheckedChange={(checked: boolean) => setFormData({ ...formData, is_all_inclusive: checked })}
+            {/* Price Regular */}
+            <div className="space-y-2">
+              <Label htmlFor="price_regular" className="text-base">
+                Price (USD) *
+              </Label>
+              <Input
+                id="price_regular"
+                type="number"
+                min="0"
+                value={formData.price_regular}
+                onChange={(e) => setFormData({ ...formData, price_regular: e.target.value })}
+                placeholder="e.g., 1500"
+                required
+                className="h-12"
               />
             </div>
+
+            {/* Max Guests */}
+            <div className="space-y-2">
+              <Label htmlFor="max_guests" className="text-base">
+                Max Guests *
+              </Label>
+              <Input
+                id="max_guests"
+                type="number"
+                min="1"
+                value={formData.max_guests}
+                onChange={(e) => setFormData({ ...formData, max_guests: e.target.value })}
+                placeholder="e.g., 4"
+                required
+                className="h-12"
+              />
+            </div>
+
+            {/* Removed All-Inclusive Switch */}
 
             {/* Upload Photos for Courses */}
             <div className="space-y-3">
@@ -695,18 +767,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             <div>
               <h2 className="text-2xl font-semibold">Packages</h2>
               <p className="text-sm text-muted-foreground">
-                Configure room types - Basic is required, Premium is optional
+                Configure room types - Premium is required, Upgrade is optional
               </p>
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
-                .filter((pkg) => pkg.name === "Basic") // Renamed from Regular to Basic
+                .filter((pkg) => pkg.name === "Premium")
                 .map((pkg, index) => (
                   <Card key={pkg.id} className="p-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Basic Package (Required)</h4> {/* Updated heading */}
+                        <h4 className="font-medium">Premium Package (Required)</h4>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -801,19 +873,19 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </Card>
                 ))}
 
-              {hasPremiumPackage ? (
+              {hasUpgradePackage ? (
                 packages
-                  .filter((pkg) => pkg.name === "Premium")
+                  .filter((pkg) => pkg.name === "Upgrade")
                   .map((pkg) => (
                     <Card key={pkg.id} className="p-4">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium">Premium Package (Optional)</h4>
+                          <h4 className="font-medium">Upgrade Package (Optional)</h4>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={removePremiumPackage}
+                            onClick={removeUpgradePackage}
                             className="text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -913,15 +985,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   ))
               ) : (
                 <div className="py-8 text-center">
-                  <p className="mb-4 text-sm text-muted-foreground">Premium package not added (optional)</p>
+                  <p className="mb-4 text-sm text-muted-foreground">Upgrade package not added (optional)</p>
                   <Button
                     type="button"
-                    onClick={addPremiumPackage}
+                    onClick={addUpgradePackage}
                     size="sm"
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Premium Package
+                    Add Upgrade Package
                   </Button>
                 </div>
               )}
@@ -1054,6 +1126,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         rows={2}
                       />
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id={`meal-included-${meal.id}`}
+                        checked={meal.is_included}
+                        onCheckedChange={(checked: boolean) => handleMealOptionChange(index, "is_included", checked)}
+                      />
+                      <Label htmlFor={`meal-included-${meal.id}`}>Included by Default</Label>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -1111,6 +1191,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         rows={2}
                       />
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id={`transport-included-${transport.id}`}
+                        checked={transport.is_included}
+                        onCheckedChange={(checked: boolean) =>
+                          handleTransportationOptionChange(index, "is_included", checked)
+                        }
+                      />
+                      <Label htmlFor={`transport-included-${transport.id}`}>Included by Default</Label>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -1140,7 +1230,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <span className="font-medium">Title:</span> {formData.title || "Not set"}
                   </div>
                   <div>
+                    <span className="font-medium">Location:</span> {formData.location || "Not set"}
+                  </div>
+                  <div>
                     <span className="font-medium">Continent:</span> {formData.continent || "Not set"}
+                  </div>
+                  <div>
+                    <span className="font-medium">Price:</span> ${formData.price_regular}
+                  </div>
+                  <div>
+                    <span className="font-medium">Max Guests:</span> {formData.max_guests}
                   </div>
                   <div>
                     <span className="font-medium">Description:</span>{" "}
@@ -1172,14 +1271,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
                     </p>
                   )}
-                  <div>
-                    <span className="font-medium">All-Inclusive:</span>{" "}
-                    {formData.is_all_inclusive ? (
-                      <span className="text-green-600">Yes (includes meals & transport)</span>
-                    ) : (
-                      <span className="text-muted-foreground">No</span>
-                    )}
-                  </div>
+                  {/* Removed All-Inclusive Summary */}
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
                       <div>
@@ -1283,7 +1375,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   {mealOptions.map((meal, idx) => (
                     <div key={meal.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
                       <p className="mb-2 font-medium">
-                        {meal.name} {idx === 0 && "(Recommended)"}
+                        {meal.name} {meal.is_included && "(Included)"}
                       </p>
                       {meal.description && <p className="mb-2 text-muted-foreground">{meal.description}</p>}
                       <div>
@@ -1302,7 +1394,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   {transportationOptions.map((transport, idx) => (
                     <div key={transport.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
                       <p className="mb-2 font-medium">
-                        {transport.name} {idx === 0 && "(Recommended)"}
+                        {transport.name} {transport.is_included && "(Included)"}
                       </p>
                       {transport.description && <p className="mb-2 text-muted-foreground">{transport.description}</p>}
                       <div>

@@ -5,12 +5,17 @@ import { Analytics } from "@vercel/analytics/next"
 import { ErrorHandler } from "@/components/error-handler"
 import "./globals.css"
 
-import { Playfair_Display, Geist_Mono } from "next/font/google"
+import { Playfair_Display, Geist_Mono, Bitter } from "next/font/google"
 
 const playfairDisplay = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] })
 const _geistMono = Geist_Mono({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+})
+const bitter = Bitter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-bitter",
 })
 
 export const metadata: Metadata = {
@@ -26,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased ${playfairDisplay.className}`}>
+      <body className={`antialiased ${playfairDisplay.className} ${bitter.variable}`}>
         <ErrorHandler />
         {children}
         <Analytics />

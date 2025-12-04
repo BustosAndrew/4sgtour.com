@@ -82,7 +82,10 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-4 text-center sm:p-6 md:p-8">
-                <h2 className="text-balance text-xl font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl lg:text-4xl">
+                <h2
+                  className="text-balance text-xl font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                  style={{ fontFamily: "Bitter, serif" }}
+                >
                   {continent.name}
                 </h2>
               </div>
@@ -102,7 +105,9 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
         </Button>
 
         <div className="text-center">
-          <h1 className="text-balance text-4xl font-bold text-foreground">{selectedContinent}</h1>
+          <h1 className="text-balance text-4xl font-bold text-foreground" style={{ fontFamily: "Bitter, serif" }}>
+            {selectedContinent}
+          </h1>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-muted-foreground">
             Discover amazing golf destinations in {selectedContinent}
           </p>

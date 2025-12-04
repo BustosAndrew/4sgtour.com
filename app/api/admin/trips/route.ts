@@ -30,7 +30,6 @@ export async function POST(request: Request) {
       max_guests,
       max_days,
       min_days_advance,
-      is_all_inclusive,
       courses_photo_url,
       single_room_photo_url,
       double_room_photo_url,
@@ -61,7 +60,6 @@ export async function POST(request: Request) {
         max_guests: max_guests || 20,
         max_days: max_days || null,
         min_days_advance: min_days_advance || 0,
-        is_all_inclusive: is_all_inclusive || false,
         courses_photo_url,
         single_room_photo_url,
         double_room_photo_url,
@@ -100,6 +98,7 @@ export async function POST(request: Request) {
         course_name: course.course_name,
         price_per_round: Number(course.price_per_round),
         max_rounds: Number(course.max_rounds),
+        is_included: course.is_included || false,
       }))
 
       const { error: golfCoursesError } = await supabase.from("trip_golf_courses").insert(golfCoursesData)
@@ -114,7 +113,7 @@ export async function POST(request: Request) {
         trip_id: tripData.id,
         name: meal.name,
         description: meal.description || null,
-        price: Number(meal.price),
+        is_included: meal.is_included || false,
       }))
 
       const { error: mealsError } = await supabase.from("trip_meal_options").insert(mealOptionsData)
@@ -129,7 +128,7 @@ export async function POST(request: Request) {
         trip_id: tripData.id,
         name: transport.name,
         description: transport.description || null,
-        price: Number(transport.price),
+        is_included: transport.is_included || false,
       }))
 
       const { error: transportError } = await supabase.from("trip_transportation_options").insert(transportOptionsData)

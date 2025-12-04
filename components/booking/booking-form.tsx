@@ -1,190 +1,240 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Calendar } from "@/components/ui/calendar"
-import { Users, User, Minus, Plus, Check } from "lucide-react"
+import { Calendar, Check, Users, Hotel, Utensils, ChevronLeft, ChevronRight } from "lucide-react"
+import { format, addDays, differenceInDays, isWithinInterval, isBefore, isSameDay } from "date-fns"
+import { createBrowserClient } from "@supabase/ssr"
+import { AnimatedButton } from "@/components/ui/animated-button"
+
+interface Trip {
+  id: string
+  title: string
+  slug: string
+  location: string
+  price_regular: number
+  max_days?: number
+  min_days_advance?: number
+  packages?: Array<{
+    id: string
+    name: string
+    description: string | null
+    price: number
+  }>
+  add_ons?: Array<{
+    id: string
+    name: string
+    description: string | null
+    price: number
+    price_type: string
+  }>
+  golf_courses?: any[]
+  meal_options?: any[]
+  transportation_options?: any[]
+}
 
 interface BookingFormProps {
-  trip: any
+  trip: Trip
   user: any
   profile: any
   preSelectedPackageId?: string
 }
 
 export function BookingForm({ trip, user, profile, preSelectedPackageId }: BookingFormProps) {
-  const packages = trip.packages || []
-  const basicPackage = packages.find((pkg: any) => pkg.name === "Basic" || pkg.name === "Regular")
-  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium")
-
-  const golfCourses = trip.golf_courses || []
-  const mealOptions = trip.meal_options || []
-  const transportationOptions = trip.transportation_options || []
-  const isAllInclusive = trip.is_all_inclusive || false
-
-  const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || basicPackage?.id || "")
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  const [step, setStep] = useState(1)
+  const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>({})
   const [roomType, setRoomType] = useState<string>("")
-  const [travelDateRange, setTravelDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined,
-  })
-  const [courseDateRange, setCourseDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined,
-  })
-  const [dateSelectionMode, setDateSelectionMode] = useState<"travel" | "course">("travel")
-  const [dateRangeError, setDateRangeError] = useState<string>("")
-  const [courseRounds, setCourseRounds] = useState<Record<string, number>>({})
   const [selectedMeal, setSelectedMeal] = useState<string>("")
   const [selectedTransport, setSelectedTransport] = useState<string>("")
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(user)
 
-  const updateCourseRounds = (courseId: string, rounds: number, maxRounds: number) => {
-    const clampedRounds = Math.max(0, Math.min(rounds, maxRounds))
+  const packages = trip.packages || []
+  const premiumPackage = packages.find(
+    (pkg: any) => pkg.name === "Premium" || pkg.name === "Basic" || pkg.name === "Regular",
+  )
+  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade")
+
+  const golfCourses = trip.golf_courses || []
+  const mealOptions = trip.meal_options || []
+  const transportationOptions = trip.transportation_options || []
+
+  const includedMeal = mealOptions.find((meal: any) => meal.is_included)
+  const includedTransport = transportationOptions.find((transport: any) => transport.is_included)
+
+  const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || premiumPackage?.id || "")
+  const [travelDateRange, setTravelDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  })
+
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user: fetchedUser },
+      } = await supabase.auth.getUser()
+      if (fetchedUser) {
+        setCurrentUser(fetchedUser)
+      }
+    }
+
+    if (!user) {
+      fetchUser()
+    }
+
+    if (includedMeal) {
+      setSelectedMeal(includedMeal.id)
+    }
+    if (includedTransport) {
+      setSelectedTransport(includedTransport.id)
+    }
+  }, [user, supabase.auth, includedMeal, includedTransport])
+
+  const minAdvanceDays = trip.min_days_advance || 0
+  const maxDays = trip.max_days || 14
+  const minDate = addDays(new Date(), minAdvanceDays)
+
+  const handleTravelDateSelect = (date: Date) => {
+    if (isBefore(date, minDate)) return
+
+    if (!travelDateRange.from || (travelDateRange.from && travelDateRange.to)) {
+      setTravelDateRange({ from: date, to: undefined })
+    } else {
+      if (isBefore(date, travelDateRange.from)) {
+        setTravelDateRange({ from: date, to: undefined })
+      } else {
+        const daysDiff = differenceInDays(date, travelDateRange.from) + 1
+        if (daysDiff <= maxDays) {
+          setTravelDateRange({ from: travelDateRange.from, to: date })
+        } else {
+          const maxEndDate = addDays(travelDateRange.from, maxDays - 1)
+          setTravelDateRange({ from: travelDateRange.from, to: maxEndDate })
+        }
+      }
+    }
+  }
+
+  const isTravelDate = (date: Date) => {
+    if (!travelDateRange.from) return false
+    if (!travelDateRange.to) return isSameDay(date, travelDateRange.from)
+    return isWithinInterval(date, { start: travelDateRange.from, end: travelDateRange.to })
+  }
+
+  const handleCourseRoundChange = (courseId: string, rounds: number) => {
     setCourseRounds((prev) => ({
       ...prev,
-      [courseId]: clampedRounds,
+      [courseId]: rounds,
     }))
   }
 
-  const calculateTotal = () => {
-    let total = 0
+  const generateCalendarDays = (month: Date) => {
+    const year = month.getFullYear()
+    const monthIndex = month.getMonth()
+    const firstDay = new Date(year, monthIndex, 1)
+    const lastDay = new Date(year, monthIndex + 1, 0)
+    const startPadding = (firstDay.getDay() + 6) % 7
 
-    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-    if (selectedPackage) total += Number(selectedPackage.price)
-
-    // Golf courses
-    Object.entries(courseRounds).forEach(([courseId, rounds]) => {
-      if (rounds > 0) {
-        const course = golfCourses.find((c: any) => c.id === courseId)
-        if (course) total += Number(course.price_per_round) * rounds
-      }
-    })
-
-    // Meals (only if not all-inclusive)
-    if (!isAllInclusive) {
-      const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
-      if (selectedMealOption) {
-        total += Number(selectedMealOption.price)
-      }
+    const days: (Date | null)[] = []
+    for (let i = 0; i < startPadding; i++) {
+      days.push(null)
     }
-
-    // Transportation (only if not all-inclusive)
-    if (!isAllInclusive) {
-      const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
-      if (selectedTransportOption) {
-        total += Number(selectedTransportOption.price)
-      }
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, monthIndex, d))
     }
-
-    return total
+    return days
   }
 
-  const handleTravelDateSelect = (range: any) => {
-    const newRange = range || { from: undefined, to: undefined }
+  const renderCalendar = () => {
+    const days = generateCalendarDays(currentMonth)
+    const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
 
-    if (!newRange.from || !newRange.to) {
-      setTravelDateRange(newRange)
-      setDateRangeError("")
-      // Reset course dates if travel dates are cleared
-      if (!newRange.from && !newRange.to) {
-        setCourseDateRange({ from: undefined, to: undefined })
-      }
-      return
-    }
+    return (
+      <div className="rounded-lg border border-border p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{format(currentMonth, "MMMM yyyy")}</h3>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
-    if (trip.min_days_advance && newRange.from) {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const daysUntilStart = Math.ceil((newRange.from.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-sm text-muted-foreground">
+          {weekdays.map((day) => (
+            <div key={day} className="py-1">
+              {day}
+            </div>
+          ))}
+        </div>
 
-      if (daysUntilStart < trip.min_days_advance) {
-        setDateRangeError(
-          `This trip requires booking at least ${trip.min_days_advance} days in advance. Please select a start date that is at least ${trip.min_days_advance} days from today.`,
-        )
-        return
-      }
-    }
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((date, idx) => {
+            if (!date) {
+              return <div key={`empty-${idx}`} className="p-2" />
+            }
 
-    if (trip.max_days && newRange.from && newRange.to) {
-      const daysDiff = Math.ceil((newRange.to.getTime() - newRange.from.getTime()) / (1000 * 60 * 60 * 24))
+            const isDisabled = isBefore(date, minDate)
+            const isTravel = isTravelDate(date)
+            const isStart = travelDateRange.from && isSameDay(date, travelDateRange.from)
+            const isEnd = travelDateRange.to && isSameDay(date, travelDateRange.to)
 
-      if (daysDiff > trip.max_days) {
-        setDateRangeError(
-          `Selected date range (${daysDiff} days) exceeds the maximum trip duration of ${trip.max_days} ${trip.max_days === 1 ? "day" : "days"}.`,
-        )
-        return
-      }
-    }
-
-    setDateRangeError("")
-    setTravelDateRange(newRange)
-
-    // Reset course dates if they fall outside new travel dates
-    if (courseDateRange.from && courseDateRange.to) {
-      if (courseDateRange.from < newRange.from || courseDateRange.to > newRange.to) {
-        setCourseDateRange({ from: undefined, to: undefined })
-      }
-    }
+            return (
+              <button
+                key={date.toISOString()}
+                type="button"
+                onClick={() => handleTravelDateSelect(date)}
+                disabled={isDisabled}
+                className={`
+                  relative p-2 text-center text-sm transition-colors
+                  ${isDisabled ? "cursor-not-allowed text-muted-foreground/40" : "cursor-pointer hover:bg-muted"}
+                  ${isTravel ? "bg-[#274C77] text-white" : ""}
+                  ${isStart ? "rounded-l" : ""}
+                  ${isEnd ? "rounded-r" : ""}
+                `}
+              >
+                {date.getDate()}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 
-  const handleCourseDateSelect = (range: any) => {
-    const newRange = range || { from: undefined, to: undefined }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-    if (!travelDateRange.from || !travelDateRange.to) {
-      setDateRangeError("Please select travel dates first before selecting course dates.")
-      return
-    }
-
-    if (newRange.from && newRange.from < travelDateRange.from) {
-      setDateRangeError("Course dates must be within your travel dates.")
-      return
-    }
-
-    if (newRange.to && newRange.to > travelDateRange.to) {
-      setDateRangeError("Course dates must be within your travel dates.")
-      return
-    }
-
-    setDateRangeError("")
-    setCourseDateRange(newRange)
-  }
-
-  const handleSubmit = async () => {
-    if (!user) {
+    if (!currentUser) {
       alert("Please sign in to submit an inquiry")
-      window.location.href = `/auth/login?redirect=/trips/${trip.slug}/book`
       return
     }
 
     if (!travelDateRange.from || !travelDateRange.to) {
-      alert("Please select travel dates")
-      return
-    }
-
-    if (!courseDateRange.from || !courseDateRange.to) {
-      alert("Please select course dates")
-      return
-    }
-
-    if (trip.max_days) {
-      const daysDiff = Math.ceil(
-        (travelDateRange.to.getTime() - travelDateRange.from.getTime()) / (1000 * 60 * 60 * 24),
-      )
-      if (daysDiff > trip.max_days) {
-        alert(
-          `Your selected date range exceeds the maximum trip duration of ${trip.max_days} days. Please select a shorter date range.`,
-        )
-        return
-      }
-    }
-
-    if (!selectedPlan) {
-      alert("Please select a plan (Basic or Premium)")
+      alert("Please select your travel dates")
       return
     }
 
@@ -199,8 +249,6 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       const total = calculateTotal()
       const startDate = travelDateRange.from.toISOString().split("T")[0]
       const endDate = travelDateRange.to.toISOString().split("T")[0]
-      const courseStartDate = courseDateRange.from.toISOString().split("T")[0]
-      const courseEndDate = courseDateRange.to.toISOString().split("T")[0]
 
       const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
       const packageName = selectedPackage?.name || ""
@@ -214,13 +262,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         })
         .filter(Boolean)
 
-      const mealOptionName = isAllInclusive
-        ? "Included (All-Inclusive)"
-        : mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
-      const transportOptionName = isAllInclusive
-        ? "Included (All-Inclusive)"
-        : transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name ||
-          "Private Car with Driver"
+      const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
+      const mealOptionName = selectedMealOption?.is_included
+        ? `${selectedMealOption.name} (Included)`
+        : selectedMealOption?.name || "None"
+
+      const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
+      const transportOptionName = selectedTransportOption?.is_included
+        ? `${selectedTransportOption.name} (Included)`
+        : selectedTransportOption?.name || "None"
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -230,13 +280,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         body: JSON.stringify({
           tripId: trip.id,
           tripTitle: trip.title,
-          customerName: profile?.display_name || user?.email || "Unknown",
-          customerEmail: profile?.email || user?.email || "",
+          customerName: profile?.display_name || currentUser?.email || "Unknown",
+          customerEmail: profile?.email || currentUser?.email || "",
           packageName: `${packageName} - ${occupancyType}`,
           startDate,
           endDate,
-          courseStartDate,
-          courseEndDate,
           golfCourses: courseDetails,
           mealOption: mealOptionName,
           transportOption: transportOptionName,
@@ -252,537 +300,476 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
       alert("Your inquiry has been submitted! We'll contact you shortly.")
 
-      setSelectedPlan(basicPackage?.id || "")
-      setRoomType("")
+      setStep(1)
       setTravelDateRange({ from: undefined, to: undefined })
-      setCourseDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
-      setSelectedMeal("")
-      setSelectedTransport("")
+      setRoomType("")
+      setSelectedMeal(includedMeal?.id || "")
+      setSelectedTransport(includedTransport?.id || "")
       setAdditionalRequests("")
     } catch (error) {
       console.error("Error submitting inquiry:", error)
-      alert("Failed to submit inquiry. Please try again.")
+      alert("There was an error submitting your inquiry. Please try again.")
     } finally {
       setSubmitting(false)
     }
   }
 
-  const getCalendarModifiers = () => {
-    const modifiers: any = {}
+  const calculateTotal = () => {
+    let total = 0
 
-    if (travelDateRange.from && travelDateRange.to) {
-      modifiers.travelDays = { from: travelDateRange.from, to: travelDateRange.to }
+    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+    if (selectedPackage) total += Number(selectedPackage.price)
+
+    // Golf courses
+    Object.entries(courseRounds).forEach(([courseId, rounds]) => {
+      if (rounds > 0) {
+        const course = golfCourses.find((c: any) => c.id === courseId)
+        if (course && !course.is_included) {
+          total += Number(course.price_per_round) * rounds
+        }
+      }
+    })
+
+    const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
+    if (selectedMealOption && !selectedMealOption.is_included) {
+      total += Number(selectedMealOption.price || 0)
     }
 
-    if (courseDateRange.from && courseDateRange.to) {
-      modifiers.courseDays = { from: courseDateRange.from, to: courseDateRange.to }
+    const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
+    if (selectedTransportOption && !selectedTransportOption.is_included) {
+      total += Number(selectedTransportOption.price || 0)
     }
 
-    return modifiers
+    return total
   }
 
-  const getCalendarModifiersStyles = () => ({
-    travelDays: {
-      backgroundColor: "#274C77",
-      color: "white",
-    },
-    courseDays: {
-      backgroundColor: "#6096BA",
-      color: "white",
-    },
-  })
+  const nextStep = () => setStep((s) => Math.min(s + 1, 6))
+  const prevStep = () => setStep((s) => Math.max(s - 1, 1))
+
+  const totalNights =
+    travelDateRange.from && travelDateRange.to ? differenceInDays(travelDateRange.to, travelDateRange.from) : 0
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-      <div className="space-y-6">
-        <Card className="border-2 border-blue-400 p-4 sm:p-6 border-none bg-transparent shadow-none sm:px-[0] sm:py-[0]">
-          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-              1
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Progress Steps */}
+      <div className="mb-8 flex items-center justify-between">
+        {[1, 2, 3, 4, 5, 6].map((s) => (
+          <div key={s} className="flex flex-1 items-center">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                step >= s ? "bg-[#274C77] text-white" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {step > s ? <Check className="h-4 w-4" /> : s}
             </div>
-            <h2 className="text-base font-bold sm:text-lg">Select Your Plan</h2>
+            {s < 6 && <div className={`h-1 flex-1 ${step > s ? "bg-[#274C77]" : "bg-muted"}`} />}
           </div>
-          <RadioGroup value={selectedPlan} onValueChange={setSelectedPlan} className="space-y-3">
-            {basicPackage && (
-              <Card
-                key={basicPackage.id}
-                className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
-              >
-                <RadioGroupItem
-                  value={basicPackage.id}
-                  id={basicPackage.id}
-                  className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                />
-                <label htmlFor={basicPackage.id} className="flex cursor-pointer items-start gap-3">
-                  <div className="flex-1 pr-8">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="font-bold text-sm sm:text-base">Basic Package</div>
-                      <div className="font-bold text-sm sm:text-base">${basicPackage.price}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground sm:text-sm">
-                      {basicPackage.description || "Essential golf trip experience"}
-                    </div>
-                  </div>
-                </label>
-              </Card>
-            )}
-            {premiumPackage && (
-              <Card
-                key={premiumPackage.id}
-                className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
-              >
-                <RadioGroupItem
-                  value={premiumPackage.id}
-                  id={premiumPackage.id}
-                  className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                />
-                <label htmlFor={premiumPackage.id} className="flex cursor-pointer items-start gap-3">
-                  <div className="flex-1 pr-8">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="font-bold text-sm sm:text-base">Premium Package</div>
-                      <div className="font-bold text-sm sm:text-base">${premiumPackage.price}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground sm:text-sm">
-                      {premiumPackage.description || "Enhanced golf trip with premium amenities"}
-                    </div>
-                  </div>
-                </label>
-              </Card>
-            )}
-          </RadioGroup>
-        </Card>
+        ))}
+      </div>
 
-        <Card className="border-2 border-blue-400 p-4 sm:p-6 border-none bg-transparent shadow-none sm:px-[0] sm:py-[0]">
-          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-              2
-            </div>
-            <h2 className="text-base font-bold sm:text-lg">Select Room Type</h2>
-          </div>
-          <RadioGroup value={roomType} onValueChange={setRoomType} className="space-y-3">
-            <Card className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2">
-              <RadioGroupItem value="double" id="double" className="absolute right-3 top-3 sm:right-4 sm:top-4" />
-              <label htmlFor="double" className="flex cursor-pointer items-start gap-3">
-                <Users className="mt-1 h-5 w-5 flex-shrink-0" />
-                <div className="flex-1 pr-8">
-                  <div className="font-bold text-sm sm:text-base">Double Occupancy</div>
-                  <div className="text-xs text-muted-foreground sm:text-sm">Shared room for two guests</div>
-                </div>
-              </label>
-            </Card>
-            <Card className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2">
-              <RadioGroupItem value="single" id="single" className="absolute right-3 top-3 sm:right-4 sm:top-4" />
-              <label htmlFor="single" className="flex cursor-pointer items-start gap-3">
-                <User className="mt-1 h-5 w-5 flex-shrink-0" />
-                <div className="flex-1 pr-8">
-                  <div className="font-bold text-sm sm:text-base">Single Occupancy</div>
-                  <div className="text-xs text-muted-foreground sm:text-sm">Private room for one guest</div>
-                </div>
-              </label>
-            </Card>
-          </RadioGroup>
-        </Card>
-
-        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,233,209,1)]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(222,190,169,1)] rounded-none">
-              3
-            </div>
-            <h2 className="text-base font-bold sm:text-lg">Travel Duration</h2>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h3 className="mb-2 text-sm font-medium sm:text-base">Select Dates</h3>
-              <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-              </p>
-              {trip.max_days && (
-                <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
-                  Maximum stay: {trip.max_days} {trip.max_days === 1 ? "night" : "nights"}
-                </p>
-              )}
-              {dateRangeError && (
-                <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3">
-                  <p className="text-xs text-red-600 sm:text-sm">{dateRangeError}</p>
-                </div>
-              )}
-
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="overflow-x-auto flex-1">
-                  <Calendar
-                    mode="range"
-                    selected={dateSelectionMode === "travel" ? travelDateRange : courseDateRange}
-                    onSelect={dateSelectionMode === "travel" ? handleTravelDateSelect : handleCourseDateSelect}
-                    className="rounded-md border"
-                    modifiers={getCalendarModifiers()}
-                    modifiersStyles={getCalendarModifiersStyles()}
-                    disabled={(date) => {
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-
-                      // Disable past dates
-                      if (date < today) return true
-
-                      // For course dates, only allow dates within travel range
-                      if (dateSelectionMode === "course" && travelDateRange.from && travelDateRange.to) {
-                        return date < travelDateRange.from || date > travelDateRange.to
-                      }
-
-                      // Disable dates within minimum advance period for travel dates
-                      if (dateSelectionMode === "travel" && trip.min_days_advance && trip.min_days_advance > 0) {
-                        const minDate = new Date(today)
-                        minDate.setDate(minDate.getDate() + trip.min_days_advance)
-                        return date < minDate
-                      }
-
-                      return false
-                    }}
-                  />
-                </div>
-
-                {/* Date selection mode buttons */}
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Select Travel Dates</p>
-                    <Button
-                      type="button"
-                      onClick={() => setDateSelectionMode("travel")}
-                      className={`w-full flex items-center gap-2 ${
-                        dateSelectionMode === "travel"
-                          ? "bg-[#274C77] text-white hover:bg-[#1a3a5c]"
-                          : "bg-white text-[#274C77] border-2 border-[#274C77] hover:bg-[#274C77]/10"
-                      }`}
-                    >
-                      <span className="w-4 h-4 rounded-sm bg-[#274C77] border border-white"></span>
-                      Travel Days
-                    </Button>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Select Course Dates</p>
-                    <Button
-                      type="button"
-                      onClick={() => setDateSelectionMode("course")}
-                      disabled={!travelDateRange.from || !travelDateRange.to}
-                      className={`w-full flex items-center gap-2 ${
-                        dateSelectionMode === "course"
-                          ? "bg-[#6096BA] text-white hover:bg-[#4a7a9e]"
-                          : "bg-white text-[#6096BA] border-2 border-[#6096BA] hover:bg-[#6096BA]/10"
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      <span className="w-4 h-4 rounded-sm bg-[#6096BA] border border-white"></span>
-                      Course Days
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Reservation summary */}
-              {travelDateRange.from && travelDateRange.to && (
-                <div className="mt-4 p-4 bg-[rgba(240,234,210,1)] border-t-4 border-[rgba(221,190,169,1)]">
-                  <p className="text-sm">
-                    <span className="font-medium">Reservation for: </span>
-                    <span className="font-bold">
-                      {travelDateRange.from.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                      {" - "}
-                      {travelDateRange.to.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </p>
-                  {courseDateRange.from && courseDateRange.to && (
-                    <p className="text-sm mt-1">
-                      <span className="font-medium">Course dates: </span>
-                      <span className="font-bold">
-                        {courseDateRange.from.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                        {" - "}
-                        {courseDateRange.to.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {golfCourses.length > 0 && (
-          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                4
-              </div>
-              <h2 className="text-base font-bold sm:text-lg">Golf Courses & Rounds</h2>
-            </div>
-
+      {/* Step 1: Package Selection */}
+      {step === 1 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />1 Package Selection
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
             <div className="space-y-4">
               <div>
-                <h3 className="mb-2 text-sm font-medium sm:text-base">Select Courses</h3>
-                <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
-                  Choose golf courses and number of rounds for each
+                <Label className="text-base">Select Package</Label>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Choose between Premium or Upgrade packages for your trip
                 </p>
-                <div className="space-y-3">
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {premiumPackage && (
+                  <div
+                    onClick={() => setSelectedPlan(premiumPackage.id)}
+                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                      selectedPlan === premiumPackage.id ? "border-[#6096BA] bg-[#6096BA]/10" : "border-border"
+                    }`}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="font-semibold">Premium</h3>
+                      <span className="text-lg font-bold">${premiumPackage.price}</span>
+                    </div>
+                    {premiumPackage.description && (
+                      <p className="text-sm text-muted-foreground">{premiumPackage.description}</p>
+                    )}
+                  </div>
+                )}
+                {upgradePackage && (
+                  <div
+                    onClick={() => setSelectedPlan(upgradePackage.id)}
+                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                      selectedPlan === upgradePackage.id ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
+                    }`}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="font-semibold">Upgrade</h3>
+                      <span className="text-lg font-bold">${upgradePackage.price}</span>
+                    </div>
+                    {upgradePackage.description && (
+                      <p className="text-sm text-muted-foreground">{upgradePackage.description}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Room Selection */}
+      {step === 2 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Hotel className="h-5 w-5" />2 Room Selection
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base">Select Room Type</Label>
+                <p className="mb-4 text-sm text-muted-foreground">Choose your preferred accommodation style</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div
+                  onClick={() => setRoomType("double")}
+                  className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                    roomType === "double" ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
+                  }`}
+                >
+                  <h3 className="font-semibold">Double Occupancy</h3>
+                  <p className="text-sm text-muted-foreground">Share a room with another guest</p>
+                </div>
+                <div
+                  onClick={() => setRoomType("single")}
+                  className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                    roomType === "single" ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
+                  }`}
+                >
+                  <h3 className="font-semibold">Single Occupancy</h3>
+                  <p className="text-sm text-muted-foreground">Private room for yourself</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Travel Duration */}
+      {step === 3 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />3 Travel Duration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div>
+                <Label className="text-base">Select Dates</Label>
+                <p className="mb-2 text-sm text-muted-foreground">
+                  Choose your travel dates. Maximum stay: {maxDays} nights
+                </p>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                {renderCalendar()}
+
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Select Travel Dates</Label>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="h-4 w-8 bg-[#274C77]"></div>
+                      <span className="text-sm">Travel Days</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {travelDateRange.from && travelDateRange.to && (
+                <div className="rounded-lg bg-muted/50 p-4">
+                  <p className="font-medium">
+                    Reservation for: {format(travelDateRange.from, "MMM d")} -{" "}
+                    {format(travelDateRange.to, "MMM d, yyyy")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{totalNights} nights</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 4: Golf Courses */}
+      {step === 4 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle className="flex items-center gap-2">4 Golf Courses</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base">Select Courses & Rounds</Label>
+                <p className="mb-4 text-sm text-muted-foreground">Choose which courses you'd like to play</p>
+              </div>
+              {golfCourses.length > 0 ? (
+                <div className="space-y-4">
                   {golfCourses.map((course: any) => {
-                    const rounds = courseRounds[course.id] || 0
-                    const maxRounds = course.max_rounds || 5
-
+                    const isIncluded = course.is_included
                     return (
-                      <Card key={course.id} className="p-3 transition-colors sm:p-4">
-                        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <span className="font-bold text-sm sm:text-base">{course.course_name}</span>
-                          <span className="font-bold text-sm sm:text-base">${course.price_per_round}/round</span>
+                      <div
+                        key={course.id}
+                        className={`flex items-center justify-between rounded-lg border p-4 ${
+                          isIncluded ? "border-[#6096BA] bg-[#6096BA]/10" : "border-border"
+                        }`}
+                      >
+                        <div>
+                          <h4 className="font-medium">
+                            {course.course_name}
+                            {isIncluded && (
+                              <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">Included</span>
+                            )}
+                          </h4>
+                          {!isIncluded && (
+                            <p className="text-sm text-muted-foreground">${course.price_per_round} per round</p>
+                          )}
                         </div>
-
-                        <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2">
                           <Button
                             type="button"
                             variant="outline"
-                            size="icon"
-                            onClick={() => updateCourseRounds(course.id, rounds - 1, maxRounds)}
-                            disabled={rounds <= 0}
-                            className="h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10"
+                            size="sm"
+                            disabled={isIncluded}
+                            onClick={() =>
+                              handleCourseRoundChange(course.id, Math.max(0, (courseRounds[course.id] || 0) - 1))
+                            }
                           >
-                            <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+                            -
                           </Button>
-                          <div className="flex-1 text-center">
-                            <div className="text-xs text-muted-foreground sm:text-sm">Rounds</div>
-                            <div className="text-lg font-bold sm:text-xl">{rounds}</div>
-                          </div>
+                          <span className="w-8 text-center">{courseRounds[course.id] || 0}</span>
                           <Button
                             type="button"
                             variant="outline"
-                            size="icon"
-                            onClick={() => updateCourseRounds(course.id, rounds + 1, maxRounds)}
-                            disabled={rounds >= maxRounds}
-                            className="h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10"
+                            size="sm"
+                            disabled={isIncluded}
+                            onClick={() =>
+                              handleCourseRoundChange(
+                                course.id,
+                                Math.min(course.max_rounds || 10, (courseRounds[course.id] || 0) + 1),
+                              )
+                            }
                           >
-                            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                            +
                           </Button>
                         </div>
-
-                        <div className="mt-2 text-center text-xs text-muted-foreground">
-                          Max: {maxRounds} rounds available
-                        </div>
-                      </Card>
+                      </div>
                     )
                   })}
                 </div>
-              </div>
+              ) : (
+                <p className="text-muted-foreground">No golf courses configured for this trip.</p>
+              )}
             </div>
-          </Card>
-        )}
-
-        {/* Meals Section */}
-        {isAllInclusive ? (
-          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                5
-              </div>
-              <h2 className="text-base font-bold sm:text-lg">Meals</h2>
-            </div>
-            <Card className="border-2 border-green-500 bg-green-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                  <Check className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <div className="font-bold text-sm sm:text-base text-green-800">
-                    Included with All-Inclusive Package
-                  </div>
-                  <div className="text-xs text-green-700 sm:text-sm">Meals are included with your trip</div>
-                </div>
-              </div>
-            </Card>
-          </Card>
-        ) : (
-          mealOptions.length > 0 && (
-            <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-              <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                  5
-                </div>
-                <h2 className="text-base font-bold sm:text-lg">Meals</h2>
-              </div>
-              <RadioGroup value={selectedMeal} onValueChange={setSelectedMeal} className="space-y-3">
-                {mealOptions.map((meal: any) => (
-                  <Card
-                    key={meal.id}
-                    className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
-                  >
-                    <RadioGroupItem
-                      value={meal.id}
-                      id={meal.id}
-                      className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                    />
-                    <label htmlFor={meal.id} className="flex cursor-pointer items-start gap-3">
-                      <div className="flex-1 pr-8">
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="font-bold text-sm sm:text-base">{meal.name}</div>
-                          <div className="font-bold text-sm sm:text-base">${meal.price}</div>
-                        </div>
-                        <div className="text-xs text-muted-foreground sm:text-sm">
-                          {meal.description || "Meal option"}
-                        </div>
-                      </div>
-                    </label>
-                  </Card>
-                ))}
-              </RadioGroup>
-            </Card>
-          )
-        )}
-
-        {/* Transportation Section */}
-        {isAllInclusive ? (
-          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                6
-              </div>
-              <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
-            </div>
-            <Card className="border-2 border-green-500 bg-green-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                  <Check className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <div className="font-bold text-sm sm:text-base text-green-800">
-                    Included with All-Inclusive Package
-                  </div>
-                  <div className="text-xs text-green-700 sm:text-sm">Transportation is included with your trip</div>
-                </div>
-              </div>
-            </Card>
-          </Card>
-        ) : (
-          transportationOptions.length > 0 && (
-            <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-              <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                  6
-                </div>
-                <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
-              </div>
-              <RadioGroup value={selectedTransport} onValueChange={setSelectedTransport} className="space-y-3">
-                {transportationOptions.map((transport: any) => (
-                  <Card
-                    key={transport.id}
-                    className="relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 border-2"
-                  >
-                    <RadioGroupItem
-                      value={transport.id}
-                      id={transport.id}
-                      className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                    />
-                    <label htmlFor={transport.id} className="flex cursor-pointer items-start gap-3">
-                      <div className="flex-1 pr-8">
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="font-bold text-sm sm:text-base">{transport.name}</div>
-                          <div className="font-bold text-sm sm:text-base">${transport.price}</div>
-                        </div>
-                        <div className="text-xs text-muted-foreground sm:text-sm">
-                          {transport.description || "Transportation option"}
-                        </div>
-                      </div>
-                    </label>
-                  </Card>
-                ))}
-              </RadioGroup>
-            </Card>
-          )
-        )}
-
-        {/* Additional Requests */}
-        <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-          <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-              7
-            </div>
-            <h2 className="text-base font-bold sm:text-lg">Additional Requests</h2>
-          </div>
-          <Textarea
-            placeholder="Any special requests or requirements..."
-            value={additionalRequests}
-            onChange={(e) => setAdditionalRequests(e.target.value)}
-            className="min-h-[100px]"
-          />
+          </CardContent>
         </Card>
-      </div>
+      )}
 
-      {/* Summary Sidebar */}
-      <div className="lg:sticky lg:top-24 h-fit">
-        <Card className="p-4 sm:p-6">
-          <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
-
-          <div className="space-y-3 text-sm">
-            {selectedPlan && (
-              <div className="flex justify-between">
-                <span>Package:</span>
-                <span className="font-medium">
-                  {packages.find((p: any) => p.id === selectedPlan)?.name || "Not selected"}
-                </span>
+      {/* Step 5: Meals & Transport */}
+      {step === 5 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Utensils className="h-5 w-5" />5 Meals & Transport
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-8">
+              {/* Meal Options */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base">Meal Options</Label>
+                  <p className="mb-4 text-sm text-muted-foreground">Select your preferred meal plan</p>
+                </div>
+                {mealOptions.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {mealOptions.map((meal: any) => {
+                      const isIncluded = meal.is_included
+                      return (
+                        <div
+                          key={meal.id}
+                          onClick={() => !isIncluded && setSelectedMeal(meal.id)}
+                          className={`rounded-lg border-2 p-4 transition-all ${
+                            isIncluded
+                              ? "cursor-not-allowed border-[#6096BA] bg-[#6096BA]/10 opacity-70"
+                              : selectedMeal === meal.id
+                                ? "cursor-pointer border-[#274C77] bg-[#274C77]/10"
+                                : "cursor-pointer border-border hover:border-muted-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">
+                              {meal.name}
+                              {isIncluded && (
+                                <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">
+                                  Included
+                                </span>
+                              )}
+                            </h4>
+                            {selectedMeal === meal.id && <Check className="h-5 w-5 text-[#274C77]" />}
+                          </div>
+                          {meal.description && <p className="mt-1 text-sm text-muted-foreground">{meal.description}</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No meal options configured for this trip.</p>
+                )}
               </div>
-            )}
 
-            {roomType && (
-              <div className="flex justify-between">
-                <span>Room:</span>
-                <span className="font-medium">{roomType === "double" ? "Double Occupancy" : "Single Occupancy"}</span>
+              {/* Transportation Options */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base">Transportation Options</Label>
+                  <p className="mb-4 text-sm text-muted-foreground">Select your preferred transportation</p>
+                </div>
+                {transportationOptions.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {transportationOptions.map((transport: any) => {
+                      const isIncluded = transport.is_included
+                      return (
+                        <div
+                          key={transport.id}
+                          onClick={() => !isIncluded && setSelectedTransport(transport.id)}
+                          className={`rounded-lg border-2 p-4 transition-all ${
+                            isIncluded
+                              ? "cursor-not-allowed border-[#6096BA] bg-[#6096BA]/10 opacity-70"
+                              : selectedTransport === transport.id
+                                ? "cursor-pointer border-[#274C77] bg-[#274C77]/10"
+                                : "cursor-pointer border-border hover:border-muted-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">
+                              {transport.name}
+                              {isIncluded && (
+                                <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">
+                                  Included
+                                </span>
+                              )}
+                            </h4>
+                            {selectedTransport === transport.id && <Check className="h-5 w-5 text-[#274C77]" />}
+                          </div>
+                          {transport.description && (
+                            <p className="mt-1 text-sm text-muted-foreground">{transport.description}</p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No transportation options configured for this trip.</p>
+                )}
               </div>
-            )}
-
-            {travelDateRange.from && travelDateRange.to && (
-              <div className="flex justify-between">
-                <span>Travel:</span>
-                <span className="font-medium">
-                  {travelDateRange.from.toLocaleDateString()} - {travelDateRange.to.toLocaleDateString()}
-                </span>
-              </div>
-            )}
-
-            {courseDateRange.from && courseDateRange.to && (
-              <div className="flex justify-between">
-                <span>Course:</span>
-                <span className="font-medium">
-                  {courseDateRange.from.toLocaleDateString()} - {courseDateRange.to.toLocaleDateString()}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total:</span>
-              <span>${calculateTotal().toFixed(2)}</span>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <Button
-            onClick={handleSubmit}
+      {/* Step 6: Review & Submit */}
+      {step === 6 && (
+        <Card>
+          <CardHeader className="bg-[#274C77] text-white">
+            <CardTitle>6 Review & Submit</CardTitle>
+            <CardDescription className="text-white/80">Review your selections before submitting</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              {/* Summary */}
+              <div className="space-y-4 rounded-lg bg-muted/30 p-4">
+                <div className="flex justify-between">
+                  <span>Package:</span>
+                  <span className="font-medium">
+                    {packages.find((p: any) => p.id === selectedPlan)?.name || "None"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Room Type:</span>
+                  <span className="font-medium">{roomType === "double" ? "Double Occupancy" : "Single Occupancy"}</span>
+                </div>
+                {travelDateRange.from && travelDateRange.to && (
+                  <div className="flex justify-between">
+                    <span>Travel Dates:</span>
+                    <span className="font-medium">
+                      {format(travelDateRange.from, "MMM d")} - {format(travelDateRange.to, "MMM d, yyyy")}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>Meal:</span>
+                  <span className="font-medium">
+                    {mealOptions.find((m: any) => m.id === selectedMeal)?.name || "None"}
+                    {mealOptions.find((m: any) => m.id === selectedMeal)?.is_included && " (Included)"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Transportation:</span>
+                  <span className="font-medium">
+                    {transportationOptions.find((t: any) => t.id === selectedTransport)?.name || "None"}
+                    {transportationOptions.find((t: any) => t.id === selectedTransport)?.is_included && " (Included)"}
+                  </span>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Estimated Total:</span>
+                    <span>${calculateTotal().toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Requests */}
+              <div className="space-y-2">
+                <Label>Additional Requests (Optional)</Label>
+                <Textarea
+                  value={additionalRequests}
+                  onChange={(e) => setAdditionalRequests(e.target.value)}
+                  placeholder="Any special requests or requirements..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
+        <Button type="button" variant="outline" onClick={prevStep} disabled={step === 1}>
+          Previous
+        </Button>
+        {step < 6 ? (
+          <Button type="button" onClick={nextStep} className="bg-[#274C77] hover:bg-[#274C77]/90">
+            Next
+          </Button>
+        ) : (
+          <AnimatedButton
+            type="submit"
             disabled={submitting}
-            className="w-full mt-6 bg-[#6096BA] hover:bg-[#4a7a9e] text-white"
+            startColor="#274C77"
+            endColor="#1d3a5c"
+            hoverText={submitting ? "Submitting..." : "Submitted!"}
           >
             {submitting ? "Submitting..." : "Submit Inquiry"}
-          </Button>
-        </Card>
+          </AnimatedButton>
+        )}
       </div>
-    </div>
+    </form>
   )
 }

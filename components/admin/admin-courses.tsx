@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { LogOut, Pencil, Trash2, FileText, Home } from "lucide-react"
@@ -39,10 +41,12 @@ export function AdminCourses({
   const [activeTab, setActiveTab] = useState<"courses" | "inquiries">("courses")
   const [selectedContinent, setSelectedContinent] = useState<string>("All")
   const [showAccountSettings, setShowAccountSettings] = useState(false)
+  const [deletingTrips, setDeletingTrips] = useState<Set<string>>(new Set())
+  const [localTrips, setLocalTrips] = useState<Trip[]>(trips)
   const router = useRouter()
 
   const filteredTrips =
-    selectedContinent === "All" ? trips : trips.filter((trip) => trip.continent === selectedContinent)
+    selectedContinent === "All" ? localTrips : localTrips.filter((trip) => trip.continent === selectedContinent)
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -50,9 +54,44 @@ export function AdminCourses({
     router.push("/auth/login")
   }
 
+  const handleDeleteTrip = async (tripId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+      return
+    }
+
+    setDeletingTrips((prev) => new Set(prev).add(tripId))
+
+    try {
+      const response = await fetch(`/api/admin/trips/${tripId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete course")
+      }
+
+      // Remove from local state
+      setLocalTrips((prev) => prev.filter((trip) => trip.id !== tripId))
+      router.refresh()
+    } catch (error) {
+      console.error("Error deleting trip:", error)
+      alert(error instanceof Error ? error.message : "Failed to delete course")
+    } finally {
+      setDeletingTrips((prev) => {
+        const next = new Set(prev)
+        next.delete(tripId)
+        return next
+      })
+    }
+  }
+
   return (
     <div className="flex min-h-screen">
-      <aside className="w-[230px] bg-primary p-6 text-white">
+      <aside className="w-[230px] bg-[#274C77] p-6 text-white">
         <div className="mb-12 flex items-center gap-3">
           <div className="text-white">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -156,7 +195,7 @@ export function AdminCourses({
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    All ({trips.length})
+                    All ({localTrips.length})
                   </button>
                   {CONTINENTS.map((continent) => (
                     <button
@@ -210,8 +249,14 @@ export function AdminCourses({
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-[#ff5f57] hover:bg-white/10">
-                            <Trash2 className="h-4 w-4" />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
+                            onClick={(e) => handleDeleteTrip(trip.id, e)}
+                            disabled={deletingTrips.has(trip.id)}
+                          >
+                            <Trash2 className={`h-4 w-4 ${deletingTrips.has(trip.id) ? "animate-pulse" : ""}`} />
                           </Button>
                         </div>
                       </div>

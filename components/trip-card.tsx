@@ -20,9 +20,9 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const premiumPackage = trip.packages?.find((pkg: any) => pkg.name === "Premium")
-  const basicPackage = trip.packages?.find((pkg: any) => pkg.name === "Basic")
-  const hasBothPackages = premiumPackage && basicPackage
+  const upgradePackage = trip.packages?.find((pkg: any) => pkg.name === "Premium")
+  const premiumPackage = trip.packages?.find((pkg: any) => pkg.name === "Basic")
+  const hasBothPackages = upgradePackage && premiumPackage
 
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -87,10 +87,10 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             {hasBothPackages ? (
               <>
                 <p className="text-base font-bold text-[#274C77] sm:text-lg">
-                  ${Number(premiumPackage.price).toFixed(2)}
+                  ${Number(upgradePackage.price).toFixed(2)}
                 </p>
                 <p className="text-base font-bold text-[#6096BA] sm:text-lg">
-                  ${Number(basicPackage.price).toFixed(2)}
+                  ${Number(premiumPackage.price).toFixed(2)}
                 </p>
               </>
             ) : (
@@ -110,18 +110,18 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
                   endColor="#1a3a5c"
                   hoverText="Inquire!"
                   className="flex-1 text-white text-sm sm:text-base py-2"
-                  onClick={(e) => handlePackageClick(e, premiumPackage.id)}
+                  onClick={(e) => handlePackageClick(e, upgradePackage.id)}
                 >
-                  Premium
+                  Upgrade
                 </AnimatedButton>
                 <AnimatedButton
                   startColor="#6096BA"
                   endColor="#4a7a9e"
                   hoverText="Inquire!"
                   className="flex-1 text-white text-sm sm:text-base py-2"
-                  onClick={(e) => handlePackageClick(e, basicPackage.id)}
+                  onClick={(e) => handlePackageClick(e, premiumPackage.id)}
                 >
-                  Basic
+                  Premium
                 </AnimatedButton>
               </>
             ) : (

@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const {
@@ -30,7 +30,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       continent: body.continent,
       max_days: body.max_days,
       min_days_advance: body.min_days_advance,
-      is_all_inclusive: body.is_all_inclusive,
       highlights: body.highlights,
       overview_content: body.overview_content,
       courses_photo_url: body.courses_photo_url,
@@ -95,14 +94,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (body.golf_courses) {
     await supabase.from("trip_golf_courses").delete().eq("trip_id", id)
 
-    const validCourses = body.golf_courses.filter((course: any) => course.name?.trim())
+    const validCourses = body.golf_courses.filter((course: any) => course.course_name?.trim())
     if (validCourses.length > 0) {
       const coursesToInsert = validCourses.map((course: any) => ({
         trip_id: id,
-        name: course.name,
+        course_name: course.course_name,
         description: course.description || null,
-        price_per_round: course.price || 0,
+        price_per_round: course.price_per_round || 0,
         max_rounds: course.max_rounds || 5,
+        is_included: course.is_included || false,
       }))
 
       const { error: courseError } = await supabase.from("trip_golf_courses").insert(coursesToInsert)
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         trip_id: id,
         name: meal.name,
         description: meal.description || null,
-        price: meal.price || 0,
+        is_included: meal.is_included || false,
         is_recommended: idx === 0,
       }))
 
@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         trip_id: id,
         name: transport.name,
         description: transport.description || null,
-        price: transport.price || 0,
+        is_included: transport.is_included || false,
         is_recommended: idx === 0,
       }))
 
@@ -155,8 +155,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const {

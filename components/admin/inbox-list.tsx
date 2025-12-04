@@ -18,8 +18,6 @@ interface Inquiry {
   package_name?: string
   start_date?: string
   end_date?: string
-  course_start_date?: string
-  course_end_date?: string
 }
 
 interface Message {
@@ -153,12 +151,6 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
                 <p className="text-sm">
                   <span className="font-medium">Travel Dates:</span> {selectedInquiry.start_date} to{" "}
                   {selectedInquiry.end_date}
-                </p>
-              )}
-              {selectedInquiry.course_start_date && selectedInquiry.course_end_date && (
-                <p className="text-sm">
-                  <span className="font-medium">Course Dates:</span> {selectedInquiry.course_start_date} to{" "}
-                  {selectedInquiry.course_end_date}
                 </p>
               )}
             </div>

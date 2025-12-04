@@ -82,6 +82,8 @@
   --font-sans: "Playfair Display", "Playfair Display Fallback";
   --font-serif: "Playfair Display", "Playfair Display Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";
+  /* Added Bitter font variable */
+  --font-bitter: "Bitter", "Bitter Fallback", serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
