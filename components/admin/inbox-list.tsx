@@ -93,7 +93,7 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
       case "pending":
         return "bg-yellow-100 text-yellow-800"
       case "confirmed":
-        return "bg-green-100 text-green-800"
+        return "bg-[#6096BA]/20 text-[#274C77]"
       case "cancelled":
         return "bg-red-100 text-red-800"
       default:

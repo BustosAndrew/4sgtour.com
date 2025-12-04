@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Mail, Phone, DollarSign } from 'lucide-react'
+import { Calendar, Mail, DollarSign } from "lucide-react"
 import type { Inquiry } from "@/lib/types/database"
 
 export function InquiriesList() {
@@ -33,7 +33,7 @@ export function InquiriesList() {
       case "contacted":
         return "bg-blue-500/10 text-blue-700 border-blue-500/20"
       case "converted":
-        return "bg-green-500/10 text-green-700 border-green-500/20"
+        return "bg-[#6096BA]/20 text-[#274C77] border-[#6096BA]/30"
       case "cancelled":
         return "bg-red-500/10 text-red-700 border-red-500/20"
       default:
@@ -58,9 +58,7 @@ export function InquiriesList() {
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-lg">{inquiry.trip_title}</h3>
-                  <Badge className={getStatusColor(inquiry.status)}>
-                    {inquiry.status}
-                  </Badge>
+                  <Badge className={getStatusColor(inquiry.status)}>{inquiry.status}</Badge>
                 </div>
 
                 <div className="grid gap-2 text-sm">
@@ -74,7 +72,8 @@ export function InquiriesList() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">
-                        {new Date(inquiry.start_date).toLocaleDateString()} - {new Date(inquiry.end_date).toLocaleDateString()}
+                        {new Date(inquiry.start_date).toLocaleDateString()} -{" "}
+                        {new Date(inquiry.end_date).toLocaleDateString()}
                       </span>
                     </div>
                   )}

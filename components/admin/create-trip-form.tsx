@@ -64,11 +64,10 @@ export function CreateTripForm() {
     description: "",
     location: "",
     continent: "",
-    price_regular: "",
     max_guests: "20",
     max_days: "",
     min_days_advance: "0",
-    // is_all_inclusive: false, Removed is_all_inclusive
+    min_days: "1",
   })
   const [highlights, setHighlights] = useState<string[]>([])
 
@@ -140,7 +139,16 @@ export function CreateTripForm() {
         if (!formData.title.trim()) errors.push("Trip title is required")
         if (!formData.location.trim()) errors.push("Location is required")
         if (!formData.continent) errors.push("Continent selection is required")
-        if (!formData.price_regular || Number(formData.price_regular) <= 0) errors.push("Valid basic price is required") // Updated error message
+        if (!formData.max_days || Number(formData.max_days) <= 0) {
+          // Updated to check for max_days if present
+          errors.push("Maximum trip duration must be a positive number")
+        }
+        if (formData.min_days_advance && Number(formData.min_days_advance) < 0) {
+          errors.push("Minimum advance booking period cannot be negative")
+        }
+        if (!formData.min_days || Number(formData.min_days) <= 0) {
+          errors.push("Minimum trip duration must be a positive number")
+        }
 
         break
 
@@ -149,8 +157,8 @@ export function CreateTripForm() {
         if (!premiumPackage) {
           errors.push("Premium package is required") // Updated error message
         } else {
-          if (!premiumPackage.price || Number(premiumPackage.price) < 0)
-            errors.push("Premium package must have a valid price") // Updated error message
+          if (!premiumPackage.price || Number(premiumPackage.price) <= 0)
+            errors.push("Premium package price is required")
           if (!premiumPackage.participants_per_booking || Number(premiumPackage.participants_per_booking) <= 0) {
             errors.push("Premium package must have valid participants per booking") // Updated error message
           }
@@ -164,7 +172,7 @@ export function CreateTripForm() {
 
         const upgradePkg = packages.find((p) => p.name === "Upgrade")
         if (upgradePkg) {
-          if (!upgradePkg.price || Number(upgradePkg.price) < 0) errors.push("Upgrade package must have a valid price")
+          if (!upgradePkg.price || Number(upgradePkg.price) <= 0) errors.push("Upgrade package price is required")
           if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
             errors.push("Upgrade package must have valid participants per booking")
           }
@@ -215,8 +223,6 @@ export function CreateTripForm() {
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
     if (!formData.continent) errors.push("Continent selection is required (Step 1)")
-    if (!formData.price_regular || Number(formData.price_regular) <= 0)
-      errors.push("Valid basic price is required (Step 1)") // Updated error message
     // Added validation for max_days
     if (formData.max_days && Number(formData.max_days) <= 0) {
       errors.push("Maximum trip duration must be a positive number (Step 1)")
@@ -225,13 +231,18 @@ export function CreateTripForm() {
     if (formData.min_days_advance && Number(formData.min_days_advance) < 0) {
       errors.push("Minimum advance booking period cannot be negative (Step 1)")
     }
+    // Added validation for min_days
+    if (!formData.min_days || Number(formData.min_days) <= 0) {
+      errors.push("Minimum trip duration must be a positive number (Step 1)")
+    }
 
     const premiumPkg = packages.find((p) => p.name === "Premium")
     if (!premiumPkg) {
       errors.push("Premium package is required (Step 2)") // Updated error message
     } else {
-      if (!premiumPkg.price || Number(premiumPkg.price) < 0)
-        errors.push("Premium package must have a valid price (Step 2)") // Updated error message
+      if (!premiumPkg.price || Number(premiumPkg.price) <= 0) {
+        errors.push("Premium package price is required (Step 2)")
+      }
       if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
         errors.push("Premium package must have valid participants per booking (Step 2)") // Updated error message
       }
@@ -243,8 +254,9 @@ export function CreateTripForm() {
     // Validate Upgrade package if it exists
     const upgradePkg = packages.find((p) => p.name === "Upgrade")
     if (upgradePkg) {
-      if (!upgradePkg.price || Number(upgradePkg.price) < 0)
-        errors.push("Upgrade package must have a valid price (Step 2)")
+      if (!upgradePkg.price || Number(upgradePkg.price) <= 0) {
+        errors.push("Upgrade package price is required (Step 2)")
+      }
       if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
         errors.push("Upgrade package must have valid participants per booking (Step 2)")
       }
@@ -312,11 +324,13 @@ export function CreateTripForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          price_regular: Number(formData.price_regular),
+          // Removed price_regular from submission
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
           // is_all_inclusive: formData.is_all_inclusive, Removed is_all_inclusive
+          // Added min_days to the submission
+          min_days: Number(formData.min_days),
           courses_photo_url: photos.courses || null,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
@@ -476,17 +490,21 @@ export function CreateTripForm() {
           formData.title &&
           formData.location &&
           formData.continent &&
-          formData.price_regular &&
-          (!formData.max_days || Number(formData.max_days) > 0) &&
+          // Removed price_regular check
+          formData.max_days && // Ensure max_days is present and valid
+          Number(formData.max_days) > 0 &&
+          formData.min_days && // Ensure min_days is present and valid
+          Number(formData.min_days) > 0 &&
           (!formData.min_days_advance || Number(formData.min_days_advance) >= 0) // Added check for min_days_advance
         )
       case 2:
         // Check if Premium package has valid price before proceeding
         const premiumPackageCheck = packages.find((p) => p.name === "Premium")
+        // Updated to check for price > 0
         return (
           premiumPackageCheck?.price !== undefined &&
           premiumPackageCheck?.price !== null &&
-          Number(premiumPackageCheck?.price) >= 0
+          Number(premiumPackageCheck?.price) > 0
         )
       case 3:
         return true
@@ -670,19 +688,6 @@ export function CreateTripForm() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="price_regular">Basic Price ($) *</Label> {/* Updated label */}
-                <Input
-                  id="price_regular"
-                  type="number"
-                  step="0.01"
-                  value={formData.price_regular}
-                  onChange={(e) => setFormData({ ...formData, price_regular: e.target.value })}
-                  placeholder="2500.00"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="max_guests">Max Guests</Label>
                 <Input
                   id="max_guests"
@@ -706,6 +711,23 @@ export function CreateTripForm() {
               />
               <p className="text-xs text-muted-foreground">
                 Optional: Set a maximum number of days guests can book for this trip
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_days" className="text-foreground">
+                Minimum Trip Duration (Days)
+              </Label>
+              <Input
+                id="min_days"
+                type="number"
+                min="1"
+                value={formData.min_days}
+                onChange={(e) => setFormData({ ...formData, min_days: e.target.value })}
+                placeholder="e.g., 3"
+              />
+              <p className="text-xs text-muted-foreground">
+                Minimum number of days guests must select on the calendar (default: 1)
               </p>
             </div>
 
@@ -1329,9 +1351,7 @@ export function CreateTripForm() {
                       </ul>
                     </div>
                   )}
-                  <div>
-                    <span className="font-medium">Basic Price:</span> ${formData.price_regular || "0.00"}
-                  </div>
+                  {/* Removed Basic Price display */}
                   <div className="grid gap-2 md:grid-cols-2">
                     <div>
                       <span className="font-medium">Max Guests:</span> {formData.max_guests}
@@ -1339,6 +1359,12 @@ export function CreateTripForm() {
                     {formData.max_days && (
                       <div>
                         <span className="font-medium">Max Days:</span> {formData.max_days}
+                      </div>
+                    )}
+                    {/* Added min_days display */}
+                    {formData.min_days && (
+                      <div>
+                        <span className="font-medium">Min Days:</span> {formData.min_days}
                       </div>
                     )}
                     {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (

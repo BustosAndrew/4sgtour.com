@@ -43,7 +43,7 @@ export function ContactForm() {
       )}
 
       <div className="space-y-3">
-        <Label htmlFor="name" className="text-base font-medium text-foreground">
+        <Label htmlFor="name" className="text-base font-medium text-white">
           Your Name
         </Label>
         <Input
@@ -53,12 +53,12 @@ export function ContactForm() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-12 rounded-xl bg-muted/50 text-base"
+          className="h-12 rounded-xl bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="email" className="text-base font-medium text-foreground">
+        <Label htmlFor="email" className="text-base font-medium text-white">
           Your Email
         </Label>
         <Input
@@ -68,12 +68,12 @@ export function ContactForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-12 rounded-xl bg-muted/50 text-base"
+          className="h-12 rounded-xl bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="message" className="text-base font-medium text-foreground">
+        <Label htmlFor="message" className="text-base font-medium text-white">
           Your Message
         </Label>
         <Textarea
@@ -82,7 +82,7 @@ export function ContactForm() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[200px] resize-none rounded-xl bg-muted/50 text-base"
+          className="min-h-[200px] resize-none rounded-xl bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
         />
       </div>
 

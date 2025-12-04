@@ -59,6 +59,7 @@ export async function POST(request: Request) {
         price_regular: price_regular || 0,
         max_guests: max_guests || 20,
         max_days: max_days || null,
+        min_days: body.min_days || 1,
         min_days_advance: min_days_advance || 0,
         courses_photo_url,
         single_room_photo_url,

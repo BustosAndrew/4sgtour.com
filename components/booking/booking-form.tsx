@@ -18,6 +18,7 @@ interface Trip {
   location: string
   price_regular: number
   max_days?: number
+  min_days?: number
   min_days_advance?: number
   packages?: Array<{
     id: string
@@ -101,6 +102,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
   const minAdvanceDays = trip.min_days_advance || 0
   const maxDays = trip.max_days || 14
+  const minDays = trip.min_days || 1
   const minDate = addDays(new Date(), minAdvanceDays)
 
   const handleTravelDateSelect = (date: Date) => {
@@ -113,8 +115,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         setTravelDateRange({ from: date, to: undefined })
       } else {
         const daysDiff = differenceInDays(date, travelDateRange.from) + 1
-        if (daysDiff <= maxDays) {
+        if (daysDiff >= minDays && daysDiff <= maxDays) {
           setTravelDateRange({ from: travelDateRange.from, to: date })
+        } else if (daysDiff < minDays) {
+          const minEndDate = addDays(travelDateRange.from, minDays - 1)
+          setTravelDateRange({ from: travelDateRange.from, to: minEndDate })
         } else {
           const maxEndDate = addDays(travelDateRange.from, maxDays - 1)
           setTravelDateRange({ from: travelDateRange.from, to: maxEndDate })

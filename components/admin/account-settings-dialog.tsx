@@ -1,13 +1,15 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Upload } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
@@ -26,7 +28,7 @@ export function AccountSettingsDialog({
   userEmail,
   userName,
   userPhone,
-  userPhotoUrl
+  userPhotoUrl,
 }: AccountSettingsDialogProps) {
   const [displayName, setDisplayName] = useState(userName || "")
   const [phone, setPhone] = useState(userPhone || "")
@@ -104,7 +106,9 @@ export function AccountSettingsDialog({
 
     try {
       // Update profile info (name, phone, photo)
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
 
       if (phone && phone !== userPhone) {
@@ -161,7 +165,7 @@ export function AccountSettingsDialog({
 
       setNewPassword("")
       setConfirmPassword("")
-      
+
       router.refresh()
       onOpenChange(false)
     } catch (error: any) {
@@ -236,9 +240,7 @@ export function AccountSettingsDialog({
                       disabled={isUploading}
                       className="cursor-pointer text-sm"
                     />
-                    {isUploading && (
-                      <p className="mt-1 text-xs text-gray-500">Uploading...</p>
-                    )}
+                    {isUploading && <p className="mt-1 text-xs text-gray-500">Uploading...</p>}
                   </div>
                 )}
               </div>
@@ -277,7 +279,7 @@ export function AccountSettingsDialog({
           {/* Change Password Section */}
           <div className="border-t pt-4">
             <h3 className="mb-3 font-medium">Change Password</h3>
-            
+
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
@@ -334,7 +336,7 @@ export function AccountSettingsDialog({
             <Button
               onClick={handleUpdateProfile}
               disabled={isLoading || isUploading}
-              className="w-full bg-[#6b705c] hover:bg-[#5a5f4d] sm:flex-1"
+              className="w-full bg-[#274C77] hover:bg-[#1d3a5c] sm:flex-1"
             >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>

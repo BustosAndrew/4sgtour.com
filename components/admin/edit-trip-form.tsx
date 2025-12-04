@@ -48,6 +48,7 @@ interface TripData {
   max_guests: number
   max_days: number | null
   min_days_advance: number
+  min_days: number
   courses_photo_url: string | null
   single_room_photo_url: string | null
   double_room_photo_url: string | null
@@ -80,11 +81,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     description: trip.description || "",
     location: trip.location || "", // Added location
     continent: trip.continent || "",
-    price_regular: trip.price_regular?.toString() || "0", // Added price_regular
+    price_regular: trip.price_regular || 0, // Changed to number, initialized to 0
     max_guests: trip.max_guests?.toString() || "20", // Added max_guests
     max_days: trip.max_days?.toString() || "",
     min_days_advance: trip.min_days_advance?.toString() || "0",
-    // is_all_inclusive: trip.is_all_inclusive || false, // REMOVED is_all_inclusive
+    min_days: trip.min_days?.toString() || "1",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
 
@@ -302,7 +303,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return formData.title && formData.continent
+        return (
+          formData.title &&
+          formData.location && // Added location validation
+          formData.continent &&
+          formData.min_days &&
+          formData.max_guests !== "0" &&
+          formData.price_regular !== 0 // Changed to check if it's a number and not 0
+        )
       case 2:
         const premiumPackage = packages.find((p) => p.name === "Premium")
         return premiumPackage?.price !== undefined && premiumPackage?.price !== null && premiumPackage?.price >= 0
@@ -325,10 +333,57 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     }
   }
 
+  const validateForm = (): { valid: boolean; errors: string[] } => {
+    const errors: string[] = []
+
+    // Step 1 validation
+    if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
+    if (!formData.location.trim()) errors.push("Location is required (Step 1)")
+    if (!formData.continent) errors.push("Continent selection is required (Step 1)")
+    if (formData.max_days && Number(formData.max_days) <= 0) {
+      errors.push("Maximum trip duration must be a positive number (Step 1)")
+    }
+    if (formData.min_days_advance && Number(formData.min_days_advance) < 0) {
+      errors.push("Minimum advance booking period cannot be negative (Step 1)")
+    }
+    if (!formData.min_days || Number(formData.min_days) <= 0) {
+      errors.push("Minimum trip duration must be a positive number (Step 1)")
+    }
+    // Added validation for max_guests to be a positive number
+    if (!formData.max_guests || Number(formData.max_guests) <= 0) {
+      errors.push("Maximum guests must be a positive number (Step 1)")
+    }
+
+    const premiumPkg = packages.find((p) => p.name === "Premium")
+    if (!premiumPkg) {
+      errors.push("Premium package is required (Step 2)")
+    }
+    if (premiumPkg && (!premiumPkg.price || Number(premiumPkg.price) < 0)) {
+      errors.push("Premium package price cannot be negative (Step 2)")
+    }
+
+    if (hasUpgradePackage) {
+      const upgradePkg = packages.find((p) => p.name === "Upgrade")
+      if (upgradePkg && (!upgradePkg.price || Number(upgradePkg.price) < 0)) {
+        errors.push("Upgrade package price cannot be negative (Step 2)")
+      }
+    }
+
+    // Step 3 validation (optional, but can add if needed)
+
+    return { valid: errors.length === 0, errors }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (currentStep !== 4) {
+      const { valid, errors } = validateForm()
+      if (!valid) {
+        alert(`Please fix the following errors:\n\n${errors.join("\n")}`)
+        return
+      }
+      nextStep()
       return
     }
 
@@ -348,6 +403,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           price_regular: Number(formData.price_regular), // Added price_regular
           max_guests: Number(formData.max_guests), // Added max_guests
           max_days: formData.max_days ? Number(formData.max_days) : null,
+          min_days: Number(formData.min_days), // Added min_days
           min_days_advance: Number(formData.min_days_advance), // Removed .toString()
           // is_all_inclusive: formData.is_all_inclusive, // REMOVED is_all_inclusive
           courses_photo_url: photos.courses || null,
@@ -576,7 +632,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="max_days" className="text-base">
+              <Label htmlFor="max_days" className="text-base text-foreground">
                 Maximum Trip Duration (Days)
               </Label>
               <Input
@@ -593,7 +649,24 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_days_advance" className="text-base">
+              <Label htmlFor="min_days" className="text-base text-foreground">
+                Minimum Trip Duration (Days)
+              </Label>
+              <Input
+                id="min_days"
+                type="number"
+                min="1"
+                value={formData.min_days}
+                onChange={(e) => setFormData({ ...formData, min_days: e.target.value })}
+                placeholder="e.g., 3"
+              />
+              <p className="text-xs text-muted-foreground">
+                Minimum number of days guests must select on the calendar (default: 1)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="min_days_advance" className="text-base text-foreground">
                 Minimum Advance Booking Period (Days)
               </Label>
               <Input
@@ -619,7 +692,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 type="number"
                 min="0"
                 value={formData.price_regular}
-                onChange={(e) => setFormData({ ...formData, price_regular: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, price_regular: Number(e.target.value) })}
                 placeholder="e.g., 1500"
                 required
                 className="h-12"
@@ -1266,6 +1339,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <span className="font-medium">Max Days:</span> {formData.max_days}
                     </div>
                   )}
+                  {formData.min_days && (
+                    <div>
+                      <span className="font-medium">Min Days:</span> {formData.min_days}
+                    </div>
+                  )}
                   {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (
                     <p>
                       <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
@@ -1438,7 +1516,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           {currentStep < 4 ? (
             <Button
               type="button"
-              onClick={nextStep}
+              onClick={handleSubmit}
               disabled={!canProceedToNextStep()}
               className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
             >
@@ -1446,12 +1524,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
-            >
+            <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 sm:w-auto">
               {loading ? "Saving Changes..." : "Save Changes"}
             </Button>
           )}
