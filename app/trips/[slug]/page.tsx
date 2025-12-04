@@ -113,22 +113,21 @@ export default async function TripPage({ params }: TripPageProps) {
 
           {trip.packages && trip.packages.length > 0 ? (
             <div
-              className={`mt-6 grid gap-4 sm:mt-8 sm:gap-6 lg:gap-8 ${
-                trip.packages.length === 1 ? "grid-cols-1 mx-auto max-w-md" : "sm:grid-cols-2"
+              className={`mt-6 grid gap-4 sm:mt-8 sm:gap-6 lg:gap-8 justify-center ${
+                trip.packages.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"
               }`}
             >
               {trip.packages.map((pkg: any) => {
                 const displayName = pkg.name === "Regular" ? "Basic" : pkg.name
                 const isPremium = displayName === "Premium"
-                const headerBg = isPremium ? "bg-[#d4c5a0]" : "bg-[#c8d5a0]"
-                const borderColor = isPremium ? "border-[#d4c5a0]" : "border-[#c8d5a0]"
-                const headerText = "text-black"
-                const buttonColor = "#9CA986"
+                const headerBg = isPremium ? "bg-[#d4c5a0]" : "bg-[#062047]"
+                const borderColor = isPremium ? "border-[#d4c5a0]" : "border-[#062047]"
+                const headerText = isPremium ? "text-foreground" : "text-white"
 
                 return (
                   <div
                     key={pkg.id}
-                    className={`flex flex-col overflow-hidden rounded-2xl border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl`}
+                    className={`flex flex-col overflow-hidden rounded-2xl border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl max-w-[290px] mx-auto w-full`}
                   >
                     <div className={`${headerBg} px-6 py-6 text-center`}>
                       <h3 className={`text-xl font-bold ${headerText} sm:text-2xl`}>{displayName}</h3>
@@ -160,8 +159,8 @@ export default async function TripPage({ params }: TripPageProps) {
 
                       <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`} className="mt-auto w-full">
                         <AnimatedButton
-                          startColor="#9CA986"
-                          endColor="#6B705C"
+                          startColor={isPremium ? "#d4c5a0" : "#062047"}
+                          endColor={isPremium ? "#c4b590" : "#0a3470"}
                           hoverText="Let's Go!"
                           className="w-full"
                         >
@@ -177,8 +176,8 @@ export default async function TripPage({ params }: TripPageProps) {
             <div className="mt-6 text-center sm:mt-8">
               <Link href={`/trips/${trip.slug}/book`}>
                 <AnimatedButton
-                  startColor="#9CA986"
-                  endColor="#6B705C"
+                  startColor="#062047"
+                  endColor="#0a3470"
                   hoverText="Let's Go!"
                   className="w-full sm:w-auto"
                 >

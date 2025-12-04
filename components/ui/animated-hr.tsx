@@ -9,7 +9,7 @@ interface AnimatedHrProps {
   maxWidth?: string // e.g., "75%" or "100%"
 }
 
-export function AnimatedHr({ className, color = "#9CA986", maxWidth = "100%" }: AnimatedHrProps) {
+export function AnimatedHr({ className, color = "#062047", maxWidth = "100%" }: AnimatedHrProps) {
   const [isVisible, setIsVisible] = useState(false)
   const hrRef = useRef<HTMLDivElement>(null)
 

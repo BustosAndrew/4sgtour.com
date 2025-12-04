@@ -5,7 +5,6 @@ import type React from "react"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import { Button } from "@/components/ui/button"
 import { Heart } from "lucide-react"
-import Link from "next/link"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -21,13 +20,13 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const price =
-    trip.packages && trip.packages.length > 0
-      ? Math.min(...trip.packages.map((pkg: any) => Number(pkg.price)))
-      : trip.price_regular
+  const premiumPackage = trip.packages?.find((pkg: any) => pkg.name === "Premium")
+  const basicPackage = trip.packages?.find((pkg: any) => pkg.name === "Basic")
+  const hasBothPackages = premiumPackage && basicPackage
 
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsLoading(true)
 
     const supabase = createClient()
@@ -58,11 +57,21 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
     }
   }
 
+  const handleCardClick = () => {
+    router.push(`/trips/${trip.slug}`)
+  }
+
+  const handlePackageClick = (e: React.MouseEvent, packageId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    router.push(`/trips/${trip.slug}/book?package=${packageId}`)
+  }
+
   const imageUrl = trip.courses_photo_url || `/placeholder.svg?height=300&width=400&query=golf course ${trip.location}`
 
   return (
-    <Link href={`/trips/${trip.slug}`} className="group block">
-      <div className="overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
+    <div onClick={handleCardClick} className="group block cursor-pointer">
+      <div className="overflow-hidden border border-border bg-card transition-shadow hover:shadow-md">
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={imageUrl || "/placeholder.svg"}
@@ -73,18 +82,63 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
         <div className="p-3 sm:p-4">
           <p className="text-xs text-muted-foreground sm:text-sm">{trip.location}</p>
           <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{trip.title}</h3>
-          <p className="mt-2 text-base font-bold text-foreground sm:text-lg">
-            {trip.packages && trip.packages.length > 1 ? "From " : ""}${price.toFixed(2)}
-          </p>
+
+          <div className="mt-2 flex items-center gap-3">
+            {hasBothPackages ? (
+              <>
+                <p className="text-base font-bold text-[#d4c5a0] sm:text-lg">
+                  ${Number(premiumPackage.price).toFixed(2)}
+                </p>
+                <p className="text-base font-bold text-[#062047] sm:text-lg">
+                  ${Number(basicPackage.price).toFixed(2)}
+                </p>
+              </>
+            ) : (
+              <p className="text-base font-bold text-foreground sm:text-lg">
+                {trip.packages && trip.packages.length > 0
+                  ? `$${Number(trip.packages[0].price).toFixed(2)}`
+                  : `$${trip.price_regular?.toFixed(2) || "0.00"}`}
+              </p>
+            )}
+          </div>
+
           <div className="mt-3 flex items-center gap-2 sm:mt-4">
-            <AnimatedButton
-              startColor="#9CA986"
-              endColor="#6B705C"
-              hoverText="Let's Go!"
-              className="flex-1 text-sm sm:text-base py-2"
-            >
-              Inquire Now
-            </AnimatedButton>
+            {hasBothPackages ? (
+              <>
+                <AnimatedButton
+                  startColor="#d4c5a0"
+                  endColor="#c4b590"
+                  hoverText="Inquire!"
+                  className="flex-1 text-foreground text-sm sm:text-base py-2"
+                  onClick={(e) => handlePackageClick(e, premiumPackage.id)}
+                >
+                  Premium
+                </AnimatedButton>
+                <AnimatedButton
+                  startColor="#062047"
+                  endColor="#0a3470"
+                  hoverText="Inquire!"
+                  className="flex-1 text-white text-sm sm:text-base py-2"
+                  onClick={(e) => handlePackageClick(e, basicPackage.id)}
+                >
+                  Basic
+                </AnimatedButton>
+              </>
+            ) : (
+              <AnimatedButton
+                startColor="#062047"
+                endColor="#0a3470"
+                hoverText="Inquire!"
+                className="flex-1 text-white text-sm sm:text-base py-2"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  router.push(`/trips/${trip.slug}/book`)
+                }}
+              >
+                Inquire Now
+              </AnimatedButton>
+            )}
             <Button
               variant="outline"
               size="icon"
@@ -97,6 +151,6 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

@@ -13,7 +13,7 @@ interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 
 const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   (
-    { className, children, hoverText, startColor = "#9CA986", endColor = "#6B705C", asChild = false, ...props },
+    { className, children, hoverText, startColor = "#062047", endColor = "#0a3470", asChild = false, ...props },
     ref,
   ) => {
     const midColor = lightenColor(endColor, 0.4)

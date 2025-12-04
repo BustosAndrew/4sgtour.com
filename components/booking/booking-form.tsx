@@ -167,13 +167,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
         })
         .filter(Boolean)
 
-      const mealOptionName = isAllInclusive 
-        ? "Included (All-Inclusive)" 
+      const mealOptionName = isAllInclusive
+        ? "Included (All-Inclusive)"
         : mealOptions.find((meal: any) => meal.id === selectedMeal)?.name || "Breakfast Included"
       const transportOptionName = isAllInclusive
         ? "Included (All-Inclusive)"
         : transportationOptions.find((transport: any) => transport.id === selectedTransport)?.name ||
-        "Private Car with Driver"
+          "Private Car with Driver"
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -446,44 +446,48 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   <Check className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm sm:text-base text-green-800">Included with All-Inclusive Package</div>
+                  <div className="font-bold text-sm sm:text-base text-green-800">
+                    Included with All-Inclusive Package
+                  </div>
                   <div className="text-xs text-green-700 sm:text-sm">Meals are included with your trip</div>
                 </div>
               </div>
             </Card>
           </Card>
-        ) : mealOptions.length > 0 && (
-          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                5
+        ) : (
+          mealOptions.length > 0 && (
+            <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+              <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
+                  5
+                </div>
+                <h2 className="text-base font-bold sm:text-lg">Meals</h2>
               </div>
-              <h2 className="text-base font-bold sm:text-lg">Meals</h2>
-            </div>
-            <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
-              {mealOptions.map((meal: any, index: number) => (
-                <Card
-                  key={meal.id}
-                  className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
-                    selectedMeal === meal.id ? "border-2 border-[#6b705c]" : ""
-                  }`}
-                  onClick={() => setSelectedMeal(meal.id)}
-                >
-                  <RadioGroupItem
-                    value={meal.id}
-                    id={`meal-${meal.id}`}
-                    className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                  />
-                  <label htmlFor={`meal-${meal.id}`} className="cursor-pointer pr-8">
-                    <div className="font-bold text-sm sm:text-base">{meal.name}</div>
-                    {meal.description && (
-                      <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>
-                    )}
-                  </label>
-                </Card>
-              ))}
-            </RadioGroup>
-          </Card>
+              <RadioGroup value={selectedMeal} onValueChange={(val: any) => setSelectedMeal(val)} className="space-y-2">
+                {mealOptions.map((meal: any, index: number) => (
+                  <Card
+                    key={meal.id}
+                    className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
+                      selectedMeal === meal.id ? "border-2 border-[#6b705c]" : ""
+                    }`}
+                    onClick={() => setSelectedMeal(meal.id)}
+                  >
+                    <RadioGroupItem
+                      value={meal.id}
+                      id={`meal-${meal.id}`}
+                      className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                    />
+                    <label htmlFor={`meal-${meal.id}`} className="cursor-pointer pr-8">
+                      <div className="font-bold text-sm sm:text-base">{meal.name}</div>
+                      {meal.description && (
+                        <div className="text-xs text-muted-foreground sm:text-sm">{meal.description}</div>
+                      )}
+                    </label>
+                  </Card>
+                ))}
+              </RadioGroup>
+            </Card>
+          )
         )}
 
         {/* Transportation Section */}
@@ -501,48 +505,52 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   <Check className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm sm:text-base text-green-800">Included with All-Inclusive Package</div>
+                  <div className="font-bold text-sm sm:text-base text-green-800">
+                    Included with All-Inclusive Package
+                  </div>
                   <div className="text-xs text-green-700 sm:text-sm">Transportation is included with your trip</div>
                 </div>
               </div>
             </Card>
           </Card>
-        ) : transportationOptions.length > 0 && (
-          <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
-            <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
-                6
+        ) : (
+          transportationOptions.length > 0 && (
+            <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:px-[0] sm:py-[0] border-none shadow-none bg-transparent">
+              <div className="mb-4 flex items-center gap-2 bg-[rgba(240,234,210,1)]">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-sm font-bold bg-[rgba(221,190,169,1)] rounded-none">
+                  6
+                </div>
+                <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
               </div>
-              <h2 className="text-base font-bold sm:text-lg">Transportation</h2>
-            </div>
-            <RadioGroup
-              value={selectedTransport}
-              onValueChange={(val: any) => setSelectedTransport(val)}
-              className="space-y-2"
-            >
-              {transportationOptions.map((transport: any, index: number) => (
-                <Card
-                  key={transport.id}
-                  className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
-                    selectedTransport === transport.id ? "border-2 border-[#6b705c]" : ""
-                  }`}
-                  onClick={() => setSelectedTransport(transport.id)}
-                >
-                  <RadioGroupItem
-                    value={transport.id}
-                    id={`transport-${transport.id}`}
-                    className="absolute right-3 top-3 sm:right-4 sm:top-4"
-                  />
-                  <label htmlFor={`transport-${transport.id}`} className="cursor-pointer pr-8">
-                    <div className="font-bold text-sm sm:text-base">{transport.name}</div>
-                    {transport.description && (
-                      <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>
-                    )}
-                  </label>
-                </Card>
-              ))}
-            </RadioGroup>
-          </Card>
+              <RadioGroup
+                value={selectedTransport}
+                onValueChange={(val: any) => setSelectedTransport(val)}
+                className="space-y-2"
+              >
+                {transportationOptions.map((transport: any, index: number) => (
+                  <Card
+                    key={transport.id}
+                    className={`relative cursor-pointer p-3 transition-colors hover:bg-accent sm:p-4 ${
+                      selectedTransport === transport.id ? "border-2 border-[#6b705c]" : ""
+                    }`}
+                    onClick={() => setSelectedTransport(transport.id)}
+                  >
+                    <RadioGroupItem
+                      value={transport.id}
+                      id={`transport-${transport.id}`}
+                      className="absolute right-3 top-3 sm:right-4 sm:top-4"
+                    />
+                    <label htmlFor={`transport-${transport.id}`} className="cursor-pointer pr-8">
+                      <div className="font-bold text-sm sm:text-base">{transport.name}</div>
+                      {transport.description && (
+                        <div className="text-xs text-muted-foreground sm:text-sm">{transport.description}</div>
+                      )}
+                    </label>
+                  </Card>
+                ))}
+              </RadioGroup>
+            </Card>
+          )
         )}
 
         <Card className="border-2 border-blue-400 p-4 sm:p-6 sm:py-[0] border-none shadow-none sm:px-[0] bg-transparent">
@@ -642,7 +650,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           </div>
 
           <Button
-            className="w-3/4 bg-[#9CA986] text-sm hover:bg-[#8a9876] sm:text-base mx-auto"
+            className="w-3/4 bg-primary text-sm hover:bg-primary/90 sm:text-base mx-auto"
             size="lg"
             onClick={handleSubmit}
             disabled={submitting || !dateRange.from || !dateRange.to || !selectedPlan || !roomType}

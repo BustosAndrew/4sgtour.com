@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { UserNav } from "@/components/user-nav"
-import { Globe, Menu, X } from "lucide-react"
+import { Globe, Menu, X, ChevronDown } from "lucide-react"
 import { useState } from "react"
 import "./glass.css"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 type SiteHeaderProps = {
   user?: any
@@ -12,8 +13,14 @@ type SiteHeaderProps = {
   className?: string
 }
 
+const languages = [
+  { code: "en", name: "English", flag: "https://flagcdn.com/w40/us.png", alt: "US" },
+  { code: "ko", name: "한국어", flag: "https://flagcdn.com/w40/kr.png", alt: "Korea" },
+]
+
 export function SiteHeader({ user, userType = "regular", className }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [currentLanguage, setCurrentLanguage] = useState(languages[0])
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 w-full GlassContainer ${className}`}>
@@ -53,14 +60,42 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
 
             {/* Right Side - Language & Auth */}
             <div className="hidden md:flex items-center justify-center gap-[30px]">
-              {/* Language Selector */}
-              <div className="inline-flex items-center justify-center gap-1.5">
-                <Globe className="w-4 h-4 text-white" />
-                <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                  <img src="https://flagcdn.com/w40/us.png" alt="US" className="h-full w-full object-cover" />
-                </div>
-                <span className="text-white text-sm">English</span>
-              </div>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1.5 cursor-pointer outline-none min-w-[100px]">
+                  <Globe className="w-4 h-4 text-white" />
+                  <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                    <img
+                      src={currentLanguage.flag || "/placeholder.svg"}
+                      alt={currentLanguage.alt}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <span className="text-white text-sm">{currentLanguage.name}</span>
+                  <ChevronDown className="w-3 h-3 text-white" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-black/80 backdrop-blur-md border-white/20 min-w-[120px]"
+                  sideOffset={5}
+                >
+                  {languages.map((lang) => (
+                    <DropdownMenuItem
+                      key={lang.code}
+                      onClick={() => setCurrentLanguage(lang)}
+                      className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
+                    >
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                        <img
+                          src={lang.flag || "/placeholder.svg"}
+                          alt={lang.alt}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span>{lang.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Auth Links */}
               {user ? (
@@ -114,6 +149,29 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
                 >
                   Contact Us
                 </Link>
+                <div className="border-t border-white/20 pt-4">
+                  <div className="text-white/60 text-sm mb-2">Language</div>
+                  <div className="flex gap-3">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => setCurrentLanguage(lang)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 ${
+                          currentLanguage.code === lang.code ? "bg-white/20" : "bg-transparent hover:bg-white/10"
+                        } transition-colors`}
+                      >
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                          <img
+                            src={lang.flag || "/placeholder.svg"}
+                            alt={lang.alt}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <span className="text-white text-sm">{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="border-t border-white/20 pt-4">
                   {user ? (
                     <div className="text-sm text-white">Logged in as {user.email}</div>

@@ -117,7 +117,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       max_rounds: course.max_rounds || 5,
     }))
   })
-  // </CHANGE>
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
   const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [])
 
@@ -399,9 +398,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   onClick={() => setCurrentStep(step.id)}
                   className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors hover:opacity-80 ${
                     currentStep === step.id
-                      ? "border-[#6b705c] bg-[#6b705c] text-white"
+                      ? "border-primary bg-primary text-white"
                       : currentStep > step.id
-                        ? "border-[#a4b96a] bg-[#a4b96a] text-white"
+                        ? "border-primary/70 bg-primary/70 text-white"
                         : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
                   }`}
                 >
@@ -419,7 +418,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               {idx < STEPS.length - 1 && (
                 <div
                   className={`mx-2 h-0.5 flex-1 md:mx-4 ${
-                    currentStep > step.id ? "bg-[#a4b96a]" : "bg-muted-foreground/30"
+                    currentStep > step.id ? "bg-primary/70" : "bg-muted-foreground/30"
                   }`}
                 />
               )}
@@ -512,8 +511,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     onClick={() => setFormData({ ...formData, continent })}
                     className={`rounded-full border px-4 py-2 text-sm transition-colors sm:px-6 ${
                       formData.continent === continent
-                        ? "border-[#6b705c] bg-[#6b705c] text-white"
-                        : "border-muted-foreground/30 bg-background text-foreground hover:border-[#6b705c]/50"
+                        ? "border-primary bg-primary text-white"
+                        : "border-muted-foreground/30 bg-background text-foreground hover:border-primary/50"
                     }`}
                   >
                     {continent === "North America"
@@ -562,10 +561,10 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <Label htmlFor="is_all_inclusive" className="text-base font-medium">All-Inclusive Trip</Label>
-                <p className="text-sm text-muted-foreground">
-                  Trip includes transportation and meals by default
-                </p>
+                <Label htmlFor="is_all_inclusive" className="text-base font-medium">
+                  All-Inclusive Trip
+                </Label>
+                <p className="text-sm text-muted-foreground">Trip includes transportation and meals by default</p>
               </div>
               <Switch
                 id="is_all_inclusive"
@@ -919,7 +918,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     type="button"
                     onClick={addPremiumPackage}
                     size="sm"
-                    className="bg-[#a4b96a] hover:bg-[#93a55e]"
+                    className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Premium Package
@@ -1349,7 +1348,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               type="button"
               onClick={nextStep}
               disabled={!canProceedToNextStep()}
-              className="w-full bg-[#a4b96a] hover:bg-[#93a55e] sm:w-auto"
+              className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
             >
               Next
               <ChevronRight className="ml-2 h-4 w-4" />
@@ -1359,7 +1358,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-[#6b705c] hover:bg-[#5a5e4d] sm:w-auto"
+              className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
             >
               {loading ? "Saving Changes..." : "Save Changes"}
             </Button>

@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -18,7 +18,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect')
+  const redirect = searchParams.get("redirect")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,14 +47,20 @@ export function LoginForm() {
 
     try {
       const supabase = createClient()
-      const redirectTo = redirect 
-        ? `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`
-        : process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`
-      
+
+      // Use dev redirect URL if available (for v0 preview), otherwise use origin
+      const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin
+      const callbackUrl = `${baseUrl}/auth/callback`
+      const redirectTo = redirect ? `${callbackUrl}?redirect=${encodeURIComponent(redirect)}` : callbackUrl
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
       if (error) throw error

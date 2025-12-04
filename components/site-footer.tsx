@@ -1,23 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { TreePine } from "lucide-react"
+import Image from "next/image"
 import { BackToTopButton } from "./back-to-top-button"
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#5a6650] text-white">
+    <footer className="bg-[#062047] text-white">
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <div className="mb-4 flex items-center gap-2">
-              <div className="rounded-full bg-white p-2">
-                <TreePine className="h-6 w-6 text-[#5a6650]" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold leading-tight">4 SEASONS</div>
-                <div className="text-sm font-semibold leading-tight">GOLF TOUR</div>
-              </div>
+            <div className="mb-4">
+              <Image src="/logo.png" alt="4 Seasons Golf Tour" width={150} height={50} className="h-auto w-auto" />
             </div>
             <p className="text-sm leading-relaxed text-white/80 font-medium font-serif">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et

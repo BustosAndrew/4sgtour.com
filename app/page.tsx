@@ -69,7 +69,7 @@ export default async function HomePage() {
                 fugiat nulla pariatur.
               </p>
               <Link href="/destinations" className="mt-6 w-fit">
-                <AnimatedButton startColor="#6B705C" endColor="#9CA986" hoverText="Explore!">
+                <AnimatedButton startColor="#062047" endColor="#0a3470" hoverText="Explore!">
                   Lorem ipsum dolor
                 </AnimatedButton>
               </Link>
@@ -90,7 +90,7 @@ export default async function HomePage() {
                   dolore eu fugiat nulla pariatur.
                 </p>
                 <Link href="/destinations" className="mt-6 w-fit">
-                  <AnimatedButton startColor="#6B705C" endColor="#9CA986" hoverText="Explore!">
+                  <AnimatedButton startColor="#062047" endColor="#0a3470" hoverText="Explore!">
                     Lorem ipsum dolor
                   </AnimatedButton>
                 </Link>

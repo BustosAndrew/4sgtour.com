@@ -52,7 +52,7 @@ export function AdminCourses({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-[230px] bg-[#6b705c] p-6 text-white">
+      <aside className="w-[230px] bg-primary p-6 text-white">
         <div className="mb-12 flex items-center gap-3">
           <div className="text-white">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -152,7 +152,7 @@ export function AdminCourses({
                     onClick={() => setSelectedContinent("All")}
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                       selectedContinent === "All"
-                        ? "bg-[#6b705c] text-white"
+                        ? "bg-primary text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
@@ -164,7 +164,7 @@ export function AdminCourses({
                       onClick={() => setSelectedContinent(continent)}
                       className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                         selectedContinent === continent
-                          ? "bg-[#6b705c] text-white"
+                          ? "bg-primary text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
@@ -177,13 +177,13 @@ export function AdminCourses({
                   ))}
                 </div>
                 <Link href="/admin/trips/new">
-                  <Button className="bg-[#adc178] text-white hover:bg-[#9ab368]">+ Add Course</Button>
+                  <Button className="bg-primary text-white hover:bg-primary/90">+ Add Course</Button>
                 </Link>
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredTrips.map((trip) => (
-                  <div key={trip.id} className="overflow-hidden rounded-lg bg-[#6b705c] text-white shadow-md">
+                  <div key={trip.id} className="overflow-hidden rounded-lg bg-primary text-white shadow-md">
                     <div className="relative h-40 bg-white">
                       {trip.courses_photo_url ? (
                         <Image
@@ -200,7 +200,7 @@ export function AdminCourses({
                     </div>
 
                     <div className="p-4">
-                      <p className="mb-1 text-xs uppercase tracking-wide text-[#adc178]">Location</p>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-primary-foreground/70">Location</p>
                       <h3 className="mb-2 font-semibold text-white">{trip.title}</h3>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold">${Number(trip.price_regular).toFixed(2)}</span>
