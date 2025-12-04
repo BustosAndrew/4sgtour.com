@@ -59,10 +59,8 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const [currentUser, setCurrentUser] = useState<any>(user)
 
   const packages = trip.packages || []
-  const premiumPackage = packages.find(
-    (pkg: any) => pkg.name === "Premium" || pkg.name === "Basic" || pkg.name === "Regular",
-  )
-  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade")
+  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium") // Updated to look for new database names after migration
+  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade") // Updated to look for new database names after migration
 
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []

@@ -90,7 +90,7 @@ export function ContactForm() {
 
       <Button
         type="submit"
-        className="h-12 w-full rounded-xl bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90"
+        className="h-12 w-full bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90"
         disabled={isLoading}
       >
         {isLoading ? "Sending..." : "Send Message"}

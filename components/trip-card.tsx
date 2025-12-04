@@ -20,8 +20,8 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const upgradePackage = trip.packages?.find((pkg: any) => pkg.name === "Premium")
-  const premiumPackage = trip.packages?.find((pkg: any) => pkg.name === "Basic")
+  const upgradePackage = trip.packages?.find((pkg: any) => pkg.name === "Upgrade")
+  const premiumPackage = trip.packages?.find((pkg: any) => pkg.name === "Premium")
   const hasBothPackages = upgradePackage && premiumPackage
 
   const handleFavoriteToggle = async (e: React.MouseEvent) => {

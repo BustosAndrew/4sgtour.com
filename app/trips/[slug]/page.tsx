@@ -20,7 +20,8 @@ export default async function TripPage({ params }: TripPageProps) {
     .select(`
       *,
       destination:destinations(name, country),
-      packages(id, name, description, price)
+      packages(id, name, description, price),
+      trip_images(id, image_url, display_order)
     `)
     .eq("slug", slug)
     .single()
@@ -32,12 +33,17 @@ export default async function TripPage({ params }: TripPageProps) {
   const mainImage =
     trip.courses_photo_url || `/placeholder.svg?height=800&width=1920&query=golf course ${trip.location}`
 
-  const additionalImages = [trip.double_room_photo_url, trip.single_room_photo_url].filter(Boolean)
+  const tripImages = trip.trip_images?.sort((a: any, b: any) => a.display_order - b.display_order) || []
+  const additionalImages =
+    tripImages.length > 0
+      ? tripImages.map((img: any) => img.image_url)
+      : [trip.double_room_photo_url, trip.single_room_photo_url].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeaderWrapper />
 
+      {/* Hero Section */}
       <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] w-full">
         <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -49,59 +55,74 @@ export default async function TripPage({ params }: TripPageProps) {
         </div>
       </section>
 
-      <section className="container px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-          <div>
-            <h2 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">Overview</h2>
-            <AnimatedHr maxWidth="100%" />
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
-              {trip.overview_content ||
-                trip.description ||
-                "Experience an unforgettable golf adventure at this premier destination. With world-class facilities, stunning views, and exceptional service, this course offers everything you need for the perfect golf getaway. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
-            </p>
-          </div>
-          {additionalImages[0] && (
-            <div className="overflow-hidden rounded-lg sm:rounded-xl">
-              <img
-                src={additionalImages[0] || "/placeholder.svg"}
-                alt={`${trip.title} view`}
-                className="h-[200px] w-full object-cover sm:h-[250px] md:h-[300px]"
-              />
-            </div>
-          )}
-        </div>
-      </section>
+      <section className="container px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Right Column - Images */}
+          <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2">
+            {/* Main large image */}
+            {additionalImages[0] && (
+              <div className="overflow-hidden rounded-lg">
+                <img
+                  src={additionalImages[0] || "/placeholder.svg"}
+                  alt={`${trip.title} view`}
+                  className="aspect-[16/10] w-full object-cover sm:aspect-[16/9] lg:h-[350px] lg:aspect-auto"
+                />
+              </div>
+            )}
 
-      {trip.highlights && trip.highlights.length > 0 && (
-        <section className="container px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
-          <h2 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">Highlights</h2>
-          <AnimatedHr maxWidth="100%" />
-          <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:gap-8">
-            <ul className="space-y-2">
-              {trip.highlights.map((highlight: string, idx: number) => (
-                <li key={idx} className="flex items-center gap-3 text-sm text-foreground sm:text-base">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-foreground" />
-                  <span>{highlight}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Two smaller images in a row */}
             {additionalImages.length > 1 && (
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {additionalImages.slice(1, 3).map((img, idx) => (
-                  <div key={idx} className="overflow-hidden rounded-lg sm:rounded-xl">
+                {additionalImages.slice(1, 3).map((img: string, idx: number) => (
+                  <div key={idx} className="overflow-hidden rounded-lg">
                     <img
                       src={img || "/placeholder.svg"}
                       alt={`${trip.title} highlight ${idx + 1}`}
-                      className="h-[100px] w-full object-cover sm:h-[120px] md:h-[150px]"
+                      className="aspect-[4/3] w-full object-cover sm:aspect-[16/10] lg:h-[170px] lg:aspect-auto"
                     />
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </section>
-      )}
 
+          {/* Left Column - Text Content */}
+          <div className="order-2 space-y-8 lg:order-1">
+            {/* Overview Section */}
+            <div>
+              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Overview</h2>
+              <div className="mt-2 mb-4 w-[120px]">
+                <AnimatedHr />
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
+                {trip.overview_content ||
+                  trip.description ||
+                  "Experience an unforgettable golf adventure at this premier destination. With world-class facilities, stunning views, and exceptional service, this course offers everything you need for the perfect golf getaway."}
+              </p>
+            </div>
+
+            {/* Highlights Section */}
+            {trip.highlights && trip.highlights.length > 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Highlights</h2>
+                <div className="mt-2 mb-4 w-[120px]">
+                  <AnimatedHr />
+                </div>
+                <ul className="space-y-3">
+                  {trip.highlights.map((highlight: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-3 text-sm text-foreground sm:text-base">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Packages Section */}
       <section className="bg-muted/30 py-8 sm:py-10 md:py-12">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -112,15 +133,9 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
 
           {trip.packages && trip.packages.length > 0 ? (
-            <div
-              className={`mt-6 grid gap-4 sm:mt-8 sm:gap-6 lg:gap-8 justify-center ${
-                trip.packages.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"
-              }`}
-            >
+            <div className="mt-6 flex flex-wrap justify-center gap-4 sm:mt-8 sm:gap-6 lg:gap-8">
               {trip.packages.map((pkg: any) => {
-                const displayName = pkg.name === "Basic" ? "Premium" : pkg.name === "Premium" ? "Upgrade" : pkg.name
-                const isUpgrade = pkg.name === "Premium"
-                const isPremium = pkg.name === "Basic"
+                const isUpgrade = pkg.name === "Upgrade"
                 const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
                 const borderColor = isUpgrade ? "border-[#274C77]" : "border-[#6096BA]"
                 const headerText = "text-white"
@@ -128,10 +143,10 @@ export default async function TripPage({ params }: TripPageProps) {
                 return (
                   <div
                     key={pkg.id}
-                    className={`flex flex-col overflow-hidden rounded-2xl border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl max-w-[290px] mx-auto w-full`}
+                    className={`flex w-full flex-col overflow-hidden border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl sm:w-[280px] sm:max-w-[290px]`}
                   >
                     <div className={`${headerBg} px-6 py-6 text-center`}>
-                      <h3 className={`text-xl font-bold ${headerText} sm:text-2xl`}>{displayName}</h3>
+                      <h3 className={`text-xl font-bold ${headerText} sm:text-2xl`}>{pkg.name}</h3>
                     </div>
 
                     <div className="flex flex-1 flex-col p-6">

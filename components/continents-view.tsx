@@ -56,7 +56,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
   if (!selectedContinent) {
     return (
-      <div className="relative h-screen">
+      <div className="relative h-screen pt-[70px] lg:pt-0">
         <div className="absolute left-0 right-0 top-0 z-10 hidden px-4 pt-32 text-center lg:block">
           <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-4xl">
             Explore Golf Destinations
@@ -66,7 +66,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
           </p>
         </div>
 
-        <div className="flex h-screen w-full flex-col lg:flex-row">
+        <div className="flex h-full w-full flex-col lg:h-screen lg:flex-row">
           {CONTINENTS.map((continent) => (
             <Link
               key={continent.slug}
