@@ -24,7 +24,7 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 w-full GlassContainer ${className}`}>
-      <div className="GlassContent relative h-[87px]">
+      <div className="GlassContent relative h-[70px] md:h-[87px]">
         <div className="GlassMaterial">
           <div className="GlassEdgeReflection"></div>
           <div className="GlassEmbossReflection"></div>
@@ -35,31 +35,34 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
           <div className="Highlight"></div>
           <div className="Brightness"></div>
         </div>
-        <div className="px-30 w-full h-full relative z-[100]">
+        <div className="px-4 sm:px-6 lg:px-30 w-full h-full relative z-[100]">
           <div className="flex h-full items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <img src="/logo.png" alt="4 Seasons Golf Tour" className="h-[50px] w-auto object-contain" />
+            <Link href="/" className="flex items-center flex-shrink-0">
+              <img src="/logo.png" alt="4 Seasons Golf Tour" className="h-[40px] md:h-[50px] w-auto object-contain" />
             </Link>
 
-            {/* Center Navigation */}
-            <nav className="hidden md:flex items-center justify-center gap-10 absolute left-1/2 -translate-x-1/2">
-              <Link href="/" className="text-white text-lg font-medium hover:text-white/80 transition-colors">
+            <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10 absolute left-1/2 -translate-x-1/2">
+              <Link
+                href="/"
+                className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+              >
                 Home
               </Link>
               <Link
                 href="/destinations"
-                className="text-white text-lg font-medium hover:text-white/80 transition-colors"
+                className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
               >
                 Destinations
               </Link>
-              <Link href="/contact" className="text-white text-lg font-medium hover:text-white/80 transition-colors">
+              <Link
+                href="/contact"
+                className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+              >
                 Contact Us
               </Link>
             </nav>
 
-            {/* Right Side - Language & Auth */}
-            <div className="hidden md:flex items-center justify-center gap-[30px]">
+            <div className="hidden lg:flex items-center justify-center gap-4 xl:gap-[30px]">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1.5 cursor-pointer outline-none min-w-[100px]">
                   <Globe className="w-4 h-4 text-white" />
@@ -97,25 +100,29 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Auth Links */}
               {user ? (
                 <UserNav user={user} userType={userType} />
               ) : (
                 <>
-                  <Link href="/auth/sign-up" className="text-white text-sm hover:text-white/80 transition-colors">
+                  <Link
+                    href="/auth/sign-up"
+                    className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+                  >
                     Sign Up
                   </Link>
-                  <Link href="/auth/login" className="text-white text-sm hover:text-white/80 transition-colors">
+                  <Link
+                    href="/auth/login"
+                    className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+                  >
                     Log In
                   </Link>
                 </>
               )}
             </div>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-white"
+              className="lg:hidden text-white p-2 -mr-2"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -123,81 +130,91 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-black/60 backdrop-blur-lg border-t border-white/20 py-4 md:hidden shadow-lg">
-            <div className="px-30">
-              <nav className="flex flex-col gap-4">
-                <Link
-                  href="/"
-                  className="text-white font-medium transition-colors hover:text-white/80"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/destinations"
-                  className="text-white font-medium transition-colors hover:text-white/80"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Destinations
-                </Link>
-                <Link
-                  href="/contact"
-                  className="text-white font-medium transition-colors hover:text-white/80"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Contact Us
-                </Link>
-                <div className="border-t border-white/20 pt-4">
-                  <div className="text-white/60 text-sm mb-2">Language</div>
-                  <div className="flex gap-3">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => setCurrentLanguage(lang)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 ${
-                          currentLanguage.code === lang.code ? "bg-white/20" : "bg-transparent hover:bg-white/10"
-                        } transition-colors`}
-                      >
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                          <img
-                            src={lang.flag || "/placeholder.svg"}
-                            alt={lang.alt}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <span className="text-white text-sm">{lang.name}</span>
-                      </button>
-                    ))}
+        <div
+          className={`absolute top-full left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-white/20 lg:hidden shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${
+            mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="px-4 sm:px-6 py-6">
+            <nav className="flex flex-col gap-1">
+              <Link
+                href="/"
+                className="text-white font-medium transition-colors hover:bg-white/10 py-3 px-4 -mx-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                href="/destinations"
+                className="text-white font-medium transition-colors hover:bg-white/10 py-3 px-4 -mx-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Destinations
+              </Link>
+              <Link
+                href="/contact"
+                className="text-white font-medium transition-colors hover:bg-white/10 py-3 px-4 -mx-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Contact Us
+              </Link>
+
+              {/* Language Section */}
+              <div className="border-t border-white/20 mt-4 pt-4">
+                <div className="text-white/60 text-sm mb-3 px-4 -mx-4">Language</div>
+                <div className="flex flex-wrap gap-2">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setCurrentLanguage(lang)}
+                      className={`flex items-center gap-2 px-4 py-2 flex-1 min-w-[120px] justify-center ${
+                        currentLanguage.code === lang.code
+                          ? "bg-white/20 border border-white/30"
+                          : "bg-white/5 border border-white/10 hover:bg-white/10"
+                      } transition-colors`}
+                    >
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
+                        <img
+                          src={lang.flag || "/placeholder.svg"}
+                          alt={lang.alt}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="text-white text-sm">{lang.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Auth Section */}
+              <div className="border-t border-white/20 mt-4 pt-4">
+                {user ? (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-white/80">Signed in as</span>
+                    <span className="text-sm text-white font-medium truncate max-w-[200px]">{user.email}</span>
                   </div>
-                </div>
-                <div className="border-t border-white/20 pt-4">
-                  {user ? (
-                    <div className="text-sm text-white">Logged in as {user.email}</div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      <Link
-                        href="/auth/sign-up"
-                        className="text-white hover:text-white/80"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign Up
-                      </Link>
-                      <Link
-                        href="/auth/login"
-                        className="text-white hover:text-white/80"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Log In
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </nav>
-            </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Link
+                      href="/auth/sign-up"
+                      className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                    <Link
+                      href="/auth/login"
+                      className="flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Log In
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </nav>
           </div>
-        )}
+        </div>
       </div>
     </header>
   )
