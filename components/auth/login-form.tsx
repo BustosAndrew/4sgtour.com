@@ -77,7 +77,7 @@ export function LoginForm() {
 
   return (
     <div
-      className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center p-6 pt-24 lg:pt-28"
+      className="flex min-h-screen w-full items-center justify-center p-6 pt-28 lg:pt-32"
       style={{
         backgroundImage: "url('/images/contact-bg.png')",
         backgroundSize: "cover",
