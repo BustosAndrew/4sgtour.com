@@ -17,12 +17,14 @@ export default async function TripPage({ params }: TripPageProps) {
 
   const { data: trip } = await supabase
     .from("trips")
-    .select(`
+    .select(
+      `
       *,
       destination:destinations(name, country),
       packages(id, name, description, price),
       trip_images(id, image_url, display_order)
-    `)
+    `,
+    )
     .eq("slug", slug)
     .single()
 
@@ -31,9 +33,13 @@ export default async function TripPage({ params }: TripPageProps) {
   }
 
   const mainImage =
-    trip.courses_photo_url || `/placeholder.svg?height=800&width=1920&query=golf course ${trip.location}`
+    trip.courses_photo_url ||
+    `/placeholder.svg?height=800&width=1920&query=golf course ${trip.location}`
 
-  const tripImages = trip.trip_images?.sort((a: any, b: any) => a.display_order - b.display_order) || []
+  const tripImages =
+    trip.trip_images?.sort(
+      (a: any, b: any) => a.display_order - b.display_order,
+    ) || []
   const additionalImages =
     tripImages.length > 0
       ? tripImages.map((img: any) => img.image_url)
@@ -45,13 +51,19 @@ export default async function TripPage({ params }: TripPageProps) {
 
       {/* Hero Section */}
       <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] w-full">
-        <img src={mainImage || "/placeholder.svg"} alt={trip.title} className="h-full w-full object-cover" />
+        <img
+          src={mainImage || "/placeholder.svg"}
+          alt={trip.title}
+          className="h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute left-0 top-0 p-4 pt-24 sm:p-6 sm:pt-28 md:p-8 md:pt-32 lg:p-12 lg:pt-36">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-5xl">
             {trip.title}
           </h1>
-          <p className="mt-1 text-sm text-white/90 drop-shadow-lg sm:text-base md:text-lg">{trip.location}</p>
+          <p className="mt-1 text-sm text-white/90 drop-shadow-lg sm:text-base md:text-lg">
+            {trip.location}
+          </p>
         </div>
       </section>
 
@@ -73,15 +85,17 @@ export default async function TripPage({ params }: TripPageProps) {
             {/* Two smaller images in a row */}
             {additionalImages.length > 1 && (
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {additionalImages.slice(1, 3).map((img: string, idx: number) => (
-                  <div key={idx} className="overflow-hidden rounded-lg">
-                    <img
-                      src={img || "/placeholder.svg"}
-                      alt={`${trip.title} highlight ${idx + 1}`}
-                      className="aspect-[4/3] w-full object-cover sm:aspect-[16/10] lg:h-[170px] lg:aspect-auto"
-                    />
-                  </div>
-                ))}
+                {additionalImages
+                  .slice(1, 3)
+                  .map((img: string, idx: number) => (
+                    <div key={idx} className="overflow-hidden rounded-lg">
+                      <img
+                        src={img || "/placeholder.svg"}
+                        alt={`${trip.title} highlight ${idx + 1}`}
+                        className="aspect-[4/3] w-full object-cover sm:aspect-[16/10] lg:h-[170px] lg:aspect-auto"
+                      />
+                    </div>
+                  ))}
               </div>
             )}
           </div>
@@ -90,9 +104,11 @@ export default async function TripPage({ params }: TripPageProps) {
           <div className="order-2 space-y-8 lg:order-1">
             {/* Overview Section */}
             <div>
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Overview</h2>
+              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+                Overview
+              </h2>
               <div className="mt-2 mb-4 w-[120px]">
-                <AnimatedHr />
+                <AnimatedHr maxWidth="100%" />
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
                 {trip.overview_content ||
@@ -104,13 +120,18 @@ export default async function TripPage({ params }: TripPageProps) {
             {/* Highlights Section */}
             {trip.highlights && trip.highlights.length > 0 && (
               <div>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Highlights</h2>
+                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+                  Highlights
+                </h2>
                 <div className="mt-2 mb-4 w-[120px]">
-                  <AnimatedHr />
+                  <AnimatedHr maxWidth="100%" />
                 </div>
                 <ul className="space-y-3">
                   {trip.highlights.map((highlight: string, idx: number) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-foreground sm:text-base">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-3 text-sm text-foreground sm:text-base"
+                    >
                       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
                       <span>{highlight}</span>
                     </li>
@@ -123,10 +144,12 @@ export default async function TripPage({ params }: TripPageProps) {
       </section>
 
       {/* Packages Section */}
-      <section className="bg-muted/30 py-8 sm:py-10 md:py-12">
+      <section className="py-8 sm:py-10 md:py-12">
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Inquire Now</h2>
+            <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+              Inquire Now
+            </h2>
             <p className="mt-2 text-xs text-muted-foreground sm:text-sm md:text-base">
               Choose your perfect package and start your golf adventure today
             </p>
@@ -137,7 +160,9 @@ export default async function TripPage({ params }: TripPageProps) {
               {trip.packages.map((pkg: any) => {
                 const isUpgrade = pkg.name === "Upgrade"
                 const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
-                const borderColor = isUpgrade ? "border-[#274C77]" : "border-[#6096BA]"
+                const borderColor = isUpgrade
+                  ? "border-[#274C77]"
+                  : "border-[#6096BA]"
                 const headerText = "text-white"
 
                 return (
@@ -146,7 +171,11 @@ export default async function TripPage({ params }: TripPageProps) {
                     className={`flex w-full flex-col overflow-hidden border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl sm:w-[280px] sm:max-w-[290px]`}
                   >
                     <div className={`${headerBg} px-6 py-6 text-center`}>
-                      <h3 className={`text-xl font-bold ${headerText} sm:text-2xl`}>{pkg.name}</h3>
+                      <h3
+                        className={`text-xl font-bold ${headerText} sm:text-2xl`}
+                      >
+                        {pkg.name}
+                      </h3>
                     </div>
 
                     <div className="flex flex-1 flex-col p-6">
@@ -156,24 +185,43 @@ export default async function TripPage({ params }: TripPageProps) {
 
                       {pkg.description && (
                         <div className="mb-6 space-y-3">
-                          {pkg.description.split("\n").map((item: string, idx: number) => {
-                            const isIncluded = !item.trim().toLowerCase().startsWith("no ")
-                            const text = item.replace(/^no /i, "").trim()
-                            return (
-                              <div key={idx} className="flex items-start gap-3 text-sm sm:text-base">
-                                {isIncluded ? (
-                                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                                ) : (
-                                  <X className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                                )}
-                                <span className={isIncluded ? "text-foreground" : "text-muted-foreground"}>{text}</span>
-                              </div>
-                            )
-                          })}
+                          {pkg.description
+                            .split("\n")
+                            .map((item: string, idx: number) => {
+                              const isIncluded = !item
+                                .trim()
+                                .toLowerCase()
+                                .startsWith("no ")
+                              const text = item.replace(/^no /i, "").trim()
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-3 text-sm sm:text-base"
+                                >
+                                  {isIncluded ? (
+                                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                  ) : (
+                                    <X className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                                  )}
+                                  <span
+                                    className={
+                                      isIncluded
+                                        ? "text-foreground"
+                                        : "text-muted-foreground"
+                                    }
+                                  >
+                                    {text}
+                                  </span>
+                                </div>
+                              )
+                            })}
                         </div>
                       )}
 
-                      <Link href={`/trips/${trip.slug}/book?package=${pkg.id}`} className="mt-auto w-full">
+                      <Link
+                        href={`/trips/${trip.slug}/book?package=${pkg.id}`}
+                        className="mt-auto w-full"
+                      >
                         <AnimatedButton
                           startColor={isUpgrade ? "#274C77" : "#6096BA"}
                           endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
