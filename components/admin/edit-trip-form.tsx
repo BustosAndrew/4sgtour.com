@@ -788,7 +788,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 Upload Photos for Courses
               </Label>
               {photos.courses ? (
-                <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
+                <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
                     src={photos.courses || "/placeholder.svg"}
                     alt="Golf courses"
@@ -806,8 +806,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </Button>
                 </div>
               ) : (
-                <label className="flex aspect-[2/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
-                  <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
+                <label className="flex aspect-[3/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
+                  <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
                     <span className="text-muted-foreground">
@@ -835,7 +835,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 Upload Photos for Single Occupancy Room
               </Label>
               {photos.singleRoom ? (
-                <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
+                <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
                     src={photos.singleRoom || "/placeholder.svg"}
                     alt="Single occupancy room"
@@ -853,8 +853,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </Button>
                 </div>
               ) : (
-                <label className="flex aspect-[2/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
-                  <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
+                <label className="flex aspect-[3/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
+                  <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
                     <span className="text-muted-foreground">
@@ -882,7 +882,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 Upload Photos for Double Occupancy Room
               </Label>
               {photos.doubleRoom ? (
-                <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
+                <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
                     src={photos.doubleRoom || "/placeholder.svg"}
                     alt="Double occupancy room"
@@ -900,8 +900,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </Button>
                 </div>
               ) : (
-                <label className="flex aspect-[2/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
-                  <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
+                <label className="flex aspect-[3/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
+                  <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
                     <span className="text-muted-foreground">
