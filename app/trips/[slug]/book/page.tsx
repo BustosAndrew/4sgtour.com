@@ -38,14 +38,39 @@ export default async function BookingPage({ params, searchParams }: BookingPageP
     notFound()
   }
 
+  const { data: golfCourses } = await supabase
+    .from("trip_golf_courses")
+    .select("*")
+    .eq("trip_id", trip.id)
+    .order("created_at", { ascending: true })
+
+  const { data: mealOptions } = await supabase
+    .from("trip_meal_options")
+    .select("*")
+    .eq("trip_id", trip.id)
+    .order("created_at", { ascending: true })
+
+  const { data: transportationOptions } = await supabase
+    .from("trip_transportation_options")
+    .select("*")
+    .eq("trip_id", trip.id)
+    .order("created_at", { ascending: true })
+
+  // Combine all data
+  const tripWithOptions = {
+    ...trip,
+    golf_courses: golfCourses || [],
+    meal_options: mealOptions || [],
+    transportation_options: transportationOptions || [],
+  }
+
   const { data: profile } = await supabase.from("profiles").select("display_name, email").eq("id", user.id).single()
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeaderWrapper />
       <main className="container px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-2xl font-bold sm:text-3xl">Make A Reservation</h1>
-        <BookingForm trip={trip} user={user} profile={profile} preSelectedPackageId={packageId} />
+        <BookingForm trip={tripWithOptions} user={user} profile={profile} preSelectedPackageId={packageId} />
       </main>
       <SiteFooter />
     </div>

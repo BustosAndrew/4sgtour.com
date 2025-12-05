@@ -2,14 +2,12 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Check, Users, Hotel, Utensils, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Users, User, Check, Utensils, Car, Minus, Plus, X } from "lucide-react"
 import { format, addDays, differenceInDays, isWithinInterval, isBefore, isSameDay } from "date-fns"
-import { createBrowserClient } from "@supabase/ssr"
-import { AnimatedButton } from "@/components/ui/animated-button"
+import { createClient } from "@/lib/supabase/client"
+import Image from "next/image"
 
 interface Trip {
   id: string
@@ -20,6 +18,10 @@ interface Trip {
   max_days?: number
   min_days?: number
   min_days_advance?: number
+  images?: Array<{
+    image_url: string
+    display_order: number
+  }>
   packages?: Array<{
     id: string
     name: string
@@ -46,11 +48,8 @@ interface BookingFormProps {
 }
 
 export function BookingForm({ trip, user, profile, preSelectedPackageId }: BookingFormProps) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-  const [step, setStep] = useState(1)
+  const supabase = createClient()
+
   const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>({})
   const [roomType, setRoomType] = useState<string>("")
   const [selectedMeal, setSelectedMeal] = useState<string>("")
@@ -58,10 +57,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(user)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
 
   const packages = trip.packages || []
-  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium") // Updated to look for new database names after migration
-  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade") // Updated to look for new database names after migration
+  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium")
+  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade")
 
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
@@ -75,8 +76,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     from: undefined,
     to: undefined,
   })
-
   const [currentMonth, setCurrentMonth] = useState(new Date())
+
+  const tripImages = trip.images?.sort((a, b) => a.display_order - b.display_order) || []
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -134,11 +136,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     return isWithinInterval(date, { start: travelDateRange.from, end: travelDateRange.to })
   }
 
-  const handleCourseRoundChange = (courseId: string, rounds: number) => {
-    setCourseRounds((prev) => ({
-      ...prev,
-      [courseId]: rounds,
-    }))
+  const handleCourseRoundChange = (courseId: string, delta: number) => {
+    setCourseRounds((prev) => {
+      const current = prev[courseId] || 0
+      const newValue = Math.max(0, current + delta)
+      return { ...prev, [courseId]: newValue }
+    })
   }
 
   const generateCalendarDays = (month: Date) => {
@@ -156,76 +159,6 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       days.push(new Date(year, monthIndex, d))
     }
     return days
-  }
-
-  const renderCalendar = () => {
-    const days = generateCalendarDays(currentMonth)
-    const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-
-    return (
-      <div className="rounded-lg border border-border p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{format(currentMonth, "MMMM yyyy")}</h3>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-sm text-muted-foreground">
-          {weekdays.map((day) => (
-            <div key={day} className="py-1">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1">
-          {days.map((date, idx) => {
-            if (!date) {
-              return <div key={`empty-${idx}`} className="p-2" />
-            }
-
-            const isDisabled = isBefore(date, minDate)
-            const isTravel = isTravelDate(date)
-            const isStart = travelDateRange.from && isSameDay(date, travelDateRange.from)
-            const isEnd = travelDateRange.to && isSameDay(date, travelDateRange.to)
-
-            return (
-              <button
-                key={date.toISOString()}
-                type="button"
-                onClick={() => handleTravelDateSelect(date)}
-                disabled={isDisabled}
-                className={`
-                  relative p-2 text-center text-sm transition-colors
-                  ${isDisabled ? "cursor-not-allowed text-muted-foreground/40" : "cursor-pointer hover:bg-muted"}
-                  ${isTravel ? "bg-[#274C77] text-white" : ""}
-                  ${isStart ? "rounded-l" : ""}
-                  ${isEnd ? "rounded-r" : ""}
-                `}
-              >
-                {date.getDate()}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -303,7 +236,6 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
       alert("Your inquiry has been submitted! We'll contact you shortly.")
 
-      setStep(1)
       setTravelDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
       setRoomType("")
@@ -324,7 +256,6 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
     if (selectedPackage) total += Number(selectedPackage.price)
 
-    // Golf courses
     Object.entries(courseRounds).forEach(([courseId, rounds]) => {
       if (rounds > 0) {
         const course = golfCourses.find((c: any) => c.id === courseId)
@@ -347,432 +278,554 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     return total
   }
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, 6))
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1))
+  const totalRounds = Object.values(courseRounds).reduce((sum, r) => sum + r, 0)
 
-  const totalNights =
-    travelDateRange.from && travelDateRange.to ? differenceInDays(travelDateRange.to, travelDateRange.from) : 0
+  const SectionHeader = ({ number, title }: { number: number; title: string }) => (
+    <div className="flex items-center bg-[#3D5A80]">
+      <span className="flex h-full items-center justify-center bg-[#14184E] px-4 py-3 text-lg font-medium text-white">
+        {number}
+      </span>
+      <h2 className="px-4 py-3 font-serif text-lg text-white">{title}</h2>
+    </div>
+  )
+
+  const RadioOption = ({
+    selected,
+    onClick,
+    children,
+  }: {
+    selected: boolean
+    onClick: () => void
+    children: React.ReactNode
+  }) => (
+    <div
+      onClick={onClick}
+      className={`cursor-pointer border bg-[#f5f5f5] px-4 py-3 transition-colors ${
+        selected ? "border-[#3D5A80]" : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        {children}
+        <div
+          className={`ml-4 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+            selected ? "border-[#3D5A80] bg-[#3D5A80]" : "border-gray-300"
+          }`}
+        >
+          {selected && <div className="h-2 w-2 rounded-full bg-white" />}
+        </div>
+      </div>
+    </div>
+  )
+
+  // Calendar renderer
+  const renderCalendar = () => {
+    const days = generateCalendarDays(currentMonth)
+    const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+
+    return (
+      <div className="rounded-lg border border-border bg-white p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{format(currentMonth, "MMMM yyyy")}</h3>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-sm text-muted-foreground">
+          {weekdays.map((day) => (
+            <div key={day} className="py-1">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((date, idx) => {
+            if (!date) {
+              return <div key={`empty-${idx}`} className="p-2" />
+            }
+
+            const isDisabled = isBefore(date, minDate)
+            const isTravel = isTravelDate(date)
+            const isStart = travelDateRange.from && isSameDay(date, travelDateRange.from)
+            const isEnd = travelDateRange.to && isSameDay(date, travelDateRange.to)
+
+            return (
+              <button
+                key={date.toISOString()}
+                type="button"
+                onClick={() => handleTravelDateSelect(date)}
+                disabled={isDisabled}
+                className={`
+                  relative p-2 text-center text-sm transition-colors
+                  ${isDisabled ? "cursor-not-allowed text-muted-foreground/40" : "cursor-pointer hover:bg-muted"}
+                  ${isTravel ? "bg-[#274C77] text-white" : ""}
+                  ${isStart ? "rounded-l" : ""}
+                  ${isEnd ? "rounded-r" : ""}
+                `}
+              >
+                {date.getDate()}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+  const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
+  const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Progress Steps */}
-      <div className="mb-8 flex items-center justify-between">
-        {[1, 2, 3, 4, 5, 6].map((s) => (
-          <div key={s} className="flex flex-1 items-center">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                step >= s ? "bg-[#274C77] text-white" : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {step > s ? <Check className="h-4 w-4" /> : s}
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="flex flex-col gap-16 lg:flex-row">
+        {/* Left Column - Form Sections */}
+        <div className="flex-1 space-y-8">
+          <h1 className="font-serif text-[40px] font-bold leading-tight">Make A Reservation</h1>
+
+          {/* Section 1: Select Your Plan */}
+          <div className="overflow-hidden">
+            <SectionHeader number={1} title="Select Your Plan" />
+            <div className="mt-6 space-y-4">
+              {packages.map((pkg) => (
+                <RadioOption key={pkg.id} selected={selectedPlan === pkg.id} onClick={() => setSelectedPlan(pkg.id)}>
+                  <div className="flex-1">
+                    <h3 className="font-serif text-xl font-medium">{pkg.name}</h3>
+                    {pkg.description && <p className="mt-1 text-sm text-muted-foreground">{pkg.description}</p>}
+                  </div>
+                  <span className="mr-4 text-2xl font-medium">
+                    <sup className="text-base align-super">$</sup>
+                    {pkg.price}
+                  </span>
+                </RadioOption>
+              ))}
             </div>
-            {s < 6 && <div className={`h-1 flex-1 ${step > s ? "bg-[#274C77]" : "bg-muted"}`} />}
           </div>
-        ))}
-      </div>
 
-      {/* Step 1: Package Selection */}
-      {step === 1 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />1 Package Selection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base">Select Package</Label>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Choose between Premium or Upgrade packages for your trip
-                </p>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {premiumPackage && (
-                  <div
-                    onClick={() => setSelectedPlan(premiumPackage.id)}
-                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                      selectedPlan === premiumPackage.id ? "border-[#6096BA] bg-[#6096BA]/10" : "border-border"
-                    }`}
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <h3 className="font-semibold">Premium</h3>
-                      <span className="text-lg font-bold">${premiumPackage.price}</span>
-                    </div>
-                    {premiumPackage.description && (
-                      <p className="text-sm text-muted-foreground">{premiumPackage.description}</p>
-                    )}
+          {/* Section 2: Select Room Type */}
+          <div className="overflow-hidden">
+            <SectionHeader number={2} title="Select Room Type" />
+            <div className="mt-6 space-y-4">
+              <RadioOption selected={roomType === "double"} onClick={() => setRoomType("double")}>
+                <div className="flex items-start gap-3">
+                  <Users className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-serif text-xl font-medium">Double Occupancy</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Share a room with another guest for a more economical option
+                    </p>
                   </div>
-                )}
-                {upgradePackage && (
-                  <div
-                    onClick={() => setSelectedPlan(upgradePackage.id)}
-                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                      selectedPlan === upgradePackage.id ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
-                    }`}
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <h3 className="font-semibold">Upgrade</h3>
-                      <span className="text-lg font-bold">${upgradePackage.price}</span>
-                    </div>
-                    {upgradePackage.description && (
-                      <p className="text-sm text-muted-foreground">{upgradePackage.description}</p>
-                    )}
+                </div>
+              </RadioOption>
+
+              <RadioOption selected={roomType === "single"} onClick={() => setRoomType("single")}>
+                <div className="flex items-start gap-3">
+                  <User className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-serif text-xl font-medium">Single Occupancy</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Private room for yourself for maximum comfort and privacy
+                    </p>
                   </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Room Selection */}
-      {step === 2 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle className="flex items-center gap-2">
-              <Hotel className="h-5 w-5" />2 Room Selection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base">Select Room Type</Label>
-                <p className="mb-4 text-sm text-muted-foreground">Choose your preferred accommodation style</p>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div
-                  onClick={() => setRoomType("double")}
-                  className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                    roomType === "double" ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
-                  }`}
-                >
-                  <h3 className="font-semibold">Double Occupancy</h3>
-                  <p className="text-sm text-muted-foreground">Share a room with another guest</p>
                 </div>
-                <div
-                  onClick={() => setRoomType("single")}
-                  className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                    roomType === "single" ? "border-[#274C77] bg-[#274C77]/10" : "border-border"
-                  }`}
-                >
-                  <h3 className="font-semibold">Single Occupancy</h3>
-                  <p className="text-sm text-muted-foreground">Private room for yourself</p>
-                </div>
-              </div>
+              </RadioOption>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {/* Step 3: Travel Duration */}
-      {step === 3 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />3 Travel Duration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <div>
-                <Label className="text-base">Select Dates</Label>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Choose your travel dates. Maximum stay: {maxDays} nights
-                </p>
+          {/* Section 3: Travel Duration */}
+          <div className="overflow-hidden">
+            <SectionHeader number={3} title="Travel Duration" />
+            <div className="py-6">
+              <div className="mb-1">
+                <Label className="text-base font-medium">Select Dates</Label>
+                <p className="mt-1 text-sm text-muted-foreground">Choose your travel dates for your golf experience</p>
+                <p className="mt-1 text-sm text-muted-foreground italic">Maximum stay: {maxDays} nights</p>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="mt-4 flex flex-col gap-6 lg:flex-row">
                 {renderCalendar()}
 
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Select Travel Dates</Label>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="h-4 w-8 bg-[#274C77]"></div>
-                      <span className="text-sm">Travel Days</span>
-                    </div>
+                <div className="flex flex-col justify-start pt-6">
+                  <Label className="mb-2 text-sm text-muted-foreground">Select Travel Dates</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-2 rounded-sm bg-[#3D5A80]" />
+                    <span className="rounded border border-border bg-white px-4 py-2 text-sm font-medium">
+                      Travel Days
+                    </span>
                   </div>
                 </div>
               </div>
 
               {travelDateRange.from && travelDateRange.to && (
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <p className="font-medium">
-                    Reservation for: {format(travelDateRange.from, "MMM d")} -{" "}
-                    {format(travelDateRange.to, "MMM d, yyyy")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{totalNights} nights</p>
+                <div className="mt-4 rounded-full border-2 border-gray-200 bg-gray-50 px-6 py-3">
+                  <span className="text-sm">
+                    Reservation for:{" "}
+                    <strong>
+                      {format(travelDateRange.from, "MMM d")} – {format(travelDateRange.to, "MMM d, yyyy")}
+                    </strong>
+                  </span>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {/* Step 4: Golf Courses */}
-      {step === 4 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle className="flex items-center gap-2">4 Golf Courses</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base">Select Courses & Rounds</Label>
-                <p className="mb-4 text-sm text-muted-foreground">Choose which courses you'd like to play</p>
-              </div>
-              {golfCourses.length > 0 ? (
-                <div className="space-y-4">
+          {/* Section 4: Golf Courses & Rounds */}
+          {golfCourses.length > 0 && (
+            <div className="overflow-hidden">
+              <SectionHeader number={4} title="Golf Courses & Rounds" />
+              <div className="py-6">
+                <div className="mb-4">
+                  <Label className="text-base font-medium">Select Courses</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Choose the golf courses you'd like to play during your trip
+                  </p>
+                </div>
+
+                <div className="mb-6 space-y-3">
                   {golfCourses.map((course: any) => {
-                    const isIncluded = course.is_included
+                    const isSelected = (courseRounds[course.id] || 0) > 0
                     return (
                       <div
                         key={course.id}
-                        className={`flex items-center justify-between rounded-lg border p-4 ${
-                          isIncluded ? "border-[#6096BA] bg-[#6096BA]/10" : "border-border"
+                        onClick={() => {
+                          if (!isSelected) {
+                            handleCourseRoundChange(course.id, 1)
+                          }
+                        }}
+                        className={`cursor-pointer rounded-full border-2 px-6 py-4 transition-colors ${
+                          isSelected ? "border-[#3D5A80]" : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <div>
-                          <h4 className="font-medium">
-                            {course.course_name}
-                            {isIncluded && (
-                              <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">Included</span>
-                            )}
-                          </h4>
-                          {!isIncluded && (
-                            <p className="text-sm text-muted-foreground">${course.price_per_round} per round</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={isIncluded}
-                            onClick={() =>
-                              handleCourseRoundChange(course.id, Math.max(0, (courseRounds[course.id] || 0) - 1))
-                            }
+                        <div className="flex items-center justify-between">
+                          <span className="font-serif text-lg font-medium">{course.course_name}</span>
+                          <div
+                            className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                              isSelected ? "border-[#3D5A80] bg-[#3D5A80]" : "border-gray-300"
+                            }`}
                           >
-                            -
-                          </Button>
-                          <span className="w-8 text-center">{courseRounds[course.id] || 0}</span>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={isIncluded}
-                            onClick={() =>
-                              handleCourseRoundChange(
-                                course.id,
-                                Math.min(course.max_rounds || 10, (courseRounds[course.id] || 0) + 1),
-                              )
-                            }
-                          >
-                            +
-                          </Button>
+                            {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
+                          </div>
                         </div>
                       </div>
                     )
                   })}
                 </div>
-              ) : (
-                <p className="text-muted-foreground">No golf courses configured for this trip.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Step 5: Meals & Transport */}
-      {step === 5 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle className="flex items-center gap-2">
-              <Utensils className="h-5 w-5" />5 Meals & Transport
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-8">
-              {/* Meal Options */}
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base">Meal Options</Label>
-                  <p className="mb-4 text-sm text-muted-foreground">Select your preferred meal plan</p>
+                <div className="mt-6">
+                  <Label className="text-base font-medium">Select Rounds</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Choose how many rounds you'd like to play at each selected course
+                  </p>
                 </div>
-                {mealOptions.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {mealOptions.map((meal: any) => {
-                      const isIncluded = meal.is_included
-                      return (
-                        <div
-                          key={meal.id}
-                          onClick={() => !isIncluded && setSelectedMeal(meal.id)}
-                          className={`rounded-lg border-2 p-4 transition-all ${
-                            isIncluded
-                              ? "cursor-not-allowed border-[#6096BA] bg-[#6096BA]/10 opacity-70"
-                              : selectedMeal === meal.id
-                                ? "cursor-pointer border-[#274C77] bg-[#274C77]/10"
-                                : "cursor-pointer border-border hover:border-muted-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">
-                              {meal.name}
-                              {isIncluded && (
-                                <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">
-                                  Included
-                                </span>
-                              )}
-                            </h4>
-                            {selectedMeal === meal.id && <Check className="h-5 w-5 text-[#274C77]" />}
-                          </div>
-                          {meal.description && <p className="mt-1 text-sm text-muted-foreground">{meal.description}</p>}
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No meal options configured for this trip.</p>
-                )}
-              </div>
 
-              {/* Transportation Options */}
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base">Transportation Options</Label>
-                  <p className="mb-4 text-sm text-muted-foreground">Select your preferred transportation</p>
-                </div>
-                {transportationOptions.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {transportationOptions.map((transport: any) => {
-                      const isIncluded = transport.is_included
-                      return (
-                        <div
-                          key={transport.id}
-                          onClick={() => !isIncluded && setSelectedTransport(transport.id)}
-                          className={`rounded-lg border-2 p-4 transition-all ${
-                            isIncluded
-                              ? "cursor-not-allowed border-[#6096BA] bg-[#6096BA]/10 opacity-70"
-                              : selectedTransport === transport.id
-                                ? "cursor-pointer border-[#274C77] bg-[#274C77]/10"
-                                : "cursor-pointer border-border hover:border-muted-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">
-                              {transport.name}
-                              {isIncluded && (
-                                <span className="ml-2 rounded bg-[#6096BA] px-2 py-0.5 text-xs text-white">
-                                  Included
-                                </span>
-                              )}
-                            </h4>
-                            {selectedTransport === transport.id && <Check className="h-5 w-5 text-[#274C77]" />}
-                          </div>
-                          {transport.description && (
-                            <p className="mt-1 text-sm text-muted-foreground">{transport.description}</p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No transportation options configured for this trip.</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 6: Review & Submit */}
-      {step === 6 && (
-        <Card>
-          <CardHeader className="bg-[#274C77] text-white">
-            <CardTitle>6 Review & Submit</CardTitle>
-            <CardDescription className="text-white/80">Review your selections before submitting</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              {/* Summary */}
-              <div className="space-y-4 rounded-lg bg-muted/30 p-4">
-                <div className="flex justify-between">
-                  <span>Package:</span>
-                  <span className="font-medium">
-                    {packages.find((p: any) => p.id === selectedPlan)?.name || "None"}
+                <div className="mt-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstCourseId = golfCourses[0]?.id
+                      if (firstCourseId && totalRounds > 0) {
+                        const courseWithRounds = Object.entries(courseRounds).find(([_, r]) => r > 0)
+                        if (courseWithRounds) handleCourseRoundChange(courseWithRounds[0], -1)
+                      }
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded border-2 border-gray-200 hover:bg-gray-50"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="flex h-10 w-10 items-center justify-center border-y-2 border-gray-200 text-lg font-medium">
+                    {totalRounds}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstSelectedCourse = Object.entries(courseRounds).find(([_, r]) => r > 0)
+                      if (firstSelectedCourse) handleCourseRoundChange(firstSelectedCourse[0], 1)
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded border-2 border-gray-200 hover:bg-gray-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="flex justify-between">
-                  <span>Room Type:</span>
-                  <span className="font-medium">{roomType === "double" ? "Double Occupancy" : "Single Occupancy"}</span>
+
+                <div className="mt-4 rounded-full border-2 border-gray-200 bg-gray-50 px-6 py-3">
+                  <span className="text-sm">Number of Rounds: {totalRounds}</span>
                 </div>
-                {travelDateRange.from && travelDateRange.to && (
-                  <div className="flex justify-between">
-                    <span>Travel Dates:</span>
-                    <span className="font-medium">
-                      {format(travelDateRange.from, "MMM d")} - {format(travelDateRange.to, "MMM d, yyyy")}
+              </div>
+            </div>
+          )}
+
+          {/* Section 5: Meals */}
+          {mealOptions.length > 0 && (
+            <div className="overflow-hidden">
+              <SectionHeader number={5} title="Meals" />
+              <div className="mt-6 space-y-4">
+                {mealOptions.map((meal: any) => (
+                  <RadioOption
+                    key={meal.id}
+                    selected={selectedMeal === meal.id}
+                    onClick={() => setSelectedMeal(meal.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-serif text-lg font-medium">
+                        {meal.name}
+                        {meal.is_included && " (Recommended)"}
+                      </span>
+                      {meal.is_included && <Utensils className="h-4 w-4 text-muted-foreground" />}
+                    </div>
+                  </RadioOption>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section 6: Transportation */}
+          {transportationOptions.length > 0 && (
+            <div className="overflow-hidden">
+              <SectionHeader number={6} title="Transportation" />
+              <div className="mt-6 space-y-4">
+                {transportationOptions.map((transport: any) => (
+                  <RadioOption
+                    key={transport.id}
+                    selected={selectedTransport === transport.id}
+                    onClick={() => setSelectedTransport(transport.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-serif text-lg font-medium">
+                        {transport.name}
+                        {transport.is_included && " (Recommended)"}
+                      </span>
+                      {transport.is_included && <Car className="h-4 w-4 text-muted-foreground" />}
+                    </div>
+                  </RadioOption>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section 7: Additional Requests */}
+          <div className="overflow-hidden">
+            <SectionHeader number={7} title="Additional Requests" />
+            <div className="py-6">
+              <p className="mb-4 text-sm text-muted-foreground">
+                Let us know if you have any special requests or requirements for your trip
+              </p>
+              <Textarea
+                value={additionalRequests}
+                onChange={(e) => setAdditionalRequests(e.target.value)}
+                placeholder="Lorem ipsum dolor..."
+                className="min-h-[100px] rounded-2xl border-2 border-gray-200 bg-gray-50"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Confirmation Sidebar */}
+        <div className="lg:w-80">
+          <div className="sticky top-24">
+            {/* Confirmation Card */}
+            <div className="overflow-hidden rounded-lg border border-border">
+              <div className="flex">
+                <div className="h-[45px] w-[45px] shrink-0 bg-[#14184E]" />
+                <div className="flex-1 bg-[#3D5A80] px-4 py-3">
+                  <h3 className="font-serif text-lg text-white">Confirmation</h3>
+                </div>
+              </div>
+              <div className="bg-white p-5">
+                <div className="space-y-3 text-sm">
+                  {travelDateRange.from && travelDateRange.to && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        Reservation for: {format(travelDateRange.from, "MMM d")} – {format(travelDateRange.to, "MMM d")}
+                      </span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {roomType && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {roomType === "single" ? "Single Occupancy" : "Double Occupancy"}
+                      </span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {Object.entries(courseRounds)
+                    .filter(([_, rounds]) => rounds > 0)
+                    .map(([courseId, rounds]) => {
+                      const course = golfCourses.find((c: any) => c.id === courseId)
+                      return course ? (
+                        <div key={courseId} className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{course.course_name}</span>
+                          <Check className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      ) : null
+                    })}
+
+                  {totalRounds > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{totalRounds} Rounds</span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {selectedTransportOption && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{selectedTransportOption.name}</span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {selectedMealOption && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{selectedMealOption.name}</span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-4">
+                  <div className="flex items-baseline gap-1 font-serif text-xl">
+                    <span>Total:</span>
+                    <span>
+                      <sup className="text-sm">$</sup>
+                      {calculateTotal()}
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span>Meal:</span>
-                  <span className="font-medium">
-                    {mealOptions.find((m: any) => m.id === selectedMeal)?.name || "None"}
-                    {mealOptions.find((m: any) => m.id === selectedMeal)?.is_included && " (Included)"}
-                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Transportation:</span>
-                  <span className="font-medium">
-                    {transportationOptions.find((t: any) => t.id === selectedTransport)?.name || "None"}
-                    {transportationOptions.find((t: any) => t.id === selectedTransport)?.is_included && " (Included)"}
-                  </span>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Estimated Total:</span>
-                    <span>${calculateTotal().toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Additional Requests */}
-              <div className="space-y-2">
-                <Label>Additional Requests (Optional)</Label>
-                <Textarea
-                  value={additionalRequests}
-                  onChange={(e) => setAdditionalRequests(e.target.value)}
-                  placeholder="Any special requests or requirements..."
-                  rows={3}
-                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-4 w-full bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
+                >
+                  {submitting ? "Submitting..." : "Book Now"}
+                </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={prevStep} disabled={step === 1}>
-          Previous
-        </Button>
-        {step < 6 ? (
-          <Button type="button" onClick={nextStep} className="bg-[#274C77] hover:bg-[#274C77]/90">
-            Next
-          </Button>
-        ) : (
-          <AnimatedButton
-            type="submit"
-            disabled={submitting}
-            startColor="#274C77"
-            endColor="#1d3a5c"
-            hoverText={submitting ? "Submitting..." : "Submitted!"}
-          >
-            {submitting ? "Submitting..." : "Submit Inquiry"}
-          </AnimatedButton>
-        )}
+            {/* Trip Images */}
+            {tripImages.length > 0 && (
+              <div className="mt-6">
+                <div className="flex gap-3">
+                  {/* Main large image */}
+                  <div className="relative aspect-[4/3] flex-1 overflow-hidden rounded-lg">
+                    <Image
+                      src={tripImages[0]?.image_url || "/placeholder.svg"}
+                      alt={trip.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  {/* Stacked thumbnails on the right */}
+                  {tripImages.length > 1 && (
+                    <div className="flex w-20 flex-col gap-3">
+                      {tripImages.slice(1, 3).map((img, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            if (idx === 1 && tripImages.length > 2) {
+                              setGalleryIndex(0)
+                              setGalleryOpen(true)
+                            }
+                          }}
+                          className="relative aspect-square w-full overflow-hidden rounded-lg"
+                        >
+                          <Image
+                            src={img.image_url || "/placeholder.svg"}
+                            alt={`${trip.title} ${idx + 2}`}
+                            fill
+                            className="object-cover"
+                          />
+                          {idx === 1 && tripImages.length > 2 && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                              <span className="text-sm font-medium text-white">+ {tripImages.length - 2} Photos</span>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm italic text-muted-foreground">
+                    {roomType === "single" ? "Single Occupancy Room" : "Double Occupancy Room"}
+                  </p>
+                  <p className="font-serif text-lg font-medium">{trip.location}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {galleryOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setGalleryOpen(false)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setGalleryOpen(false)}
+              className="absolute -right-4 -top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-lg"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Main image */}
+            <div className="relative aspect-[16/10] w-[80vw] max-w-4xl overflow-hidden rounded-lg">
+              <Image
+                src={tripImages[galleryIndex]?.image_url || "/placeholder.svg"}
+                alt={`${trip.title} ${galleryIndex + 1}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            {/* Navigation arrows */}
+            {tripImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGalleryIndex((prev) => (prev === 0 ? tripImages.length - 1 : prev - 1))}
+                  className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-lg transition-colors hover:bg-white"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGalleryIndex((prev) => (prev === tripImages.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-lg transition-colors hover:bg-white"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+
+            {/* Image counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-2 text-sm text-white">
+              {galleryIndex + 1} / {tripImages.length}
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
