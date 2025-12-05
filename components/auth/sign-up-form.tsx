@@ -325,7 +325,7 @@ export function SignUpForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/70"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -354,7 +354,7 @@ export function SignUpForm() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/70"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
