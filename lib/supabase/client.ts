@@ -1,4 +1,4 @@
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
 export function createClient() {
   // Use globalThis to ensure singleton persists across module reloads and code splits
@@ -6,7 +6,7 @@ export function createClient() {
     // @ts-ignore - adding custom property to window
     if (!window.__supabaseClient) {
       // @ts-ignore
-      window.__supabaseClient = createBrowserClient(
+      window.__supabaseClient = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       )
@@ -16,5 +16,5 @@ export function createClient() {
   }
 
   // Fallback for SSR (shouldn't happen but just in case)
-  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 }
