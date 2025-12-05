@@ -52,6 +52,7 @@ export function AdminCourses({
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/auth/login")
+    router.refresh()
   }
 
   const handleDeleteTrip = async (tripId: string, e: React.MouseEvent) => {
