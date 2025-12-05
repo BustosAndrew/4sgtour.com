@@ -48,10 +48,14 @@ type ContinentsViewProps = {
 }
 
 export function ContinentsView({ destinations }: ContinentsViewProps) {
-  const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
+  const [selectedContinent, setSelectedContinent] = useState<string | null>(
+    null,
+  )
 
   const filteredDestinations = selectedContinent
-    ? destinations.filter((d) => d.continent === selectedContinent && d.continent !== null)
+    ? destinations.filter(
+        (d) => d.continent === selectedContinent && d.continent !== null,
+      )
     : []
 
   if (!selectedContinent) {
@@ -62,7 +66,8 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             Explore Golf Destinations
           </h1>
           <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl leading-relaxed text-white drop-shadow-lg xl:text-xl">
-            Choose a continent to discover world-class golf destinations and unforgettable experiences
+            Choose a continent to discover world-class golf destinations and
+            unforgettable experiences
           </p>
         </div>
 
@@ -99,13 +104,20 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
   return (
     <div className="container py-8">
       <div className="mb-8">
-        <Button variant="ghost" onClick={() => setSelectedContinent(null)} className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => setSelectedContinent(null)}
+          className="mb-4"
+        >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Back to Continents
         </Button>
 
         <div className="text-center">
-          <h1 className="text-balance text-4xl font-bold text-foreground" style={{ fontFamily: "Bitter, serif" }}>
+          <h1
+            className="text-balance text-4xl font-bold text-foreground"
+            style={{ fontFamily: "Bitter, serif" }}
+          >
             {selectedContinent}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-muted-foreground">
@@ -120,23 +132,31 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             <Link
               key={destination.id}
               href={`/destinations/${destination.slug}`}
-              className="group block overflow-hidden rounded-2xl border border-border bg-card transition-transform hover:scale-[1.02]"
+              className="group block overflow-hidden border border-border bg-card transition-transform hover:scale-[1.02]"
             >
               <div className="relative h-64 overflow-hidden">
                 <img
                   src={
                     destination.image_url ||
-                    `/placeholder.svg?height=400&width=600&query=golf+course+${destination.name || "/placeholder.svg"}`
+                    `/placeholder.svg?height=400&width=600&query=golf+course+${
+                      destination.name || "/placeholder.svg"
+                    }`
                   }
                   alt={destination.name}
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground">{destination.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{destination.country}</p>
+                <h3 className="text-xl font-bold text-foreground">
+                  {destination.name}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {destination.country}
+                </p>
                 {destination.description && (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{destination.description}</p>
+                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                    {destination.description}
+                  </p>
                 )}
               </div>
             </Link>
@@ -144,7 +164,9 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
         </div>
       ) : (
         <div className="py-12 text-center">
-          <p className="text-muted-foreground">No destinations available in {selectedContinent} yet.</p>
+          <p className="text-muted-foreground">
+            No destinations available in {selectedContinent} yet.
+          </p>
         </div>
       )}
     </div>

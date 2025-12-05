@@ -10,7 +10,7 @@ export function BackToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className="inline-flex items-center gap-2 border border-white/30 px-6 py-2 text-sm transition-colors hover:bg-white/10 rounded-none"
+      className="inline-flex items-center gap-2 border border-white/30 px-6 py-2 text-sm transition-colors hover:bg-white/10"
     >
       <ArrowUp className="h-4 w-4" />
       Back To Top

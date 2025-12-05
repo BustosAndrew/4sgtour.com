@@ -39,14 +39,16 @@ export default function ResetPasswordPage() {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-6">
         <div className="w-full max-w-md">
-          <div className="rounded-lg bg-card p-8 text-center shadow-sm">
+          <div className="bg-card p-8 text-center shadow-sm">
             <div className="mb-4 flex justify-center">
               <CheckCircle2 className="h-16 w-16 text-primary" />
             </div>
-            <h1 className="mb-2 text-2xl font-semibold text-foreground">Check Your Email</h1>
+            <h1 className="mb-2 text-2xl font-semibold text-foreground">
+              Check Your Email
+            </h1>
             <p className="mb-6 text-sm text-muted-foreground">
-              We&apos;ve sent you a password reset link. Please check your email and follow the instructions to reset
-              your password.
+              We&apos;ve sent you a password reset link. Please check your email
+              and follow the instructions to reset your password.
             </p>
             <Button asChild className="w-full">
               <Link href="/auth/login">Back to Login</Link>
@@ -60,7 +62,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-6">
       <div className="w-full max-w-md">
-        <div className="rounded-lg bg-card p-8 shadow-sm">
+        <div className="bg-card p-8 shadow-sm">
           <Link
             href="/auth/login"
             className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
@@ -70,9 +72,12 @@ export default function ResetPasswordPage() {
           </Link>
 
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-foreground">Reset Password</h1>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Reset Password
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Enter your email address and we&apos;ll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
             </p>
           </div>
 
@@ -90,7 +95,11 @@ export default function ResetPasswordPage() {
               />
             </div>
 
-            {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+            {error && (
+              <div className="bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -50,9 +50,13 @@ export function LoginForm() {
       const supabase = createClient()
 
       // Use dev redirect URL if available (for v0 preview), otherwise use origin
-      const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin
+      const baseUrl =
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+        window.location.origin
       const callbackUrl = `${baseUrl}/auth/callback`
-      const redirectTo = redirect ? `${callbackUrl}?redirect=${encodeURIComponent(redirect)}` : callbackUrl
+      const redirectTo = redirect
+        ? `${callbackUrl}?redirect=${encodeURIComponent(redirect)}`
+        : callbackUrl
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -84,8 +88,12 @@ export function LoginForm() {
         <GlassCard>
           <div className="p-8">
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-semibold text-white">Welcome Back!</h1>
-              <p className="mt-2 text-sm text-white/70">Let&apos;s get you signed in securely</p>
+              <h1 className="text-2xl font-semibold text-white">
+                Welcome Back!
+              </h1>
+              <p className="mt-2 text-sm text-white/70">
+                Let&apos;s get you signed in securely
+              </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -109,7 +117,10 @@ export function LoginForm() {
                   <Label htmlFor="password" className="text-white">
                     Password
                   </Label>
-                  <Link href="/auth/reset-password" className="text-xs text-white/70 hover:text-white hover:underline">
+                  <Link
+                    href="/auth/reset-password"
+                    className="text-xs text-white/70 hover:text-white hover:underline"
+                  >
                     Reset password
                   </Link>
                 </div>
@@ -128,14 +139,26 @@ export function LoginForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {error && <div className="rounded-md bg-destructive/30 p-3 text-sm text-white">{error}</div>}
+              {error && (
+                <div className="bg-destructive/30 p-3 text-sm text-white">
+                  {error}
+                </div>
+              )}
 
-              <Button type="submit" className="w-full bg-white text-[#274C77] hover:bg-white/90" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                disabled={isLoading}
+              >
                 {isLoading ? "Logging in..." : "Log In"}
               </Button>
             </form>
@@ -176,7 +199,10 @@ export function LoginForm() {
 
             <p className="mt-6 text-center text-sm text-white/70">
               No account?{" "}
-              <Link href="/auth/sign-up" className="font-medium text-white hover:underline">
+              <Link
+                href="/auth/sign-up"
+                className="font-medium text-white hover:underline"
+              >
                 Create one
               </Link>
             </p>

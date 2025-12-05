@@ -3,8 +3,7 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
 import { EditTripForm } from "@/components/admin/edit-trip-form"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
+import { AdminAvatarButton } from "@/components/admin/admin-avatar-button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
@@ -30,7 +29,11 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     redirect("/")
   }
 
-  const { data: trip } = await supabase.from("trips").select("*").eq("id", id).single()
+  const { data: trip } = await supabase
+    .from("trips")
+    .select("*")
+    .eq("id", id)
+    .single()
 
   if (!trip) {
     notFound()
@@ -89,22 +92,12 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
               </button>
             </Link>
           </div>
-          <AccountSettingsDialog
+          <AdminAvatarButton
             userName={profile?.display_name || profile?.email || ""}
             userEmail={profile?.email || user.email || ""}
             userPhone={profile?.phone || null}
             userPhotoUrl={profile?.photo_url || null}
-          >
-            <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={profile?.photo_url || undefined} alt={profile?.display_name || "Admin"} />
-                <AvatarFallback className="bg-muted text-muted-foreground">
-                  {(profile?.display_name || profile?.email || "A")[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <p className="text-xs text-muted-foreground hidden sm:block">Admin</p>
-            </button>
-          </AccountSettingsDialog>
+          />
         </div>
       </div>
 

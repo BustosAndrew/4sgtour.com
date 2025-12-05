@@ -9,7 +9,10 @@ interface BookingPageProps {
   searchParams: Promise<{ package?: string }>
 }
 
-export default async function BookingPage({ params, searchParams }: BookingPageProps) {
+export default async function BookingPage({
+  params,
+  searchParams,
+}: BookingPageProps) {
   const { slug } = await params
   const { package: packageId } = await searchParams
   const supabase = await createClient()
@@ -24,13 +27,15 @@ export default async function BookingPage({ params, searchParams }: BookingPageP
 
   const { data: trip } = await supabase
     .from("trips")
-    .select(`
+    .select(
+      `
       *,
       images:trip_images(image_url, display_order),
       destination:destinations(name, country),
       packages(*),
       add_ons(*)
-    `)
+    `,
+    )
     .eq("slug", slug)
     .single()
 
@@ -64,13 +69,22 @@ export default async function BookingPage({ params, searchParams }: BookingPageP
     transportation_options: transportationOptions || [],
   }
 
-  const { data: profile } = await supabase.from("profiles").select("display_name, email").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, email")
+    .eq("id", user.id)
+    .single()
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeaderWrapper />
-      <main className="container px-4 py-8 sm:px-6 lg:px-8">
-        <BookingForm trip={tripWithOptions} user={user} profile={profile} preSelectedPackageId={packageId} />
+      <main className="container px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32">
+        <BookingForm
+          trip={tripWithOptions}
+          user={user}
+          profile={profile}
+          preSelectedPackageId={packageId}
+        />
       </main>
       <SiteFooter />
     </div>

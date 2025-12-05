@@ -73,7 +73,7 @@ export default async function TripPage({ params }: TripPageProps) {
           <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2">
             {/* Main large image */}
             {additionalImages[0] && (
-              <div className="overflow-hidden rounded-lg">
+              <div className="overflow-hidden">
                 <img
                   src={additionalImages[0] || "/placeholder.svg"}
                   alt={`${trip.title} view`}
@@ -88,7 +88,7 @@ export default async function TripPage({ params }: TripPageProps) {
                 {additionalImages
                   .slice(1, 3)
                   .map((img: string, idx: number) => (
-                    <div key={idx} className="overflow-hidden rounded-lg">
+                    <div key={idx} className="overflow-hidden">
                       <img
                         src={img || "/placeholder.svg"}
                         alt={`${trip.title} highlight ${idx + 1}`}
@@ -107,8 +107,8 @@ export default async function TripPage({ params }: TripPageProps) {
               <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
                 Overview
               </h2>
-              <div className="mt-2 mb-4 w-[120px]">
-                <AnimatedHr maxWidth="100%" />
+              <div className="mt-2 mb-4">
+                <AnimatedHr />
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
                 {trip.overview_content ||
@@ -123,8 +123,8 @@ export default async function TripPage({ params }: TripPageProps) {
                 <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
                   Highlights
                 </h2>
-                <div className="mt-2 mb-4 w-[120px]">
-                  <AnimatedHr maxWidth="100%" />
+                <div className="mt-2 mb-4">
+                  <AnimatedHr />
                 </div>
                 <ul className="space-y-3">
                   {trip.highlights.map((highlight: string, idx: number) => (
@@ -132,7 +132,7 @@ export default async function TripPage({ params }: TripPageProps) {
                       key={idx}
                       className="flex items-start gap-3 text-sm text-foreground sm:text-base"
                     >
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 bg-foreground" />
                       <span>{highlight}</span>
                     </li>
                   ))}

@@ -32,7 +32,9 @@ export function SignUpForm() {
     try {
       const supabase = createClient()
 
-      const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin
+      const baseUrl =
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+        window.location.origin
       const redirectTo = `${baseUrl}/auth/callback`
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -67,7 +69,9 @@ export function SignUpForm() {
     const cleanPhone = phone.replace(/[\s()-]/g, "")
 
     if (!phoneRegex.test(cleanPhone)) {
-      setError("Please enter a valid phone number with country code (e.g., +12345678900)")
+      setError(
+        "Please enter a valid phone number with country code (e.g., +12345678900)",
+      )
       setIsLoading(false)
       return
     }
@@ -82,7 +86,11 @@ export function SignUpForm() {
 
       setStep("verify")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Failed to send verification code")
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to send verification code",
+      )
     } finally {
       setIsLoading(false)
     }
@@ -107,17 +115,18 @@ export function SignUpForm() {
 
       await supabase.auth.signOut()
 
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: name,
-            phone: cleanPhone,
-            phone_verified: true,
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: name,
+              phone: cleanPhone,
+              phone_verified: true,
+            },
           },
-        },
-      })
+        })
 
       if (signUpError) throw signUpError
       if (!signUpData.session) throw new Error("Failed to establish session")
@@ -168,8 +177,12 @@ export function SignUpForm() {
           <GlassCard>
             <div className="p-8">
               <div className="mb-6 text-center">
-                <h1 className="text-2xl font-semibold text-white">Verify Phone Number</h1>
-                <p className="mt-2 text-sm text-white/70">Enter the 6-digit code sent to {phone}</p>
+                <h1 className="text-2xl font-semibold text-white">
+                  Verify Phone Number
+                </h1>
+                <p className="mt-2 text-sm text-white/70">
+                  Enter the 6-digit code sent to {phone}
+                </p>
               </div>
 
               <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -183,7 +196,9 @@ export function SignUpForm() {
                     placeholder="000000"
                     required
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) =>
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
                     className="bg-white/20 border-white/30 text-white placeholder:text-white/50 text-center text-2xl tracking-widest"
                     maxLength={6}
                     autoComplete="one-time-code"
@@ -192,8 +207,10 @@ export function SignUpForm() {
 
                 {error && (
                   <div
-                    className={`rounded-md p-3 text-sm ${
-                      error.includes("success") ? "bg-green-500/30 text-white" : "bg-destructive/30 text-white"
+                    className={`p-3 text-sm ${
+                      error.includes("success")
+                        ? "bg-green-500/30 text-white"
+                        : "bg-destructive/30 text-white"
                     }`}
                   >
                     {error}
@@ -254,7 +271,9 @@ export function SignUpForm() {
           <div className="p-8">
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-semibold text-white">Sign Up</h1>
-              <p className="mt-2 text-sm text-white/70">Create your account with phone verification</p>
+              <p className="mt-2 text-sm text-white/70">
+                Create your account with phone verification
+              </p>
             </div>
 
             <form onSubmit={handleSendOtp} className="space-y-4">
@@ -308,7 +327,11 @@ export function SignUpForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -333,7 +356,11 @@ export function SignUpForm() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -351,12 +378,22 @@ export function SignUpForm() {
                   onChange={(e) => setPhone(e.target.value)}
                   className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                 />
-                <p className="text-xs text-white/50">Must include country code (e.g., +1 for US)</p>
+                <p className="text-xs text-white/50">
+                  Must include country code (e.g., +1 for US)
+                </p>
               </div>
 
-              {error && <div className="rounded-md bg-destructive/30 p-3 text-sm text-white">{error}</div>}
+              {error && (
+                <div className="bg-destructive/30 p-3 text-sm text-white">
+                  {error}
+                </div>
+              )}
 
-              <Button type="submit" className="w-full bg-white text-[#274C77] hover:bg-white/90" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                disabled={isLoading}
+              >
                 {isLoading ? "Sending code..." : "Continue"}
               </Button>
             </form>
@@ -397,7 +434,10 @@ export function SignUpForm() {
 
             <p className="mt-6 text-center text-sm text-white/70">
               Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-white hover:underline">
+              <Link
+                href="/auth/login"
+                className="font-medium text-white hover:underline"
+              >
                 Log In
               </Link>
             </p>

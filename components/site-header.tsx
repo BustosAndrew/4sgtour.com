@@ -3,9 +3,14 @@
 import Link from "next/link"
 import { UserNav } from "@/components/user-nav"
 import { Globe, Menu, X, ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./glass.css"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type SiteHeaderProps = {
   user?: any
@@ -14,13 +19,32 @@ type SiteHeaderProps = {
 }
 
 const languages = [
-  { code: "en", name: "English", flag: "https://flagcdn.com/w40/us.png", alt: "US" },
-  { code: "ko", name: "한국어", flag: "https://flagcdn.com/w40/kr.png", alt: "Korea" },
+  {
+    code: "en",
+    name: "English",
+    flag: "https://flagcdn.com/w40/us.png",
+    alt: "US",
+  },
+  {
+    code: "ko",
+    name: "한국어",
+    flag: "https://flagcdn.com/w40/kr.png",
+    alt: "Korea",
+  },
 ]
 
-export function SiteHeader({ user, userType = "regular", className }: SiteHeaderProps) {
+export function SiteHeader({
+  user,
+  userType = "regular",
+  className,
+}: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentLanguage, setCurrentLanguage] = useState(languages[0])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 w-full ${className}`}>
@@ -41,7 +65,11 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
             <div className="flex h-full items-center justify-between">
               {/* Logo */}
               <Link href="/" className="flex-shrink-0">
-                <img src="/logo.png" alt="4 Seasons Golf Tour" className="h-[40px] lg:h-[50px] w-auto object-contain" />
+                <img
+                  src="/logo.png"
+                  alt="4 Seasons Golf Tour"
+                  className="h-[40px] lg:h-[50px] w-auto object-contain"
+                />
               </Link>
 
               {/* Desktop Navigation - centered */}
@@ -69,42 +97,46 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
               {/* Desktop Right Section */}
               <div className="hidden lg:flex items-center gap-4 xl:gap-6">
                 {/* Language Dropdown */}
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
-                    <Globe className="w-4 h-4 text-white" />
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                      <img
-                        src={currentLanguage.flag || "/placeholder.svg"}
-                        alt={currentLanguage.alt}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <span className="text-white text-sm">{currentLanguage.name}</span>
-                    <ChevronDown className="w-3 h-3 text-white" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="bg-black/80 backdrop-blur-md border-white/20"
-                    sideOffset={5}
-                  >
-                    {languages.map((lang) => (
-                      <DropdownMenuItem
-                        key={lang.code}
-                        onClick={() => setCurrentLanguage(lang)}
-                        className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
-                      >
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                          <img
-                            src={lang.flag || "/placeholder.svg"}
-                            alt={lang.alt}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <span>{lang.name}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {mounted && (
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
+                      <Globe className="w-4 h-4 text-white" />
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                        <img
+                          src={currentLanguage.flag || "/placeholder.svg"}
+                          alt={currentLanguage.alt}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="text-white text-sm">
+                        {currentLanguage.name}
+                      </span>
+                      <ChevronDown className="w-3 h-3 text-white" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="bg-black/80 backdrop-blur-md border-white/20"
+                      sideOffset={5}
+                    >
+                      {languages.map((lang) => (
+                        <DropdownMenuItem
+                          key={lang.code}
+                          onClick={() => setCurrentLanguage(lang)}
+                          className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
+                        >
+                          <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                            <img
+                              src={lang.flag || "/placeholder.svg"}
+                              alt={lang.alt}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <span>{lang.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
 
                 {/* Auth Links */}
                 {user ? (
@@ -133,7 +165,11 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
                 className="lg:hidden text-white p-2 -mr-2"
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
               </button>
             </div>
           </div>
@@ -201,7 +237,9 @@ export function SiteHeader({ user, userType = "regular", className }: SiteHeader
                 {user ? (
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm text-white/80">Signed in as</span>
-                    <span className="text-sm text-white font-medium truncate max-w-[200px]">{user.email}</span>
+                    <span className="text-sm text-white font-medium truncate max-w-[200px]">
+                      {user.email}
+                    </span>
                   </div>
                 ) : (
                   <div className="flex gap-3">

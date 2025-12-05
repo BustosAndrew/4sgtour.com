@@ -25,7 +25,9 @@ const CONTINENT_IMAGES: Record<string, string> = {
   "south-america": "/placeholder.svg?height=800&width=1920",
 }
 
-export default async function ContinentTripsPage({ params }: ContinentTripsPageProps) {
+export default async function ContinentTripsPage({
+  params,
+}: ContinentTripsPageProps) {
   const { continent: continentSlug } = await params
   const continentName = CONTINENT_NAMES[continentSlug]
 
@@ -37,15 +39,18 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
 
   const { data: trips } = await supabase
     .from("trips")
-    .select(`
+    .select(
+      `
       *,
       packages(id, name, price)
-    `)
+    `,
+    )
     .eq("continent", continentName)
     .order("created_at", { ascending: false })
 
   const heroImage =
-    CONTINENT_IMAGES[continentSlug] || `/placeholder.svg?height=800&width=1920&query=golf+course+${continentName}`
+    CONTINENT_IMAGES[continentSlug] ||
+    `/placeholder.svg?height=800&width=1920&query=golf+course+${continentName}`
 
   return (
     <div className="min-h-screen">
@@ -58,19 +63,24 @@ export default async function ContinentTripsPage({ params }: ContinentTripsPageP
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center px-4">
-          <div className="container text-center text-white">
-            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl">4 Seasons Golf Tour</h1>
-            <p className="mt-2 text-lg sm:mt-4 sm:text-xl md:text-2xl">Courses in {continentName}</p>
+        <div className="absolute inset-0 flex items-center justify-center lg:justify-start px-4 lg:px-20">
+          <div className="container text-center lg:text-left text-white">
+            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl font-bitter">
+              4 Seasons Golf Tour
+            </h1>
+            <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
           </div>
         </div>
       </section>
 
       <main className="container px-4 py-8 sm:px-6 sm:py-12 md:py-16 lg:py-20">
         <div className="mb-6 text-center sm:mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">Courses in {continentName}</h2>
-          <p className="mx-auto mt-3 max-w-3xl px-4 text-pretty text-sm text-muted-foreground sm:mt-4 sm:text-base">
-            Discover world-class golf courses and unforgettable experiences across {continentName}.
+          <h2 className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
+            Courses in {continentName}
+          </h2>
+          <p className="mx-auto mt-3 max-w-4xl px-4 text-pretty text-xl sm:mt-4">
+            Discover world-class golf courses and unforgettable experiences
+            across {continentName}.
           </p>
         </div>
 

@@ -22,7 +22,11 @@ interface UserInquiryMessagesProps {
   userEmail: string
 }
 
-export function UserInquiryMessages({ inquiryId, userName, userEmail }: UserInquiryMessagesProps) {
+export function UserInquiryMessages({
+  inquiryId,
+  userName,
+  userEmail,
+}: UserInquiryMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(false)
@@ -82,37 +86,61 @@ export function UserInquiryMessages({ inquiryId, userName, userEmail }: UserInqu
 
   return (
     <div className="mt-4 border-t pt-4">
-      <Button variant="outline" onClick={() => setIsExpanded(!isExpanded)} className="w-full justify-between" size="sm">
+      <Button
+        variant="outline"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full justify-between"
+        size="sm"
+      >
         <span className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           Messages {messages.length > 0 && `(${messages.length})`}
         </span>
-        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        {isExpanded ? (
+          <ChevronUp className="h-4 w-4" />
+        ) : (
+          <ChevronDown className="h-4 w-4" />
+        )}
       </Button>
 
       {isExpanded && (
         <div className="mt-4 space-y-4">
           {/* Messages */}
-          <div className="max-h-[400px] space-y-3 overflow-y-auto rounded-lg border bg-muted/30 p-4">
+          <div className="max-h-[400px] space-y-3 overflow-y-auto border bg-muted/30 p-4">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading messages...</p>
+              <p className="text-sm text-muted-foreground">
+                Loading messages...
+              </p>
             ) : messages.length === 0 ? (
               <div className="py-8 text-center">
                 <MessageSquare className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">No messages yet. Send a message to the admin!</p>
+                <p className="text-sm text-muted-foreground">
+                  No messages yet. Send a message to the admin!
+                </p>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className={`flex ${message.is_admin ? "justify-start" : "justify-end"}`}>
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.is_admin ? "justify-start" : "justify-end"
+                  }`}
+                >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.is_admin ? "bg-muted" : "bg-primary text-primary-foreground"
+                    className={`max-w-[80%] p-3 ${
+                      message.is_admin
+                        ? "bg-muted"
+                        : "bg-primary text-primary-foreground"
                     }`}
                   >
-                    <p className="mb-1 text-xs font-medium">{message.sender_name}</p>
+                    <p className="mb-1 text-xs font-medium">
+                      {message.sender_name}
+                    </p>
                     <p className="text-sm">{message.message_text}</p>
                     <p className="mt-1 text-xs opacity-70">
-                      {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(message.created_at), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -135,7 +163,11 @@ export function UserInquiryMessages({ inquiryId, userName, userEmail }: UserInqu
               className="flex-1"
               rows={2}
             />
-            <Button onClick={sendMessage} disabled={sending || !newMessage.trim()} size="icon">
+            <Button
+              onClick={sendMessage}
+              disabled={sending || !newMessage.trim()}
+              size="icon"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
