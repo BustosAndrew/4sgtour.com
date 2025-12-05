@@ -4,6 +4,7 @@ import Link from "next/link"
 import { UserNav } from "@/components/user-nav"
 import { Globe, Menu, X, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import "./glass.css"
 import {
   DropdownMenu,
@@ -46,7 +47,7 @@ export function SiteHeader({
     setMounted(true)
   }, [])
 
-  return (
+  const header = (
     <header className={`fixed top-0 left-0 right-0 z-50 w-full ${className}`}>
       <div className="GlassContainer">
         <div className="GlassContent h-[70px] lg:h-[87px]">
@@ -174,96 +175,110 @@ export function SiteHeader({
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        <div
-          className={`lg:hidden bg-black/90 backdrop-blur-lg border-t border-white/20 overflow-hidden transition-all duration-300 ease-in-out pointer-events-auto ${
-            mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="px-4 sm:px-6 py-6">
-            <nav className="flex flex-col gap-1">
-              <Link
-                href="/"
-                className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/destinations"
-                className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Destinations
-              </Link>
-              <Link
-                href="/contact"
-                className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact Us
-              </Link>
-
-              {/* Language Section */}
-              <div className="border-t border-white/20 mt-4 pt-4">
-                <div className="text-white/60 text-sm mb-3">Language</div>
-                <div className="flex gap-2">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => setCurrentLanguage(lang)}
-                      className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
-                        currentLanguage.code === lang.code
-                          ? "bg-white/20 border border-white/30"
-                          : "bg-white/5 border border-white/10 hover:bg-white/10"
-                      } transition-colors`}
-                    >
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
-                        <img
-                          src={lang.flag || "/placeholder.svg"}
-                          alt={lang.alt}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <span className="text-white text-sm">{lang.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Auth Section */}
-              <div className="border-t border-white/20 mt-4 pt-4">
-                {user ? (
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm text-white/80">Signed in as</span>
-                    <span className="text-sm text-white font-medium truncate max-w-[200px]">
-                      {user.email}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex gap-3">
-                    <Link
-                      href="/auth/sign-up"
-                      className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sign Up
-                    </Link>
-                    <Link
-                      href="/auth/login"
-                      className="flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Log In
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </nav>
-          </div>
-        </div>
       </div>
     </header>
+  )
+
+  // Mobile menu rendered as a portal to escape stacking context
+  const mobileMenu =
+    mounted && mobileMenuOpen
+      ? createPortal(
+          <div
+            className="lg:hidden fixed left-0 right-0 top-[70px] bottom-0 border-t border-white/20"
+            style={{ backgroundColor: "#274C77", zIndex: 99999 }}
+          >
+            <div className="px-4 sm:px-6 py-6 h-full overflow-y-auto">
+              <nav className="flex flex-col gap-1">
+                <Link
+                  href="/"
+                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/destinations"
+                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Destinations
+                </Link>
+                <Link
+                  href="/contact"
+                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact Us
+                </Link>
+
+                {/* Language Section */}
+                <div className="border-t border-white/20 mt-4 pt-4">
+                  <div className="text-white/60 text-sm mb-3">Language</div>
+                  <div className="flex gap-2">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => setCurrentLanguage(lang)}
+                        className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
+                          currentLanguage.code === lang.code
+                            ? "bg-white/20 border border-white/30"
+                            : "bg-white/5 border border-white/10 hover:bg-white/10"
+                        } transition-colors`}
+                      >
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
+                          <img
+                            src={lang.flag || "/placeholder.svg"}
+                            alt={lang.alt}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <span className="text-white text-sm">{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Auth Section */}
+                <div className="border-t border-white/20 mt-4 pt-4">
+                  {user ? (
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-white/80">
+                        Signed in as
+                      </span>
+                      <span className="text-sm text-white font-medium truncate max-w-[200px]">
+                        {user.email}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <Link
+                        href="/auth/sign-up"
+                        className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                      <Link
+                        href="/auth/login"
+                        className="flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Log In
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </nav>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null
+
+  return (
+    <>
+      {header}
+      {mobileMenu}
+    </>
   )
 }
