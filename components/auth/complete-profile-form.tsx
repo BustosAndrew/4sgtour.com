@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { GlassCard } from "@/components/ui/glass-card"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -151,144 +152,167 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
 
   if (step === "verify") {
     return (
-      <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center bg-muted/30 p-6">
+      <div
+        className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center p-6 pt-24 lg:pt-28"
+        style={{
+          backgroundImage: "url('/images/contact-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="w-full max-w-md">
-          <div className="bg-card p-8 border-primary border-solid border-2 shadow-none">
-            <div className="mb-6 text-center">
-              <h1 className="text-2xl font-semibold text-foreground">
-                Verify Phone Number
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Enter the 6-digit code sent to {phone}
-              </p>
-            </div>
-
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="otp">Verification Code*</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="000000"
-                  required
-                  value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  className="bg-muted/50 text-center text-2xl tracking-widest"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                />
+          <GlassCard>
+            <div className="p-8">
+              <div className="mb-6 text-center">
+                <h1 className="text-2xl font-semibold text-white">
+                  Verify Phone Number
+                </h1>
+                <p className="mt-2 text-sm text-white/70">
+                  Enter the 6-digit code sent to {phone}
+                </p>
               </div>
 
-              {error && (
-                <div
-                  className={`p-3 text-sm ${
-                    error.includes("success")
-                      ? "bg-green-500/10 text-green-600"
-                      : "bg-destructive/10 text-destructive"
-                  }`}
-                >
-                  {error}
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp" className="text-white">
+                    Verification Code*
+                  </Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="000000"
+                    required
+                    value={otp}
+                    onChange={(e) =>
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/50 text-center text-2xl tracking-widest"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                  />
                 </div>
-              )}
 
-              <Button
-                type="submit"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                disabled={isLoading || otp.length !== 6}
-              >
-                {isLoading ? "Verifying..." : "Verify Phone"}
-              </Button>
+                {error && (
+                  <div
+                    className={`p-3 text-sm ${
+                      error.includes("success")
+                        ? "bg-green-500/30 text-white"
+                        : "bg-destructive/30 text-white"
+                    }`}
+                  >
+                    {error}
+                  </div>
+                )}
 
-              <div className="flex gap-2">
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 bg-transparent"
-                  onClick={handleResendOtp}
-                  disabled={isLoading}
+                  type="submit"
+                  className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                  disabled={isLoading || otp.length !== 6}
                 >
-                  Resend Code
+                  {isLoading ? "Verifying..." : "Verify Phone"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex-1"
-                  onClick={() => {
-                    setStep("phone")
-                    setOtp("")
-                    setError(null)
-                  }}
-                  disabled={isLoading}
-                >
-                  Change Number
-                </Button>
-              </div>
-            </form>
-          </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-white/10 border-white/30 text-white hover:bg-white/20"
+                    onClick={handleResendOtp}
+                    disabled={isLoading}
+                  >
+                    Resend Code
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex-1 text-white hover:bg-white/10"
+                    onClick={() => {
+                      setStep("phone")
+                      setOtp("")
+                      setError(null)
+                    }}
+                    disabled={isLoading}
+                  >
+                    Change Number
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </GlassCard>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center bg-muted/30 p-6">
+    <div
+      className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center p-6 pt-24 lg:pt-28"
+      style={{
+        backgroundImage: "url('/images/contact-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <div className="w-full max-w-md">
-        <div className="bg-card p-8 border-primary border-solid border-2 shadow-none">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-semibold text-foreground">
-              Complete Your Profile
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Welcome, {user.user_metadata?.full_name || user.email}! You signed
-              in with Google. Please add your phone number to complete setup.
-            </p>
-          </div>
-
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number*</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+12345678900"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="bg-muted/50"
-              />
-              <p className="text-xs text-muted-foreground">
-                Must include country code (e.g., +1 for US)
+        <GlassCard>
+          <div className="p-8">
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-semibold text-white">
+                Complete Your Profile
+              </h1>
+              <p className="mt-2 text-sm text-white/70">
+                Welcome, {user.user_metadata?.full_name || user.email}! You
+                signed in with Google. Please add your phone number to complete
+                setup.
               </p>
             </div>
 
-            {error && (
-              <div className="bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-white">
+                  Phone Number*
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+12345678900"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                />
+                <p className="text-xs text-white/70">
+                  Must include country code (e.g., +1 for US)
+                </p>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={isLoading}
-            >
-              {isLoading ? "Sending code..." : "Continue"}
-            </Button>
-          </form>
+              {error && (
+                <div className="bg-destructive/30 p-3 text-sm text-white">
+                  {error}
+                </div>
+              )}
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Want to use a different account?{" "}
-            <Link
-              href="/auth/login"
-              className="font-medium text-primary hover:underline"
-              onClick={handleSkip}
-            >
-              Sign out
-            </Link>
-          </p>
-        </div>
+              <Button
+                type="submit"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                disabled={isLoading}
+              >
+                {isLoading ? "Sending code..." : "Continue"}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-white/70">
+              Want to use a different account?{" "}
+              <Link
+                href="/auth/login"
+                className="font-medium text-white hover:underline"
+                onClick={handleSkip}
+              >
+                Sign out
+              </Link>
+            </p>
+          </div>
+        </GlassCard>
       </div>
     </div>
   )
