@@ -332,28 +332,8 @@ export function BookingForm({
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
     if (selectedPackage) total += Number(selectedPackage.price)
 
-    Object.entries(courseRounds).forEach(([courseId, rounds]) => {
-      if (rounds > 0) {
-        const course = golfCourses.find((c: any) => c.id === courseId)
-        if (course && !course.is_included) {
-          total += Number(course.price_per_round) * rounds
-        }
-      }
-    })
-
-    const selectedMealOption = mealOptions.find(
-      (meal: any) => meal.id === selectedMeal,
-    )
-    if (selectedMealOption && !selectedMealOption.is_included) {
-      total += Number(selectedMealOption.price || 0)
-    }
-
-    const selectedTransportOption = transportationOptions.find(
-      (transport: any) => transport.id === selectedTransport,
-    )
-    if (selectedTransportOption && !selectedTransportOption.is_included) {
-      total += Number(selectedTransportOption.price || 0)
-    }
+    // Note: Golf courses, meals, and transportation no longer have individual prices
+    // All pricing is now included in the package price
 
     return total
   }

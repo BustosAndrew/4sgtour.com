@@ -38,9 +38,9 @@ export default async function FavoritesPage() {
     >) || []
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       <SiteHeaderWrapper />
-      <main className="container px-4 py-8 sm:px-6 lg:px-8">
+      <main className="container px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32 min-h-screen">
         <h1 className="mb-8 text-2xl font-semibold sm:text-3xl">
           My Favorites
         </h1>

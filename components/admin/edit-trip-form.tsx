@@ -8,10 +8,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
-import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
+import {
+  Upload,
+  X,
+  Plus,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
 interface EditTripFormProps {
@@ -24,8 +37,8 @@ interface EditTripFormProps {
     price_regular: number // Added price_regular
     max_guests: number // Added max_guests
     max_days?: number | null
+    min_days?: number | null
     min_days_advance?: number | null
-    is_all_inclusive?: boolean // REMOVED is_all_inclusive
     courses_photo_url: string | null
     single_room_photo_url: string | null
     double_room_photo_url: string | null
@@ -38,33 +51,37 @@ interface EditTripFormProps {
 }
 
 interface TripData {
-  // Added TripData interface
-  id: string
   title: string
   description: string
   location: string
   continent: string
   price_regular: number
-  max_guests: number
-  max_days: number | null
-  min_days_advance: number
-  min_days: number
-  courses_photo_url: string | null
-  single_room_photo_url: string | null
-  double_room_photo_url: string | null
-  highlights?: string[]
-  packages?: any[]
-  golf_courses?: any[]
-  meal_options?: any[]
-  transportation_options?: any[]
+  max_guests: string
+  max_days: string
+  min_days_advance: string
+  min_days: string
 }
 
-const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = [
+  "Africa",
+  "Asia",
+  "Europe",
+  "North America",
+  "South America",
+]
 
 const STEPS = [
-  { id: 1, title: "Trip Basics", description: "Title, description, and images" },
+  {
+    id: 1,
+    title: "Trip Basics",
+    description: "Title, description, and images",
+  },
   { id: 2, title: "Packages", description: "Room types and accommodation" },
-  { id: 3, title: "Trip Options", description: "Configure golf courses, meals, and transportation" },
+  {
+    id: 3,
+    title: "Trip Options",
+    description: "Configure golf courses, meals, and transportation",
+  },
   { id: 4, title: "Review & Submit", description: "Review and save changes" },
 ]
 
@@ -76,13 +93,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [currentStep, setCurrentStep] = useState(1)
 
   const [formData, setFormData] = useState<TripData>({
-    // Updated formData type
     title: trip.title || "",
     description: trip.description || "",
-    location: trip.location || "", // Added location
+    location: trip.location || "",
     continent: trip.continent || "",
-    price_regular: trip.price_regular || 0, // Changed to number, initialized to 0
-    max_guests: trip.max_guests?.toString() || "20", // Added max_guests
+    price_regular: trip.price_regular || 0,
+    max_guests: trip.max_guests?.toString() || "20",
     max_days: trip.max_days?.toString() || "",
     min_days_advance: trip.min_days_advance?.toString() || "0",
     min_days: trip.min_days?.toString() || "1",
@@ -99,7 +115,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const initializePackages = () => {
     const existingPackages = trip.packages || []
     const premiumPkg = existingPackages.find(
-      (p: any) => p.name === "Premium" || p.name === "Basic" || p.name === "Regular",
+      (p: any) =>
+        p.name === "Premium" || p.name === "Basic" || p.name === "Regular",
     )
     const upgradePkg = existingPackages.find((p: any) => p.name === "Upgrade")
 
@@ -137,7 +154,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const [packages, setPackages] = useState(initializePackages())
   const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
-    (trip.packages || []).some((p: any) => p.name === "Upgrade" || p.name === "Premium"),
+    (trip.packages || []).some(
+      (p: any) => p.name === "Upgrade" || p.name === "Premium",
+    ),
   )
 
   const [golfCourses, setGolfCourses] = useState(() => {
@@ -145,12 +164,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       id: course.id,
       name: course.name || "",
       description: course.description || "",
-      price: course.price_per_round || 0,
       max_rounds: course.max_rounds || 5,
     }))
   })
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
-  const [transportationOptions, setTransportationOptions] = useState(trip.transportation_options || [])
+  const [transportationOptions, setTransportationOptions] = useState(
+    trip.transportation_options || [],
+  )
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -184,7 +204,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     }
   }
 
-  const handleRemovePhoto = (photoType: "courses" | "singleRoom" | "doubleRoom") => {
+  const handleRemovePhoto = (
+    photoType: "courses" | "singleRoom" | "doubleRoom",
+  ) => {
     setPhotos((prev) => ({ ...prev, [photoType]: "" }))
   }
 
@@ -224,8 +246,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         id: `new-${Date.now()}`,
         name: "",
         description: "",
-        price: 0,
-        max_rounds: 5, // Added max_rounds with default value
+        max_rounds: 5,
       },
     ])
   }
@@ -277,10 +298,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   }
 
   const removeTransportationOption = (index: number) => {
-    setTransportationOptions(transportationOptions.filter((_, i) => i !== index))
+    setTransportationOptions(
+      transportationOptions.filter((_, i) => i !== index),
+    )
   }
 
-  const handleTransportationOptionChange = (index: number, field: string, value: any) => {
+  const handleTransportationOptionChange = (
+    index: number,
+    field: string,
+    value: any,
+  ) => {
     const updated = [...transportationOptions]
     updated[index] = { ...updated[index], [field]: value }
     setTransportationOptions(updated)
@@ -305,15 +332,19 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       case 1:
         return (
           formData.title &&
-          formData.location && // Added location validation
+          formData.location &&
           formData.continent &&
           formData.min_days &&
-          formData.max_guests !== "0" &&
-          formData.price_regular !== 0 // Changed to check if it's a number and not 0
+          Number(formData.max_guests) > 0 &&
+          formData.price_regular !== 0
         )
       case 2:
         const premiumPackage = packages.find((p) => p.name === "Premium")
-        return premiumPackage?.price !== undefined && premiumPackage?.price !== null && premiumPackage?.price >= 0
+        return (
+          premiumPackage?.price !== undefined &&
+          premiumPackage?.price !== null &&
+          premiumPackage?.price >= 0
+        )
       case 3:
         return true // Trip options are optional
       default:
@@ -339,7 +370,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     // Step 1 validation
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
-    if (!formData.continent) errors.push("Continent selection is required (Step 1)")
+    if (!formData.continent)
+      errors.push("Continent selection is required (Step 1)")
     if (formData.max_days && Number(formData.max_days) <= 0) {
       errors.push("Maximum trip duration must be a positive number (Step 1)")
     }
@@ -413,7 +445,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           packages,
           golf_courses: golfCourses.map((course) => ({
             ...course,
-            price_per_round: course.price, // Map component field name back to database field name
           })),
           meal_options: mealOptions,
           transportation_options: transportationOptions,
@@ -459,8 +490,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
             <h3 className="mb-4 text-lg font-semibold">Delete Trip</h3>
             <p className="mb-6 text-sm text-muted-foreground">
-              Are you sure you want to delete this trip? This action cannot be undone. All packages, add-ons, and
-              bookings associated with this trip will also be deleted.
+              Are you sure you want to delete this trip? This action cannot be
+              undone. All packages, add-ons, and bookings associated with this
+              trip will also be deleted.
             </p>
             <div className="flex gap-3">
               <Button
@@ -471,7 +503,12 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="flex-1">
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1"
+              >
                 {deleting ? "Deleting..." : "Delete Trip"}
               </Button>
             </div>
@@ -491,25 +528,33 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     currentStep === step.id
                       ? "border-primary bg-primary text-white"
                       : currentStep > step.id
-                        ? "border-primary/70 bg-primary/70 text-white"
-                        : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
+                      ? "border-primary/70 bg-primary/70 text-white"
+                      : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
                   }`}
                 >
                   {step.id}
                 </button>
                 <div className="hidden md:block">
                   <p
-                    className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}
+                    className={`text-sm font-medium ${
+                      currentStep >= step.id
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    }`}
                   >
                     {step.title}
                   </p>
-                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
               </div>
               {idx < STEPS.length - 1 && (
                 <div
                   className={`mx-2 h-0.5 flex-1 md:mx-4 ${
-                    currentStep > step.id ? "bg-primary/70" : "bg-muted-foreground/30"
+                    currentStep > step.id
+                      ? "bg-primary/70"
+                      : "bg-muted-foreground/30"
                   }`}
                 />
               )}
@@ -523,18 +568,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Trip Basics</h2>
-              <p className="text-sm text-muted-foreground">Update the basic information about your golf trip</p>
+              <p className="text-sm text-muted-foreground">
+                Update the basic information about your golf trip
+              </p>
             </div>
 
             {/* Trip Name */}
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-base">
+              <Label htmlFor="title" className="text-base text-foreground">
                 Title of place *
               </Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 placeholder="Title of place"
                 required
                 className="h-12"
@@ -543,13 +592,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-base">
+              <Label
+                htmlFor="description"
+                className="text-base text-foreground"
+              >
                 Description
               </Label>
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Add a description..."
                 rows={6}
                 className="resize-none"
@@ -558,13 +612,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Location */}
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-base">
+              <Label htmlFor="location" className="text-base text-foreground">
                 Location *
               </Label>
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
                 placeholder="e.g., Pebble Beach, California"
                 required
                 className="h-12"
@@ -574,8 +630,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             {/* Highlights */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Highlights (Optional)</Label>
-                <Button type="button" onClick={addHighlight} size="sm" variant="outline">
+                <Label className="text-base text-foreground">
+                  Highlights (Optional)
+                </Label>
+                <Button
+                  type="button"
+                  onClick={addHighlight}
+                  size="sm"
+                  variant="outline"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Highlight
                 </Button>
@@ -602,13 +665,17 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No highlights added yet</p>
+                <p className="text-sm text-muted-foreground">
+                  No highlights added yet
+                </p>
               )}
             </div>
 
             {/* Choose Continent */}
             <div className="space-y-3">
-              <Label className="text-base">Choose Continent *</Label>
+              <Label className="text-base text-foreground">
+                Choose Continent *
+              </Label>
               <div className="flex flex-wrap gap-2">
                 {CONTINENTS.map((continent) => (
                   <button
@@ -624,8 +691,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     {continent === "North America"
                       ? "N. America"
                       : continent === "South America"
-                        ? "S. America"
-                        : continent}
+                      ? "S. America"
+                      : continent}
                   </button>
                 ))}
               </div>
@@ -640,11 +707,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 type="number"
                 min="1"
                 value={formData.max_days}
-                onChange={(e) => setFormData({ ...formData, max_days: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_days: e.target.value })
+                }
                 placeholder="e.g., 7"
               />
               <p className="text-xs text-muted-foreground">
-                Optional: Set a maximum number of days guests can book for this trip
+                Optional: Set a maximum number of days guests can book for this
+                trip
               </p>
             </div>
 
@@ -657,16 +727,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 type="number"
                 min="1"
                 value={formData.min_days}
-                onChange={(e) => setFormData({ ...formData, min_days: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_days: e.target.value })
+                }
                 placeholder="e.g., 3"
               />
               <p className="text-xs text-muted-foreground">
-                Minimum number of days guests must select on the calendar (default: 1)
+                Minimum number of days guests must select on the calendar
+                (default: 1)
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_days_advance" className="text-base text-foreground">
+              <Label
+                htmlFor="min_days_advance"
+                className="text-base text-foreground"
+              >
                 Minimum Advance Booking Period (Days)
               </Label>
               <Input
@@ -674,34 +750,20 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 type="number"
                 min="0"
                 value={formData.min_days_advance}
-                onChange={(e) => setFormData({ ...formData, min_days_advance: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_days_advance: e.target.value })
+                }
                 placeholder="e.g., 30"
               />
               <p className="text-xs text-muted-foreground">
-                Optional: Minimum days in advance required to book (0 = no restriction)
+                Optional: Minimum days in advance required to book (0 = no
+                restriction)
               </p>
-            </div>
-
-            {/* Price Regular */}
-            <div className="space-y-2">
-              <Label htmlFor="price_regular" className="text-base">
-                Price (USD) *
-              </Label>
-              <Input
-                id="price_regular"
-                type="number"
-                min="0"
-                value={formData.price_regular}
-                onChange={(e) => setFormData({ ...formData, price_regular: Number(e.target.value) })}
-                placeholder="e.g., 1500"
-                required
-                className="h-12"
-              />
             </div>
 
             {/* Max Guests */}
             <div className="space-y-2">
-              <Label htmlFor="max_guests" className="text-base">
+              <Label htmlFor="max_guests" className="text-base text-foreground">
                 Max Guests *
               </Label>
               <Input
@@ -709,7 +771,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 type="number"
                 min="1"
                 value={formData.max_guests}
-                onChange={(e) => setFormData({ ...formData, max_guests: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_guests: e.target.value })
+                }
                 placeholder="e.g., 4"
                 required
                 className="h-12"
@@ -720,10 +784,17 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Upload Photos for Courses */}
             <div className="space-y-3">
-              <Label className="text-base">Upload Photos for Courses</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Courses
+              </Label>
               {photos.courses ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
-                  <Image src={photos.courses || "/placeholder.svg"} alt="Golf courses" fill className="object-cover" />
+                  <Image
+                    src={photos.courses || "/placeholder.svg"}
+                    alt="Golf courses"
+                    fill
+                    className="object-cover"
+                  />
                   <Button
                     type="button"
                     size="icon"
@@ -739,9 +810,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -755,7 +831,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Upload Photos for Single Occupancy Room */}
             <div className="space-y-3">
-              <Label className="text-base">Upload Photos for Single Occupancy Room</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Single Occupancy Room
+              </Label>
               {photos.singleRoom ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
@@ -779,9 +857,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -795,7 +878,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Upload Photos for Double Occupancy Room */}
             <div className="space-y-3">
-              <Label className="text-base">Upload Photos for Double Occupancy Room</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Double Occupancy Room
+              </Label>
               {photos.doubleRoom ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
@@ -819,9 +904,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -851,11 +941,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <Card key={pkg.id} className="p-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Premium Package (Required)</h4>
+                        <h4 className="font-medium">
+                          Premium Package (Required)
+                        </h4>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                          <Label>Price (USD) *</Label>
+                          <Label className="text-base text-foreground">
+                            Price (USD) *
+                          </Label>
                           <Input
                             type="number"
                             value={pkg.price}
@@ -871,7 +965,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           />
                         </div>
                         <div>
-                          <Label>Participants Per Booking</Label>
+                          <Label className="text-base text-foreground">
+                            Participants Per Booking
+                          </Label>
                           <Input
                             type="number"
                             value={pkg.participants_per_booking}
@@ -888,7 +984,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                       </div>
                       <div>
-                        <Label>Description</Label>
+                        <Label className="text-base text-foreground">
+                          Description
+                        </Label>
                         <Textarea
                           value={pkg.description || ""}
                           onChange={(e) =>
@@ -904,7 +1002,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                          <Label>Availability</Label>
+                          <Label className="text-base text-foreground">
+                            Availability
+                          </Label>
                           <Select
                             value={pkg.availability}
                             onValueChange={(value) =>
@@ -919,14 +1019,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="unlimited">Unlimited</SelectItem>
+                              <SelectItem value="unlimited">
+                                Unlimited
+                              </SelectItem>
                               <SelectItem value="limited">Limited</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         {pkg.availability === "limited" && (
                           <div>
-                            <Label>Quantity</Label>
+                            <Label className="text-base text-foreground">
+                              Quantity
+                            </Label>
                             <Input
                               type="number"
                               value={pkg.quantity || ""}
@@ -953,7 +1057,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <Card key={pkg.id} className="p-4">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium">Upgrade Package (Optional)</h4>
+                          <h4 className="font-medium">
+                            Upgrade Package (Optional)
+                          </h4>
                           <Button
                             type="button"
                             variant="ghost"
@@ -966,7 +1072,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div>
-                            <Label>Price (USD) *</Label>
+                            <Label className="text-base text-foreground">
+                              Price (USD) *
+                            </Label>
                             <Input
                               type="number"
                               value={pkg.price}
@@ -982,7 +1090,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                             />
                           </div>
                           <div>
-                            <Label>Participants Per Booking</Label>
+                            <Label className="text-base text-foreground">
+                              Participants Per Booking
+                            </Label>
                             <Input
                               type="number"
                               value={pkg.participants_per_booking}
@@ -999,7 +1109,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           </div>
                         </div>
                         <div>
-                          <Label>Description</Label>
+                          <Label className="text-base text-foreground">
+                            Description
+                          </Label>
                           <Textarea
                             value={pkg.description || ""}
                             onChange={(e) =>
@@ -1015,7 +1127,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div>
-                            <Label>Availability</Label>
+                            <Label className="text-base text-foreground">
+                              Availability
+                            </Label>
                             <Select
                               value={pkg.availability}
                               onValueChange={(value) =>
@@ -1030,14 +1144,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="unlimited">Unlimited</SelectItem>
+                                <SelectItem value="unlimited">
+                                  Unlimited
+                                </SelectItem>
                                 <SelectItem value="limited">Limited</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           {pkg.availability === "limited" && (
                             <div>
-                              <Label>Quantity</Label>
+                              <Label className="text-base text-foreground">
+                                Quantity
+                              </Label>
                               <Input
                                 type="number"
                                 value={pkg.quantity || ""}
@@ -1058,7 +1176,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   ))
               ) : (
                 <div className="py-8 text-center">
-                  <p className="mb-4 text-sm text-muted-foreground">Upgrade package not added (optional)</p>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Upgrade package not added (optional)
+                  </p>
                   <Button
                     type="button"
                     onClick={addUpgradePackage}
@@ -1085,8 +1205,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Golf Courses</Label>
-                <Button type="button" onClick={handleAddGolfCourse} variant="outline" size="sm">
+                <Label className="text-base text-foreground">
+                  Golf Courses
+                </Label>
+                <Button
+                  type="button"
+                  onClick={handleAddGolfCourse}
+                  variant="outline"
+                  size="sm"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Course
                 </Button>
@@ -1096,48 +1223,69 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Course {index + 1}</h4>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveGolfCourse(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveGolfCourse(index)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
-                        <Label>Course Name *</Label>
+                        <Label className="text-base text-foreground">
+                          Course Name *
+                        </Label>
                         <Input
                           value={course.name}
-                          onChange={(e) => handleGolfCourseChange(index, "name", e.target.value)}
+                          onChange={(e) =>
+                            handleGolfCourseChange(
+                              index,
+                              "name",
+                              e.target.value,
+                            )
+                          }
                           placeholder="e.g., Course A"
                           required
                         />
                       </div>
                       <div>
-                        <Label>Price per Round (USD) *</Label>
-                        <Input
-                          type="number"
-                          value={course.price}
-                          onChange={(e) => handleGolfCourseChange(index, "price", Number(e.target.value))}
-                          placeholder="0"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label>Max Rounds *</Label>
+                        <Label className="text-base text-foreground">
+                          Max Rounds *
+                        </Label>
                         <Input
                           type="number"
                           min="0"
                           value={course.max_rounds || 5}
-                          onChange={(e) => handleGolfCourseChange(index, "max_rounds", Number(e.target.value))}
+                          onChange={(e) =>
+                            handleGolfCourseChange(
+                              index,
+                              "max_rounds",
+                              Number(e.target.value),
+                            )
+                          }
                           placeholder="5"
                           required
                         />
-                        <p className="text-xs text-muted-foreground">Max rounds (min: 0)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Max rounds (min: 0)
+                        </p>
                       </div>
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-base text-foreground">
+                        Description
+                      </Label>
                       <Textarea
                         value={course.description || ""}
-                        onChange={(e) => handleGolfCourseChange(index, "description", e.target.value)}
+                        onChange={(e) =>
+                          handleGolfCourseChange(
+                            index,
+                            "description",
+                            e.target.value,
+                          )
+                        }
                         placeholder="Course description (optional)"
                         rows={2}
                       />
@@ -1148,15 +1296,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
               {golfCourses.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No golf courses added (optional). Click "Add Course" to add courses.
+                  No golf courses added (optional). Click "Add Course" to add
+                  courses.
                 </div>
               )}
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Meal Options</Label>
-                <Button type="button" onClick={addMealOption} variant="outline" size="sm">
+                <Label className="text-base text-foreground">
+                  Meal Options
+                </Label>
+                <Button
+                  type="button"
+                  onClick={addMealOption}
+                  variant="outline"
+                  size="sm"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Meal Option
                 </Button>
@@ -1166,35 +1322,47 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Meal Option {index + 1}</h4>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeMealOption(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeMealOption(index)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <Label>Option Name *</Label>
+                        <Label className="text-base text-foreground">
+                          Option Name *
+                        </Label>
                         <Input
                           value={meal.name}
-                          onChange={(e) => handleMealOptionChange(index, "name", e.target.value)}
+                          onChange={(e) =>
+                            handleMealOptionChange(
+                              index,
+                              "name",
+                              e.target.value,
+                            )
+                          }
                           placeholder="e.g., Breakfast Included"
                           required
                         />
                       </div>
-                      <div>
-                        <Label>Additional Price (USD)</Label>
-                        <Input
-                          type="number"
-                          value={meal.price}
-                          onChange={(e) => handleMealOptionChange(index, "price", Number(e.target.value))}
-                          placeholder="0"
-                        />
-                      </div>
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-base text-foreground">
+                        Description
+                      </Label>
                       <Textarea
                         value={meal.description || ""}
-                        onChange={(e) => handleMealOptionChange(index, "description", e.target.value)}
+                        onChange={(e) =>
+                          handleMealOptionChange(
+                            index,
+                            "description",
+                            e.target.value,
+                          )
+                        }
                         placeholder="Meal option description"
                         rows={2}
                       />
@@ -1203,9 +1371,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       <Switch
                         id={`meal-included-${meal.id}`}
                         checked={meal.is_included}
-                        onCheckedChange={(checked: boolean) => handleMealOptionChange(index, "is_included", checked)}
+                        onCheckedChange={(checked: boolean) =>
+                          handleMealOptionChange(index, "is_included", checked)
+                        }
                       />
-                      <Label htmlFor={`meal-included-${meal.id}`}>Included by Default</Label>
+                      <Label
+                        htmlFor={`meal-included-${meal.id}`}
+                        className="text-base text-foreground"
+                      >
+                        Included by Default
+                      </Label>
                     </div>
                   </div>
                 </Card>
@@ -1213,15 +1388,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
               {mealOptions.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No meal options added (optional). Click "Add Meal Option" to add options.
+                  No meal options added (optional). Click "Add Meal Option" to
+                  add options.
                 </div>
               )}
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Transportation Options</Label>
-                <Button type="button" onClick={addTransportationOption} variant="outline" size="sm">
+                <Label className="text-base text-foreground">
+                  Transportation Options
+                </Label>
+                <Button
+                  type="button"
+                  onClick={addTransportationOption}
+                  variant="outline"
+                  size="sm"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Transportation Option
                 </Button>
@@ -1230,36 +1413,50 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <Card key={transport.id} className="p-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Transportation Option {index + 1}</h4>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeTransportationOption(index)}>
+                      <h4 className="font-medium">
+                        Transportation Option {index + 1}
+                      </h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTransportationOption(index)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <Label>Option Name *</Label>
+                        <Label className="text-base text-foreground">
+                          Option Name *
+                        </Label>
                         <Input
                           value={transport.name}
-                          onChange={(e) => handleTransportationOptionChange(index, "name", e.target.value)}
+                          onChange={(e) =>
+                            handleTransportationOptionChange(
+                              index,
+                              "name",
+                              e.target.value,
+                            )
+                          }
                           placeholder="e.g., Private Car with Driver"
                           required
                         />
                       </div>
-                      <div>
-                        <Label>Additional Price (USD)</Label>
-                        <Input
-                          type="number"
-                          value={transport.price}
-                          onChange={(e) => handleTransportationOptionChange(index, "price", Number(e.target.value))}
-                          placeholder="0"
-                        />
-                      </div>
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-base text-foreground">
+                        Description
+                      </Label>
                       <Textarea
                         value={transport.description || ""}
-                        onChange={(e) => handleTransportationOptionChange(index, "description", e.target.value)}
+                        onChange={(e) =>
+                          handleTransportationOptionChange(
+                            index,
+                            "description",
+                            e.target.value,
+                          )
+                        }
                         placeholder="Transportation option description"
                         rows={2}
                       />
@@ -1269,10 +1466,19 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         id={`transport-included-${transport.id}`}
                         checked={transport.is_included}
                         onCheckedChange={(checked: boolean) =>
-                          handleTransportationOptionChange(index, "is_included", checked)
+                          handleTransportationOptionChange(
+                            index,
+                            "is_included",
+                            checked,
+                          )
                         }
                       />
-                      <Label htmlFor={`transport-included-${transport.id}`}>Included by Default</Label>
+                      <Label
+                        htmlFor={`transport-included-${transport.id}`}
+                        className="text-base text-foreground"
+                      >
+                        Included by Default
+                      </Label>
                     </div>
                   </div>
                 </Card>
@@ -1280,7 +1486,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
               {transportationOptions.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No transportation options added (optional). Click "Add Transportation Option" to add options.
+                  No transportation options added (optional). Click "Add
+                  Transportation Option" to add options.
                 </div>
               )}
             </div>
@@ -1291,7 +1498,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Review & Submit</h2>
-              <p className="text-sm text-muted-foreground">Review all changes before saving</p>
+              <p className="text-sm text-muted-foreground">
+                Review all changes before saving
+              </p>
             </div>
 
             <div className="space-y-6">
@@ -1300,24 +1509,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <h3 className="mb-4 text-lg font-semibold">Trip Basics</h3>
                 <div className="grid gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Title:</span> {formData.title || "Not set"}
+                    <span className="font-medium">Title:</span>{" "}
+                    {formData.title || "Not set"}
                   </div>
                   <div>
-                    <span className="font-medium">Location:</span> {formData.location || "Not set"}
+                    <span className="font-medium">Location:</span>{" "}
+                    {formData.location || "Not set"}
                   </div>
                   <div>
-                    <span className="font-medium">Continent:</span> {formData.continent || "Not set"}
+                    <span className="font-medium">Continent:</span>{" "}
+                    {formData.continent || "Not set"}
                   </div>
                   <div>
-                    <span className="font-medium">Price:</span> ${formData.price_regular}
+                    <span className="font-medium">Price:</span> $
+                    {formData.price_regular}
                   </div>
                   <div>
-                    <span className="font-medium">Max Guests:</span> {formData.max_guests}
+                    <span className="font-medium">Max Guests:</span>{" "}
+                    {formData.max_guests}
                   </div>
                   <div>
                     <span className="font-medium">Description:</span>{" "}
                     {formData.description ? (
-                      <span className="text-muted-foreground">{formData.description}</span>
+                      <span className="text-muted-foreground">
+                        {formData.description}
+                      </span>
                     ) : (
                       "Not set"
                     )}
@@ -1336,19 +1552,25 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   )}
                   {formData.max_days && (
                     <div>
-                      <span className="font-medium">Max Days:</span> {formData.max_days}
+                      <span className="font-medium">Max Days:</span>{" "}
+                      {formData.max_days}
                     </div>
                   )}
                   {formData.min_days && (
                     <div>
-                      <span className="font-medium">Min Days:</span> {formData.min_days}
+                      <span className="font-medium">Min Days:</span>{" "}
+                      {formData.min_days}
                     </div>
                   )}
-                  {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (
-                    <p>
-                      <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
-                    </p>
-                  )}
+                  {formData.min_days_advance &&
+                    Number(formData.min_days_advance) > 0 && (
+                      <p>
+                        <span className="font-medium">
+                          Min Advance Booking:
+                        </span>{" "}
+                        {formData.min_days_advance} days
+                      </p>
+                    )}
                   {/* Removed All-Inclusive Summary */}
                   <div className="flex flex-wrap gap-4">
                     {photos.courses && (
@@ -1396,53 +1618,82 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
               {/* Packages Summary */}
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Packages ({packages.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Packages ({packages.length})
+                </h3>
                 {packages.length > 0 ? (
                   <div className="space-y-4">
                     {packages.map((pkg, idx) => (
-                      <div key={pkg.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                        <p className="mb-2 font-medium">{pkg.name || `Package ${idx + 1}`}</p>
-                        {pkg.description && <p className="mb-2 text-muted-foreground">{pkg.description}</p>}
+                      <div
+                        key={pkg.id}
+                        className="rounded border border-border bg-muted/20 p-4 text-sm"
+                      >
+                        <p className="mb-2 font-medium">
+                          {pkg.name || `Package ${idx + 1}`}
+                        </p>
+                        {pkg.description && (
+                          <p className="mb-2 text-muted-foreground">
+                            {pkg.description}
+                          </p>
+                        )}
                         <div className="grid gap-2 md:grid-cols-2">
                           <div>
-                            <span className="font-medium">Price:</span> ${pkg.price}
+                            <span className="font-medium">Price:</span> $
+                            {pkg.price}
                           </div>
                           <div>
-                            <span className="font-medium">Participants:</span> {pkg.participants_per_booking}
+                            <span className="font-medium">Participants:</span>{" "}
+                            {pkg.participants_per_booking}
                           </div>
                           <div>
-                            <span className="font-medium">Availability:</span> {pkg.availability}
-                            {pkg.availability === "limited" && pkg.quantity && ` (${pkg.quantity} available)`}
+                            <span className="font-medium">Availability:</span>{" "}
+                            {pkg.availability}
+                            {pkg.availability === "limited" &&
+                              pkg.quantity &&
+                              ` (${pkg.quantity} available)`}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No packages added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No packages added
+                  </p>
                 )}
               </div>
 
               {/* Golf Courses Summary */}
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Golf Courses ({golfCourses.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Golf Courses ({golfCourses.length})
+                </h3>
                 {golfCourses.length > 0 ? (
                   <div className="space-y-4">
                     {golfCourses.map((course, idx) => (
-                      <div key={course.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                        <p className="mb-2 font-medium">{course.name || `Course ${idx + 1}`}</p>
-                        {course.description && <p className="mb-2 text-muted-foreground">{course.description}</p>}
+                      <div
+                        key={course.id}
+                        className="rounded border border-border bg-muted/20 p-4 text-sm"
+                      >
+                        <p className="mb-2 font-medium">
+                          {course.name || `Course ${idx + 1}`}
+                        </p>
+                        {course.description && (
+                          <p className="mb-2 text-muted-foreground">
+                            {course.description}
+                          </p>
+                        )}
                         <div>
-                          <span className="font-medium">Price per Round:</span> ${course.price}
-                        </div>
-                        <div>
-                          <span className="font-medium">Max Rounds:</span> {course.max_rounds || 5}
+                          <span className="font-medium">Max Rounds:</span>{" "}
+                          {course.max_rounds || 5}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No golf courses added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No golf courses added
+                  </p>
                 )}
               </div>
 
@@ -1451,38 +1702,54 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <h3 className="mb-4 text-lg font-semibold">Meal Options</h3>
                 <div className="space-y-4">
                   {mealOptions.map((meal, idx) => (
-                    <div key={meal.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
+                    <div
+                      key={meal.id}
+                      className="rounded border border-border bg-muted/20 p-4 text-sm"
+                    >
                       <p className="mb-2 font-medium">
                         {meal.name} {meal.is_included && "(Included)"}
                       </p>
-                      {meal.description && <p className="mb-2 text-muted-foreground">{meal.description}</p>}
-                      <div>
-                        <span className="font-medium">Additional Price:</span> ${meal.price}
-                      </div>
+                      {meal.description && (
+                        <p className="text-muted-foreground">
+                          {meal.description}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
-                {mealOptions.length === 0 && <p className="text-sm text-muted-foreground">No meal options added</p>}
+                {mealOptions.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No meal options added
+                  </p>
+                )}
               </div>
 
               {/* Transportation Options Summary */}
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Transportation Options</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Transportation Options
+                </h3>
                 <div className="space-y-4">
                   {transportationOptions.map((transport, idx) => (
-                    <div key={transport.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
+                    <div
+                      key={transport.id}
+                      className="rounded border border-border bg-muted/20 p-4 text-sm"
+                    >
                       <p className="mb-2 font-medium">
                         {transport.name} {transport.is_included && "(Included)"}
                       </p>
-                      {transport.description && <p className="mb-2 text-muted-foreground">{transport.description}</p>}
-                      <div>
-                        <span className="font-medium">Additional Price:</span> ${transport.price}
-                      </div>
+                      {transport.description && (
+                        <p className="text-muted-foreground">
+                          {transport.description}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
                 {transportationOptions.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No transportation options added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No transportation options added
+                  </p>
                 )}
               </div>
             </div>
@@ -1524,7 +1791,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 sm:w-auto">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
+            >
               {loading ? "Saving Changes..." : "Save Changes"}
             </Button>
           )}

@@ -7,12 +7,31 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
-import { Upload, X, Plus, Trash2, ChevronRight, ChevronLeft } from "lucide-react"
+import {
+  Upload,
+  X,
+  Plus,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react"
 import Image from "next/image"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = [
+  "Africa",
+  "Asia",
+  "Europe",
+  "North America",
+  "South America",
+]
 
 type Package = {
   id: string
@@ -27,11 +46,9 @@ type Package = {
 type GolfCourse = {
   id: string
   course_name: string
-  price_per_round: string
-  max_rounds: string // Added max_rounds field
+  max_rounds: string
 }
 
-// Updated MealOption and TransportationOption types
 type MealOption = {
   id: string
   name: string
@@ -47,9 +64,17 @@ type TransportationOption = {
 }
 
 const STEPS = [
-  { id: 1, title: "Trip Basics", description: "Title, description, and images" },
+  {
+    id: 1,
+    title: "Trip Basics",
+    description: "Title, description, and images",
+  },
   { id: 2, title: "Packages", description: "Room types and accommodation" },
-  { id: 3, title: "Booking Options", description: "Courses, meals, and transportation" },
+  {
+    id: 3,
+    title: "Booking Options",
+    description: "Courses, meals, and transportation",
+  },
   { id: 4, title: "Review & Submit", description: "Review and publish trip" },
 ]
 
@@ -95,7 +120,9 @@ export function CreateTripForm() {
   const [golfCourses, setGolfCourses] = useState<GolfCourse[]>([])
   // Changed to arrays to allow multiple options
   const [mealOptions, setMealOptions] = useState<MealOption[]>([])
-  const [transportationOptions, setTransportationOptions] = useState<TransportationOption[]>([])
+  const [transportationOptions, setTransportationOptions] = useState<
+    TransportationOption[]
+  >([])
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -127,7 +154,9 @@ export function CreateTripForm() {
     }
   }
 
-  const handleRemovePhoto = (photoType: "courses" | "singleRoom" | "doubleRoom") => {
+  const handleRemovePhoto = (
+    photoType: "courses" | "singleRoom" | "doubleRoom",
+  ) => {
     setPhotos((prev) => ({ ...prev, [photoType]: "" }))
   }
 
@@ -143,7 +172,10 @@ export function CreateTripForm() {
           // Updated to check for max_days if present
           errors.push("Maximum trip duration must be a positive number")
         }
-        if (formData.min_days_advance && Number(formData.min_days_advance) < 0) {
+        if (
+          formData.min_days_advance &&
+          Number(formData.min_days_advance) < 0
+        ) {
           errors.push("Minimum advance booking period cannot be negative")
         }
         if (!formData.min_days || Number(formData.min_days) <= 0) {
@@ -159,52 +191,64 @@ export function CreateTripForm() {
         } else {
           if (!premiumPackage.price || Number(premiumPackage.price) <= 0)
             errors.push("Premium package price is required")
-          if (!premiumPackage.participants_per_booking || Number(premiumPackage.participants_per_booking) <= 0) {
-            errors.push("Premium package must have valid participants per booking") // Updated error message
+          if (
+            !premiumPackage.participants_per_booking ||
+            Number(premiumPackage.participants_per_booking) <= 0
+          ) {
+            errors.push(
+              "Premium package must have valid participants per booking",
+            ) // Updated error message
           }
           if (
             premiumPackage.availability === "limited" &&
             (!premiumPackage.quantity || Number(premiumPackage.quantity) <= 0)
           ) {
-            errors.push("Premium package must have valid quantity for limited availability") // Updated error message
+            errors.push(
+              "Premium package must have valid quantity for limited availability",
+            ) // Updated error message
           }
         }
 
         const upgradePkg = packages.find((p) => p.name === "Upgrade")
         if (upgradePkg) {
-          if (!upgradePkg.price || Number(upgradePkg.price) <= 0) errors.push("Upgrade package price is required")
-          if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
-            errors.push("Upgrade package must have valid participants per booking")
+          if (!upgradePkg.price || Number(upgradePkg.price) <= 0)
+            errors.push("Upgrade package price is required")
+          if (
+            !upgradePkg.participants_per_booking ||
+            Number(upgradePkg.participants_per_booking) <= 0
+          ) {
+            errors.push(
+              "Upgrade package must have valid participants per booking",
+            )
           }
-          if (upgradePkg.availability === "limited" && (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)) {
-            errors.push("Upgrade package must have valid quantity for limited availability")
+          if (
+            upgradePkg.availability === "limited" &&
+            (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)
+          ) {
+            errors.push(
+              "Upgrade package must have valid quantity for limited availability",
+            )
           }
         }
         break
 
       case 3:
         golfCourses.forEach((course, idx) => {
-          if (!course.course_name.trim()) errors.push(`Golf course ${idx + 1} name is required`)
-          if (!course.price_per_round || Number(course.price_per_round) < 0) {
-            errors.push(`Golf course ${idx + 1} must have a valid price per round`)
-          }
+          if (!course.course_name.trim())
+            errors.push(`Golf course ${idx + 1} name is required`)
           if (!course.max_rounds || Number(course.max_rounds) < 0) {
             errors.push(`Golf course ${idx + 1} must have valid max rounds`)
           }
         })
 
         mealOptions.forEach((meal, idx) => {
-          if (!meal.name.trim()) errors.push(`Meal option ${idx + 1} name is required`)
-          if (!meal.price || Number(meal.price) < 0) {
-            errors.push(`Meal option ${idx + 1} must have a valid price`)
-          }
+          if (!meal.name.trim())
+            errors.push(`Meal option ${idx + 1} name is required`)
         })
 
         transportationOptions.forEach((transport, idx) => {
-          if (!transport.name.trim()) errors.push(`Transportation option ${idx + 1} name is required`)
-          if (!transport.price || Number(transport.price) < 0) {
-            errors.push(`Transportation option ${idx + 1} must have a valid price`)
-          }
+          if (!transport.name.trim())
+            errors.push(`Transportation option ${idx + 1} name is required`)
         })
         break
 
@@ -222,7 +266,8 @@ export function CreateTripForm() {
     // Step 1 validation
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
-    if (!formData.continent) errors.push("Continent selection is required (Step 1)")
+    if (!formData.continent)
+      errors.push("Continent selection is required (Step 1)")
     // Added validation for max_days
     if (formData.max_days && Number(formData.max_days) <= 0) {
       errors.push("Maximum trip duration must be a positive number (Step 1)")
@@ -243,11 +288,21 @@ export function CreateTripForm() {
       if (!premiumPkg.price || Number(premiumPkg.price) <= 0) {
         errors.push("Premium package price is required (Step 2)")
       }
-      if (!premiumPkg.participants_per_booking || Number(premiumPkg.participants_per_booking) <= 0) {
-        errors.push("Premium package must have valid participants per booking (Step 2)") // Updated error message
+      if (
+        !premiumPkg.participants_per_booking ||
+        Number(premiumPkg.participants_per_booking) <= 0
+      ) {
+        errors.push(
+          "Premium package must have valid participants per booking (Step 2)",
+        ) // Updated error message
       }
-      if (premiumPkg.availability === "limited" && (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)) {
-        errors.push("Premium package must have valid quantity for limited availability (Step 2)") // Updated error message
+      if (
+        premiumPkg.availability === "limited" &&
+        (!premiumPkg.quantity || Number(premiumPkg.quantity) <= 0)
+      ) {
+        errors.push(
+          "Premium package must have valid quantity for limited availability (Step 2)",
+        ) // Updated error message
       }
     }
 
@@ -257,37 +312,45 @@ export function CreateTripForm() {
       if (!upgradePkg.price || Number(upgradePkg.price) <= 0) {
         errors.push("Upgrade package price is required (Step 2)")
       }
-      if (!upgradePkg.participants_per_booking || Number(upgradePkg.participants_per_booking) <= 0) {
-        errors.push("Upgrade package must have valid participants per booking (Step 2)")
+      if (
+        !upgradePkg.participants_per_booking ||
+        Number(upgradePkg.participants_per_booking) <= 0
+      ) {
+        errors.push(
+          "Upgrade package must have valid participants per booking (Step 2)",
+        )
       }
-      if (upgradePkg.availability === "limited" && (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)) {
-        errors.push("Upgrade package must have valid quantity for limited availability (Step 2)")
+      if (
+        upgradePkg.availability === "limited" &&
+        (!upgradePkg.quantity || Number(upgradePkg.quantity) <= 0)
+      ) {
+        errors.push(
+          "Upgrade package must have valid quantity for limited availability (Step 2)",
+        )
       }
     }
 
     // Step 3 validation - all optional but if added must be valid
     golfCourses.forEach((course, idx) => {
-      if (!course.course_name.trim()) errors.push(`Golf course ${idx + 1} name is required (Step 3)`)
-      if (!course.price_per_round || Number(course.price_per_round) < 0) {
-        errors.push(`Golf course ${idx + 1} must have a valid price per round (Step 3)`)
-      }
+      if (!course.course_name.trim())
+        errors.push(`Golf course ${idx + 1} name is required (Step 3)`)
       if (!course.max_rounds || Number(course.max_rounds) < 0) {
-        errors.push(`Golf course ${idx + 1} must have valid max rounds (Step 3)`)
+        errors.push(
+          `Golf course ${idx + 1} must have valid max rounds (Step 3)`,
+        )
       }
     })
 
     mealOptions.forEach((meal, idx) => {
-      if (!meal.name.trim()) errors.push(`Meal option ${idx + 1} name is required (Step 3)`)
-      if (!meal.price || Number(meal.price) < 0) {
-        errors.push(`Meal option ${idx + 1} must have a valid price (Step 3)`)
-      }
+      if (!meal.name.trim())
+        errors.push(`Meal option ${idx + 1} name is required (Step 3)`)
     })
 
     transportationOptions.forEach((transport, idx) => {
-      if (!transport.name.trim()) errors.push(`Transportation option ${idx + 1} name is required (Step 3)`)
-      if (!transport.price || Number(transport.price) < 0) {
-        errors.push(`Transportation option ${idx + 1} must have a valid price (Step 3)`)
-      }
+      if (!transport.name.trim())
+        errors.push(
+          `Transportation option ${idx + 1} name is required (Step 3)`,
+        )
     })
 
     return { valid: errors.length === 0, errors }
@@ -327,7 +390,9 @@ export function CreateTripForm() {
           // Removed price_regular from submission
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
-          min_days_advance: formData.min_days_advance ? Number(formData.min_days_advance) : 0,
+          min_days_advance: formData.min_days_advance
+            ? Number(formData.min_days_advance)
+            : 0,
           // is_all_inclusive: formData.is_all_inclusive, Removed is_all_inclusive
           // Added min_days to the submission
           min_days: Number(formData.min_days),
@@ -345,19 +410,16 @@ export function CreateTripForm() {
           })),
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
-            price_per_round: Number(course.price_per_round),
             max_rounds: Number(course.max_rounds),
           })),
           mealOptions: mealOptions.map((meal) => ({
             name: meal.name,
             description: meal.description,
-            price: Number(meal.price),
             is_included: meal.is_included,
           })),
           transportationOptions: transportationOptions.map((transport) => ({
             name: transport.name,
             description: transport.description,
-            price: Number(transport.price),
             is_included: transport.is_included,
           })),
         }),
@@ -372,7 +434,11 @@ export function CreateTripForm() {
       window.location.href = "/admin"
     } catch (error) {
       console.error("[v0] Error creating trip:", error)
-      alert(`Failed to create trip: ${error instanceof Error ? error.message : "Unknown error"}`)
+      alert(
+        `Failed to create trip: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      )
       setLoading(false)
     }
   }
@@ -396,7 +462,9 @@ export function CreateTripForm() {
   }
 
   const updatePackage = (id: string, field: keyof Package, value: string) => {
-    setPackages(packages.map((pkg) => (pkg.id === id ? { ...pkg, [field]: value } : pkg)))
+    setPackages(
+      packages.map((pkg) => (pkg.id === id ? { ...pkg, [field]: value } : pkg)),
+    )
   }
 
   const removeUpgradePackage = () => {
@@ -410,14 +478,21 @@ export function CreateTripForm() {
       {
         id: crypto.randomUUID(),
         course_name: "",
-        price_per_round: "0",
-        max_rounds: "5", // Default to 5 max rounds
+        max_rounds: "5",
       },
     ])
   }
 
-  const updateGolfCourse = (id: string, field: keyof GolfCourse, value: string) => {
-    setGolfCourses(golfCourses.map((course) => (course.id === id ? { ...course, [field]: value } : course)))
+  const updateGolfCourse = (
+    id: string,
+    field: keyof GolfCourse,
+    value: string,
+  ) => {
+    setGolfCourses(
+      golfCourses.map((course) =>
+        course.id === id ? { ...course, [field]: value } : course,
+      ),
+    )
   }
 
   const removeGolfCourse = (id: string) => {
@@ -437,8 +512,16 @@ export function CreateTripForm() {
     ])
   }
 
-  const updateMealOption = (id: string, field: keyof MealOption, value: string | boolean) => {
-    setMealOptions(mealOptions.map((meal) => (meal.id === id ? { ...meal, [field]: value } : meal)))
+  const updateMealOption = (
+    id: string,
+    field: keyof MealOption,
+    value: string | boolean,
+  ) => {
+    setMealOptions(
+      mealOptions.map((meal) =>
+        meal.id === id ? { ...meal, [field]: value } : meal,
+      ),
+    )
   }
 
   const removeMealOption = (id: string) => {
@@ -458,14 +541,22 @@ export function CreateTripForm() {
     ])
   }
 
-  const updateTransportationOption = (id: string, field: keyof TransportationOption, value: string | boolean) => {
+  const updateTransportationOption = (
+    id: string,
+    field: keyof TransportationOption,
+    value: string | boolean,
+  ) => {
     setTransportationOptions(
-      transportationOptions.map((transport) => (transport.id === id ? { ...transport, [field]: value } : transport)),
+      transportationOptions.map((transport) =>
+        transport.id === id ? { ...transport, [field]: value } : transport,
+      ),
     )
   }
 
   const removeTransportationOption = (id: string) => {
-    setTransportationOptions(transportationOptions.filter((transport) => transport.id !== id))
+    setTransportationOptions(
+      transportationOptions.filter((transport) => transport.id !== id),
+    )
   }
 
   const addHighlight = () => {
@@ -537,7 +628,9 @@ export function CreateTripForm() {
     <div className="mx-auto max-w-5xl">
       {validationErrors.length > 0 && (
         <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
-          <h3 className="mb-2 font-semibold text-red-900">Please fix the following errors:</h3>
+          <h3 className="mb-2 font-semibold text-red-900">
+            Please fix the following errors:
+          </h3>
           <ul className="list-inside list-disc space-y-1 text-sm text-red-800">
             {validationErrors.map((error, idx) => (
               <li key={idx}>{error}</li>
@@ -558,25 +651,33 @@ export function CreateTripForm() {
                     currentStep === step.id
                       ? "border-primary bg-primary text-white"
                       : currentStep > step.id
-                        ? "border-primary/70 bg-primary/70 text-white"
-                        : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
+                      ? "border-primary/70 bg-primary/70 text-white"
+                      : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50"
                   }`}
                 >
                   {step.id}
                 </button>
                 <div className="hidden md:block">
                   <p
-                    className={`text-sm font-medium ${currentStep >= step.id ? "text-foreground" : "text-muted-foreground"}`}
+                    className={`text-sm font-medium ${
+                      currentStep >= step.id
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    }`}
                   >
                     {step.title}
                   </p>
-                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
               </div>
               {idx < STEPS.length - 1 && (
                 <div
                   className={`mx-2 h-0.5 flex-1 md:mx-4 ${
-                    currentStep > step.id ? "bg-primary/70" : "bg-muted-foreground/30"
+                    currentStep > step.id
+                      ? "bg-primary/70"
+                      : "bg-muted-foreground/30"
                   }`}
                 />
               )}
@@ -590,27 +691,37 @@ export function CreateTripForm() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Trip Basics</h2>
-              <p className="text-sm text-muted-foreground">Enter the basic information about your golf trip</p>
+              <p className="text-sm text-muted-foreground">
+                Enter the basic information about your golf trip
+              </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="title">Trip Title *</Label>
+                <Label htmlFor="title" className="text-base text-foreground">
+                  Trip Title *
+                </Label>
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="St. Andrews Golf Experience"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
+                <Label htmlFor="location" className="text-base text-foreground">
+                  Location *
+                </Label>
                 <Input
                   id="location"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
                   placeholder="St. Andrews, Scotland"
                   required
                 />
@@ -618,11 +729,18 @@ export function CreateTripForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label
+                htmlFor="description"
+                className="text-base text-foreground"
+              >
+                Description
+              </Label>
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Describe the trip experience..."
                 rows={6}
               />
@@ -630,8 +748,15 @@ export function CreateTripForm() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Highlights (Optional)</Label>
-                <Button type="button" onClick={addHighlight} size="sm" variant="outline">
+                <Label className="text-base text-foreground">
+                  Highlights (Optional)
+                </Label>
+                <Button
+                  type="button"
+                  onClick={addHighlight}
+                  size="sm"
+                  variant="outline"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Highlight
                 </Button>
@@ -658,12 +783,16 @@ export function CreateTripForm() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No highlights added yet</p>
+                <p className="text-sm text-muted-foreground">
+                  No highlights added yet
+                </p>
               )}
             </div>
 
             <div className="space-y-3">
-              <Label>Choose Continent *</Label>
+              <Label className="text-base text-foreground">
+                Choose Continent *
+              </Label>
               <div className="flex flex-wrap gap-2">
                 {CONTINENTS.map((continent) => (
                   <button
@@ -679,8 +808,8 @@ export function CreateTripForm() {
                     {continent === "North America"
                       ? "N. America"
                       : continent === "South America"
-                        ? "S. America"
-                        : continent}
+                      ? "S. America"
+                      : continent}
                   </button>
                 ))}
               </div>
@@ -688,34 +817,46 @@ export function CreateTripForm() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="max_guests">Max Guests</Label>
+                <Label
+                  htmlFor="max_guests"
+                  className="text-base text-foreground"
+                >
+                  Max Guests
+                </Label>
                 <Input
                   id="max_guests"
                   type="number"
                   value={formData.max_guests}
-                  onChange={(e) => setFormData({ ...formData, max_guests: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, max_guests: e.target.value })
+                  }
                   placeholder="20"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="max_days">Maximum Trip Duration (Days)</Label>
+              <Label htmlFor="max_days" className="text-base text-foreground">
+                Maximum Trip Duration (Days)
+              </Label>
               <Input
                 id="max_days"
                 type="number"
                 min="1"
                 value={formData.max_days}
-                onChange={(e) => setFormData({ ...formData, max_days: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_days: e.target.value })
+                }
                 placeholder="e.g., 7"
               />
               <p className="text-xs text-muted-foreground">
-                Optional: Set a maximum number of days guests can book for this trip
+                Optional: Set a maximum number of days guests can book for this
+                trip
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_days" className="text-foreground">
+              <Label htmlFor="min_days" className="text-base text-foreground">
                 Minimum Trip Duration (Days)
               </Label>
               <Input
@@ -723,49 +864,52 @@ export function CreateTripForm() {
                 type="number"
                 min="1"
                 value={formData.min_days}
-                onChange={(e) => setFormData({ ...formData, min_days: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_days: e.target.value })
+                }
                 placeholder="e.g., 3"
               />
               <p className="text-xs text-muted-foreground">
-                Minimum number of days guests must select on the calendar (default: 1)
+                Minimum number of days guests must select on the calendar
+                (default: 1)
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_days_advance">Minimum Advance Booking Period (Days)</Label>
+              <Label
+                htmlFor="min_days_advance"
+                className="text-base text-foreground"
+              >
+                Minimum Advance Booking Period (Days)
+              </Label>
               <Input
                 id="min_days_advance"
                 type="number"
                 min="0"
                 value={formData.min_days_advance}
-                onChange={(e) => setFormData({ ...formData, min_days_advance: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_days_advance: e.target.value })
+                }
                 placeholder="e.g., 30"
               />
               <p className="text-xs text-muted-foreground">
-                Optional: Minimum days in advance required to book (0 = no restriction, 30 = must book at least 30 days
-                before trip)
+                Optional: Minimum days in advance required to book (0 = no
+                restriction, 30 = must book at least 30 days before trip)
               </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="is_all_inclusive" className="text-base font-medium">
-                  All-Inclusive Trip
-                </Label>
-                <p className="text-sm text-muted-foreground">Trip includes transportation and meals by default</p>
-              </div>
-              <Switch
-                id="is_all_inclusive"
-                checked={formData.is_all_inclusive}
-                onCheckedChange={(checked: boolean) => setFormData({ ...formData, is_all_inclusive: checked })}
-              />
-            </div>
-
             <div className="space-y-3">
-              <Label>Upload Photos for Courses</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Courses
+              </Label>
               {photos.courses ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
-                  <Image src={photos.courses || "/placeholder.svg"} alt="Golf courses" fill className="object-cover" />
+                  <Image
+                    src={photos.courses || "/placeholder.svg"}
+                    alt="Golf courses"
+                    fill
+                    className="object-cover"
+                  />
                   <Button
                     type="button"
                     size="icon"
@@ -781,9 +925,14 @@ export function CreateTripForm() {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -796,7 +945,9 @@ export function CreateTripForm() {
             </div>
 
             <div className="space-y-3">
-              <Label>Upload Photos for Single Occupancy Room</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Single Occupancy Room
+              </Label>
               {photos.singleRoom ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
@@ -820,9 +971,14 @@ export function CreateTripForm() {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -835,7 +991,9 @@ export function CreateTripForm() {
             </div>
 
             <div className="space-y-3">
-              <Label>Upload Photos for Double Occupancy Room</Label>
+              <Label className="text-base text-foreground">
+                Upload Photos for Double Occupancy Room
+              </Label>
               {photos.doubleRoom ? (
                 <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
@@ -859,9 +1017,14 @@ export function CreateTripForm() {
                   <Upload className="mb-3 h-12 w-12 text-muted-foreground" />
                   <p className="text-sm">
                     <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground"> or drag and drop</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, JPEG, PNG less than 1MB</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, JPEG, PNG less than 1MB
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -888,16 +1051,25 @@ export function CreateTripForm() {
               {packages
                 .filter((pkg) => pkg.name === "Premium") // Updated to check Premium package (was Basic)
                 .map((pkg) => (
-                  <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                  <div
+                    key={pkg.id}
+                    className="space-y-4 rounded-lg border border-border bg-muted/20 p-4"
+                  >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Premium Package (Required)</h4>
+                      <h4 className="font-medium">
+                        Premium Package (Required)
+                      </h4>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Description (optional)</Label>
+                      <Label className="text-base text-foreground">
+                        Description (optional)
+                      </Label>
                       <Textarea
                         value={pkg.description}
-                        onChange={(e) => updatePackage(pkg.id, "description", e.target.value)}
+                        onChange={(e) =>
+                          updatePackage(pkg.id, "description", e.target.value)
+                        }
                         placeholder="Enter package description (optional)"
                         rows={3}
                       />
@@ -905,23 +1077,35 @@ export function CreateTripForm() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Full price per person *</Label>
+                        <Label className="text-base text-foreground">
+                          Full price per person *
+                        </Label>
                         <Input
                           type="number"
                           step="0.01"
                           value={pkg.price}
-                          onChange={(e) => updatePackage(pkg.id, "price", e.target.value)}
+                          onChange={(e) =>
+                            updatePackage(pkg.id, "price", e.target.value)
+                          }
                           placeholder="100"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Participants per booking *</Label>
+                        <Label className="text-base text-foreground">
+                          Participants per booking *
+                        </Label>
                         <Input
                           type="number"
                           value={pkg.participants_per_booking}
-                          onChange={(e) => updatePackage(pkg.id, "participants_per_booking", e.target.value)}
+                          onChange={(e) =>
+                            updatePackage(
+                              pkg.id,
+                              "participants_per_booking",
+                              e.target.value,
+                            )
+                          }
                           placeholder="2"
                           required
                         />
@@ -930,10 +1114,14 @@ export function CreateTripForm() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Availability</Label>
+                        <Label className="text-base text-foreground">
+                          Availability
+                        </Label>
                         <Select
                           value={pkg.availability}
-                          onValueChange={(value) => updatePackage(pkg.id, "availability", value)}
+                          onValueChange={(value) =>
+                            updatePackage(pkg.id, "availability", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -947,11 +1135,15 @@ export function CreateTripForm() {
 
                       {pkg.availability === "limited" && (
                         <div className="space-y-2">
-                          <Label>Quantity</Label>
+                          <Label className="text-base text-foreground">
+                            Quantity
+                          </Label>
                           <Input
                             type="number"
                             value={pkg.quantity}
-                            onChange={(e) => updatePackage(pkg.id, "quantity", e.target.value)}
+                            onChange={(e) =>
+                              updatePackage(pkg.id, "quantity", e.target.value)
+                            }
                             placeholder="10"
                           />
                         </div>
@@ -964,9 +1156,14 @@ export function CreateTripForm() {
                 packages
                   .filter((pkg) => pkg.name === "Upgrade")
                   .map((pkg) => (
-                    <div key={pkg.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                    <div
+                      key={pkg.id}
+                      className="space-y-4 rounded-lg border border-border bg-muted/20 p-4"
+                    >
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Upgrade Package (Optional)</h4>
+                        <h4 className="font-medium">
+                          Upgrade Package (Optional)
+                        </h4>
                         <Button
                           type="button"
                           variant="ghost"
@@ -979,10 +1176,14 @@ export function CreateTripForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Description (optional)</Label>
+                        <Label className="text-base text-foreground">
+                          Description (optional)
+                        </Label>
                         <Textarea
                           value={pkg.description}
-                          onChange={(e) => updatePackage(pkg.id, "description", e.target.value)}
+                          onChange={(e) =>
+                            updatePackage(pkg.id, "description", e.target.value)
+                          }
                           placeholder="Enter package description (optional)"
                           rows={3}
                         />
@@ -990,23 +1191,35 @@ export function CreateTripForm() {
 
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Full price per person *</Label>
+                          <Label className="text-base text-foreground">
+                            Full price per person *
+                          </Label>
                           <Input
                             type="number"
                             step="0.01"
                             value={pkg.price}
-                            onChange={(e) => updatePackage(pkg.id, "price", e.target.value)}
+                            onChange={(e) =>
+                              updatePackage(pkg.id, "price", e.target.value)
+                            }
                             placeholder="200"
                             required
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Participants per booking *</Label>
+                          <Label className="text-base text-foreground">
+                            Participants per booking *
+                          </Label>
                           <Input
                             type="number"
                             value={pkg.participants_per_booking}
-                            onChange={(e) => updatePackage(pkg.id, "participants_per_booking", e.target.value)}
+                            onChange={(e) =>
+                              updatePackage(
+                                pkg.id,
+                                "participants_per_booking",
+                                e.target.value,
+                              )
+                            }
                             placeholder="2"
                             required
                           />
@@ -1015,16 +1228,22 @@ export function CreateTripForm() {
 
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Availability</Label>
+                          <Label className="text-base text-foreground">
+                            Availability
+                          </Label>
                           <Select
                             value={pkg.availability}
-                            onValueChange={(value) => updatePackage(pkg.id, "availability", value)}
+                            onValueChange={(value) =>
+                              updatePackage(pkg.id, "availability", value)
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="unlimited">Unlimited</SelectItem>
+                              <SelectItem value="unlimited">
+                                Unlimited
+                              </SelectItem>
                               <SelectItem value="limited">Limited</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1032,11 +1251,19 @@ export function CreateTripForm() {
 
                         {pkg.availability === "limited" && (
                           <div className="space-y-2">
-                            <Label>Quantity</Label>
+                            <Label className="text-base text-foreground">
+                              Quantity
+                            </Label>
                             <Input
                               type="number"
                               value={pkg.quantity}
-                              onChange={(e) => updatePackage(pkg.id, "quantity", e.target.value)}
+                              onChange={(e) =>
+                                updatePackage(
+                                  pkg.id,
+                                  "quantity",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="10"
                             />
                           </div>
@@ -1046,7 +1273,9 @@ export function CreateTripForm() {
                   ))
               ) : (
                 <div className="py-8 text-center">
-                  <p className="mb-4 text-sm text-muted-foreground">Upgrade package not added (optional)</p>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Upgrade package not added (optional)
+                  </p>
                   <Button
                     type="button"
                     onClick={addUpgradePackage}
@@ -1067,7 +1296,8 @@ export function CreateTripForm() {
             <div>
               <h2 className="text-2xl font-semibold">Booking Options</h2>
               <p className="text-sm text-muted-foreground">
-                Configure golf courses, meals, and transportation options (all optional)
+                Configure golf courses, meals, and transportation options (all
+                optional)
               </p>
             </div>
 
@@ -1075,21 +1305,33 @@ export function CreateTripForm() {
             <div className="space-y-4 rounded-lg border border-border p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Golf Courses & Rounds</h3>
+                  <h3 className="text-lg font-semibold">
+                    Golf Courses & Rounds
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Add available golf courses with pricing per round (optional)
                   </p>
                 </div>
-                <Button type="button" onClick={addGolfCourse} size="sm" className="bg-primary hover:bg-primary/90">
+                <Button
+                  type="button"
+                  onClick={addGolfCourse}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Course
                 </Button>
               </div>
 
               {golfCourses.map((course, index) => (
-                <div key={course.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                <div
+                  key={course.id}
+                  className="space-y-4 rounded-lg border border-border bg-muted/20 p-4"
+                >
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Course {String.fromCharCode(65 + index)}</h4>
+                    <h4 className="font-medium">
+                      Course {String.fromCharCode(65 + index)}
+                    </h4>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1103,38 +1345,44 @@ export function CreateTripForm() {
 
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
-                      <Label>Course Name *</Label>
+                      <Label className="text-base text-foreground">
+                        Course Name *
+                      </Label>
                       <Input
                         value={course.course_name}
-                        onChange={(e) => updateGolfCourse(course.id, "course_name", e.target.value)}
+                        onChange={(e) =>
+                          updateGolfCourse(
+                            course.id,
+                            "course_name",
+                            e.target.value,
+                          )
+                        }
                         placeholder="Course A"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Price per Round *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={course.price_per_round}
-                        onChange={(e) => updateGolfCourse(course.id, "price_per_round", e.target.value)}
-                        placeholder="10.00"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Max Rounds *</Label>
+                      <Label className="text-base text-foreground">
+                        Max Rounds *
+                      </Label>
                       <Input
                         type="number"
                         min="0"
                         value={course.max_rounds}
-                        onChange={(e) => updateGolfCourse(course.id, "max_rounds", e.target.value)}
+                        onChange={(e) =>
+                          updateGolfCourse(
+                            course.id,
+                            "max_rounds",
+                            e.target.value,
+                          )
+                        }
                         placeholder="5"
                         required
                       />
-                      <p className="text-xs text-muted-foreground">Maximum rounds available (min: 0)</p>
+                      <p className="text-xs text-muted-foreground">
+                        Maximum rounds available (min: 0)
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1142,7 +1390,8 @@ export function CreateTripForm() {
 
               {golfCourses.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No golf courses added. Click "Add Course" to add courses (optional).
+                  No golf courses added. Click "Add Course" to add courses
+                  (optional).
                 </div>
               )}
             </div>
@@ -1151,16 +1400,26 @@ export function CreateTripForm() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">Meals</h3>
-                  <p className="text-sm text-muted-foreground">Add meal options for this trip (optional)</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add meal options for this trip (optional)
+                  </p>
                 </div>
-                <Button type="button" onClick={addMealOption} size="sm" className="bg-primary hover:bg-primary/90">
+                <Button
+                  type="button"
+                  onClick={addMealOption}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Meal Option
                 </Button>
               </div>
 
               {mealOptions.map((meal, index) => (
-                <div key={meal.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                <div
+                  key={meal.id}
+                  className="space-y-4 rounded-lg border border-border bg-muted/20 p-4"
+                >
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Meal Option {index + 1}</h4>
                     <Button
@@ -1176,33 +1435,29 @@ export function CreateTripForm() {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Option Name *</Label>
+                      <Label className="text-base text-foreground">
+                        Option Name *
+                      </Label>
                       <Input
                         value={meal.name}
-                        onChange={(e) => updateMealOption(meal.id, "name", e.target.value)}
+                        onChange={(e) =>
+                          updateMealOption(meal.id, "name", e.target.value)
+                        }
                         placeholder="e.g., Breakfast Included"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Additional Price ($) *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={meal.price}
-                        onChange={(e) => updateMealOption(meal.id, "price", e.target.value)}
-                        placeholder="0.00"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label className="text-base text-foreground">
+                      Description
+                    </Label>
                     <Textarea
                       value={meal.description}
-                      onChange={(e) => updateMealOption(meal.id, "description", e.target.value)}
+                      onChange={(e) =>
+                        updateMealOption(meal.id, "description", e.target.value)
+                      }
                       placeholder="Describe this meal option..."
                       rows={2}
                     />
@@ -1211,16 +1466,24 @@ export function CreateTripForm() {
                     <Switch
                       id={`meal-included-${meal.id}`}
                       checked={meal.is_included}
-                      onCheckedChange={(checked) => updateMealOption(meal.id, "is_included", checked)}
+                      onCheckedChange={(checked) =>
+                        updateMealOption(meal.id, "is_included", checked)
+                      }
                     />
-                    <Label htmlFor={`meal-included-${meal.id}`}>Included in Package</Label>
+                    <Label
+                      htmlFor={`meal-included-${meal.id}`}
+                      className="text-base text-foreground"
+                    >
+                      Included in Package
+                    </Label>
                   </div>
                 </div>
               ))}
 
               {mealOptions.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No meal options added. Click "Add Meal Option" to add options (optional).
+                  No meal options added. Click "Add Meal Option" to add options
+                  (optional).
                 </div>
               )}
             </div>
@@ -1229,7 +1492,9 @@ export function CreateTripForm() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">Transportation</h3>
-                  <p className="text-sm text-muted-foreground">Add transportation options for this trip (optional)</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add transportation options for this trip (optional)
+                  </p>
                 </div>
                 <Button
                   type="button"
@@ -1243,9 +1508,14 @@ export function CreateTripForm() {
               </div>
 
               {transportationOptions.map((transport, index) => (
-                <div key={transport.id} className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+                <div
+                  key={transport.id}
+                  className="space-y-4 rounded-lg border border-border bg-muted/20 p-4"
+                >
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Transportation Option {index + 1}</h4>
+                    <h4 className="font-medium">
+                      Transportation Option {index + 1}
+                    </h4>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1259,33 +1529,37 @@ export function CreateTripForm() {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Option Name *</Label>
+                      <Label className="text-base text-foreground">
+                        Option Name *
+                      </Label>
                       <Input
                         value={transport.name}
-                        onChange={(e) => updateTransportationOption(transport.id, "name", e.target.value)}
+                        onChange={(e) =>
+                          updateTransportationOption(
+                            transport.id,
+                            "name",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g., Private Car with Driver"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Additional Price ($) *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={transport.price}
-                        onChange={(e) => updateTransportationOption(transport.id, "price", e.target.value)}
-                        placeholder="0.00"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label className="text-base text-foreground">
+                      Description
+                    </Label>
                     <Textarea
                       value={transport.description}
-                      onChange={(e) => updateTransportationOption(transport.id, "description", e.target.value)}
+                      onChange={(e) =>
+                        updateTransportationOption(
+                          transport.id,
+                          "description",
+                          e.target.value,
+                        )
+                      }
                       placeholder="Describe this transportation option..."
                       rows={2}
                     />
@@ -1294,16 +1568,28 @@ export function CreateTripForm() {
                     <Switch
                       id={`transport-included-${transport.id}`}
                       checked={transport.is_included}
-                      onCheckedChange={(checked) => updateTransportationOption(transport.id, "is_included", checked)}
+                      onCheckedChange={(checked) =>
+                        updateTransportationOption(
+                          transport.id,
+                          "is_included",
+                          checked,
+                        )
+                      }
                     />
-                    <Label htmlFor={`transport-included-${transport.id}`}>Included in Package</Label>
+                    <Label
+                      htmlFor={`transport-included-${transport.id}`}
+                      className="text-base text-foreground"
+                    >
+                      Included in Package
+                    </Label>
                   </div>
                 </div>
               ))}
 
               {transportationOptions.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No transportation options added. Click "Add Transportation Option" to add options (optional).
+                  No transportation options added. Click "Add Transportation
+                  Option" to add options (optional).
                 </div>
               )}
             </div>
@@ -1314,7 +1600,9 @@ export function CreateTripForm() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">Review & Submit</h2>
-              <p className="text-sm text-muted-foreground">Review all trip details before publishing</p>
+              <p className="text-sm text-muted-foreground">
+                Review all trip details before publishing
+              </p>
             </div>
 
             <div className="space-y-6">
@@ -1323,18 +1611,23 @@ export function CreateTripForm() {
                 <h3 className="mb-4 text-lg font-semibold">Trip Basics</h3>
                 <div className="grid gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Title:</span> {formData.title || "Not set"}
+                    <span className="font-medium">Title:</span>{" "}
+                    {formData.title || "Not set"}
                   </div>
                   <div>
-                    <span className="font-medium">Location:</span> {formData.location || "Not set"}
+                    <span className="font-medium">Location:</span>{" "}
+                    {formData.location || "Not set"}
                   </div>
                   <div>
-                    <span className="font-medium">Continent:</span> {formData.continent || "Not set"}
+                    <span className="font-medium">Continent:</span>{" "}
+                    {formData.continent || "Not set"}
                   </div>
                   <div>
                     <span className="font-medium">Description:</span>{" "}
                     {formData.description ? (
-                      <span className="text-muted-foreground">{formData.description}</span>
+                      <span className="text-muted-foreground">
+                        {formData.description}
+                      </span>
                     ) : (
                       "Not set"
                     )}
@@ -1354,24 +1647,31 @@ export function CreateTripForm() {
                   {/* Removed Basic Price display */}
                   <div className="grid gap-2 md:grid-cols-2">
                     <div>
-                      <span className="font-medium">Max Guests:</span> {formData.max_guests}
+                      <span className="font-medium">Max Guests:</span>{" "}
+                      {formData.max_guests}
                     </div>
                     {formData.max_days && (
                       <div>
-                        <span className="font-medium">Max Days:</span> {formData.max_days}
+                        <span className="font-medium">Max Days:</span>{" "}
+                        {formData.max_days}
                       </div>
                     )}
                     {/* Added min_days display */}
                     {formData.min_days && (
                       <div>
-                        <span className="font-medium">Min Days:</span> {formData.min_days}
+                        <span className="font-medium">Min Days:</span>{" "}
+                        {formData.min_days}
                       </div>
                     )}
-                    {formData.min_days_advance && Number(formData.min_days_advance) > 0 && (
-                      <p>
-                        <span className="font-medium">Min Advance Booking:</span> {formData.min_days_advance} days
-                      </p>
-                    )}
+                    {formData.min_days_advance &&
+                      Number(formData.min_days_advance) > 0 && (
+                        <p>
+                          <span className="font-medium">
+                            Min Advance Booking:
+                          </span>{" "}
+                          {formData.min_days_advance} days
+                        </p>
+                      )}
                     {/* Removed All-Inclusive display */}
                   </div>
                   <div className="flex flex-wrap gap-4">
@@ -1420,84 +1720,124 @@ export function CreateTripForm() {
 
               {/* Packages Summary */}
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Packages ({packages.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Packages ({packages.length})
+                </h3>
                 {packages.length > 0 ? (
                   <div className="space-y-4">
                     {packages.map((pkg, idx) => (
-                      <div key={pkg.id} className="rounded border border-border bg-muted/20 p-4 text-sm">
-                        <p className="mb-2 font-medium">{pkg.name || `Package ${idx + 1}`}</p>
-                        {pkg.description && <p className="mb-2 text-muted-foreground">{pkg.description}</p>}
+                      <div
+                        key={pkg.id}
+                        className="rounded border border-border bg-muted/20 p-4 text-sm"
+                      >
+                        <p className="mb-2 font-medium">
+                          {pkg.name || `Package ${idx + 1}`}
+                        </p>
+                        {pkg.description && (
+                          <p className="mb-2 text-muted-foreground">
+                            {pkg.description}
+                          </p>
+                        )}
                         <div className="grid gap-2 md:grid-cols-2">
                           <div>
-                            <span className="font-medium">Price:</span> ${pkg.price}
+                            <span className="font-medium">Price:</span> $
+                            {pkg.price}
                           </div>
                           <div>
-                            <span className="font-medium">Participants:</span> {pkg.participants_per_booking}
+                            <span className="font-medium">Participants:</span>{" "}
+                            {pkg.participants_per_booking}
                           </div>
                           <div>
-                            <span className="font-medium">Availability:</span> {pkg.availability}
-                            {pkg.availability === "limited" && ` (${pkg.quantity} available)`}
+                            <span className="font-medium">Availability:</span>{" "}
+                            {pkg.availability}
+                            {pkg.availability === "limited" &&
+                              ` (${pkg.quantity} available)`}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No packages added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No packages added
+                  </p>
                 )}
               </div>
 
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Golf Courses ({golfCourses.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Golf Courses ({golfCourses.length})
+                </h3>
                 {golfCourses.length > 0 ? (
                   <div className="space-y-2">
                     {golfCourses.map((course, idx) => (
-                      <div key={course.id} className="flex justify-between text-sm">
-                        <span>{course.course_name || `Course ${String.fromCharCode(65 + idx)}`}</span>
+                      <div
+                        key={course.id}
+                        className="flex justify-between text-sm"
+                      >
+                        <span>
+                          {course.course_name ||
+                            `Course ${String.fromCharCode(65 + idx)}`}
+                        </span>
                         <span className="font-medium">
-                          ${course.price_per_round}/round (max: {course.max_rounds})
+                          Max rounds: {course.max_rounds}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No golf courses added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No golf courses added
+                  </p>
                 )}
               </div>
 
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Meal Options ({mealOptions.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Meal Options ({mealOptions.length})
+                </h3>
                 {mealOptions.length > 0 ? (
                   <div className="space-y-2">
                     {mealOptions.map((meal) => (
-                      <div key={meal.id} className="flex justify-between text-sm">
+                      <div
+                        key={meal.id}
+                        className="flex justify-between text-sm"
+                      >
                         <span>
                           {meal.name} {meal.is_included && "(Included)"}
                         </span>
-                        <span className="font-medium">{meal.is_included ? "" : `+$${meal.price}`}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No meal options added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No meal options added
+                  </p>
                 )}
               </div>
 
               <div className="rounded-lg border border-border p-6">
-                <h3 className="mb-4 text-lg font-semibold">Transportation Options ({transportationOptions.length})</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Transportation Options ({transportationOptions.length})
+                </h3>
                 {transportationOptions.length > 0 ? (
                   <div className="space-y-2">
                     {transportationOptions.map((transport) => (
-                      <div key={transport.id} className="flex justify-between text-sm">
+                      <div
+                        key={transport.id}
+                        className="flex justify-between text-sm"
+                      >
                         <span>
-                          {transport.name} {transport.is_included && "(Included)"}
+                          {transport.name}{" "}
+                          {transport.is_included && "(Included)"}
                         </span>
-                        <span className="font-medium">{transport.is_included ? "" : `+$${transport.price}`}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No transportation options added</p>
+                  <p className="text-sm text-muted-foreground">
+                    No transportation options added
+                  </p>
                 )}
               </div>
             </div>

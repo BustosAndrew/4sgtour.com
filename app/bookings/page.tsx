@@ -37,9 +37,9 @@ export default async function BookingsPage({
     .order("created_at", { ascending: false })
 
   return (
-    <div className="min-h-screen">
+    <div className="bg-background">
       <SiteHeaderWrapper />
-      <main className="container px-4 py-8 sm:px-6 lg:px-8">
+      <main className="container px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32 min-h-screen">
         {params.success === "true" && (
           <div className="mb-8 border border-primary/20 bg-primary/10 p-4 sm:p-6">
             <div className="flex items-start gap-4">

@@ -2,7 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   const { id } = params
   const supabase = await createClient()
 
@@ -64,7 +67,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         participants_per_booking: pkg.participants_per_booking || 1,
       }))
 
-      const { error: pkgError } = await supabase.from("packages").insert(packagesToInsert)
+      const { error: pkgError } = await supabase
+        .from("packages")
+        .insert(packagesToInsert)
       if (pkgError) {
         console.error("Error updating packages:", pkgError)
       }
@@ -88,7 +93,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         quantity: addOn.availability === "limited" ? addOn.quantity : null,
       }))
 
-      const { error: addOnError } = await supabase.from("add_ons").insert(addOnsToInsert)
+      const { error: addOnError } = await supabase
+        .from("add_ons")
+        .insert(addOnsToInsert)
       if (addOnError) {
         console.error("Error updating add-ons:", addOnError)
       }
@@ -98,18 +105,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (body.golf_courses) {
     await supabase.from("trip_golf_courses").delete().eq("trip_id", id)
 
-    const validCourses = body.golf_courses.filter((course: any) => course.course_name?.trim())
+    const validCourses = body.golf_courses.filter((course: any) =>
+      course.course_name?.trim(),
+    )
     if (validCourses.length > 0) {
       const coursesToInsert = validCourses.map((course: any) => ({
         trip_id: id,
         course_name: course.course_name,
         description: course.description || null,
-        price_per_round: course.price_per_round || 0,
         max_rounds: course.max_rounds || 5,
-        is_included: course.is_included || false,
       }))
 
-      const { error: courseError } = await supabase.from("trip_golf_courses").insert(coursesToInsert)
+      const { error: courseError } = await supabase
+        .from("trip_golf_courses")
+        .insert(coursesToInsert)
       if (courseError) {
         console.error("Error updating golf courses:", courseError)
       }
@@ -119,7 +128,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (body.meal_options) {
     await supabase.from("trip_meal_options").delete().eq("trip_id", id)
 
-    const validMeals = body.meal_options.filter((meal: any) => meal.name?.trim())
+    const validMeals = body.meal_options.filter((meal: any) =>
+      meal.name?.trim(),
+    )
     if (validMeals.length > 0) {
       const mealsToInsert = validMeals.map((meal: any, idx: number) => ({
         trip_id: id,
@@ -129,7 +140,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         is_recommended: idx === 0,
       }))
 
-      const { error: mealError } = await supabase.from("trip_meal_options").insert(mealsToInsert)
+      const { error: mealError } = await supabase
+        .from("trip_meal_options")
+        .insert(mealsToInsert)
       if (mealError) {
         console.error("Error updating meal options:", mealError)
       }
@@ -137,19 +150,28 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   if (body.transportation_options) {
-    await supabase.from("trip_transportation_options").delete().eq("trip_id", id)
+    await supabase
+      .from("trip_transportation_options")
+      .delete()
+      .eq("trip_id", id)
 
-    const validTransport = body.transportation_options.filter((transport: any) => transport.name?.trim())
+    const validTransport = body.transportation_options.filter(
+      (transport: any) => transport.name?.trim(),
+    )
     if (validTransport.length > 0) {
-      const transportToInsert = validTransport.map((transport: any, idx: number) => ({
-        trip_id: id,
-        name: transport.name,
-        description: transport.description || null,
-        is_included: transport.is_included || false,
-        is_recommended: idx === 0,
-      }))
+      const transportToInsert = validTransport.map(
+        (transport: any, idx: number) => ({
+          trip_id: id,
+          name: transport.name,
+          description: transport.description || null,
+          is_included: transport.is_included || false,
+          is_recommended: idx === 0,
+        }),
+      )
 
-      const { error: transportError } = await supabase.from("trip_transportation_options").insert(transportToInsert)
+      const { error: transportError } = await supabase
+        .from("trip_transportation_options")
+        .insert(transportToInsert)
       if (transportError) {
         console.error("Error updating transportation options:", transportError)
       }
@@ -159,7 +181,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   const { id } = params
   const supabase = await createClient()
 

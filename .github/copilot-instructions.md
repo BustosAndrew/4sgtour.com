@@ -49,7 +49,7 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 
   \`\`\`typescript
   const {
-    data: { user },
+  data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
@@ -63,20 +63,19 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 
 - `profiles` - user metadata, user_type field for authorization
 - `trips` - golf trip listings with continent, pricing, photos (courses/rooms)
-- `packages` - room type packages (Basic/Premium) linked to trips
-- `trip_golf_courses` - golf course options per trip (name, price, max_rounds)
-- `trip_meal_options` / `trip_transportation_options` - booking add-ons
+- `packages` - room type packages (Premium/Upgrade) linked to trips - ONLY packages have prices
+- `trip_golf_courses` - golf course options per trip (course_name, max_rounds, description)
+- `trip_meal_options` / `trip_transportation_options` - booking add-ons (name, description, is_included)
 - `inquiries` - customer booking inquiries (replaces old `bookings` table)
 - `favorites` - user-saved trips
 
 **Query pattern with joins:**
 
 \`\`\`typescript
-const { data } = await supabase.from('trips').select(`
-    *,
+const { data } = await supabase.from('trips').select(`    *,
     packages(id, name, price),
-    trip_golf_courses(course_name, price_per_round, max_rounds)
-  `);
+    trip_golf_courses(course_name, max_rounds, description)
+ `);
 \`\`\`
 
 **RLS (Row Level Security):** All tables have RLS enabled. Most are public-readable, admin-only writable. Check `scripts/*.sql` for policies.
@@ -86,9 +85,9 @@ const { data } = await supabase.from('trips').select(`
 ### Running the App
 
 \`\`\`powershell
-pnpm dev         # Start dev server (default port 3000)
-pnpm build       # Production build
-pnpm lint        # ESLint check
+pnpm dev # Start dev server (default port 3000)
+pnpm build # Production build
+pnpm lint # ESLint check
 \`\`\`
 
 ### Database Migrations
@@ -96,7 +95,7 @@ pnpm lint        # ESLint check
 - **All schema changes** go in numbered SQL files in `scripts/` (e.g., `035_*.sql`)
 - Execute migrations manually in Supabase SQL Editor
 - Migration files document the schema evolution - review recent ones for current structure
-- Notable: Package names changed from "Regular" to "Basic" (script 034)
+- Notable: Package names are now "Premium" and "Upgrade" (script 042)
 
 ### Admin Dashboard
 
@@ -168,11 +167,11 @@ Required for production:
 
 1. **TypeScript errors ignored in build** - `ignoreBuildErrors: true` allows deployment with type errors
 2. **Slug uniqueness** - trip slugs append timestamp to prevent collisions
-3. **Package names** - use "Basic" not "Regular" (renamed in script 034)
+3. **Package names** - use "Premium" (required) and "Upgrade" (optional) per script 042
 4. **Image optimization disabled** - `images: { unoptimized: true }` in next.config
 5. **Auth in API routes** - always check `user` AND `userType` for admin endpoints
 6. **Continent field** - trips have both `destination_id` (nullable, legacy) and `continent` (text field, current)
-7. **Pricing** - trip_card displays minimum package price if multiple packages exist
+7. **Pricing** - ONLY packages have prices. Golf courses, meals, and transportation do NOT have prices (just is_included flag for meals/transport)
 8. **Email from address** - Currently hardcoded as "noreply@yourdomain.com", needs domain verification in Resend
 
 ## File Organization

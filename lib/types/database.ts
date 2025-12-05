@@ -27,18 +27,18 @@ export interface Destination {
 
 export interface Trip {
   id: string
-  destination_id: string
+  destination_id: string | null
   title: string
   slug: string
   description: string | null
   location: string
   price_regular: number
-  duration_nights: number
   max_guests: number
-  includes_breakfast: boolean
-  includes_transport: boolean
-  is_all_inclusive: boolean
-  available_courses: Array<{ name: string; price: number }>
+  max_days: number | null
+  min_days: number
+  min_days_advance: number
+  highlights: string[] | null
+  overview_content: string | null
   continent: string | null
   courses_photo_url: string | null
   single_room_photo_url: string | null

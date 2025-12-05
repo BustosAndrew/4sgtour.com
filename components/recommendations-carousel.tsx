@@ -10,7 +10,9 @@ interface RecommendationsCarouselProps {
   trips: (Trip & { images?: Array<{ image_url: string }> })[]
 }
 
-export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps) {
+export function RecommendationsCarousel({
+  trips,
+}: RecommendationsCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const scroll = (direction: "left" | "right") => {
@@ -18,7 +20,8 @@ export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps)
 
     const scrollAmount = 320 // Width of image (280px) + gap (40px)
     const newScrollPosition =
-      scrollContainerRef.current.scrollLeft + (direction === "left" ? -scrollAmount : scrollAmount)
+      scrollContainerRef.current.scrollLeft +
+      (direction === "left" ? -scrollAmount : scrollAmount)
 
     scrollContainerRef.current.scrollTo({
       left: newScrollPosition,
@@ -83,10 +86,17 @@ export function RecommendationsCarousel({ trips }: RecommendationsCarouselProps)
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {displayTrips.map((trip) => (
-          <Link key={trip.id} href={`/trips/${trip.slug}`} className="group w-[280px] flex-shrink-0">
+          <Link
+            key={trip.id}
+            href={`/trips/${trip.slug}`}
+            className="group w-[280px] flex-shrink-0 shadow-lg"
+          >
             <div className="relative aspect-square overflow-hidden rounded-lg transition-transform group-hover:scale-105">
               <img
-                src={trip.courses_photo_url || "/placeholder.svg?height=400&width=400&query=golf+course"}
+                src={
+                  trip.courses_photo_url ||
+                  "/placeholder.svg?height=400&width=400&query=golf+course"
+                }
                 alt={trip.title}
                 className="h-full w-full object-cover"
               />

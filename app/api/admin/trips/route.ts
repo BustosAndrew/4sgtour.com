@@ -86,7 +86,9 @@ export async function POST(request: Request) {
         participants_per_booking: pkg.participants_per_booking,
       }))
 
-      const { error: packagesError } = await supabase.from("packages").insert(packagesData)
+      const { error: packagesError } = await supabase
+        .from("packages")
+        .insert(packagesData)
 
       if (packagesError) {
         console.error("[v0] Error creating packages:", packagesError)
@@ -97,12 +99,13 @@ export async function POST(request: Request) {
       const golfCoursesData = golfCourses.map((course: any) => ({
         trip_id: tripData.id,
         course_name: course.course_name,
-        price_per_round: Number(course.price_per_round),
         max_rounds: Number(course.max_rounds),
-        is_included: course.is_included || false,
+        description: course.description || null,
       }))
 
-      const { error: golfCoursesError } = await supabase.from("trip_golf_courses").insert(golfCoursesData)
+      const { error: golfCoursesError } = await supabase
+        .from("trip_golf_courses")
+        .insert(golfCoursesData)
 
       if (golfCoursesError) {
         console.error("[v0] Error creating golf courses:", golfCoursesError)
@@ -117,7 +120,9 @@ export async function POST(request: Request) {
         is_included: meal.is_included || false,
       }))
 
-      const { error: mealsError } = await supabase.from("trip_meal_options").insert(mealOptionsData)
+      const { error: mealsError } = await supabase
+        .from("trip_meal_options")
+        .insert(mealOptionsData)
 
       if (mealsError) {
         console.error("[v0] Error creating meal options:", mealsError)
@@ -125,23 +130,33 @@ export async function POST(request: Request) {
     }
 
     if (transportationOptions && transportationOptions.length > 0) {
-      const transportOptionsData = transportationOptions.map((transport: any) => ({
-        trip_id: tripData.id,
-        name: transport.name,
-        description: transport.description || null,
-        is_included: transport.is_included || false,
-      }))
+      const transportOptionsData = transportationOptions.map(
+        (transport: any) => ({
+          trip_id: tripData.id,
+          name: transport.name,
+          description: transport.description || null,
+          is_included: transport.is_included || false,
+        }),
+      )
 
-      const { error: transportError } = await supabase.from("trip_transportation_options").insert(transportOptionsData)
+      const { error: transportError } = await supabase
+        .from("trip_transportation_options")
+        .insert(transportOptionsData)
 
       if (transportError) {
-        console.error("[v0] Error creating transportation options:", transportError)
+        console.error(
+          "[v0] Error creating transportation options:",
+          transportError,
+        )
       }
     }
 
     return NextResponse.json(tripData, { status: 201 })
   } catch (error) {
     console.error("[v0] Error creating trip:", error)
-    return NextResponse.json({ error: "Failed to create trip" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to create trip" },
+      { status: 500 },
+    )
   }
 }
