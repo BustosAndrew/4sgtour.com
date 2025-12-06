@@ -102,29 +102,45 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]">
       {/* Inquiry List */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-xl font-semibold">Inquiries</h2>
+      <Card className="p-3 sm:p-4">
+        <h2 className="mb-3 text-lg font-semibold sm:mb-4 sm:text-xl">
+          Inquiries
+        </h2>
         <div className="space-y-2">
           {inquiries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No inquiries yet</p>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              No inquiries yet
+            </p>
           ) : (
             inquiries.map((inquiry) => (
               <button
                 key={inquiry.id}
                 onClick={() => setSelectedInquiry(inquiry)}
-                className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-accent ${
-                  selectedInquiry?.id === inquiry.id ? "border-primary bg-accent" : ""
+                className={`w-full rounded-lg border p-2 text-left transition-colors hover:bg-accent sm:p-3 ${
+                  selectedInquiry?.id === inquiry.id
+                    ? "border-primary bg-accent"
+                    : ""
                 }`}
               >
-                <div className="mb-1 flex items-start justify-between">
-                  <p className="font-medium">{inquiry.customer_name}</p>
-                  <Badge className={getStatusColor(inquiry.status)}>{inquiry.status}</Badge>
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium sm:text-base">
+                    {inquiry.customer_name}
+                  </p>
+                  <Badge
+                    className={`text-xs ${getStatusColor(inquiry.status)}`}
+                  >
+                    {inquiry.status}
+                  </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">{inquiry.trip_title}</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  {inquiry.trip_title}
+                </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(inquiry.created_at), {
+                    addSuffix: true,
+                  })}
                 </p>
               </button>
             ))
@@ -133,51 +149,74 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
       </Card>
 
       {/* Message Thread */}
-      <Card className="flex flex-col p-4">
+      <Card className="flex flex-col p-3 sm:p-4">
         {selectedInquiry ? (
           <>
-            <div className="mb-4 border-b pb-4">
-              <h2 className="text-xl font-semibold">{selectedInquiry.customer_name}</h2>
-              <p className="text-sm text-muted-foreground">{selectedInquiry.customer_email}</p>
-              <p className="mt-2 text-sm">
-                <span className="font-medium">Trip:</span> {selectedInquiry.trip_title}
+            <div className="mb-3 border-b pb-3 sm:mb-4 sm:pb-4">
+              <h2 className="text-lg font-semibold sm:text-xl">
+                {selectedInquiry.customer_name}
+              </h2>
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                {selectedInquiry.customer_email}
+              </p>
+              <p className="mt-2 text-xs sm:text-sm">
+                <span className="font-medium">Trip:</span>{" "}
+                {selectedInquiry.trip_title}
               </p>
               {selectedInquiry.package_name && (
-                <p className="text-sm">
-                  <span className="font-medium">Package:</span> {selectedInquiry.package_name}
+                <p className="text-xs sm:text-sm">
+                  <span className="font-medium">Package:</span>{" "}
+                  {selectedInquiry.package_name}
                 </p>
               )}
               {selectedInquiry.start_date && selectedInquiry.end_date && (
-                <p className="text-sm">
-                  <span className="font-medium">Travel Dates:</span> {selectedInquiry.start_date} to{" "}
-                  {selectedInquiry.end_date}
+                <p className="text-xs sm:text-sm">
+                  <span className="font-medium">Travel Dates:</span>{" "}
+                  {selectedInquiry.start_date} to {selectedInquiry.end_date}
                 </p>
               )}
             </div>
 
             {/* Messages */}
-            <div className="mb-4 flex-1 space-y-3 overflow-y-auto">
+            <div className="mb-3 flex-1 space-y-2 overflow-y-auto sm:mb-4 sm:space-y-3">
               {loading ? (
-                <p className="text-sm text-muted-foreground">Loading messages...</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  Loading messages...
+                </p>
               ) : messages.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="text-center">
-                    <MessageSquare className="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">No messages yet. Start the conversation!</p>
+                    <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                      No messages yet. Start the conversation!
+                    </p>
                   </div>
                 </div>
               ) : (
                 messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.is_admin ? "justify-end" : "justify-start"}`}>
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.is_admin ? "justify-end" : "justify-start"
+                    }`}
+                  >
                     <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.is_admin ? "bg-primary text-primary-foreground" : "bg-muted"
+                      className={`max-w-[85%] rounded-lg p-2 sm:max-w-[80%] sm:p-3 ${
+                        message.is_admin
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
                       }`}
                     >
-                      <p className="mb-1 text-xs font-medium">{message.sender_name}</p>
-                      <p className="text-sm">{message.message_text}</p>
+                      <p className="mb-1 text-xs font-medium">
+                        {message.sender_name}
+                      </p>
+                      <p className="text-xs sm:text-sm">
+                        {message.message_text}
+                      </p>
                       <p className="mt-1 text-xs opacity-70">
-                        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(message.created_at), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
                   </div>
@@ -197,10 +236,15 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
                     sendMessage()
                   }
                 }}
-                className="flex-1"
+                className="flex-1 text-sm"
                 rows={2}
               />
-              <Button onClick={sendMessage} disabled={sending || !newMessage.trim()} size="icon">
+              <Button
+                onClick={sendMessage}
+                disabled={sending || !newMessage.trim()}
+                size="icon"
+                className="h-auto"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -208,8 +252,10 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <MessageSquare className="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
-              <p className="text-muted-foreground">Select an inquiry to view messages</p>
+              <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
+              <p className="text-sm text-muted-foreground">
+                Select an inquiry to view messages
+              </p>
             </div>
           </div>
         )}

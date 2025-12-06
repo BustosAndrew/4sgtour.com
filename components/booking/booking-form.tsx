@@ -939,63 +939,108 @@ export function BookingForm({
 
       {galleryOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setGalleryOpen(false)}
         >
           <div
-            className="relative max-h-[90vh] max-w-[90vw]"
+            className="relative h-full w-full flex items-center justify-center p-4 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               type="button"
               onClick={() => setGalleryOpen(false)}
-              className="absolute -right-4 -top-4 z-10 flex h-8 w-8 items-center justify-center bg-white text-black shadow-lg"
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:right-8 sm:top-8"
+              aria-label="Close gallery"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            {/* Main image */}
-            <div className="relative aspect-[16/10] w-[80vw] max-w-4xl overflow-hidden">
-              <Image
-                src={tripImages[galleryIndex]?.image_url || "/placeholder.svg"}
-                alt={`${trip.title} ${galleryIndex + 1}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            {/* Navigation arrows */}
-            {tripImages.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setGalleryIndex((prev) =>
-                      prev === 0 ? tripImages.length - 1 : prev - 1,
-                    )
+            {/* Main image container */}
+            <div className="relative w-full max-w-6xl">
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg shadow-2xl">
+                <Image
+                  src={
+                    tripImages[galleryIndex]?.image_url || "/placeholder.svg"
                   }
-                  className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-white/90 text-black shadow-lg transition-colors hover:bg-white"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setGalleryIndex((prev) =>
-                      prev === tripImages.length - 1 ? 0 : prev + 1,
-                    )
-                  }
-                  className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-white/90 text-black shadow-lg transition-colors hover:bg-white"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-              </>
-            )}
+                  alt={`${trip.title} ${galleryIndex + 1}`}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
 
-            {/* Image counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 px-4 py-2 text-sm text-white">
-              {galleryIndex + 1} / {tripImages.length}
+              {/* Navigation arrows */}
+              {tripImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setGalleryIndex((prev) =>
+                        prev === 0 ? tripImages.length - 1 : prev - 1,
+                      )
+                    }
+                    className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:left-4 sm:h-12 sm:w-12"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setGalleryIndex((prev) =>
+                        prev === tripImages.length - 1 ? 0 : prev + 1,
+                      )
+                    }
+                    className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:right-4 sm:h-12 sm:w-12"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Image counter and title */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:p-6">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-sm text-white/80 sm:text-base">
+                      {trip.title}
+                    </p>
+                    <p className="text-xs text-white/60 sm:text-sm">
+                      {trip.location}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
+                    {galleryIndex + 1} / {tripImages.length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thumbnail strip for desktop */}
+              {tripImages.length > 1 && (
+                <div className="mt-4 hidden sm:flex gap-2 justify-center overflow-x-auto pb-2">
+                  {tripImages.map((img, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setGalleryIndex(idx)}
+                      className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded transition-all ${
+                        idx === galleryIndex
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-105"
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={img.image_url || "/placeholder.svg"}
+                        alt={`Thumbnail ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

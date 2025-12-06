@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, Pencil, Trash2, FileText, Home } from "lucide-react"
+import { LogOut, Pencil, Trash2, FileText, Home, Menu, X } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -23,7 +23,13 @@ type Trip = {
   booking_url: string | null
 }
 
-const CONTINENTS = ["Africa", "South America", "North America", "Asia", "Europe"] as const
+const CONTINENTS = [
+  "Africa",
+  "South America",
+  "North America",
+  "Asia",
+  "Europe",
+] as const
 
 export function AdminCourses({
   userName,
@@ -43,10 +49,13 @@ export function AdminCourses({
   const [showAccountSettings, setShowAccountSettings] = useState(false)
   const [deletingTrips, setDeletingTrips] = useState<Set<string>>(new Set())
   const [localTrips, setLocalTrips] = useState<Trip[]>(trips)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
 
   const filteredTrips =
-    selectedContinent === "All" ? localTrips : localTrips.filter((trip) => trip.continent === selectedContinent)
+    selectedContinent === "All"
+      ? localTrips
+      : localTrips.filter((trip) => trip.continent === selectedContinent)
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -59,7 +68,11 @@ export function AdminCourses({
     e.preventDefault()
     e.stopPropagation()
 
-    if (!confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this course? This action cannot be undone.",
+      )
+    ) {
       return
     }
 
@@ -92,11 +105,42 @@ export function AdminCourses({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-[230px] bg-[#274C77] p-6 text-white">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[230px] transform bg-[#274C77] p-6 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Close button for mobile */}
+        <button
+          onClick={() => setMobileMenuOpen(false)}
+          className="absolute right-4 top-4 text-white lg:hidden"
+        >
+          <X className="h-6 w-6" />
+        </button>
+
         <div className="mb-12 flex items-center gap-3">
           <div className="text-white">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M24 4L8 12V24C8 34 15 42 24 44C33 42 40 34 40 24V12L24 4Z" fill="currentColor" opacity="0.3" />
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M24 4L8 12V24C8 34 15 42 24 44C33 42 40 34 40 24V12L24 4Z"
+                fill="currentColor"
+                opacity="0.3"
+              />
               <circle cx="24" cy="20" r="4" fill="currentColor" />
               <path d="M24 26L18 32H30L24 26Z" fill="currentColor" />
             </svg>
@@ -109,7 +153,7 @@ export function AdminCourses({
         </div>
 
         <nav className="space-y-2">
-          <Link href="/">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)}>
             <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
               <Home className="h-5 w-5" />
               <span className="font-medium">Home</span>
@@ -117,9 +161,14 @@ export function AdminCourses({
           </Link>
 
           <button
-            onClick={() => setActiveTab("courses")}
+            onClick={() => {
+              setActiveTab("courses")
+              setMobileMenuOpen(false)
+            }}
             className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "courses" ? "bg-white/20 text-white" : "text-white hover:bg-white/10"
+              activeTab === "courses"
+                ? "bg-white/20 text-white"
+                : "text-white hover:bg-white/10"
             }`}
           >
             <svg
@@ -138,9 +187,14 @@ export function AdminCourses({
           </button>
 
           <button
-            onClick={() => setActiveTab("inquiries")}
+            onClick={() => {
+              setActiveTab("inquiries")
+              setMobileMenuOpen(false)
+            }}
             className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "inquiries" ? "bg-white/20 text-white" : "text-white hover:bg-white/10"
+              activeTab === "inquiries"
+                ? "bg-white/20 text-white"
+                : "text-white hover:bg-white/10"
             }`}
           >
             <FileText className="h-5 w-5" />
@@ -158,17 +212,37 @@ export function AdminCourses({
       </aside>
 
       <main className="flex-1 bg-[#f4f3ee]">
-        <header className="border-b border-gray-300 bg-white px-8 py-6">
+        <header className="border-b border-gray-300 bg-white px-4 py-4 sm:px-8 sm:py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Hello, {userName}!</h1>
-              <p className="text-sm text-gray-600">Welcome Back!</p>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="mr-2 text-gray-900 lg:hidden"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-gray-900 sm:text-2xl">
+                Hello, {userName}!
+              </h1>
+              <p className="text-xs text-gray-600 sm:text-sm">Welcome Back!</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500">Admin</span>
-              <button onClick={() => setShowAccountSettings(true)} className="transition-opacity hover:opacity-80">
-                <Avatar className="h-10 w-10">
-                  {userPhotoUrl && <AvatarImage src={userPhotoUrl || "/placeholder.svg"} alt={userName} />}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden text-xs text-gray-500 sm:inline">
+                Admin
+              </span>
+              <button
+                onClick={() => setShowAccountSettings(true)}
+                className="transition-opacity hover:opacity-80"
+              >
+                <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                  {userPhotoUrl && (
+                    <AvatarImage
+                      src={userPhotoUrl || "/placeholder.svg"}
+                      alt={userName}
+                    />
+                  )}
                   <AvatarFallback className="bg-gray-300 text-gray-600">
                     {userName.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -178,19 +252,23 @@ export function AdminCourses({
           </div>
         </header>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
           {activeTab === "courses" ? (
             <>
-              <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900">Courses</h2>
-                <p className="text-sm text-gray-600">Create, delete, and edit courses</p>
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                  Courses
+                </h2>
+                <p className="text-xs text-gray-600 sm:text-sm">
+                  Create, delete, and edit courses
+                </p>
               </div>
 
-              <div className="mb-6 flex items-center justify-between rounded-lg bg-white p-6 shadow-sm">
+              <div className="mb-4 flex flex-col gap-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedContinent("All")}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                       selectedContinent === "All"
                         ? "bg-primary text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -202,7 +280,7 @@ export function AdminCourses({
                     <button
                       key={continent}
                       onClick={() => setSelectedContinent(continent)}
-                      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                      className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                         selectedContinent === continent
                           ? "bg-primary text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -211,19 +289,27 @@ export function AdminCourses({
                       {continent === "South America"
                         ? "S. America"
                         : continent === "North America"
-                          ? "N. America"
-                          : continent}
+                        ? "N. America"
+                        : continent}
                     </button>
                   ))}
                 </div>
-                <Link href="/admin/trips/new">
-                  <Button className="bg-[#274C77] text-white hover:bg-[#274C77]/90">+ Add Course</Button>
+                <Link
+                  href="/admin/trips/new"
+                  className="w-full sm:w-auto sm:self-end"
+                >
+                  <Button className="w-full bg-[#274C77] text-white hover:bg-[#274C77]/90 sm:w-auto">
+                    + Add Course
+                  </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredTrips.map((trip) => (
-                  <div key={trip.id} className="overflow-hidden rounded-lg bg-primary text-white shadow-md">
+                  <div
+                    key={trip.id}
+                    className="overflow-hidden rounded-lg bg-primary text-white shadow-md"
+                  >
                     <div className="relative h-40 bg-white">
                       {trip.courses_photo_url ? (
                         <Image
@@ -234,19 +320,31 @@ export function AdminCourses({
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-gray-100">
-                          <span className="text-sm text-gray-400">No image</span>
+                          <span className="text-sm text-gray-400">
+                            No image
+                          </span>
                         </div>
                       )}
                     </div>
 
                     <div className="p-4">
-                      <p className="mb-1 text-xs uppercase tracking-wide text-primary-foreground/70">Location</p>
-                      <h3 className="mb-2 font-semibold text-white">{trip.title}</h3>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-primary-foreground/70">
+                        Location
+                      </p>
+                      <h3 className="mb-2 font-semibold text-white">
+                        {trip.title}
+                      </h3>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">${Number(trip.price_regular).toFixed(2)}</span>
+                        <span className="text-lg font-bold">
+                          ${Number(trip.price_regular).toFixed(2)}
+                        </span>
                         <div className="flex gap-2">
                           <Link href={`/admin/trips/${trip.id}`}>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/10">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-white hover:bg-white/10"
+                            >
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </Link>
@@ -257,7 +355,13 @@ export function AdminCourses({
                             onClick={(e) => handleDeleteTrip(trip.id, e)}
                             disabled={deletingTrips.has(trip.id)}
                           >
-                            <Trash2 className={`h-4 w-4 ${deletingTrips.has(trip.id) ? "animate-pulse" : ""}`} />
+                            <Trash2
+                              className={`h-4 w-4 ${
+                                deletingTrips.has(trip.id)
+                                  ? "animate-pulse"
+                                  : ""
+                              }`}
+                            />
                           </Button>
                         </div>
                       </div>
@@ -268,9 +372,13 @@ export function AdminCourses({
                 {filteredTrips.length === 0 && (
                   <div className="col-span-full rounded-lg bg-white p-12 text-center">
                     <p className="text-gray-500">
-                      {selectedContinent === "All" ? "No trips yet." : `No courses found for ${selectedContinent}.`}
+                      {selectedContinent === "All"
+                        ? "No trips yet."
+                        : `No courses found for ${selectedContinent}.`}
                     </p>
-                    <p className="mt-2 text-sm text-gray-400">Click "Add Course" to create a new trip.</p>
+                    <p className="mt-2 text-sm text-gray-400">
+                      Click "Add Course" to create a new trip.
+                    </p>
                   </div>
                 )}
               </div>
@@ -278,8 +386,12 @@ export function AdminCourses({
           ) : (
             <>
               <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900">Inquiries</h2>
-                <p className="text-sm text-gray-600">View and manage customer booking inquiries</p>
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Inquiries
+                </h2>
+                <p className="text-sm text-gray-600">
+                  View and manage customer booking inquiries
+                </p>
               </div>
 
               <div className="rounded-lg bg-white p-6 shadow-sm">

@@ -20,11 +20,16 @@ export default async function AdminInboxPage() {
     redirect("/")
   }
 
-  const { data: inquiries } = await supabase.from("inquiries").select("*").order("updated_at", { ascending: false })
+  const { data: inquiries } = await supabase
+    .from("inquiries")
+    .select("*")
+    .order("updated_at", { ascending: false })
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="mb-6 text-3xl font-bold">Inbox - Inquiry Messages</h1>
+    <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-8">
+      <h1 className="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">
+        Inbox - Inquiry Messages
+      </h1>
       <InboxList inquiries={inquiries || []} />
     </div>
   )

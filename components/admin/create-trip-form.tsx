@@ -625,13 +625,13 @@ export function CreateTripForm() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl px-2 sm:px-0">
       {validationErrors.length > 0 && (
-        <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
-          <h3 className="mb-2 font-semibold text-red-900">
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 sm:mb-6 sm:p-4">
+          <h3 className="mb-2 text-sm font-semibold text-red-900 sm:text-base">
             Please fix the following errors:
           </h3>
-          <ul className="list-inside list-disc space-y-1 text-sm text-red-800">
+          <ul className="list-inside list-disc space-y-1 text-xs text-red-800 sm:text-sm">
             {validationErrors.map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}
@@ -639,15 +639,15 @@ export function CreateTripForm() {
         </div>
       )}
 
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between">
           {STEPS.map((step, idx) => (
             <div key={step.id} className="flex flex-1 items-center">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(step.id)}
-                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors hover:opacity-80 ${
+                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors hover:opacity-80 sm:h-10 sm:w-10 ${
                     currentStep === step.id
                       ? "border-primary bg-primary text-white"
                       : currentStep > step.id
@@ -674,7 +674,7 @@ export function CreateTripForm() {
               </div>
               {idx < STEPS.length - 1 && (
                 <div
-                  className={`mx-2 h-0.5 flex-1 md:mx-4 ${
+                  className={`mx-1 h-0.5 flex-1 sm:mx-2 md:mx-4 ${
                     currentStep > step.id
                       ? "bg-primary/70"
                       : "bg-muted-foreground/30"
@@ -686,17 +686,17 @@ export function CreateTripForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {currentStep === 1 && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h2 className="text-2xl font-semibold">Trip Basics</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-xl font-semibold sm:text-2xl">Trip Basics</h2>
+              <p className="text-xs text-muted-foreground sm:text-sm">
                 Enter the basic information about your golf trip
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base text-foreground">
                   Trip Title *

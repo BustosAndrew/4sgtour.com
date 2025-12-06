@@ -484,12 +484,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl px-2 sm:px-0">
       {showDeleteDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
-            <h3 className="mb-4 text-lg font-semibold">Delete Trip</h3>
-            <p className="mb-6 text-sm text-muted-foreground">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-card p-4 shadow-lg sm:p-6">
+            <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">
+              Delete Trip
+            </h3>
+            <p className="mb-4 text-xs text-muted-foreground sm:mb-6 sm:text-sm">
               Are you sure you want to delete this trip? This action cannot be
               undone. All packages, add-ons, and bookings associated with this
               trip will also be deleted.
@@ -499,7 +501,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 variant="outline"
                 onClick={() => setShowDeleteDialog(false)}
                 disabled={deleting}
-                className="flex-1"
+                className="flex-1 text-sm"
               >
                 Cancel
               </Button>
@@ -507,7 +509,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1"
+                className="flex-1 text-sm"
               >
                 {deleting ? "Deleting..." : "Delete Trip"}
               </Button>
@@ -516,15 +518,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         </div>
       )}
 
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between">
           {STEPS.map((step, idx) => (
             <div key={step.id} className="flex flex-1 items-center">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(step.id)}
-                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-colors hover:opacity-80 ${
+                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors hover:opacity-80 sm:h-10 sm:w-10 ${
                     currentStep === step.id
                       ? "border-primary bg-primary text-white"
                       : currentStep > step.id
@@ -551,7 +553,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               </div>
               {idx < STEPS.length - 1 && (
                 <div
-                  className={`mx-2 h-0.5 flex-1 md:mx-4 ${
+                  className={`mx-1 h-0.5 flex-1 sm:mx-2 md:mx-4 ${
                     currentStep > step.id
                       ? "bg-primary/70"
                       : "bg-muted-foreground/30"
@@ -563,19 +565,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {currentStep === 1 && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h2 className="text-2xl font-semibold">Trip Basics</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-xl font-semibold sm:text-2xl">Trip Basics</h2>
+              <p className="text-xs text-muted-foreground sm:text-sm">
                 Update the basic information about your golf trip
               </p>
             </div>
 
             {/* Trip Name */}
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-base text-foreground">
+              <Label
+                htmlFor="title"
+                className="text-sm text-foreground sm:text-base"
+              >
                 Title of place *
               </Label>
               <Input
@@ -586,7 +591,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 }
                 placeholder="Title of place"
                 required
-                className="h-12"
+                className="h-10 sm:h-12"
               />
             </div>
 
@@ -594,7 +599,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             <div className="space-y-2">
               <Label
                 htmlFor="description"
-                className="text-base text-foreground"
+                className="text-sm text-foreground sm:text-base"
               >
                 Description
               </Label>
