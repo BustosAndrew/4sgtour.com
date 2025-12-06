@@ -66,7 +66,7 @@ export default async function ContinentTripsPage({
         <div className="absolute inset-0 flex items-center justify-center lg:justify-start px-4 lg:px-20">
           <div className="container text-center lg:text-left text-white">
             <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl font-bitter">
-              4 Seasons Golf Tour
+              4SG Tour Courses
             </h1>
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
           </div>

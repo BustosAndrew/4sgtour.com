@@ -68,7 +68,7 @@ export function SiteHeader({
               <Link href="/" className="flex-shrink-0">
                 <img
                   src="/logo.png"
-                  alt="4 Seasons Golf Tour"
+                  alt="4SG Tour Logo"
                   className="h-[40px] lg:h-[50px] w-auto object-contain"
                 />
               </Link>

@@ -29,10 +29,10 @@ export default async function ContactPage() {
                     Representative Email:
                   </h3>
                   <a
-                    href="mailto:Go@Us4seasongolf.com"
+                    href="mailto:info@4sgtour.com"
                     className="text-base sm:text-lg text-white/80 underline decoration-white/30 hover:text-white"
                   >
-                    Go@Us4seasongolf.com
+                    info@4sgtour.com
                   </a>
                 </div>
 

@@ -146,8 +146,7 @@ export function AdminCourses({
             </svg>
           </div>
           <div>
-            <div className="text-base font-semibold">4 SEASONS</div>
-            <div className="text-base font-semibold">GOLF TOUR</div>
+            <div className="text-base font-semibold">4SG Tour</div>
             <div className="text-xs">Customize Golf Journey</div>
           </div>
         </div>

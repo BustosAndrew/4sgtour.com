@@ -26,7 +26,11 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
       {/* Logo */}
       <div className="border-b border-white/10 p-6">
         <div className="flex items-center justify-center">
-          <img src="/logo.png" alt="4 Seasons Golf Tour" className="h-16 w-auto object-contain" />
+          <img
+            src="/logo.png"
+            alt="4SG Tour"
+            className="h-16 w-auto object-contain"
+          />
         </div>
       </div>
 
@@ -55,7 +59,9 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
         <Link
           href="/admin/analytics"
           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
-            pathname === "/admin/analytics" ? "bg-white/20" : "hover:bg-white/10"
+            pathname === "/admin/analytics"
+              ? "bg-white/20"
+              : "hover:bg-white/10"
           }`}
         >
           <BarChart3 className="h-5 w-5" />

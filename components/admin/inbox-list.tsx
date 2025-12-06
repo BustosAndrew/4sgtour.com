@@ -65,7 +65,7 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
           messageText: newMessage,
           isAdmin: true,
           senderName: "Admin",
-          senderEmail: "admin@4seasonsgolftour.com",
+          senderEmail: "info@4sgtour.com",
         }),
       })
 
