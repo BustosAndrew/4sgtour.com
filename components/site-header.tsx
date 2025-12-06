@@ -241,13 +241,56 @@ export function SiteHeader({
                 {/* Auth Section */}
                 <div className="border-t border-white/20 mt-4 pt-4">
                   {user ? (
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-white/80">
-                        Signed in as
-                      </span>
-                      <span className="text-sm text-white font-medium truncate max-w-[200px]">
-                        {user.email}
-                      </span>
+                    <div className="flex flex-col gap-1">
+                      <div className="px-4 py-2 mb-2">
+                        <div className="text-xs text-white/60 mb-1">
+                          Signed in as
+                        </div>
+                        <div className="text-sm text-white font-medium truncate">
+                          {user.email}
+                        </div>
+                        {userType !== "regular" && (
+                          <div className="text-xs font-medium text-white/80 capitalize mt-1">
+                            {userType}
+                          </div>
+                        )}
+                      </div>
+                      <Link
+                        href="/bookings"
+                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Bookings
+                      </Link>
+                      <Link
+                        href="/favorites"
+                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Favorites
+                      </Link>
+                      {userType === "admin" && (
+                        <Link
+                          href="/admin"
+                          className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <button
+                        onClick={async () => {
+                          const supabase = (
+                            await import("@/lib/supabase/client")
+                          ).createClient()
+                          await supabase.auth.signOut()
+                          setMobileMenuOpen(false)
+                          window.location.href = "/"
+                        }}
+                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4 text-left"
+                      >
+                        Log Out
+                      </button>
                     </div>
                   ) : (
                     <div className="flex gap-3">
