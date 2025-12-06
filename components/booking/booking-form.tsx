@@ -782,10 +782,10 @@ export function BookingForm({
         <div className="lg:w-80">
           <div className="sticky top-24">
             {/* Confirmation Card */}
-            <div className="overflow-hidden border border-x-3 border-b-3 border-primary">
-              <div className="flex">
-                <div className="h-[45px] w-[45px] shrink-0 bg-[#14184E]" />
-                <div className="flex-1 bg-[#3D5A80] px-4 h-[45px] flex items-center">
+            <div className="border border-x-3 border-b-3 border-[#3D5A80]">
+              <div className="relative flex">
+                <div className="absolute left-[-3px] top-0 h-[45px] w-[48px] bg-[#14184E] z-10" />
+                <div className="flex-1 bg-[#3D5A80] px-4 h-[45px] flex items-center pl-[60px]">
                   <h3 className="font-serif text-lg text-white">
                     Confirmation
                   </h3>

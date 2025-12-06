@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Check, X } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
+import { TripImageGallery } from "@/components/trip-image-gallery"
 
 interface TripPageProps {
   params: Promise<{ slug: string }>
@@ -67,37 +68,11 @@ export default async function TripPage({ params }: TripPageProps) {
         </div>
       </section>
 
-      <section className="container px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+      <section className="container px-2 py-8 sm:py-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-4">
           {/* Right Column - Images */}
-          <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2">
-            {/* Main large image */}
-            {additionalImages[0] && (
-              <div className="overflow-hidden">
-                <img
-                  src={additionalImages[0] || "/placeholder.svg"}
-                  alt={`${trip.title} view`}
-                  className="aspect-[16/10] w-full object-cover sm:aspect-[16/9] lg:h-[350px] lg:aspect-auto"
-                />
-              </div>
-            )}
-
-            {/* Two smaller images in a row */}
-            {additionalImages.length > 1 && (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {additionalImages
-                  .slice(1, 3)
-                  .map((img: string, idx: number) => (
-                    <div key={idx} className="overflow-hidden">
-                      <img
-                        src={img || "/placeholder.svg"}
-                        alt={`${trip.title} highlight ${idx + 1}`}
-                        className="aspect-[4/3] w-full object-cover sm:aspect-[16/10] lg:h-[170px] lg:aspect-auto"
-                      />
-                    </div>
-                  ))}
-              </div>
-            )}
+          <div className="order-1 lg:order-2">
+            <TripImageGallery images={additionalImages} title={trip.title} />
           </div>
 
           {/* Left Column - Text Content */}
