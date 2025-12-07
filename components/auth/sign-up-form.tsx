@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GlassCard } from "@/components/ui/glass-card"
+import { CountryCodeSelector } from "./country-code-selector"
+import { DEFAULT_COUNTRY, type Country } from "@/lib/countries"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -18,6 +20,7 @@ export function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY)
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"signup" | "verify">("signup")
@@ -65,13 +68,14 @@ export function SignUpForm() {
       return
     }
 
+    // Construct the full phone number with country code
+    const fullPhone = `${country.dialCode}${phone
+      .replace(/^\+/, "")
+      .replace(/\D/g, "")}`
     const phoneRegex = /^\+[1-9]\d{1,14}$/
-    const cleanPhone = phone.replace(/[\s()-]/g, "")
 
-    if (!phoneRegex.test(cleanPhone)) {
-      setError(
-        "Please enter a valid phone number with country code (e.g., +12345678900)",
-      )
+    if (!phoneRegex.test(fullPhone)) {
+      setError("Please enter a valid phone number")
       setIsLoading(false)
       return
     }
@@ -79,7 +83,7 @@ export function SignUpForm() {
     try {
       const supabase = createClient()
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: cleanPhone,
+        phone: fullPhone,
       })
 
       if (otpError) throw otpError
@@ -102,11 +106,13 @@ export function SignUpForm() {
     setError(null)
 
     try {
-      const cleanPhone = phone.replace(/[\s()-]/g, "")
+      const fullPhone = `${country.dialCode}${phone
+        .replace(/^\+/, "")
+        .replace(/\D/g, "")}`
       const supabase = createClient()
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
-        phone: cleanPhone,
+        phone: fullPhone,
         token: otp,
         type: "sms",
       })
@@ -122,7 +128,7 @@ export function SignUpForm() {
           options: {
             data: {
               display_name: name,
-              phone: cleanPhone,
+              phone: fullPhone,
               phone_verified: true,
             },
           },
@@ -145,11 +151,13 @@ export function SignUpForm() {
     setError(null)
 
     try {
-      const cleanPhone = phone.replace(/[\s()-]/g, "")
+      const fullPhone = `${country.dialCode}${phone
+        .replace(/^\+/, "")
+        .replace(/\D/g, "")}`
       const supabase = createClient()
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: cleanPhone,
+        phone: fullPhone,
       })
 
       if (otpError) throw otpError
@@ -177,17 +185,28 @@ export function SignUpForm() {
           <GlassCard>
             <div className="p-8">
               <div className="mb-6 text-center">
-                <h1 className="text-2xl font-semibold text-white">
+                <h1
+                  className="text-3xl font-bold text-white"
+                  style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+                >
                   Verify Phone Number
                 </h1>
-                <p className="mt-2 text-sm text-white/70">
-                  Enter the 6-digit code sent to {phone}
+                <p
+                  className="mt-2 text-base text-white font-medium"
+                  style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+                >
+                  Enter the 6-digit code sent to {country.dialCode}
+                  {phone}
                 </p>
               </div>
 
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-white">
+                  <Label
+                    htmlFor="otp"
+                    className="text-white font-semibold"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                  >
                     Verification Code*
                   </Label>
                   <Input
@@ -199,7 +218,7 @@ export function SignUpForm() {
                     onChange={(e) =>
                       setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                     }
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/50 text-center text-2xl tracking-widest"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-center text-2xl tracking-widest font-bold"
                     maxLength={6}
                     autoComplete="one-time-code"
                   />
@@ -207,11 +226,12 @@ export function SignUpForm() {
 
                 {error && (
                   <div
-                    className={`p-3 text-sm ${
+                    className={`p-3 text-sm font-medium border ${
                       error.includes("success")
-                        ? "bg-green-500/30 text-white"
-                        : "bg-destructive/30 text-white"
+                        ? "bg-green-500/40 text-white border-green-300/40"
+                        : "bg-red-500/40 text-white border-red-300/40"
                     }`}
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                   >
                     {error}
                   </div>
@@ -229,7 +249,7 @@ export function SignUpForm() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 bg-white/10 border-white/30 text-white hover:bg-white/20"
+                    className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
                     onClick={handleResendOtp}
                     disabled={isLoading}
                   >
@@ -238,7 +258,7 @@ export function SignUpForm() {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 text-white hover:bg-white/10"
+                    className="flex-1 text-white hover:bg-white/20 font-medium"
                     onClick={() => {
                       setStep("signup")
                       setOtp("")
@@ -270,15 +290,27 @@ export function SignUpForm() {
         <GlassCard>
           <div className="p-8">
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-semibold text-white">Sign Up</h1>
-              <p className="mt-2 text-sm text-white/70">
+              <h1
+                className="text-3xl font-bold text-white"
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
+                Sign Up
+              </h1>
+              <p
+                className="mt-2 text-base text-white font-medium"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+              >
                 Create your account with phone verification
               </p>
             </div>
 
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white">
+                <Label
+                  htmlFor="name"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Name*
                 </Label>
                 <Input
@@ -288,12 +320,16 @@ export function SignUpForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">
+                <Label
+                  htmlFor="email"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Email*
                 </Label>
                 <Input
@@ -303,12 +339,16 @@ export function SignUpForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white">
+                <Label
+                  htmlFor="password"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Password*
                 </Label>
                 <div className="relative">
@@ -320,12 +360,12 @@ export function SignUpForm() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/50 pr-10"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/70"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 font-bold"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -337,7 +377,11 @@ export function SignUpForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Confirm Password*
                 </Label>
                 <div className="relative">
@@ -349,12 +393,12 @@ export function SignUpForm() {
                     minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/50 pr-10"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/70"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 font-bold"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -366,25 +410,38 @@ export function SignUpForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white">
+                <Label
+                  htmlFor="phone"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Phone Number*
                 </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+12345678900"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
-                />
-                <p className="text-xs text-white/50">
-                  Must include country code (e.g., +1 for US)
-                </p>
+                <div className="flex gap-2">
+                  <CountryCodeSelector
+                    value={country}
+                    onChange={setCountry}
+                    className="w-16"
+                  />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="1234567890"
+                    required
+                    value={phone}
+                    onChange={(e) =>
+                      setPhone(e.target.value.replace(/\D/g, ""))
+                    }
+                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                  />
+                </div>
               </div>
 
               {error && (
-                <div className="bg-destructive/30 p-3 text-sm text-white">
+                <div
+                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   {error}
                 </div>
               )}
@@ -399,15 +456,20 @@ export function SignUpForm() {
             </form>
 
             <div className="my-6 flex items-center gap-4">
-              <div className="h-px flex-1 bg-white/30" />
-              <span className="text-sm text-white/70">or</span>
-              <div className="h-px flex-1 bg-white/30" />
+              <div className="h-px flex-1 bg-white/40" />
+              <span
+                className="text-sm text-white font-medium"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+              >
+                or
+              </span>
+              <div className="h-px flex-1 bg-white/40" />
             </div>
 
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
+              className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
               onClick={handleGoogleSignUp}
               disabled={isLoading}
             >
@@ -432,11 +494,14 @@ export function SignUpForm() {
               Continue with Google
             </Button>
 
-            <p className="mt-6 text-center text-sm text-white/70">
+            <p
+              className="mt-6 text-center text-sm text-white font-medium"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+            >
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-white hover:underline"
+                className="font-bold text-white hover:text-white/90 hover:underline"
               >
                 Log In
               </Link>

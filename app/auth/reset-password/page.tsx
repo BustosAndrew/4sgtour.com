@@ -52,10 +52,16 @@ export default function ResetPasswordPage() {
               <div className="mb-4 flex justify-center">
                 <CheckCircle2 className="h-16 w-16 text-white" />
               </div>
-              <h1 className="mb-2 text-2xl font-semibold text-white">
+              <h1
+                className="mb-2 text-3xl font-bold text-white"
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
                 Check Your Email
               </h1>
-              <p className="mb-6 text-sm text-white/70">
+              <p
+                className="mb-6 text-base text-white font-medium"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+              >
                 We&apos;ve sent you a password reset link. Please check your
                 email and follow the instructions to reset your password.
               </p>
@@ -86,17 +92,24 @@ export default function ResetPasswordPage() {
           <div className="p-8">
             <Link
               href="/auth/login"
-              className="mb-6 inline-flex items-center text-sm text-white/70 hover:text-white"
+              className="mb-6 inline-flex items-center text-sm text-white font-medium hover:text-white/80"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Login
             </Link>
 
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-white">
+              <h1
+                className="text-3xl font-bold text-white"
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
                 Reset Password
               </h1>
-              <p className="mt-2 text-sm text-white/70">
+              <p
+                className="mt-2 text-base text-white font-medium"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+              >
                 Enter your email address and we&apos;ll send you a link to reset
                 your password.
               </p>
@@ -104,7 +117,11 @@ export default function ResetPasswordPage() {
 
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">
+                <Label
+                  htmlFor="email"
+                  className="text-white font-semibold"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   Email
                 </Label>
                 <Input
@@ -114,12 +131,15 @@ export default function ResetPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
                 />
               </div>
 
               {error && (
-                <div className="bg-destructive/30 p-3 text-sm text-white">
+                <div
+                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                >
                   {error}
                 </div>
               )}
