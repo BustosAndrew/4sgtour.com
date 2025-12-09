@@ -31,7 +31,13 @@ interface Message {
   created_at: string
 }
 
-export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
+export function InboxList({
+  inquiries,
+  initialInquiryId,
+}: {
+  inquiries: Inquiry[]
+  initialInquiryId?: string
+}) {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -41,7 +47,14 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
 
   useEffect(() => {
     setLocalInquiries(inquiries)
-  }, [inquiries])
+    // Auto-select inquiry if initialInquiryId is provided
+    if (initialInquiryId && inquiries.length > 0) {
+      const inquiry = inquiries.find((inq) => inq.id === initialInquiryId)
+      if (inquiry) {
+        setSelectedInquiry(inquiry)
+      }
+    }
+  }, [inquiries, initialInquiryId])
 
   const handleStatusChange = (inquiryId: string, newStatus: string) => {
     // Update local state

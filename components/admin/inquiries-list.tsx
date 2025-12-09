@@ -3,10 +3,15 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Mail, DollarSign } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Calendar, Mail, DollarSign, MessageSquare } from "lucide-react"
 import type { Inquiry } from "@/lib/types/database"
 
-export function InquiriesList() {
+interface InquiriesListProps {
+  onViewInInbox?: (inquiryId: string) => void
+}
+
+export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -129,13 +134,22 @@ export function InquiriesList() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right">
+              <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right sm:gap-3">
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
                   <span className="text-xl font-bold">
                     {Number(inquiry.total_price).toFixed(2)}
                   </span>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewInInbox?.(inquiry.id)}
+                  className="mt-2 sm:mt-0"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  View in Inbox
+                </Button>
               </div>
             </div>
           </Card>

@@ -47,12 +47,14 @@ export function AdminCourses({
   userEmail,
   userPhone,
   userPhotoUrl,
+  initialInquiryId,
 }: {
   userName: string
   trips: Trip[]
   userEmail: string
   userPhone: string | null
   userPhotoUrl: string | null
+  initialInquiryId?: string
 }) {
   const [activeTab, setActiveTab] = useState<"courses" | "inquiries" | "inbox">(
     "courses",
@@ -64,6 +66,9 @@ export function AdminCourses({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [inquiries, setInquiries] = useState<any[]>([])
   const [loadingInquiries, setLoadingInquiries] = useState(false)
+  const [focusedInquiryId, setFocusedInquiryId] = useState<string | undefined>(
+    initialInquiryId,
+  )
   const router = useRouter()
 
   const filteredTrips =
@@ -71,9 +76,17 @@ export function AdminCourses({
       ? localTrips
       : localTrips.filter((trip) => trip.continent === selectedContinent)
 
-  // Fetch inquiries when inbox tab is active
+  // Switch to inbox tab when initialInquiryId is present (on mount and when it changes)
   useEffect(() => {
-    if (activeTab === "inbox" && inquiries.length === 0) {
+    if (initialInquiryId) {
+      setFocusedInquiryId(initialInquiryId)
+      setActiveTab("inbox")
+    }
+  }, [initialInquiryId])
+
+  // Fetch inquiries when inbox tab is active or when an inquiry is focused
+  useEffect(() => {
+    if ((activeTab === "inbox" || focusedInquiryId) && inquiries.length === 0) {
       setLoadingInquiries(true)
       fetch("/api/admin/inquiries")
         .then((res) => res.json())
@@ -83,7 +96,12 @@ export function AdminCourses({
         .catch((error) => console.error("Error fetching inquiries:", error))
         .finally(() => setLoadingInquiries(false))
     }
-  }, [activeTab])
+  }, [activeTab, focusedInquiryId])
+
+  const handleViewInInbox = (inquiryId: string) => {
+    setFocusedInquiryId(inquiryId)
+    setActiveTab("inbox")
+  }
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -437,7 +455,7 @@ export function AdminCourses({
               </div>
 
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <InquiriesList />
+                <InquiriesList onViewInInbox={handleViewInInbox} />
               </div>
             </>
           ) : (
@@ -454,7 +472,10 @@ export function AdminCourses({
                   <p className="text-gray-500">Loading inquiries...</p>
                 </div>
               ) : (
-                <InboxList inquiries={inquiries} />
+                <InboxList
+                  inquiries={inquiries}
+                  initialInquiryId={focusedInquiryId}
+                />
               )}
             </>
           )}
