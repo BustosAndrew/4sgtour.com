@@ -74,7 +74,7 @@ export function SiteHeader({
               </Link>
 
               {/* Desktop Navigation - centered */}
-              <nav className="hidden lg:flex items-center gap-6 xl:gap-10">
+              <nav className="hidden lg:flex items-center gap-6 xl:gap-10 ml-12">
                 <Link
                   href="/"
                   className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"

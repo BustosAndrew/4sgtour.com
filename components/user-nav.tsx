@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { ChevronDown } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 
 interface UserNavProps {
@@ -36,16 +37,29 @@ export function UserNav({ user, userType }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
           </Avatar>
+          <div className="absolute -bottom-1 -left-1 flex h-4 w-4 items-center justify-center rounded-full bg-background border border-border">
+            <ChevronDown className="h-2.5 w-2.5 text-foreground" />
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.user_metadata?.display_name || "User"}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-            {userType !== "regular" && <p className="text-xs font-medium text-primary capitalize">{userType}</p>}
+            <p className="text-sm font-medium leading-none">
+              {user.user_metadata?.display_name || "User"}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user.email}
+            </p>
+            {userType !== "regular" && (
+              <p className="text-xs font-medium text-primary capitalize">
+                {userType}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
