@@ -49,7 +49,8 @@ export function InquiriesList() {
     <div className="space-y-4">
       {inquiries.length === 0 ? (
         <Card className="p-8 text-center text-muted-foreground">
-          No inquiries yet. When customers submit booking inquiries, they'll appear here.
+          No inquiries yet. When customers submit booking inquiries, they'll
+          appear here.
         </Card>
       ) : (
         inquiries.map((inquiry) => (
@@ -57,15 +58,21 @@ export function InquiriesList() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-lg">{inquiry.trip_title}</h3>
-                  <Badge className={getStatusColor(inquiry.status)}>{inquiry.status}</Badge>
+                  <h3 className="font-semibold text-lg">
+                    {inquiry.trip_title}
+                  </h3>
+                  <Badge className={getStatusColor(inquiry.status)}>
+                    {inquiry.status}
+                  </Badge>
                 </div>
 
                 <div className="grid gap-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{inquiry.customer_name}</span>
-                    <span className="text-muted-foreground">({inquiry.customer_email})</span>
+                    <span className="text-muted-foreground">
+                      ({inquiry.customer_email})
+                    </span>
                   </div>
 
                   {inquiry.start_date && inquiry.end_date && (
@@ -80,31 +87,44 @@ export function InquiriesList() {
 
                   {inquiry.package_name && (
                     <div className="text-muted-foreground">
-                      Package: <span className="font-medium text-foreground">{inquiry.package_name}</span>
+                      Package:{" "}
+                      <span className="font-medium text-foreground">
+                        {inquiry.package_name}
+                      </span>
                     </div>
                   )}
 
                   {inquiry.add_ons && inquiry.add_ons.length > 0 && (
                     <div className="text-muted-foreground">
-                      Add-ons: <span className="font-medium text-foreground">{inquiry.add_ons.join(", ")}</span>
+                      Add-ons:{" "}
+                      <span className="font-medium text-foreground">
+                        {inquiry.add_ons.join(", ")}
+                      </span>
                     </div>
                   )}
 
                   {inquiry.rounds > 0 && (
                     <div className="text-muted-foreground">
-                      Rounds: <span className="font-medium text-foreground">{inquiry.rounds}</span>
+                      Rounds:{" "}
+                      <span className="font-medium text-foreground">
+                        {inquiry.rounds}
+                      </span>
                     </div>
                   )}
 
                   {inquiry.additional_requests && (
                     <div className="mt-2">
-                      <div className="text-xs font-medium text-muted-foreground mb-1">Additional Requests:</div>
-                      <div className="text-sm bg-muted/50 rounded p-2">{inquiry.additional_requests}</div>
+                      <div className="text-xs font-medium text-muted-foreground mb-1">
+                        Additional Requests:
+                      </div>
+                      <div className="text-sm bg-muted/50 rounded p-2">
+                        {inquiry.additional_requests}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div className="text-xs text-muted-foreground">
+                <div className="text-small text-muted-foreground">
                   Submitted {new Date(inquiry.created_at).toLocaleString()}
                 </div>
               </div>
@@ -112,7 +132,9 @@ export function InquiriesList() {
               <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right">
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-xl font-bold">${Number(inquiry.total_price).toFixed(2)}</span>
+                  <span className="text-xl font-bold">
+                    {Number(inquiry.total_price).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { UpdateInquiryStatus } from "@/components/admin/update-inquiry-status"
 import { MessageSquare, Send } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
@@ -36,6 +37,24 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [localInquiries, setLocalInquiries] = useState<Inquiry[]>(inquiries)
+
+  useEffect(() => {
+    setLocalInquiries(inquiries)
+  }, [inquiries])
+
+  const handleStatusChange = (inquiryId: string, newStatus: string) => {
+    // Update local state
+    setLocalInquiries((prev) =>
+      prev.map((inq) =>
+        inq.id === inquiryId ? { ...inq, status: newStatus } : inq,
+      ),
+    )
+    // Update selected inquiry if it's the one being changed
+    if (selectedInquiry?.id === inquiryId) {
+      setSelectedInquiry({ ...selectedInquiry, status: newStatus })
+    }
+  }
 
   const loadMessages = async (inquiryId: string) => {
     setLoading(true)
@@ -109,12 +128,12 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
           Inquiries
         </h2>
         <div className="space-y-2">
-          {inquiries.length === 0 ? (
+          {localInquiries.length === 0 ? (
             <p className="text-xs text-muted-foreground sm:text-sm">
               No inquiries yet
             </p>
           ) : (
-            inquiries.map((inquiry) => (
+            localInquiries.map((inquiry) => (
               <button
                 key={inquiry.id}
                 onClick={() => setSelectedInquiry(inquiry)}
@@ -175,6 +194,15 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
                   {selectedInquiry.start_date} to {selectedInquiry.end_date}
                 </p>
               )}
+              <div className="mt-3">
+                <UpdateInquiryStatus
+                  inquiryId={selectedInquiry.id}
+                  currentStatus={selectedInquiry.status}
+                  onStatusChange={(newStatus) =>
+                    handleStatusChange(selectedInquiry.id, newStatus)
+                  }
+                />
+              </div>
             </div>
 
             {/* Messages */}
@@ -184,13 +212,11 @@ export function InboxList({ inquiries }: { inquiries: Inquiry[] }) {
                   Loading messages...
                 </p>
               ) : messages.length === 0 ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="text-center">
-                    <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
-                    <p className="text-xs text-muted-foreground sm:text-sm">
-                      No messages yet. Start the conversation!
-                    </p>
-                  </div>
+                <div className="py-8 text-center">
+                  <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
+                  <p className="text-xs text-muted-foreground sm:text-sm">
+                    No messages yet. Start the conversation!
+                  </p>
                 </div>
               ) : (
                 messages.map((message) => (

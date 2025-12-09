@@ -2,14 +2,24 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, Pencil, Trash2, FileText, Home, Menu, X } from "lucide-react"
+import {
+  LogOut,
+  Pencil,
+  Trash2,
+  FileText,
+  Home,
+  Menu,
+  X,
+  MessageSquare,
+} from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { InquiriesList } from "@/components/admin/inquiries-list"
+import { InboxList } from "@/components/admin/inbox-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -44,18 +54,36 @@ export function AdminCourses({
   userPhone: string | null
   userPhotoUrl: string | null
 }) {
-  const [activeTab, setActiveTab] = useState<"courses" | "inquiries">("courses")
+  const [activeTab, setActiveTab] = useState<"courses" | "inquiries" | "inbox">(
+    "courses",
+  )
   const [selectedContinent, setSelectedContinent] = useState<string>("All")
   const [showAccountSettings, setShowAccountSettings] = useState(false)
   const [deletingTrips, setDeletingTrips] = useState<Set<string>>(new Set())
   const [localTrips, setLocalTrips] = useState<Trip[]>(trips)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [inquiries, setInquiries] = useState<any[]>([])
+  const [loadingInquiries, setLoadingInquiries] = useState(false)
   const router = useRouter()
 
   const filteredTrips =
     selectedContinent === "All"
       ? localTrips
       : localTrips.filter((trip) => trip.continent === selectedContinent)
+
+  // Fetch inquiries when inbox tab is active
+  useEffect(() => {
+    if (activeTab === "inbox" && inquiries.length === 0) {
+      setLoadingInquiries(true)
+      fetch("/api/admin/inquiries")
+        .then((res) => res.json())
+        .then((data) => {
+          setInquiries(data.inquiries || [])
+        })
+        .catch((error) => console.error("Error fetching inquiries:", error))
+        .finally(() => setLoadingInquiries(false))
+    }
+  }, [activeTab])
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -198,6 +226,21 @@ export function AdminCourses({
           >
             <FileText className="h-5 w-5" />
             <span className="font-medium">Inquiries</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("inbox")
+              setMobileMenuOpen(false)
+            }}
+            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+              activeTab === "inbox"
+                ? "bg-white/20 text-white"
+                : "text-white hover:bg-white/10"
+            }`}
+          >
+            <MessageSquare className="h-5 w-5" />
+            <span className="font-medium">Inbox</span>
           </button>
 
           <button
@@ -382,7 +425,7 @@ export function AdminCourses({
                 )}
               </div>
             </>
-          ) : (
+          ) : activeTab === "inquiries" ? (
             <>
               <div className="mb-6">
                 <h2 className="text-2xl font-semibold text-gray-900">
@@ -396,6 +439,23 @@ export function AdminCourses({
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <InquiriesList />
               </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">Inbox</h2>
+                <p className="text-sm text-gray-600">
+                  Message customers about their inquiries
+                </p>
+              </div>
+
+              {loadingInquiries ? (
+                <div className="rounded-lg bg-white p-12 text-center shadow-sm">
+                  <p className="text-gray-500">Loading inquiries...</p>
+                </div>
+              ) : (
+                <InboxList inquiries={inquiries} />
+              )}
             </>
           )}
         </div>
