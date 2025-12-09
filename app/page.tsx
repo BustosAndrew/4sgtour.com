@@ -27,11 +27,10 @@ export default async function HomePage() {
       <main>
         <section className="relative h-[500px] sm:h-[600px] md:h-[700px] bg-muted shadow-xl">
           <img
-            src="/placeholder.svg?height=700&width=1920"
+            src="/images/royalty1.png"
             alt="Hero"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </section>
 
         <section className="container py-12 text-center">
