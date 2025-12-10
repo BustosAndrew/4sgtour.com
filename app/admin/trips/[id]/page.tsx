@@ -64,6 +64,12 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     .eq("trip_id", id)
     .order("created_at", { ascending: true })
 
+  const { data: serviceOptions } = await supabase
+    .from("trip_service_options")
+    .select("*")
+    .eq("trip_id", id)
+    .order("created_at", { ascending: true })
+
   // Combine all data
   const tripWithRelations = {
     ...trip,
@@ -71,6 +77,7 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     golf_courses: golfCourses || [],
     meal_options: mealOptions || [],
     transportation_options: transportationOptions || [],
+    service_options: serviceOptions || [],
   }
 
   const { data: profile } = await supabase

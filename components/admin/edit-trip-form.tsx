@@ -47,6 +47,7 @@ interface EditTripFormProps {
     golf_courses?: any[]
     meal_options?: any[]
     transportation_options?: any[]
+    service_options?: any[]
   }
 }
 
@@ -170,6 +171,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
   const [transportationOptions, setTransportationOptions] = useState(
     trip.transportation_options || [],
+  )
+  const [serviceOptions, setServiceOptions] = useState(
+    trip.service_options || [
+      {
+        id: `caddy-${Date.now()}`,
+        name: "Caddy",
+        description: "",
+        is_included: false,
+      },
+      {
+        id: `golf-cart-${Date.now()}`,
+        name: "Golf Cart",
+        description: "",
+        is_included: false,
+      },
+    ],
   )
 
   const handlePhotoUpload = async (
@@ -313,6 +330,27 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     setTransportationOptions(updated)
   }
 
+  const handleServiceOptionToggle = (name: string, value: boolean) => {
+    let updated = [...serviceOptions]
+    const existingIndex = updated.findIndex((opt) => opt.name === name)
+
+    if (existingIndex >= 0) {
+      updated[existingIndex] = {
+        ...updated[existingIndex],
+        is_included: value,
+      }
+    } else {
+      updated.push({
+        id: `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+        name,
+        description: "",
+        is_included: value,
+      })
+    }
+
+    setServiceOptions(updated)
+  }
+
   const addHighlight = () => {
     setHighlights([...highlights, ""])
   }
@@ -448,6 +486,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           })),
           meal_options: mealOptions,
           transportation_options: transportationOptions,
+          service_options: serviceOptions,
         }),
       })
 
@@ -1204,7 +1243,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             <div>
               <h2 className="text-2xl font-semibold">Trip Options</h2>
               <p className="text-sm text-muted-foreground">
-                Configure golf courses, meals, and transportation (all optional)
+                Configure golf courses, meals, transportation, and service
+                options like Caddy and Golf Cart (all optional)
               </p>
             </div>
 
@@ -1495,6 +1535,51 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   Transportation Option" to add options.
                 </div>
               )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base text-foreground">
+                  Service Options
+                </Label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Card className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Caddy Included</p>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle on if a caddy is included for players.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={
+                      serviceOptions.find((opt) => opt.name === "Caddy")
+                        ?.is_included || false
+                    }
+                    onCheckedChange={(checked) =>
+                      handleServiceOptionToggle("Caddy", checked)
+                    }
+                  />
+                </Card>
+
+                <Card className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Golf Cart Included</p>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle on if a golf cart is included for players.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={
+                      serviceOptions.find((opt) => opt.name === "Golf Cart")
+                        ?.is_included || false
+                    }
+                    onCheckedChange={(checked) =>
+                      handleServiceOptionToggle("Golf Cart", checked)
+                    }
+                  />
+                </Card>
+              </div>
             </div>
           </div>
         )}

@@ -59,6 +59,7 @@ interface Trip {
   golf_courses?: any[]
   meal_options?: any[]
   transportation_options?: any[]
+  service_options?: any[]
 }
 
 interface BookingFormProps {
@@ -95,6 +96,7 @@ export function BookingForm({
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
   const transportationOptions = trip.transportation_options || []
+  const serviceOptions = trip.service_options || []
 
   const includedMeal = mealOptions.find((meal: any) => meal.is_included)
   const includedTransport = transportationOptions.find(
@@ -481,6 +483,10 @@ export function BookingForm({
   const selectedTransportOption = transportationOptions.find(
     (transport: any) => transport.id === selectedTransport,
   )
+  const includedServices = serviceOptions.filter(
+    (service: any) => service.is_included,
+  )
+  const additionalRequestsSectionNumber = includedServices.length > 0 ? 8 : 7
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -760,9 +766,30 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 7: Additional Requests */}
+          {/* Section 7/8: Included Services (read-only) */}
+          {includedServices.length > 0 && (
+            <div className="overflow-hidden">
+              <SectionHeader number={7} title="Included Services" />
+              <div className="py-6">
+                <p className="mb-2 text-sm text-muted-foreground">
+                  Your reservation for this trip already includes the following
+                  services:
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  {includedServices.map((service: any) => (
+                    <li key={service.id || service.name}>{service.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Section 7 or 8: Additional Requests */}
           <div className="overflow-hidden">
-            <SectionHeader number={7} title="Additional Requests" />
+            <SectionHeader
+              number={additionalRequestsSectionNumber}
+              title="Additional Requests"
+            />
             <div className="py-6">
               <p className="mb-4 text-sm text-muted-foreground">
                 Let us know if you have any special requests or requirements for
@@ -852,6 +879,18 @@ export function BookingForm({
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
                         {selectedMealOption.name}
+                      </span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {includedServices.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        Included Services:{" "}
+                        {includedServices
+                          .map((service: any) => service.name)
+                          .join(", ")}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>

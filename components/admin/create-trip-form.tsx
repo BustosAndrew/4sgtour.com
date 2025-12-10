@@ -63,6 +63,13 @@ type TransportationOption = {
   is_included: boolean
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+  description: string
+  is_included: boolean
+}
+
 const STEPS = [
   {
     id: 1,
@@ -123,6 +130,20 @@ export function CreateTripForm() {
   const [transportationOptions, setTransportationOptions] = useState<
     TransportationOption[]
   >([])
+  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([
+    {
+      id: "caddy",
+      name: "Caddy",
+      description: "",
+      is_included: false,
+    },
+    {
+      id: "golf-cart",
+      name: "Golf Cart",
+      description: "",
+      is_included: false,
+    },
+  ])
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -422,6 +443,11 @@ export function CreateTripForm() {
             description: transport.description,
             is_included: transport.is_included,
           })),
+          serviceOptions: serviceOptions.map((service) => ({
+            name: service.name,
+            description: service.description,
+            is_included: service.is_included,
+          })),
         }),
       })
 
@@ -556,6 +582,14 @@ export function CreateTripForm() {
   const removeTransportationOption = (id: string) => {
     setTransportationOptions(
       transportationOptions.filter((transport) => transport.id !== id),
+    )
+  }
+
+  const handleServiceOptionToggle = (name: string, value: boolean) => {
+    setServiceOptions((prev) =>
+      prev.map((opt) =>
+        opt.name === name ? { ...opt, is_included: value } : opt,
+      ),
     )
   }
 

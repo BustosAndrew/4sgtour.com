@@ -178,6 +178,31 @@ export async function PATCH(
     }
   }
 
+  if (body.service_options) {
+    await supabase.from("trip_service_options").delete().eq("trip_id", id)
+
+    const validServices = body.service_options.filter((service: any) =>
+      service.name?.trim(),
+    )
+
+    if (validServices.length > 0) {
+      const servicesToInsert = validServices.map((service: any) => ({
+        trip_id: id,
+        name: service.name,
+        description: service.description || null,
+        is_included: service.is_included || false,
+      }))
+
+      const { error: serviceError } = await supabase
+        .from("trip_service_options")
+        .insert(servicesToInsert)
+
+      if (serviceError) {
+        console.error("Error updating service options:", serviceError)
+      }
+    }
+  }
+
   return NextResponse.json({ success: true })
 }
 

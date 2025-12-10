@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       golfCourses,
       mealOptions,
       transportationOptions,
+      serviceOptions,
     } = body
 
     const baseSlug = title
@@ -148,6 +149,23 @@ export async function POST(request: Request) {
           "[v0] Error creating transportation options:",
           transportError,
         )
+      }
+    }
+
+    if (serviceOptions && serviceOptions.length > 0) {
+      const serviceOptionsData = serviceOptions.map((service: any) => ({
+        trip_id: tripData.id,
+        name: service.name,
+        description: service.description || null,
+        is_included: service.is_included || false,
+      }))
+
+      const { error: serviceError } = await supabase
+        .from("trip_service_options")
+        .insert(serviceOptionsData)
+
+      if (serviceError) {
+        console.error("[v0] Error creating service options:", serviceError)
       }
     }
 
