@@ -24,7 +24,18 @@ export default async function ContactPage() {
           <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-stretch lg:gap-70 w-full">
             <GlassCard className="max-w-3xl h-fit">
               <div className="flex flex-col">
-                <div className="p-6 pb-0 space-y-8 sm:space-y-10 h-fit flex flex-col lg:flex-row justify-center items-center lg:items-start lg:space-x-8">
+                <div className="p-6 lg:pb-6 sm:p-8 lg:p-10">
+                  <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-white">
+                    Contact Us
+                  </h2>
+                  <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                  </p>
+                  <ContactForm />
+                </div>
+                <div className="p-6 lg:pb-10 space-y-8 sm:space-y-10 h-fit flex flex-col lg:flex-row justify-center items-center lg:items-start lg:space-x-8">
                   <div className="flex flex-col items-center">
                     <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-medium text-white">
                       Representative Email:
@@ -74,17 +85,6 @@ export default async function ContactPage() {
                       </a>
                     </div>
                   </div>
-                </div>
-                <div className="p-6 sm:p-8 lg:p-10 lg:pt-0">
-                  <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-white">
-                    Contact Us
-                  </h2>
-                  <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
-                  </p>
-                  <ContactForm />
                 </div>
               </div>
             </GlassCard>
