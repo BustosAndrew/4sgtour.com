@@ -167,14 +167,18 @@ export function SiteHeader({
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden text-white p-2 -mr-2"
-                aria-label="Toggle menu"
+                className="lg:hidden -mr-2"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
+                  {mobileMenuOpen ? (
+                    <X className="h-4 w-4" />
+                  ) : (
+                    <Menu className="h-4 w-4" />
+                  )}
+                  <span>{mobileMenuOpen ? "Close" : "Menu"}</span>
+                </span>
               </button>
             </div>
           </div>
