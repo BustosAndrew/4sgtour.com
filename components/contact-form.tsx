@@ -43,7 +43,7 @@ export function ContactForm() {
       )}
 
       <div className="space-y-3">
-        <Label htmlFor="name" className="text-base font-medium text-white">
+        <Label htmlFor="name" className="text-base font-bold text-white">
           Your Name
         </Label>
         <Input
@@ -53,12 +53,12 @@ export function ContactForm() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
+          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="email" className="text-base font-medium text-white">
+        <Label htmlFor="email" className="text-base font-bold text-white">
           Your Email
         </Label>
         <Input
@@ -68,12 +68,12 @@ export function ContactForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
+          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="message" className="text-base font-medium text-white">
+        <Label htmlFor="message" className="text-base font-bold text-white">
           Your Message
         </Label>
         <Textarea
@@ -82,7 +82,7 @@ export function ContactForm() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[200px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base border-white/30"
+          className="min-h-[200px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
@@ -94,7 +94,7 @@ export function ContactForm() {
 
       <Button
         type="submit"
-        className="h-12 w-full bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90"
+        className="h-12 w-full bg-primary text-base font-bold text-primary-foreground hover:bg-primary/90"
         disabled={isLoading}
       >
         {isLoading ? "Sending..." : "Send Message"}

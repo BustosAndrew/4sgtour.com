@@ -28,7 +28,7 @@ export default async function ContactPage() {
                   <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-white">
                     Contact Us
                   </h2>
-                  <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80">
+                  <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80 font-bold">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
                     do eiusmod tempor incididunt ut labore et dolore magna
                     aliqua.
@@ -42,7 +42,7 @@ export default async function ContactPage() {
                     </h3>
                     <a
                       href="mailto:info@4sgtour.com"
-                      className="text-base sm:text-lg text-white/80 underline decoration-white/30 hover:text-white"
+                      className="text-base sm:text-lg text-white/80 underline decoration-white/30 hover:text-white font-bold"
                     >
                       info@4sgtour.com
                     </a>
@@ -54,7 +54,7 @@ export default async function ContactPage() {
                     </h3>
                     <a
                       href="tel:1-714-877-5998"
-                      className="text-base sm:text-lg text-white/80 hover:text-white"
+                      className="text-base sm:text-lg text-white/80 hover:text-white font-bold"
                     >
                       1-714-877-5998
                     </a>
@@ -67,19 +67,19 @@ export default async function ContactPage() {
                     <div className="space-y-2 sm:space-y-3 text-base sm:text-lg">
                       <a
                         href="tel:1-213-214-3355"
-                        className="block text-white/80 hover:text-white"
+                        className="block text-white/80 hover:text-white font-bold"
                       >
                         1-213-214-3355
                       </a>
                       <a
                         href="tel:1-714-486-5463"
-                        className="block text-white/80 hover:text-white"
+                        className="block text-white/80 hover:text-white font-bold"
                       >
                         1-714-486-5463
                       </a>
                       <a
                         href="tel:070-4517-5998"
-                        className="block text-white/80 hover:text-white"
+                        className="block text-white/80 hover:text-white font-bold"
                       >
                         070-4517-5998
                       </a>

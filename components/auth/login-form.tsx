@@ -118,7 +118,7 @@ export function LoginForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base! font-bold"
                 />
               </div>
 
@@ -147,12 +147,12 @@ export function LoginForm() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base! font-bold"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 font-bold"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/80 font-bold"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />

@@ -131,7 +131,7 @@ export default function ResetPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base! font-bold"
                 />
               </div>
 

@@ -317,7 +317,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                     onChange={(e) =>
                       setPhone(e.target.value.replace(/\D/g, ""))
                     }
-                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
+                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base! font-bold"
                   />
                 </div>
               </div>

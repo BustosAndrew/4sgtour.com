@@ -320,7 +320,7 @@ export function SignUpForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base! font-bold"
                 />
               </div>
 
@@ -339,7 +339,7 @@ export function SignUpForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base! font-bold"
                 />
               </div>
 
@@ -360,12 +360,12 @@ export function SignUpForm() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base! font-bold"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 font-bold"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/80 font-bold"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -393,12 +393,12 @@ export function SignUpForm() {
                     minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base! font-bold"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 font-bold"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black/80 font-bold"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -432,7 +432,7 @@ export function SignUpForm() {
                     onChange={(e) =>
                       setPhone(e.target.value.replace(/\D/g, ""))
                     }
-                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-bold text-base"
+                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-bold text-base!"
                   />
                 </div>
               </div>
