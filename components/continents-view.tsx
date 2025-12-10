@@ -7,13 +7,8 @@ import { Button } from "@/components/ui/button"
 
 const CONTINENTS = [
   {
-    name: "Africa",
-    slug: "africa",
-    image: "/placeholder.svg?height=1080&width=400",
-  },
-  {
-    name: "South America",
-    slug: "south-america",
+    name: "Europe",
+    slug: "europe",
     image: "/placeholder.svg?height=1080&width=400",
   },
   {
@@ -22,13 +17,18 @@ const CONTINENTS = [
     image: "/placeholder.svg?height=1080&width=400",
   },
   {
+    name: "Latin America",
+    slug: "south-america",
+    image: "/placeholder.svg?height=1080&width=400",
+  },
+  {
     name: "Asia",
     slug: "asia",
     image: "/placeholder.svg?height=1080&width=400",
   },
   {
-    name: "Europe",
-    slug: "europe",
+    name: "Africa | Oceania",
+    slug: "africa",
     image: "/placeholder.svg?height=1080&width=400",
   },
 ]

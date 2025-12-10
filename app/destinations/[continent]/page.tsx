@@ -10,11 +10,11 @@ interface ContinentTripsPageProps {
 }
 
 const CONTINENT_NAMES: Record<string, string> = {
-  africa: "Africa",
+  africa: "Africa | Oceania",
   asia: "Asia",
   europe: "Europe",
   "north-america": "North America",
-  "south-america": "South America",
+  "south-america": "Latin America",
 }
 
 const CONTINENT_IMAGES: Record<string, string> = {
