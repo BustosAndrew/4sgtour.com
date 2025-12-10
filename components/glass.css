@@ -44,7 +44,7 @@
   z-index: 3;
   overflow: hidden;
   border-radius: var(--corner-radius);
-  background-color: rgba(128, 128, 128, 0);
+  background-color: rgba(128, 128, 128, 0.5);
 }
 .GlassMaterial > div {
   position: absolute;
@@ -61,41 +61,53 @@
   backdrop-filter: blur(var(--total-strength)) brightness(1.2) saturate(1.2);
   padding: var(--edge-width);
   border: var(--total-strength) solid transparent;
-  mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   mask-composite: exclude;
-  -webkit-mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  -webkit-mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   -webkit-mask-composite: xor;
 }
 .GlassMaterial .GlassEmbossReflection {
-  backdrop-filter: blur(calc(var(--total-strength) * 1.5)) brightness(1.05) saturate(1.1);
+  backdrop-filter: blur(calc(var(--total-strength) * 1.5)) brightness(1.05)
+    saturate(1.1);
   padding: var(--emboss-width);
   border: 0 solid transparent;
-  mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   mask-composite: exclude;
-  -webkit-mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  -webkit-mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   -webkit-mask-composite: xor;
 }
 .GlassMaterial .GlassRefraction {
   backdrop-filter: invert(0.1) brightness(1.2) contrast(1.5);
   padding: var(--refraction-width);
   border: calc(var(--emboss-width)) solid transparent;
-  mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   mask-composite: exclude;
-  -webkit-mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  -webkit-mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   -webkit-mask-composite: xor;
 }
 .GlassMaterial .GlassBlur {
   backdrop-filter: blur(var(--extra-blur)) brightness(1.25);
-  border-radius: calc(var(--corner-radius) - (var(--emboss-width) + var(--refraction-width)));
+  border-radius: calc(
+    var(--corner-radius) - (var(--emboss-width) + var(--refraction-width))
+  );
   margin: calc(var(--emboss-width) + var(--refraction-width));
 }
 .GlassMaterial .BlendLayers {
   z-index: 3;
-  backdrop-filter: blur(calc((var(--softness) * 0.2) + (var(--extra-blur) * 0.2)));
+  backdrop-filter: blur(
+    calc((var(--softness) * 0.2) + (var(--extra-blur) * 0.2))
+  );
 }
 .GlassMaterial .BlendEdge {
   z-index: 8;
-  backdrop-filter: blur(calc(var(--edge-width) * 0.4)) contrast(1.6) saturate(1.5);
+  backdrop-filter: blur(calc(var(--edge-width) * 0.4)) contrast(1.6)
+    saturate(1.5);
 }
 .GlassContainer:before {
   content: "";
@@ -122,9 +134,11 @@
     hsla(0, 0%, 100%, 0.15) 100%
   );
   backdrop-filter: invert(0.15) opacity(1);
-  mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   mask-composite: exclude;
-  -webkit-mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  -webkit-mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   -webkit-mask-composite: xor;
 }
 .GlassMaterial .Highlight {
@@ -134,9 +148,11 @@
   padding: 1px;
   border: 0 solid transparent;
   backdrop-filter: brightness(1.2) contrast(1.6) saturate(1.2) opacity(1);
-  mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   mask-composite: exclude;
-  -webkit-mask: linear-gradient(white 0 0) padding-box, linear-gradient(white 0 0) content-box;
+  -webkit-mask: linear-gradient(white 0 0) padding-box,
+    linear-gradient(white 0 0) content-box;
   -webkit-mask-composite: xor;
 }
 .GlassMaterial .Brightness {

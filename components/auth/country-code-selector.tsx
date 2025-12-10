@@ -56,7 +56,7 @@ export function CountryCodeSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-center gap-1 bg-white/30 border border-white/40 text-white px-2 rounded-md font-medium hover:bg-white/40 transition-colors h-9"
+        className="w-full flex items-center justify-center gap-1 bg-white/30 border border-white/40 text-white px-2 rounded-md text-base font-bold hover:bg-white/40 transition-colors h-9"
       >
         <FlagIcon code={value.code} />
         <ChevronDown
@@ -86,7 +86,7 @@ export function CountryCodeSelector({
               placeholder="Search country..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-gray-800 border-b border-white/20 text-white placeholder:text-white/50 px-3 py-2 font-medium focus:outline-none focus:ring-1 focus:ring-white/30"
+              className="bg-gray-800 border-b border-white/20 text-white placeholder:text-white/50 px-3 py-2 text-base font-bold focus:outline-none focus:ring-1 focus:ring-white/30"
             />
             <div className="overflow-y-auto">
               {filteredCountries.map((country) => (
@@ -105,16 +105,16 @@ export function CountryCodeSelector({
                   <span className="flex-shrink-0">
                     <FlagIcon code={country.code} />
                   </span>
-                  <span className="text-white font-medium flex-1">
+                  <span className="text-white text-base font-bold flex-1">
                     {country.name}
                   </span>
-                  <span className="text-white/70 text-sm flex-shrink-0">
+                  <span className="text-white/70 text-base font-bold flex-shrink-0">
                     {country.dialCode}
                   </span>
                 </button>
               ))}
               {filteredCountries.length === 0 && (
-                <div className="px-3 py-4 text-center text-white/50">
+                <div className="px-3 py-4 text-center text-white/50 text-base font-bold">
                   No countries found
                 </div>
               )}

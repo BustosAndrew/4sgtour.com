@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
               </p>
               <Button
                 asChild
-                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
               >
                 <Link href="/auth/login">Back to Login</Link>
               </Button>
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
           <div className="p-8">
             <Link
               href="/auth/login"
-              className="mb-6 inline-flex items-center text-sm text-white font-medium hover:text-white/80"
+              className="mb-6 inline-flex items-center text-base text-white font-bold hover:text-white/80"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -119,7 +119,7 @@ export default function ResetPasswordPage() {
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Email
@@ -131,13 +131,13 @@ export default function ResetPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
                 />
               </div>
 
               {error && (
                 <div
-                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  className="bg-red-500/40 p-3 text-base text-white font-bold border border-red-300/40"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   {error}
@@ -146,7 +146,7 @@ export default function ResetPasswordPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
                 disabled={isLoading}
               >
                 {isLoading ? "Sending..." : "Send Reset Link"}

@@ -192,7 +192,7 @@ export function SignUpForm() {
                   Verify Phone Number
                 </h1>
                 <p
-                  className="mt-2 text-base text-white font-medium"
+                  className="mt-2 text-base text-white font-bold"
                   style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
                 >
                   Enter the 6-digit code sent to {country.dialCode}
@@ -204,7 +204,7 @@ export function SignUpForm() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="otp"
-                    className="text-white font-semibold"
+                    className="text-white font-bold text-base"
                     style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                   >
                     Verification Code*
@@ -226,7 +226,7 @@ export function SignUpForm() {
 
                 {error && (
                   <div
-                    className={`p-3 text-sm font-medium border ${
+                    className={`p-3 text-base font-bold border ${
                       error.includes("success")
                         ? "bg-green-500/40 text-white border-green-300/40"
                         : "bg-red-500/40 text-white border-red-300/40"
@@ -239,7 +239,7 @@ export function SignUpForm() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                  className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
                   disabled={isLoading || otp.length !== 6}
                 >
                   {isLoading ? "Verifying..." : "Verify & Complete Signup"}
@@ -249,7 +249,7 @@ export function SignUpForm() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
+                    className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 text-base font-bold"
                     onClick={handleResendOtp}
                     disabled={isLoading}
                   >
@@ -258,7 +258,7 @@ export function SignUpForm() {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 text-white hover:bg-white/20 font-medium"
+                    className="flex-1 text-white hover:bg-white/20 text-base font-bold"
                     onClick={() => {
                       setStep("signup")
                       setOtp("")
@@ -308,7 +308,7 @@ export function SignUpForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="name"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Name*
@@ -320,14 +320,14 @@ export function SignUpForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Email*
@@ -339,14 +339,14 @@ export function SignUpForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label
                   htmlFor="password"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Password*
@@ -360,7 +360,7 @@ export function SignUpForm() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 font-medium"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
                   />
                   <button
                     type="button"
@@ -379,7 +379,7 @@ export function SignUpForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="confirmPassword"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Confirm Password*
@@ -393,7 +393,7 @@ export function SignUpForm() {
                     minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 font-medium"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
                   />
                   <button
                     type="button"
@@ -412,7 +412,7 @@ export function SignUpForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="phone"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Phone Number*
@@ -432,14 +432,14 @@ export function SignUpForm() {
                     onChange={(e) =>
                       setPhone(e.target.value.replace(/\D/g, ""))
                     }
-                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-bold text-base"
                   />
                 </div>
               </div>
 
               {error && (
                 <div
-                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  className="bg-red-500/40 p-3 text-base text-white font-bold border border-red-300/40"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   {error}
@@ -448,7 +448,7 @@ export function SignUpForm() {
 
               <Button
                 type="submit"
-                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90 font-bold text-base"
                 disabled={isLoading}
               >
                 {isLoading ? "Sending code..." : "Continue"}
@@ -458,7 +458,7 @@ export function SignUpForm() {
             <div className="my-6 flex items-center gap-4">
               <div className="h-px flex-1 bg-white/40" />
               <span
-                className="text-sm text-white font-medium"
+                className="text-white font-bold text-base"
                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
               >
                 or
@@ -469,7 +469,7 @@ export function SignUpForm() {
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
+              className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-bold text-base"
               onClick={handleGoogleSignUp}
               disabled={isLoading}
             >
@@ -495,7 +495,7 @@ export function SignUpForm() {
             </Button>
 
             <p
-              className="mt-6 text-center text-sm text-white font-medium"
+              className="mt-6 text-center text-base text-white font-bold"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               Already have an account?{" "}

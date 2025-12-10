@@ -95,7 +95,7 @@ export function LoginForm() {
                 Welcome Back!
               </h1>
               <p
-                className="mt-2 text-base text-white font-medium"
+                className="mt-2 text-base text-white font-bold"
                 style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
               >
                 Let&apos;s get you signed in securely
@@ -106,7 +106,7 @@ export function LoginForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Email
@@ -118,7 +118,7 @@ export function LoginForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                  className="bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
                 />
               </div>
 
@@ -126,14 +126,14 @@ export function LoginForm() {
                 <div className="flex items-center justify-between">
                   <Label
                     htmlFor="password"
-                    className="text-white font-semibold"
+                    className="text-white font-bold text-base"
                     style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                   >
                     Password
                   </Label>
                   <Link
                     href="/auth/reset-password"
-                    className="text-xs text-white font-medium hover:text-white/80 hover:underline"
+                    className="text-base text-white font-bold hover:text-white/80 hover:underline"
                     style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                   >
                     Reset password
@@ -147,7 +147,7 @@ export function LoginForm() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 font-medium"
+                    className="bg-white/30 border-white/40 text-white placeholder:text-white/60 pr-10 text-base font-bold"
                   />
                   <button
                     type="button"
@@ -165,7 +165,7 @@ export function LoginForm() {
 
               {error && (
                 <div
-                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  className="bg-red-500/40 p-3 text-base text-white font-bold border border-red-300/40"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   {error}
@@ -174,7 +174,7 @@ export function LoginForm() {
 
               <Button
                 type="submit"
-                className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Log In"}
@@ -184,7 +184,7 @@ export function LoginForm() {
             <div className="my-6 flex items-center gap-4">
               <div className="h-px flex-1 bg-white/40" />
               <span
-                className="text-sm text-white font-medium"
+                className="text-base text-white font-bold"
                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
               >
                 or
@@ -195,7 +195,7 @@ export function LoginForm() {
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
+              className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 text-base font-bold"
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
@@ -221,7 +221,7 @@ export function LoginForm() {
             </Button>
 
             <p
-              className="mt-6 text-center text-sm text-white font-medium"
+              className="mt-6 text-center text-base text-white font-bold"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               No account?{" "}

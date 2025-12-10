@@ -179,7 +179,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                   Verify Phone Number
                 </h1>
                 <p
-                  className="mt-2 text-base text-white font-medium"
+                  className="mt-2 text-base text-white font-bold"
                   style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
                 >
                   Enter the 6-digit code sent to {country.dialCode}
@@ -191,7 +191,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                 <div className="space-y-2">
                   <Label
                     htmlFor="otp"
-                    className="text-white font-semibold"
+                    className="text-white font-bold text-base"
                     style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                   >
                     Verification Code*
@@ -213,7 +213,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
 
                 {error && (
                   <div
-                    className={`p-3 text-sm font-medium border ${
+                    className={`p-3 text-base font-bold border ${
                       error.includes("success")
                         ? "bg-green-500/40 text-white border-green-300/40"
                         : "bg-red-500/40 text-white border-red-300/40"
@@ -226,7 +226,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
 
                 <Button
                   type="submit"
-                  className="w-full bg-white text-[#274C77] hover:bg-white/90"
+                  className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
                   disabled={isLoading || otp.length !== 6}
                 >
                   {isLoading ? "Verifying..." : "Verify Phone"}
@@ -236,7 +236,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 font-medium"
+                    className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 text-base font-bold"
                     onClick={handleResendOtp}
                     disabled={isLoading}
                   >
@@ -245,7 +245,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex-1 text-white hover:bg-white/20 font-medium"
+                    className="flex-1 text-white hover:bg-white/20 text-base font-bold"
                     onClick={() => {
                       setStep("phone")
                       setOtp("")
@@ -297,7 +297,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
               <div className="space-y-2">
                 <Label
                   htmlFor="phone"
-                  className="text-white font-semibold"
+                  className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   Phone Number*
@@ -317,14 +317,14 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
                     onChange={(e) =>
                       setPhone(e.target.value.replace(/\D/g, ""))
                     }
-                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 font-medium"
+                    className="flex-1 bg-white/30 border-white/40 text-white placeholder:text-white/60 text-base font-bold"
                   />
                 </div>
               </div>
 
               {error && (
                 <div
-                  className="bg-red-500/40 p-3 text-sm text-white font-medium border border-red-300/40"
+                  className="bg-red-500/40 p-3 text-base text-white font-bold border border-red-300/40"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
                   {error}
@@ -341,7 +341,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
             </form>
 
             <p
-              className="mt-6 text-center text-sm text-white font-medium"
+              className="mt-6 text-center text-base text-white font-bold"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               Want to use a different account?{" "}
