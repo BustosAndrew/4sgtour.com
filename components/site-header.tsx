@@ -92,6 +92,12 @@ export function SiteHeader({
                   Destinations
                 </Link>
                 <Link
+                  href="#"
+                  className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+                >
+                  Tournaments
+                </Link>
+                <Link
                   href="/contact"
                   className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
                 >
@@ -210,6 +216,13 @@ export function SiteHeader({
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Destinations
+                </Link>
+                <Link
+                  href="#"
+                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Tournaments
                 </Link>
                 <Link
                   href="/contact"

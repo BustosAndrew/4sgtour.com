@@ -27,7 +27,7 @@ const CONTINENTS = [
     image: "/placeholder.svg?height=1080&width=400",
   },
   {
-    name: "Africa | Oceania",
+    name: "World",
     slug: "africa",
     image: "/placeholder.svg?height=1080&width=400",
   },

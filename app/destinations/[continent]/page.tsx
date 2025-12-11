@@ -10,7 +10,7 @@ interface ContinentTripsPageProps {
 }
 
 const CONTINENT_NAMES: Record<string, string> = {
-  africa: "Africa | Oceania",
+  africa: "World",
   asia: "Asia",
   europe: "Europe",
   "north-america": "North America",

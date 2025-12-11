@@ -11,10 +11,15 @@ interface AssignContinentFormProps {
   currentContinent: string | null
 }
 
-const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
 
-export function AssignContinentForm({ tripId, currentContinent }: AssignContinentFormProps) {
-  const [selectedContinent, setSelectedContinent] = useState(currentContinent || "")
+export function AssignContinentForm({
+  tripId,
+  currentContinent,
+}: AssignContinentFormProps) {
+  const [selectedContinent, setSelectedContinent] = useState(
+    currentContinent || "",
+  )
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
   const router = useRouter()
@@ -63,10 +68,20 @@ export function AssignContinentForm({ tripId, currentContinent }: AssignContinen
       </div>
 
       {message && (
-        <p className={`text-sm ${message.includes("success") ? "text-primary" : "text-destructive"}`}>{message}</p>
+        <p
+          className={`text-sm ${
+            message.includes("success") ? "text-primary" : "text-destructive"
+          }`}
+        >
+          {message}
+        </p>
       )}
 
-      <Button type="submit" disabled={isLoading || !selectedContinent} className="w-full">
+      <Button
+        type="submit"
+        disabled={isLoading || !selectedContinent}
+        className="w-full"
+      >
         {isLoading ? "Saving..." : "Assign Continent"}
       </Button>
     </form>

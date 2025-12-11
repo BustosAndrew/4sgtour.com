@@ -25,13 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-const CONTINENTS = [
-  "Africa",
-  "Asia",
-  "Europe",
-  "North America",
-  "South America",
-]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
 
 type Package = {
   id: string

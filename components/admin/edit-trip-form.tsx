@@ -63,13 +63,7 @@ interface TripData {
   min_days: string
 }
 
-const CONTINENTS = [
-  "Africa",
-  "Asia",
-  "Europe",
-  "North America",
-  "South America",
-]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
 
 const STEPS = [
   {

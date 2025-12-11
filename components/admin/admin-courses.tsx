@@ -34,7 +34,7 @@ type Trip = {
 }
 
 const CONTINENTS = [
-  "Africa",
+  "World",
   "South America",
   "North America",
   "Asia",

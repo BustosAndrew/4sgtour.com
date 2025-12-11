@@ -84,7 +84,7 @@ export function SiteFooter() {
                   href="tel:1-714-877-5998"
                   className="text-white/80 hover:text-white"
                 >
-                  1-714-877-5998
+                  1-714-485-5463
                 </a>
               </li>
             </ul>
@@ -100,10 +100,10 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="tel:1-714-486-5463"
+                  href="tel:070-4517-5998"
                   className="text-white/80 hover:text-white"
                 >
-                  1-714-486-5463
+                  070-4517-5998
                 </a>
               </li>
               <li>
@@ -111,7 +111,7 @@ export function SiteFooter() {
                   href="tel:070-4517-5998"
                   className="text-white/80 hover:text-white"
                 >
-                  070-4517-5998
+                  Free to call from South Korea to USA
                 </a>
               </li>
             </ul>
