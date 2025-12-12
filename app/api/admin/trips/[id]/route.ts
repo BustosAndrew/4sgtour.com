@@ -203,6 +203,29 @@ export async function PATCH(
     }
   }
 
+  if (Array.isArray(body.course_images)) {
+    await supabase.from("trip_images").delete().eq("trip_id", id)
+
+    const coursePhotosData = body.course_images
+      .slice(0, 5)
+      .filter((url: string) => url && url.trim())
+      .map((url: string, idx: number) => ({
+        trip_id: id,
+        image_url: url,
+        display_order: idx,
+      }))
+
+    if (coursePhotosData.length > 0) {
+      const { error: photosError } = await supabase
+        .from("trip_images")
+        .insert(coursePhotosData)
+
+      if (photosError) {
+        console.error("Error updating course photos:", photosError)
+      }
+    }
+  }
+
   return NextResponse.json({ success: true })
 }
 

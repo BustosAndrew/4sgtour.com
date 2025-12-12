@@ -70,6 +70,12 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     .eq("trip_id", id)
     .order("created_at", { ascending: true })
 
+  const { data: images } = await supabase
+    .from("trip_images")
+    .select("id, image_url, display_order")
+    .eq("trip_id", id)
+    .order("display_order", { ascending: true, nullsFirst: true })
+
   // Combine all data
   const tripWithRelations = {
     ...trip,
@@ -78,6 +84,7 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     meal_options: mealOptions || [],
     transportation_options: transportationOptions || [],
     service_options: serviceOptions || [],
+    images: images || [],
   }
 
   const { data: profile } = await supabase

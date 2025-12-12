@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       max_days,
       min_days_advance,
       courses_photo_url,
+      course_images,
       single_room_photo_url,
       double_room_photo_url,
       highlights,
@@ -110,6 +111,27 @@ export async function POST(request: Request) {
 
       if (golfCoursesError) {
         console.error("[v0] Error creating golf courses:", golfCoursesError)
+      }
+    }
+
+    if (course_images && course_images.length > 0) {
+      const coursePhotosData = course_images
+        .slice(0, 5)
+        .filter((url: string) => url && url.trim())
+        .map((url: string, idx: number) => ({
+          trip_id: tripData.id,
+          image_url: url,
+          display_order: idx,
+        }))
+
+      if (coursePhotosData.length > 0) {
+        const { error: photosError } = await supabase
+          .from("trip_images")
+          .insert(coursePhotosData)
+
+        if (photosError) {
+          console.error("[v0] Error creating course photos:", photosError)
+        }
       }
     }
 

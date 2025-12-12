@@ -43,6 +43,7 @@ interface EditTripFormProps {
     single_room_photo_url: string | null
     double_room_photo_url: string | null
     highlights?: string[]
+    images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
     golf_courses?: any[]
     meal_options?: any[]
@@ -99,9 +100,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     min_days: trip.min_days?.toString() || "1",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
+  const [coursePhotos, setCoursePhotos] = useState<string[]>(() => {
+    const existing: string[] = []
+    if (trip.courses_photo_url) existing.push(trip.courses_photo_url)
+    if (trip.images && trip.images.length > 0) {
+      const sorted = [...trip.images].sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
+      )
+      for (const img of sorted) {
+        if (img.image_url && !existing.includes(img.image_url)) {
+          existing.push(img.image_url)
+        }
+      }
+    }
+    return existing.slice(0, 5)
+  })
 
   const [photos, setPhotos] = useState({
-    courses: trip.courses_photo_url || "",
     singleRoom: trip.single_room_photo_url || "",
     doubleRoom: trip.double_room_photo_url || "",
   })
@@ -206,7 +221,14 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       if (!response.ok) throw new Error("Upload failed")
 
       const { url } = await response.json()
-      setPhotos((prev) => ({ ...prev, [photoType]: url }))
+      if (photoType === "courses") {
+        setCoursePhotos((prev) => {
+          if (prev.length >= 5) return prev
+          return [...prev, url]
+        })
+      } else {
+        setPhotos((prev) => ({ ...prev, [photoType]: url }))
+      }
     } catch (error) {
       console.error("Error uploading photo:", error)
       alert("Failed to upload photo")
@@ -218,7 +240,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const handleRemovePhoto = (
     photoType: "courses" | "singleRoom" | "doubleRoom",
   ) => {
-    setPhotos((prev) => ({ ...prev, [photoType]: "" }))
+    if (photoType === "courses") {
+      setCoursePhotos([])
+    } else {
+      setPhotos((prev) => ({ ...prev, [photoType]: "" }))
+    }
   }
 
   const addUpgradePackage = () => {
@@ -470,7 +496,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           min_days: Number(formData.min_days), // Added min_days
           min_days_advance: Number(formData.min_days_advance), // Removed .toString()
           // is_all_inclusive: formData.is_all_inclusive, // REMOVED is_all_inclusive
-          courses_photo_url: photos.courses || null,
+          courses_photo_url: coursePhotos[0] || null,
+          course_images: coursePhotos,
           single_room_photo_url: photos.singleRoom || null,
           double_room_photo_url: photos.doubleRoom || null,
           highlights: highlights.filter((h) => h.trim() !== ""),
@@ -825,25 +852,38 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <Label className="text-base text-foreground">
                 Upload Photos for Courses
               </Label>
-              {photos.courses ? (
-                <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
-                  <Image
-                    src={photos.courses || "/placeholder.svg"}
-                    alt="Golf courses"
-                    fill
-                    className="object-cover"
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    className="absolute right-2 top-2"
-                    onClick={() => handleRemovePhoto("courses")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+              {coursePhotos.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {coursePhotos.map((url, index) => (
+                    <div
+                      key={`${url}-${index}`}
+                      className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border"
+                    >
+                      <Image
+                        src={url || "/placeholder.svg"}
+                        alt={`Golf course photo ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute right-2 top-2"
+                        onClick={() =>
+                          setCoursePhotos((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          )
+                        }
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
+              )}
+
+              {coursePhotos.length < 5 && (
                 <label className="flex aspect-[3/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
                   <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm">
@@ -854,7 +894,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     </span>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    JPG, JPEG, PNG less than 1MB
+                    Up to 5 images, JPG/JPEG/PNG under 1MB each
                   </p>
                   <input
                     type="file"
@@ -1657,16 +1697,23 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     )}
                   {/* Removed All-Inclusive Summary */}
                   <div className="flex flex-wrap gap-4">
-                    {photos.courses && (
+                    {coursePhotos.length > 0 && (
                       <div>
-                        <p className="mb-1 font-medium">Courses Photo</p>
-                        <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image
-                            src={photos.courses || "/placeholder.svg"}
-                            alt="Courses"
-                            fill
-                            className="object-cover"
-                          />
+                        <p className="mb-1 font-medium">Courses Photos</p>
+                        <div className="flex gap-2">
+                          {coursePhotos.map((url, index) => (
+                            <div
+                              key={`${url}-${index}`}
+                              className="relative h-20 w-32 overflow-hidden rounded border"
+                            >
+                              <Image
+                                src={url || "/placeholder.svg"}
+                                alt={`Course photo ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
