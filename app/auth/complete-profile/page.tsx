@@ -1,8 +1,8 @@
-import { SiteHeader } from '@/components/site-header';
-import { SiteFooter } from '@/components/site-footer';
-import { CompleteProfileForm } from '@/components/auth/complete-profile-form';
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
+import { SiteFooter } from "@/components/site-footer"
+import { CompleteProfileForm } from "@/components/auth/complete-profile-form"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
 /**
  * Complete Profile Page (Google OAuth users only)
@@ -15,33 +15,33 @@ import { redirect } from 'next/navigation';
  * inline within the sign-up form itself.
  */
 export default async function CompleteProfilePage() {
-  const supabase = await createClient();
+  const supabase = await createClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
 
   // If no user is logged in, redirect to login
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login")
   }
 
   // If user already has phone verified, redirect to home
-  const phoneVerified = user.user_metadata?.phone_verified === true;
+  const phoneVerified = user.user_metadata?.phone_verified === true
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('phone')
-    .eq('id', user.id)
-    .single();
+    .from("profiles")
+    .select("phone")
+    .eq("id", user.id)
+    .single()
 
   if (phoneVerified || profile?.phone) {
-    redirect('/');
+    redirect("/")
   }
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <CompleteProfileForm user={user} />
       <SiteFooter />
     </>
-  );
+  )
 }

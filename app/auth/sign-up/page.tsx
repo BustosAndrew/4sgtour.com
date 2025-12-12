@@ -1,11 +1,11 @@
-import { SiteHeader } from "@/components/site-header"
+import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { SignUpForm } from "@/components/auth/sign-up-form"
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <SignUpForm />
       <SiteFooter />
     </>

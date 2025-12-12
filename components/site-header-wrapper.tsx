@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
+import { UserNextTripBanner } from "@/components/user-next-trip-banner"
 
 export async function SiteHeaderWrapper() {
   const supabase = await createClient()
@@ -12,7 +13,11 @@ export async function SiteHeaderWrapper() {
 
     if (!error && data.user) {
       user = data.user
-      const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("id", user.id)
+        .single()
       if (profile) {
         userType = profile.user_type
       }
@@ -21,5 +26,10 @@ export async function SiteHeaderWrapper() {
     console.error("[v0] Auth error in header:", error)
   }
 
-  return <SiteHeader user={user} userType={userType} />
+  return (
+    <>
+      <SiteHeader user={user} userType={userType} />
+      <UserNextTripBanner />
+    </>
+  )
 }
