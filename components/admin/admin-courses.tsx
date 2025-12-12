@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type Trip = {
   id: string
+  slug: string
   title: string
   location: string
   price_regular: number
@@ -110,9 +111,23 @@ export function AdminCourses({
     router.refresh()
   }
 
-  const handleDeleteTrip = async (tripId: string, e: React.MouseEvent) => {
+  const handleDeleteTrip = async (trip: Trip, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    const tripId = trip.id
+    const tripSlug = trip.slug
+
+    if ((!tripId || tripId === "undefined") && !tripSlug) {
+      console.error("Attempted to delete trip with invalid identifiers:", {
+        tripId,
+        tripSlug,
+      })
+      alert(
+        "This course is missing a valid ID and cannot be deleted. Please refresh the page and try again, or contact support.",
+      )
+      return
+    }
 
     if (
       !confirm(
@@ -122,10 +137,13 @@ export function AdminCourses({
       return
     }
 
-    setDeletingTrips((prev) => new Set(prev).add(tripId))
+    const identifier =
+      tripId && tripId !== "undefined" ? tripId : encodeURIComponent(tripSlug)
+
+    setDeletingTrips((prev) => new Set(prev).add(identifier))
 
     try {
-      const response = await fetch(`/api/admin/trips/${tripId}`, {
+      const response = await fetch(`/api/admin/trips/${identifier}`, {
         method: "DELETE",
       })
 
@@ -134,8 +152,10 @@ export function AdminCourses({
         throw new Error(data.error || "Failed to delete course")
       }
 
-      // Remove from local state
-      setLocalTrips((prev) => prev.filter((trip) => trip.id !== tripId))
+      // Remove from local state (match by either id or slug)
+      setLocalTrips((prev) =>
+        prev.filter((t) => t.id !== trip.id && t.slug !== trip.slug),
+      )
       router.refresh()
     } catch (error) {
       console.error("Error deleting trip:", error)
@@ -143,7 +163,7 @@ export function AdminCourses({
     } finally {
       setDeletingTrips((prev) => {
         const next = new Set(prev)
-        next.delete(tripId)
+        next.delete(identifier)
         return next
       })
     }
@@ -412,12 +432,20 @@ export function AdminCourses({
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
-                            onClick={(e) => handleDeleteTrip(trip.id, e)}
-                            disabled={deletingTrips.has(trip.id)}
+                            onClick={(e) => handleDeleteTrip(trip, e)}
+                            disabled={deletingTrips.has(
+                              trip.id && trip.id !== "undefined"
+                                ? trip.id
+                                : trip.slug,
+                            )}
                           >
                             <Trash2
                               className={`h-4 w-4 ${
-                                deletingTrips.has(trip.id)
+                                deletingTrips.has(
+                                  trip.id && trip.id !== "undefined"
+                                    ? trip.id
+                                    : trip.slug,
+                                )
                                   ? "animate-pulse"
                                   : ""
                               }`}

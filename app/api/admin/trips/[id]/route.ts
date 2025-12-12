@@ -227,8 +227,17 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Delete the trip (packages and add-ons will be cascade deleted)
-  const { error } = await supabase.from("trips").delete().eq("id", id)
+  // Decide whether the identifier looks like a UUID; if not, treat it as slug
+  const isUuid =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+      id,
+    )
+
+  let deleteQuery = supabase.from("trips").delete()
+  deleteQuery = isUuid ? deleteQuery.eq("id", id) : deleteQuery.eq("slug", id)
+
+  // Delete the trip (related records cascade via foreign keys)
+  const { error } = await deleteQuery
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
