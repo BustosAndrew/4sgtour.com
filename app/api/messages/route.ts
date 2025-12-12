@@ -34,7 +34,10 @@ export async function GET(request: Request) {
     return NextResponse.json(messages)
   } catch (error) {
     console.error("Error fetching messages:", error)
-    return NextResponse.json({ error: "Failed to fetch messages" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch messages" },
+      { status: 500 },
+    )
   }
 }
 
@@ -51,10 +54,22 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { inquiryId, messageText, isAdmin, senderName, senderEmail } = body
+    const {
+      inquiryId,
+      messageText,
+      isAdmin,
+      senderName,
+      senderEmail,
+      tripTitle: bodyTripTitle,
+      customerName: bodyCustomerName,
+      customerEmail: bodyCustomerEmail,
+    } = body
 
     if (!inquiryId || !messageText) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      )
     }
 
     const { data: message, error } = await supabase
@@ -77,7 +92,10 @@ export async function POST(request: Request) {
     // Send email notification
     try {
       const resend = new Resend(process.env.RESEND_API_KEY)
-      const supportEmail = process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || "support@example.com"
+      const supportEmail =
+        process.env.SUPPORT_EMAIL ||
+        process.env.ADMIN_EMAIL ||
+        "support@example.com"
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com"
 
       // Get inquiry details for context
@@ -87,7 +105,18 @@ export async function POST(request: Request) {
         .eq("id", inquiryId)
         .single()
 
-      if (inquiry) {
+      // Fallback to request body context if RLS prevents reading the inquiry row
+      const inquiryContext =
+        inquiry ||
+        (bodyTripTitle && bodyCustomerName && bodyCustomerEmail
+          ? {
+              trip_title: bodyTripTitle,
+              customer_name: bodyCustomerName,
+              customer_email: bodyCustomerEmail,
+            }
+          : null)
+
+      if (inquiryContext) {
         if (isAdmin) {
           // Admin sent message -> notify customer
           const emailHtml = `
@@ -110,8 +139,10 @@ export async function POST(request: Request) {
       <h2>New Message About Your Trip</h2>
     </div>
     <div class="content">
-      <p>Hello ${inquiry.customer_name},</p>
-      <p>You have received a new message regarding your inquiry for <strong>"${inquiry.trip_title}"</strong>.</p>
+      <p>Hello ${inquiryContext.customer_name},</p>
+      <p>You have received a new message regarding your inquiry for <strong>"${
+        inquiryContext.trip_title
+      }"</strong>.</p>
       
       <div class="message-box">
         <p><strong>Message from our team:</strong></p>
@@ -137,10 +168,10 @@ export async function POST(request: Request) {
           await resend.emails.send({
             from: "Golf Trips <onboarding@resend.dev>",
             replyTo: supportEmail,
-            to: inquiry.customer_email,
-            subject: `New Message: ${inquiry.trip_title}`,
+            to: inquiryContext.customer_email,
+            subject: `New Message: ${inquiryContext.trip_title}`,
             html: emailHtml,
-            text: `Hello ${inquiry.customer_name},\n\nYou have received a new message regarding your inquiry for "${inquiry.trip_title}".\n\nMessage from our team:\n${messageText}\n\n---\nYou can reply directly to this email or log in to your account to view the full conversation.\n\nView your inquiries: ${siteUrl}/bookings`,
+            text: `Hello ${inquiryContext.customer_name},\n\nYou have received a new message regarding your inquiry for "${inquiryContext.trip_title}".\n\nMessage from our team:\n${messageText}\n\n---\nYou can reply directly to this email or log in to your account to view the full conversation.\n\nView your inquiries: ${siteUrl}/bookings`,
           })
         } else {
           // Customer sent message -> notify admin
@@ -167,11 +198,13 @@ export async function POST(request: Request) {
       <h2>New Customer Message</h2>
     </div>
     <div class="content">
-      <p>A customer has sent a new message regarding <strong>"${inquiry.trip_title}"</strong>.</p>
+      <p>A customer has sent a new message regarding <strong>"${
+        inquiryContext.trip_title
+      }"</strong>.</p>
       
       <div class="customer-info">
-        <strong>Customer:</strong> ${inquiry.customer_name}<br>
-        <strong>Email:</strong> ${inquiry.customer_email}
+        <strong>Customer:</strong> ${inquiryContext.customer_name}<br>
+        <strong>Email:</strong> ${inquiryContext.customer_email}
       </div>
       
       <div class="message-box">
@@ -197,11 +230,11 @@ export async function POST(request: Request) {
 
           await resend.emails.send({
             from: "Golf Trips <onboarding@resend.dev>",
-            replyTo: inquiry.customer_email,
+            replyTo: inquiryContext.customer_email,
             to: adminEmail,
-            subject: `New Customer Message: ${inquiry.trip_title}`,
+            subject: `New Customer Message: ${inquiryContext.trip_title}`,
             html: emailHtml,
-            text: `New message from ${inquiry.customer_name} (${inquiry.customer_email}) regarding "${inquiry.trip_title}".\n\nMessage:\n${messageText}\n\n---\nReply directly to this email to respond to the customer, or log in to the admin dashboard.\n\nAdmin Inbox: ${siteUrl}/admin/inbox`,
+            text: `New message from ${inquiryContext.customer_name} (${inquiryContext.customer_email}) regarding "${inquiryContext.trip_title}".\n\nMessage:\n${messageText}\n\n---\nReply directly to this email to respond to the customer, or log in to the admin dashboard.\n\nAdmin Inbox: ${siteUrl}/admin/inbox`,
           })
         }
       }
@@ -213,6 +246,9 @@ export async function POST(request: Request) {
     return NextResponse.json(message, { status: 201 })
   } catch (error) {
     console.error("Error sending message:", error)
-    return NextResponse.json({ error: "Failed to send message" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to send message" },
+      { status: 500 },
+    )
   }
 }

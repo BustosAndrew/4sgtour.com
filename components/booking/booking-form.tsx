@@ -578,6 +578,17 @@ export function BookingForm({
                 <p className="mt-1 text-sm text-muted-foreground italic">
                   Maximum stay: {maxDays} nights
                 </p>
+                {minDays > 1 && (
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    Minimum stay: {minDays} nights
+                  </p>
+                )}
+                {minAdvanceDays > 0 && (
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    Must be booked at least {minAdvanceDays} days in advance
+                    (earliest arrival {format(minDate, "MMM d, yyyy")} ).
+                  </p>
+                )}
               </div>
 
               <div className="mt-4 flex flex-col gap-6 lg:flex-row">

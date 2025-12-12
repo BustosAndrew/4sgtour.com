@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Mail, DollarSign, MessageSquare } from "lucide-react"
+import { differenceInDays } from "date-fns"
 import type { Inquiry } from "@/lib/types/database"
 
 interface InquiriesListProps {
@@ -86,6 +87,19 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                       <span className="text-muted-foreground">
                         {new Date(inquiry.start_date).toLocaleDateString()} -{" "}
                         {new Date(inquiry.end_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {inquiry.start_date && inquiry.end_date && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Duration:</span>
+                      <span className="font-medium text-foreground">
+                        {differenceInDays(
+                          new Date(inquiry.end_date),
+                          new Date(inquiry.start_date),
+                        ) + 1}{" "}
+                        days
                       </span>
                     </div>
                   )}

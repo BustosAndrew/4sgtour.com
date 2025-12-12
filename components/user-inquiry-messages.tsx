@@ -20,12 +20,14 @@ interface UserInquiryMessagesProps {
   inquiryId: string
   userName: string
   userEmail: string
+  tripTitle: string
 }
 
 export function UserInquiryMessages({
   inquiryId,
   userName,
   userEmail,
+  tripTitle,
 }: UserInquiryMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -62,6 +64,10 @@ export function UserInquiryMessages({
           isAdmin: false,
           senderName: userName,
           senderEmail: userEmail,
+          // Provide context for admin email notifications
+          tripTitle,
+          customerName: userName,
+          customerEmail: userEmail,
         }),
       })
 

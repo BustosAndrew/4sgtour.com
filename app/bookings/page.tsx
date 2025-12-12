@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { format } from "date-fns"
+import { differenceInDays, format } from "date-fns"
 import { CheckCircle2, Calendar, MapPin, Users, Clock } from "lucide-react"
 import Link from "next/link"
 import { UserInquiryMessages } from "@/components/user-inquiry-messages"
@@ -107,6 +107,21 @@ export default async function BookingsPage({
                           </span>
                         </div>
                       )}
+                      {inquiry.start_date && inquiry.end_date && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            Duration:
+                          </span>{" "}
+                          <span className="font-medium">
+                            {differenceInDays(
+                              new Date(inquiry.end_date),
+                              new Date(inquiry.start_date),
+                            ) + 1}{" "}
+                            days
+                          </span>
+                        </div>
+                      )}
                       {inquiry.rounds > 0 && (
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -169,6 +184,7 @@ export default async function BookingsPage({
                   inquiryId={inquiry.id}
                   userName={profile?.display_name || profile?.email || "Guest"}
                   userEmail={profile?.email || user.email || ""}
+                  tripTitle={inquiry.trip_title}
                 />
               </div>
             ))}

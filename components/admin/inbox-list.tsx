@@ -98,6 +98,10 @@ export function InboxList({
           isAdmin: true,
           senderName: "Admin",
           senderEmail: "info@4sgtour.com",
+          // Provide inquiry context so the API can send email even if RLS blocks reading the inquiry row
+          tripTitle: selectedInquiry.trip_title,
+          customerName: selectedInquiry.customer_name,
+          customerEmail: selectedInquiry.customer_email,
         }),
       })
 
