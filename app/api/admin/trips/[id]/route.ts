@@ -4,9 +4,9 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = params
+  const { id } = await params
   const supabase = await createClient()
 
   const {
@@ -208,9 +208,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = params
+  const { id } = await params
+  if (!id || id === "undefined") {
+    return NextResponse.json({ error: "Invalid trip id" }, { status: 400 })
+  }
   const supabase = await createClient()
 
   const {
@@ -227,17 +230,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Decide whether the identifier looks like a UUID; if not, treat it as slug
-  const isUuid =
-    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
-      id,
-    )
-
-  let deleteQuery = supabase.from("trips").delete()
-  deleteQuery = isUuid ? deleteQuery.eq("id", id) : deleteQuery.eq("slug", id)
-
-  // Delete the trip (related records cascade via foreign keys)
-  const { error } = await deleteQuery
+  // Delete the trip by primary key id (related records cascade via foreign keys)
+  const { error } = await supabase.from("trips").delete().eq("id", id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

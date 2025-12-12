@@ -116,13 +116,8 @@ export function AdminCourses({
     e.stopPropagation()
 
     const tripId = trip.id
-    const tripSlug = trip.slug
-
-    if ((!tripId || tripId === "undefined") && !tripSlug) {
-      console.error("Attempted to delete trip with invalid identifiers:", {
-        tripId,
-        tripSlug,
-      })
+    if (!tripId || tripId === "undefined") {
+      console.error("Attempted to delete trip with invalid id:", tripId)
       alert(
         "This course is missing a valid ID and cannot be deleted. Please refresh the page and try again, or contact support.",
       )
@@ -137,13 +132,10 @@ export function AdminCourses({
       return
     }
 
-    const identifier =
-      tripId && tripId !== "undefined" ? tripId : encodeURIComponent(tripSlug)
-
-    setDeletingTrips((prev) => new Set(prev).add(identifier))
+    setDeletingTrips((prev) => new Set(prev).add(tripId))
 
     try {
-      const response = await fetch(`/api/admin/trips/${identifier}`, {
+      const response = await fetch(`/api/admin/trips/${tripId}`, {
         method: "DELETE",
       })
 
@@ -152,10 +144,8 @@ export function AdminCourses({
         throw new Error(data.error || "Failed to delete course")
       }
 
-      // Remove from local state (match by either id or slug)
-      setLocalTrips((prev) =>
-        prev.filter((t) => t.id !== trip.id && t.slug !== trip.slug),
-      )
+      // Remove from local state
+      setLocalTrips((prev) => prev.filter((t) => t.id !== tripId))
       router.refresh()
     } catch (error) {
       console.error("Error deleting trip:", error)
@@ -163,7 +153,7 @@ export function AdminCourses({
     } finally {
       setDeletingTrips((prev) => {
         const next = new Set(prev)
-        next.delete(identifier)
+        next.delete(tripId)
         return next
       })
     }
@@ -433,19 +423,11 @@ export function AdminCourses({
                             variant="ghost"
                             className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
                             onClick={(e) => handleDeleteTrip(trip, e)}
-                            disabled={deletingTrips.has(
-                              trip.id && trip.id !== "undefined"
-                                ? trip.id
-                                : trip.slug,
-                            )}
+                            disabled={deletingTrips.has(trip.id)}
                           >
                             <Trash2
                               className={`h-4 w-4 ${
-                                deletingTrips.has(
-                                  trip.id && trip.id !== "undefined"
-                                    ? trip.id
-                                    : trip.slug,
-                                )
+                                deletingTrips.has(trip.id)
                                   ? "animate-pulse"
                                   : ""
                               }`}
