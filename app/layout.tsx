@@ -4,7 +4,6 @@ import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import { ErrorHandler } from "@/components/error-handler"
 import "./globals.css"
-import "flag-icons/css/flag-icons.min.css"
 
 import { Playfair_Display, Geist_Mono, Bitter } from "next/font/google"
 
@@ -35,9 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased ${playfairDisplay.className} ${bitter.variable}`}
-      >
+      <body className={`antialiased ${playfairDisplay.className} ${bitter.variable}`}>
         <ErrorHandler />
         {children}
         <Analytics />
