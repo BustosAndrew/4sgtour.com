@@ -9,27 +9,27 @@ const CONTINENTS = [
   {
     name: "Europe",
     slug: "europe",
-    image: "/placeholder.svg?height=1080&width=400",
+    image: "/images/eu.png",
   },
   {
     name: "North America",
     slug: "north-america",
-    image: "/placeholder.svg?height=1080&width=400",
+    image: "/images/na.png",
   },
   {
     name: "Latin America",
     slug: "south-america",
-    image: "/placeholder.svg?height=1080&width=400",
+    image: "/images/sa.png",
   },
   {
     name: "Asia",
     slug: "asia",
-    image: "/placeholder.svg?height=1080&width=400",
+    image: "/images/asia.png",
   },
   {
     name: "World",
-    slug: "africa",
-    image: "/placeholder.svg?height=1080&width=400",
+    slug: "world",
+    image: "/images/world.png",
   },
 ]
 
