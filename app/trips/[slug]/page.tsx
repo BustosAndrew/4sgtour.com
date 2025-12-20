@@ -4,7 +4,7 @@ import { AnimatedHr } from "@/components/ui/animated-hr"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Check, X } from "lucide-react"
+import {} from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { TripImageGallery } from "@/components/trip-image-gallery"
 
@@ -157,41 +157,6 @@ export default async function TripPage({ params }: TripPageProps) {
                       <p className="mb-6 text-center text-3xl font-bold text-foreground sm:text-4xl">
                         ${pkg.price.toFixed(0)}
                       </p>
-
-                      {pkg.description && (
-                        <div className="mb-6 space-y-3">
-                          {pkg.description
-                            .split("\n")
-                            .map((item: string, idx: number) => {
-                              const isIncluded = !item
-                                .trim()
-                                .toLowerCase()
-                                .startsWith("no ")
-                              const text = item.replace(/^no /i, "").trim()
-                              return (
-                                <div
-                                  key={idx}
-                                  className="flex items-start gap-3 text-sm sm:text-base"
-                                >
-                                  {isIncluded ? (
-                                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                                  ) : (
-                                    <X className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                                  )}
-                                  <span
-                                    className={
-                                      isIncluded
-                                        ? "text-foreground"
-                                        : "text-muted-foreground"
-                                    }
-                                  >
-                                    {text}
-                                  </span>
-                                </div>
-                              )
-                            })}
-                        </div>
-                      )}
 
                       <Link
                         href={`/trips/${trip.slug}/book?package=${pkg.id}`}
