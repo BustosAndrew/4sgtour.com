@@ -875,26 +875,6 @@ export function CreateTripForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="max_days" className="text-base text-foreground">
-                Maximum Trip Duration (Days)
-              </Label>
-              <Input
-                id="max_days"
-                type="number"
-                min="1"
-                value={formData.max_days}
-                onChange={(e) =>
-                  setFormData({ ...formData, max_days: e.target.value })
-                }
-                placeholder="e.g., 7"
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional: Set a maximum number of days guests can book for this
-                trip
-              </p>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="min_days" className="text-base text-foreground">
                 Minimum Trip Duration (Days)
               </Label>
@@ -911,6 +891,26 @@ export function CreateTripForm() {
               <p className="text-xs text-muted-foreground">
                 Minimum number of days guests must select on the calendar
                 (default: 1)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="max_days" className="text-base text-foreground">
+                Maximum Trip Duration (Days)
+              </Label>
+              <Input
+                id="max_days"
+                type="number"
+                min="1"
+                value={formData.max_days}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_days: e.target.value })
+                }
+                placeholder="e.g., 7"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Set a maximum number of days guests can book for this
+                trip
               </p>
             </div>
 
