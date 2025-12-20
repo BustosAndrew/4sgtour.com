@@ -9,7 +9,7 @@ const CONTINENTS = [
   {
     name: "Europe",
     slug: "europe",
-    image: "/images/eu.jpg",
+    image: "/images/eu.png",
   },
   {
     name: "North America",
@@ -24,7 +24,7 @@ const CONTINENTS = [
   {
     name: "Asia",
     slug: "asia",
-    image: "/images/asia.jpg",
+    image: "/images/asia.png",
   },
   {
     name: "World",
