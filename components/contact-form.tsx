@@ -43,7 +43,7 @@ export function ContactForm() {
       )}
 
       <div className="space-y-3">
-        <Label htmlFor="name" className="text-base font-bold text-white">
+        <Label htmlFor="name" className="text-base font-bold text-foreground">
           Your Name
         </Label>
         <Input
@@ -53,12 +53,12 @@ export function ContactForm() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-9 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="h-9 bg-background text-foreground placeholder:text-muted-foreground text-base font-bold border-border"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="email" className="text-base font-bold text-white">
+        <Label htmlFor="email" className="text-base font-bold text-foreground">
           Your Email
         </Label>
         <Input
@@ -68,12 +68,12 @@ export function ContactForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-9 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="h-9 bg-background text-foreground placeholder:text-muted-foreground text-base font-bold border-border"
         />
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="message" className="text-base font-bold text-white">
+        <Label htmlFor="message" className="text-base font-bold text-foreground">
           Your Message
         </Label>
         <Textarea
@@ -82,7 +82,7 @@ export function ContactForm() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[120px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="min-h-[120px] resize-none bg-background text-foreground placeholder:text-muted-foreground text-base font-bold border-border"
         />
       </div>
 
