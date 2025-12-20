@@ -32,6 +32,11 @@ type Trip = {
   continent: string
   courses_photo_url: string | null
   booking_url: string | null
+  packages?: Array<{
+    id: string
+    name: string
+    price: number
+  }>
 }
 
 const CONTINENTS = [
@@ -71,6 +76,23 @@ export function AdminCourses({
     initialInquiryId,
   )
   const router = useRouter()
+
+  const getTripDisplayPrice = (trip: Trip) => {
+    const packages = trip.packages || []
+    const premium = packages.find((p) => p.name === "Premium")
+    if (premium?.price != null) return Number(premium.price)
+
+    const lowest = packages.reduce<number | null>((acc, p) => {
+      const value = Number(p.price)
+      if (Number.isNaN(value)) return acc
+      if (acc == null) return value
+      return Math.min(acc, value)
+    }, null)
+    if (lowest != null) return lowest
+
+    const legacy = Number(trip.price_regular)
+    return Number.isFinite(legacy) ? legacy : 0
+  }
 
   const filteredTrips =
     selectedContinent === "All"
@@ -406,7 +428,7 @@ export function AdminCourses({
                       </h3>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold">
-                          ${Number(trip.price_regular).toFixed(2)}
+                          ${getTripDisplayPrice(trip).toFixed(2)}
                         </span>
                         <div className="flex gap-2">
                           <Link href={`/admin/trips/${trip.id}`}>

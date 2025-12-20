@@ -33,7 +33,12 @@ export default async function AdminDashboardPage({
 
   const { data: trips } = await supabase
     .from("trips")
-    .select("*")
+    .select(
+      `
+      *,
+      packages(id, name, price)
+    `,
+    )
     .order("continent", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true })
 

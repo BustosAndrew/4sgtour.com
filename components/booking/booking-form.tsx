@@ -512,7 +512,7 @@ export function BookingForm({
                       {pkg.name}
                     </h3>
                     {pkg.description && (
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
                         {pkg.description}
                       </p>
                     )}
