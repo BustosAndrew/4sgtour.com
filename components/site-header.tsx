@@ -49,7 +49,7 @@ export function SiteHeader({
 
   const header = (
     <header
-      className={`fixed top-0 left-0 right-0 z-[100] isolate bg-[#274C77] w-full h-[70px] ${className}`}
+      className={`fixed top-0 left-0 right-0 z-[40] isolate bg-[#274C77] w-full h-[70px] ${className}`}
     >
       <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Logo */}

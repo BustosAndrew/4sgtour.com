@@ -113,7 +113,7 @@ export default async function HomePage() {
                     endColor="#7ab0d0"
                     hoverText="Explore!"
                   >
-                    Start Your Adventure Today
+                    Get Started
                   </AnimatedButton>
                 </Link>
               </div>
@@ -135,8 +135,8 @@ export default async function HomePage() {
           <Image
             src="/images/golf-member.png"
             alt="IAGTO Member Logo"
-            width={200}
-            height={200}
+            width={100}
+            height={100}
           />
         </section>
       </main>

@@ -118,8 +118,7 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-
-        <div className="mt-8 border-t border-white/20 pt-8">
+        <div className="flex items-center gap-10 mt-8 border-t border-white/20 pt-8">
           <BackToTopButton />
         </div>
       </div>

@@ -24,7 +24,7 @@ export default async function ContactPage() {
           <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-stretch lg:gap-70 w-full">
             <GlassCard className="max-w-3xl h-fit">
               <div className="flex flex-col">
-                <div className="p-6 sm:p-8 lg:p-10 lg:pb-0">
+                <div className="p-8 py-6 lg:pb-0">
                   <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-white">
                     Contact Us
                   </h2>
@@ -36,7 +36,7 @@ export default async function ContactPage() {
                   </p>
                   <ContactForm />
                 </div>
-                <div className="p-6 lg:pb-10 space-y-8 sm:space-y-10 h-fit flex flex-col lg:flex-row justify-center items-center lg:items-start lg:space-x-8">
+                <div className="p-6 lg:pb-8 space-y-8 h-fit flex flex-col lg:flex-row justify-center items-center lg:items-start lg:space-x-8">
                   <div className="flex flex-col items-center">
                     <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-medium text-white">
                       Representative Email:

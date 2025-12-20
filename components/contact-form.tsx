@@ -53,7 +53,7 @@ export function ContactForm() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="h-9 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
@@ -68,7 +68,7 @@ export function ContactForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-12 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="h-9 bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
@@ -82,7 +82,7 @@ export function ContactForm() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[150px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="min-h-[120px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
