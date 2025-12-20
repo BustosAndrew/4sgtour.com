@@ -53,10 +53,7 @@ export function HeroCarousel() {
       <div className="absolute inset-0 flex items-center">
         <div className="container">
           <div className="max-w-2xl">
-            <h1
-              style={{ fontFamily: "Bitter, serif" }}
-              className="text-4xl sm:text-5xl font-bold text-white tracking-wide md:text-5xl"
-            >
+            <h1 className="text-4xl sm:text-5xl font-sans font-bold text-white tracking-wide md:text-5xl">
               4 Seasons Golf Tour
             </h1>
             <p className="mt-4 text-white/90 font-sans text-3xl font-semibold">
