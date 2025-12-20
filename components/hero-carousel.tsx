@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const heroImages = [
   "/images/royalty1.png",
-  "/placeholder.svg?height=700&width=1400",
-  "/placeholder.svg?height=700&width=1400",
-  "/placeholder.svg?height=700&width=1400",
+  "/images/royalty2.jpg",
+  "/images/royalty3.png",
+  "/images/royalty4.jpg",
 ]
 
 export function HeroCarousel() {
@@ -18,7 +18,9 @@ export function HeroCarousel() {
   }, [])
 
   const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)
+    setCurrentIndex(
+      (prev) => (prev - 1 + heroImages.length) % heroImages.length,
+    )
   }, [])
 
   // Auto-advance every 5 seconds
@@ -37,7 +39,11 @@ export function HeroCarousel() {
             index === currentIndex ? "opacity-100" : "opacity-0"
           }`}
         >
-          <img src={src || "/placeholder.svg"} alt={`Hero slide ${index + 1}`} className="h-full w-full object-cover" />
+          <img
+            src={src || "/placeholder.svg"}
+            alt={`Hero slide ${index + 1}`}
+            className="h-full w-full object-cover"
+          />
           {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-black/30" />
         </div>
@@ -47,10 +53,15 @@ export function HeroCarousel() {
       <div className="absolute inset-0 flex items-center">
         <div className="container">
           <div className="max-w-2xl">
-            <h1 style={{ fontFamily: "Bitter, serif" }} className="text-4xl sm:text-5xl font-bold text-white tracking-wide md:text-5xl">
+            <h1
+              style={{ fontFamily: "Bitter, serif" }}
+              className="text-4xl sm:text-5xl font-bold text-white tracking-wide md:text-5xl"
+            >
               4 Seasons Golf Tour
             </h1>
-            <p className="mt-4 text-white/90 font-sans text-3xl">Customize your golf journey</p>
+            <p className="mt-4 text-white/90 font-sans text-3xl">
+              Customize your golf journey
+            </p>
           </div>
         </div>
       </div>
@@ -77,7 +88,9 @@ export function HeroCarousel() {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-colors ${index === currentIndex ? "bg-white" : "bg-white/50"}`}
+            className={`w-3 h-3 rounded-full transition-colors ${
+              index === currentIndex ? "bg-white" : "bg-white/50"
+            }`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
