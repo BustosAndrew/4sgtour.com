@@ -208,11 +208,24 @@ export function BookingForm({
     })
   }
 
-  const handleCourseRoundChange = (courseId: string, delta: number) => {
+  const handleCourseRoundChange = (
+    courseId: string,
+    delta: number,
+    maxRounds?: number | null,
+  ) => {
     setCourseRounds((prev) => {
       const current = prev[courseId] || 0
-      const newValue = Math.max(0, current + delta)
-      return { ...prev, [courseId]: newValue }
+      const cap =
+        typeof maxRounds === "number" && maxRounds > 0 ? maxRounds : Infinity
+      const nextValue = Math.min(cap, Math.max(0, current + delta))
+
+      const next = { ...prev }
+      if (nextValue <= 0) {
+        delete next[courseId]
+      } else {
+        next[courseId] = nextValue
+      }
+      return next
     })
   }
 
@@ -638,13 +651,22 @@ export function BookingForm({
                 <div className="mb-6 space-y-3">
                   {golfCourses.map((course: any) => {
                     const isSelected = (courseRounds[course.id] || 0) > 0
+                    const rounds = courseRounds[course.id] || 0
+                    const maxRounds = course.max_rounds
                     return (
                       <div
                         key={course.id}
                         onClick={() => {
-                          if (!isSelected) {
-                            handleCourseRoundChange(course.id, 1)
+                          if (isSelected) {
+                            setCourseRounds((prev) => {
+                              const next = { ...prev }
+                              delete next[course.id]
+                              return next
+                            })
+                            return
                           }
+
+                          handleCourseRoundChange(course.id, 1, maxRounds)
                         }}
                         className={`cursor-pointer border-2 px-6 py-4 transition-colors ${
                           isSelected
@@ -652,68 +674,68 @@ export function BookingForm({
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-4">
                           <span className="font-serif text-lg font-medium">
                             {course.course_name}
                           </span>
-                          <div
-                            className={`flex h-6 w-6 items-center justify-center border-2 ${
-                              isSelected
-                                ? "border-[#3D5A80] bg-[#3D5A80]"
-                                : "border-gray-300"
-                            }`}
-                          >
-                            {isSelected && (
-                              <div className="h-2.5 w-2.5 bg-white" />
-                            )}
+
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleCourseRoundChange(
+                                  course.id,
+                                  -1,
+                                  maxRounds,
+                                )
+                              }}
+                              className="flex h-9 w-9 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
+                              aria-label={`Decrease rounds for ${course.course_name}`}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+
+                            <span className="flex h-9 w-10 items-center justify-center border-y-2 border-gray-200 text-base font-medium">
+                              {rounds}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleCourseRoundChange(course.id, 1, maxRounds)
+                              }}
+                              className="flex h-9 w-9 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
+                              aria-label={`Increase rounds for ${course.course_name}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+
+                            <div
+                              className={`flex h-6 w-6 items-center justify-center border-2 ${
+                                isSelected
+                                  ? "border-[#3D5A80] bg-[#3D5A80]"
+                                  : "border-gray-300"
+                              }`}
+                            >
+                              {isSelected && (
+                                <div className="h-2.5 w-2.5 bg-white" />
+                              )}
+                            </div>
                           </div>
                         </div>
+
+                        {typeof maxRounds === "number" && maxRounds > 0 && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            Max rounds: {maxRounds}
+                          </p>
+                        )}
                       </div>
                     )
                   })}
-                </div>
-
-                <div className="mt-6">
-                  <Label className="text-base font-medium">Select Rounds</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Choose how many rounds you'd like to play at each selected
-                    course
-                  </p>
-                </div>
-
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstCourseId = golfCourses[0]?.id
-                      if (firstCourseId && totalRounds > 0) {
-                        const courseWithRounds = Object.entries(
-                          courseRounds,
-                        ).find(([_, r]) => r > 0)
-                        if (courseWithRounds)
-                          handleCourseRoundChange(courseWithRounds[0], -1)
-                      }
-                    }}
-                    className="flex h-10 w-10 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="flex h-10 w-10 items-center justify-center border-y-2 border-gray-200 text-lg font-medium">
-                    {totalRounds}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstSelectedCourse = Object.entries(
-                        courseRounds,
-                      ).find(([_, r]) => r > 0)
-                      if (firstSelectedCourse)
-                        handleCourseRoundChange(firstSelectedCourse[0], 1)
-                    }}
-                    className="flex h-10 w-10 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
                 </div>
 
                 <div className="mt-4 border-2 border-gray-200 bg-gray-50 px-6 py-3">
