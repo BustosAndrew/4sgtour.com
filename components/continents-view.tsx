@@ -65,7 +65,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
           <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-4xl">
             Explore Golf Destinations
           </h1>
-          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl leading-relaxed text-white drop-shadow-lg xl:text-xl">
+          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl font-semibold leading-relaxed text-white drop-shadow-lg lg:text-2xl">
             Choose a continent to discover world-class golf destinations and
             unforgettable experiences
           </p>

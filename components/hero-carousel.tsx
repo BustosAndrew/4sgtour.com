@@ -59,7 +59,7 @@ export function HeroCarousel() {
             >
               4 Seasons Golf Tour
             </h1>
-            <p className="mt-4 text-white/90 font-sans text-3xl">
+            <p className="mt-4 text-white/90 font-sans text-3xl font-semibold">
               Customize your golf journey
             </p>
           </div>

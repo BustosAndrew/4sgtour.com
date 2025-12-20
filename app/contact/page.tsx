@@ -29,9 +29,10 @@ export default async function ContactPage() {
                     Contact Us
                   </h2>
                   <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80 font-bold">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    We&apos;d love to hear from you! Whether you have questions,
+                    feedback, or need assistance, our team is here to help.
+                    Please fill out the form below or reach us through the
+                    provided contact details.
                   </p>
                   <ContactForm />
                 </div>

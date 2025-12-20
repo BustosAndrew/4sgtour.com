@@ -30,15 +30,14 @@ export default async function HomePage() {
 
         <section className="container py-12 text-center">
           <h1 className="text-balance text-4xl font-bold text-foreground font-serif">
-            Lorem ipsum dolor
+            Setting a New Standard for Overseas Golf Travel
           </h1>
-          <p className="mx-auto mt-4 text-pretty leading-relaxed font-serif text-black font-medium text-center">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur.
+          <p className="mx-auto mt-4 text-pretty text-lg leading-relaxed font-serif text-black font-semibold text-center">
+            4SGTour is a Korean travel agency specializing in overseas golf
+            travel, offering exceptional service and a variety of destinations,
+            offering the best golf tours. We emphasize overseas golf travel and
+            tours, and you can enjoy the various special offers and benefits
+            offered by 4SGTour.
           </p>
         </section>
 
@@ -48,13 +47,10 @@ export default async function HomePage() {
               Recommendations
             </h2>
             <RecommendationsCarousel trips={featuredTrips || []} />
-            <p className="mx-auto mt-8 text-pretty leading-relaxed font-serif text-black font-medium text-center">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur.
+            <p className="mx-auto mt-8 text-pretty text-lg leading-relaxed font-serif text-black font-semibold text-center">
+              Explore our curated selection of top golf travel packages,
+              handpicked to offer you unforgettable experiences on the best
+              courses around the world.
             </p>
           </div>
         </section>
@@ -73,16 +69,13 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-col justify-center">
               <h2 className="text-balance text-3xl font-bold text-foreground font-serif">
-                Lorem ipsum dolor
+                The Joy of Golf Travel
               </h2>
               <AnimatedHr maxWidth="75%" />
-              <p className="mt-4 w-3/4 text-pretty leading-relaxed font-serif font-medium text-black">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur.
+              <p className="mt-4 w-3/4 text-pretty text-lg leading-relaxed font-serif font-semibold text-black">
+                An overseas golf trip is a special experience that allows you to
+                experience the joy of golf while exploring various destinations.
+                With 4SGTour, you can enjoy a truly special golf trip abroad.
               </p>
               <Link href="/destinations" className="mt-6 w-fit">
                 <AnimatedButton
@@ -90,7 +83,7 @@ export default async function HomePage() {
                   endColor="#7ab0d0"
                   hoverText="Explore!"
                 >
-                  Lorem ipsum dolor
+                  Learn More
                 </AnimatedButton>
               </Link>
             </div>
@@ -102,16 +95,16 @@ export default async function HomePage() {
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
               <div className="flex flex-col justify-center">
                 <h2 className="text-balance text-3xl font-bold text-foreground font-serif">
-                  Lorem ipsum dolor
+                  Start Your Adventure Today
                 </h2>
                 <AnimatedHr maxWidth="75%" />
-                <p className="mt-4 w-3/4 text-pretty leading-relaxed font-medium text-black font-serif">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                  irure dolor in reprehenderit in voluptate velit esse cillum
-                  dolore eu fugiat nulla pariatur.
+                <p className="mt-4 w-3/4 text-pretty text-lg leading-relaxed font-semibold text-black font-serif">
+                  With customer-focused service, a team of professional guides,
+                  and special benefits from Korean travel agents, 4SGTour offers
+                  you the ultimate overseas golf trip. If you're looking for a
+                  unique experience and new adventure, join 4SGTour today! The
+                  joy and enrichment of travel await you. Join 4SGTour, the new
+                  standard in overseas golf travel!
                 </p>
                 <Link href="/destinations" className="mt-6 w-fit">
                   <AnimatedButton
@@ -119,7 +112,7 @@ export default async function HomePage() {
                     endColor="#7ab0d0"
                     hoverText="Explore!"
                   >
-                    Lorem ipsum dolor
+                    Start Your Adventure Today
                   </AnimatedButton>
                 </Link>
               </div>
