@@ -24,7 +24,7 @@
 .GlassContent {
   position: relative;
   display: block;
-  z-index: 100;
+  z-index: 30;
   overflow: hidden;
   border-radius: var(--corner-radius);
   pointer-events: auto;

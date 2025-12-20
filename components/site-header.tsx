@@ -48,147 +48,128 @@ export function SiteHeader({
   }, [])
 
   const header = (
-    <header className={`fixed top-0 left-0 right-0 z-50 w-full ${className}`}>
-      <div className="GlassContainer">
-        <div className="GlassContent h-[70px] lg:h-[87px]">
-          <div className="GlassMaterial">
-            <div className="GlassEdgeReflection"></div>
-            <div className="GlassEmbossReflection"></div>
-            <div className="GlassRefraction"></div>
-            <div className="GlassBlur"></div>
-            <div className="BlendLayers"></div>
-            <div className="BlendEdge"></div>
-            <div className="Highlight"></div>
-            <div className="Brightness"></div>
-          </div>
+    <header
+      className={`fixed top-0 left-0 right-0 z-[100] isolate bg-[#274C77] w-full h-[70px] ${className}`}
+    >
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0 lg:justify-self-start lg:w-fit">
+          <img
+            src="/logo.png"
+            alt="4SG Tour Logo"
+            className="h-[40px] lg:h-[50px] w-auto object-contain"
+          />
+        </Link>
 
-          <div className="relative z-[100] h-full w-full px-4 sm:px-6 lg:px-12 xl:px-20">
-            <div className="flex h-full items-center justify-between">
-              {/* Logo */}
-              <Link href="/" className="flex-shrink-0">
-                <img
-                  src="/logo.png"
-                  alt="4SG Tour Logo"
-                  className="h-[40px] lg:h-[50px] w-auto object-contain"
-                />
-              </Link>
+        {/* Desktop Navigation - centered */}
+        <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10 lg:col-start-2 lg:justify-self-center">
+          <Link
+            href="/"
+            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+          >
+            Home
+          </Link>
+          <Link
+            href="/destinations"
+            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+          >
+            Destinations
+          </Link>
+          <Link
+            href="#"
+            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+          >
+            Tournaments
+          </Link>
+          <Link
+            href="/contact"
+            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+          >
+            Contact Us
+          </Link>
+        </nav>
 
-              {/* Desktop Navigation - centered */}
-              <nav
-                className={`hidden lg:flex items-center gap-6 xl:gap-10 ${
-                  user ? "ml-12" : "ml-34"
-                }`}
-              >
-                <Link
-                  href="/"
-                  className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/destinations"
-                  className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
-                >
-                  Destinations
-                </Link>
-                <Link
-                  href="#"
-                  className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
-                >
-                  Tournaments
-                </Link>
-                <Link
-                  href="/contact"
-                  className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
-                >
-                  Contact Us
-                </Link>
-              </nav>
-
-              {/* Desktop Right Section */}
-              <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-                {/* Language Dropdown */}
-                {mounted && (
-                  <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
-                      <Globe className="w-4 h-4 text-white" />
-                      <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                        <img
-                          src={currentLanguage.flag || "/placeholder.svg"}
-                          alt={currentLanguage.alt}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <span className="text-white text-sm">
-                        {currentLanguage.name}
-                      </span>
-                      <ChevronDown className="w-3 h-3 text-white" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="bg-black/80 backdrop-blur-md border-white/20"
-                      sideOffset={5}
-                    >
-                      {languages.map((lang) => (
-                        <DropdownMenuItem
-                          key={lang.code}
-                          onClick={() => setCurrentLanguage(lang)}
-                          className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
-                        >
-                          <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                            <img
-                              src={lang.flag || "/placeholder.svg"}
-                              alt={lang.alt}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <span>{lang.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-
-                {/* Auth Links */}
-                {user ? (
-                  <UserNav user={user} userType={userType} />
-                ) : (
-                  <>
-                    <Link
-                      href="/auth/sign-up"
-                      className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
-                    >
-                      Sign Up
-                    </Link>
-                    <Link
-                      href="/auth/login"
-                      className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
-                    >
-                      Log In
-                    </Link>
-                  </>
-                )}
-              </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden -mr-2"
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={mobileMenuOpen}
-              >
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
-                  {mobileMenuOpen ? (
-                    <X className="h-4 w-4" />
-                  ) : (
-                    <Menu className="h-4 w-4" />
-                  )}
-                  <span>{mobileMenuOpen ? "Close" : "Menu"}</span>
+        {/* Desktop Right Section */}
+        <div className="hidden lg:flex items-center justify-end gap-4 xl:gap-6 lg:col-start-3 lg:justify-self-end lg:w-fit">
+          {/* Language Dropdown */}
+          {mounted && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
+                <Globe className="w-4 h-4 text-white" />
+                <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                  <img
+                    src={currentLanguage.flag || "/placeholder.svg"}
+                    alt={currentLanguage.alt}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <span className="text-white text-sm">
+                  {currentLanguage.name}
                 </span>
-              </button>
-            </div>
-          </div>
+                <ChevronDown className="w-3 h-3 text-white" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-black/80 backdrop-blur-md border-white/20"
+                sideOffset={5}
+              >
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => setCurrentLanguage(lang)}
+                    className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
+                  >
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
+                      <img
+                        src={lang.flag || "/placeholder.svg"}
+                        alt={lang.alt}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span>{lang.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Auth Links */}
+          {user ? (
+            <UserNav user={user} userType={userType} />
+          ) : (
+            <>
+              <Link
+                href="/auth/sign-up"
+                className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+              >
+                Sign Up
+              </Link>
+              <Link
+                href="/auth/login"
+                className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+              >
+                Log In
+              </Link>
+            </>
+          )}
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="lg:hidden -mr-2"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileMenuOpen}
+        >
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
+            {mobileMenuOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
+            <span>{mobileMenuOpen ? "Close" : "Menu"}</span>
+          </span>
+        </button>
       </div>
     </header>
   )

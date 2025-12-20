@@ -24,11 +24,11 @@ export default async function ContactPage() {
           <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-stretch lg:gap-70 w-full">
             <GlassCard className="max-w-3xl h-fit">
               <div className="flex flex-col">
-                <div className="p-6 lg:pb-6 sm:p-8 lg:p-10">
+                <div className="p-6 sm:p-8 lg:p-10 lg:pb-0">
                   <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-white">
                     Contact Us
                   </h2>
-                  <p className="mb-6 sm:mb-10 text-base sm:text-lg leading-relaxed text-white/80 font-bold">
+                  <p className="mb-3 text-base sm:text-lg leading-relaxed text-white/80 font-bold">
                     We&apos;d love to hear from you! Whether you have questions,
                     feedback, or need assistance, our team is here to help.
                     Please fill out the form below or reach us through the

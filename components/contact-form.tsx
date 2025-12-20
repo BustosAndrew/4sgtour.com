@@ -35,7 +35,7 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {isSuccess && (
         <div className="rounded-lg bg-primary/10 p-4 text-sm text-primary">
           Thank you for your message! We&apos;ll get back to you soon.
@@ -82,7 +82,7 @@ export function ContactForm() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[200px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
+          className="min-h-[150px] resize-none bg-white/20 text-white placeholder:text-white/50 text-base! font-bold border-white/30"
         />
       </div>
 
