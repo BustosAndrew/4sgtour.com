@@ -163,7 +163,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
       <div
         className="flex min-h-screen w-full items-center justify-center p-6 pt-28 lg:pt-32"
         style={{
-          backgroundImage: "url('/images/contact-bg.png')",
+          backgroundImage: "url('/images/contact-bg.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -268,7 +268,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
     <div
       className="flex min-h-screen w-full items-center justify-center p-6 pt-28 lg:pt-32"
       style={{
-        backgroundImage: "url('/images/contact-bg.png')",
+        backgroundImage: "url('/images/contact-bg.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

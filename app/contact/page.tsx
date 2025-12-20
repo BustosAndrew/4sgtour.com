@@ -10,7 +10,7 @@ export default async function ContactPage() {
       <div
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/images/contact-bg.png')",
+          backgroundImage: "url('/images/contact-bg.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
