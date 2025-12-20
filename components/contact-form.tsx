@@ -73,7 +73,10 @@ export function ContactForm() {
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="message" className="text-base font-bold text-foreground">
+        <Label
+          htmlFor="message"
+          className="text-base font-bold text-foreground"
+        >
           Your Message
         </Label>
         <Textarea

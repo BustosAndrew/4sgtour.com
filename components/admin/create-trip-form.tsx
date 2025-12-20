@@ -1363,8 +1363,8 @@ export function CreateTripForm() {
             <div>
               <h2 className="text-2xl font-semibold">Booking Options</h2>
               <p className="text-sm text-muted-foreground">
-                Configure golf courses, meals, and transportation options (all
-                optional)
+                Configure golf courses, meals, transportation, and service
+                options like Caddy and Golf Cart (all optional)
               </p>
             </div>
 
@@ -1659,6 +1659,54 @@ export function CreateTripForm() {
                   Option" to add options (optional).
                 </div>
               )}
+            </div>
+
+            {/* Service Options Section */}
+            <div className="space-y-4 rounded-lg border border-border p-6">
+              <div>
+                <h3 className="text-lg font-semibold">Service Options</h3>
+                <p className="text-sm text-muted-foreground">
+                  Toggle on if these services are included by default.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-4">
+                  <div>
+                    <p className="text-sm font-medium">Caddy Included</p>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle on if a caddy is included for players.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={
+                      serviceOptions.find((opt) => opt.name === "Caddy")
+                        ?.is_included || false
+                    }
+                    onCheckedChange={(checked) =>
+                      handleServiceOptionToggle("Caddy", checked)
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-4">
+                  <div>
+                    <p className="text-sm font-medium">Golf Cart Included</p>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle on if a golf cart is included for players.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={
+                      serviceOptions.find((opt) => opt.name === "Golf Cart")
+                        ?.is_included || false
+                    }
+                    onCheckedChange={(checked) =>
+                      handleServiceOptionToggle("Golf Cart", checked)
+                    }
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
