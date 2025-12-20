@@ -6,6 +6,7 @@ import { AnimatedButton } from "@/components/ui/animated-button"
 import { AnimatedHr } from "@/components/ui/animated-hr"
 import { HeroCarousel } from "@/components/hero-carousel"
 import Link from "next/link"
+import Image from "next/image"
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -128,6 +129,15 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="flex items-center justify-center py-12">
+          <Image
+            src="/images/golf-member.png"
+            alt="IAGTO Member Logo"
+            width={200}
+            height={200}
+          />
         </section>
       </main>
       <SiteFooter />
