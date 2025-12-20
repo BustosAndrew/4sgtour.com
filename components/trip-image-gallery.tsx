@@ -19,7 +19,7 @@ export function TripImageGallery({ images, title }: TripImageGalleryProps) {
     <>
       <div className="flex flex-col gap-3">
         {/* Main large image */}
-        <div className="relative aspect-[4/3] max-w-[514px] overflow-hidden">
+        <div className="relative aspect-[3/2] w-full overflow-hidden">
           <Image
             src={images[0] || "/placeholder.svg"}
             alt={title}
