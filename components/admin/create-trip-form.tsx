@@ -156,7 +156,22 @@ export function CreateTripForm() {
         body: formData,
       })
 
-      if (!response.ok) throw new Error("Upload failed")
+      if (!response.ok) {
+        const raw = await response.text().catch(() => "")
+        let message = "Upload failed"
+        try {
+          const parsed = raw ? JSON.parse(raw) : {}
+          message = parsed?.error || message
+        } catch {
+          // Non-JSON error (often an HTML error page)
+          const snippet = raw.replace(/\s+/g, " ").slice(0, 200)
+          message = `Upload failed (${response.status})${
+            snippet ? `: ${snippet}` : ""
+          }`
+        }
+
+        throw new Error(message)
+      }
 
       const { url } = await response.json()
       if (photoType === "courses") {
@@ -1730,7 +1745,7 @@ export function CreateTripForm() {
                     {coursePhotos.length > 0 && (
                       <div>
                         <p className="mb-1 font-medium">Courses Photos</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {coursePhotos.map((url, index) => (
                             <div
                               key={`${url}-${index}`}
