@@ -85,7 +85,7 @@ export default async function TripPage({ params }: TripPageProps) {
               <div className="mt-2 mb-4">
                 <AnimatedHr />
               </div>
-              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
+              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg whitespace-pre-wrap">
                 {trip.overview_content ||
                   trip.description ||
                   "Experience an unforgettable golf adventure at this premier destination. With world-class facilities, stunning views, and exceptional service, this course offers everything you need for the perfect golf getaway."}
