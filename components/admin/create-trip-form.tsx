@@ -1762,7 +1762,7 @@ export function CreateTripForm() {
                         </div>
                       </div>
                     )}
-                    {photos.singleRoom && (
+                    {/* {photos.singleRoom && (
                       <div>
                         <p className="mb-1 font-medium">Single Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
@@ -1774,8 +1774,8 @@ export function CreateTripForm() {
                           />
                         </div>
                       </div>
-                    )}
-                    {photos.doubleRoom && (
+                    )} */}
+                    {/* {photos.doubleRoom && (
                       <div>
                         <p className="mb-1 font-medium">Double Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
@@ -1787,7 +1787,7 @@ export function CreateTripForm() {
                           />
                         </div>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>

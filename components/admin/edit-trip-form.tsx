@@ -1731,7 +1731,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                       </div>
                     )}
-                    {photos.singleRoom && (
+                    {/* {photos.singleRoom && (
                       <div>
                         <p className="mb-1 font-medium">Single Room Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
@@ -1756,7 +1756,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           />
                         </div>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
