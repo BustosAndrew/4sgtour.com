@@ -486,7 +486,7 @@ export function BookingForm({
   const includedServices = serviceOptions.filter(
     (service: any) => service.is_included,
   )
-  const additionalRequestsSectionNumber = includedServices.length > 0 ? 8 : 7
+  const additionalRequestsSectionNumber = serviceOptions.length > 0 ? 8 : 7
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -777,18 +777,41 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 7/8: Included Services (read-only) */}
-          {includedServices.length > 0 && (
+          {/* Section 7/8: Service Options (read-only) */}
+          {serviceOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={7} title="Included Services" />
+              <SectionHeader number={7} title="Service Options" />
               <div className="py-6">
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Your reservation for this trip already includes the following
-                  services:
+                <p className="mb-4 text-sm text-muted-foreground">
+                  The following services are available for this trip:
                 </p>
-                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  {includedServices.map((service: any) => (
-                    <li key={service.id || service.name}>{service.name}</li>
+                <ul className="space-y-3">
+                  {serviceOptions.map((service: any) => (
+                    <li
+                      key={service.id || service.name}
+                      className="flex items-start gap-2 text-sm"
+                    >
+                      {service.is_included ? (
+                        <Check className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <X className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                      )}
+                      <div className="leading-snug">
+                        <div className="text-foreground">
+                          {service.name}{" "}
+                          <span className="text-muted-foreground">
+                            {service.is_included
+                              ? "(Included)"
+                              : "(Not included)"}
+                          </span>
+                        </div>
+                        {service.description && (
+                          <div className="text-muted-foreground">
+                            {service.description}
+                          </div>
+                        )}
+                      </div>
+                    </li>
                   ))}
                 </ul>
               </div>
