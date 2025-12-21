@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -83,6 +83,7 @@ export function BookingForm({
   const [roomType, setRoomType] = useState<string>("")
   const [selectedMeal, setSelectedMeal] = useState<string>("")
   const [selectedTransport, setSelectedTransport] = useState<string>("")
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
   const [additionalRequests, setAdditionalRequests] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(user)
@@ -98,10 +99,36 @@ export function BookingForm({
   const transportationOptions = trip.transportation_options || []
   const serviceOptions = trip.service_options || []
 
-  const includedMeal = mealOptions.find((meal: any) => meal.is_included)
-  const includedTransport = transportationOptions.find(
-    (transport: any) => transport.is_included,
+  const includedMealIds = useMemo(
+    () =>
+      mealOptions
+        .filter((meal: any) => meal.is_included)
+        .map((meal: any) => String(meal.id))
+        .sort(),
+    [mealOptions],
   )
+
+  const includedTransportIds = useMemo(
+    () =>
+      transportationOptions
+        .filter((transport: any) => transport.is_included)
+        .map((transport: any) => String(transport.id))
+        .sort(),
+    [transportationOptions],
+  )
+
+  const includedServiceIds = useMemo(
+    () =>
+      serviceOptions
+        .filter((service: any) => service.is_included)
+        .map((service: any) => String(service.id))
+        .sort(),
+    [serviceOptions],
+  )
+
+  const lockedMealId = includedMealIds.length > 0 ? includedMealIds[0] : null
+  const lockedTransportId =
+    includedTransportIds.length > 0 ? includedTransportIds[0] : null
 
   const [selectedPlan, setSelectedPlan] = useState<string>(
     preSelectedPackageId || premiumPackage?.id || "",
@@ -162,14 +189,50 @@ export function BookingForm({
     if (!user) {
       fetchUser()
     }
+  }, [user, supabase])
 
-    if (includedMeal) {
-      setSelectedMeal(includedMeal.id)
+  useEffect(() => {
+    // If an included option exists, keep it locked.
+    if (lockedMealId && selectedMeal !== lockedMealId) {
+      setSelectedMeal(lockedMealId)
     }
-    if (includedTransport) {
-      setSelectedTransport(includedTransport.id)
+  }, [lockedMealId, selectedMeal])
+
+  useEffect(() => {
+    // If an included option exists, keep it locked.
+    if (lockedTransportId && selectedTransport !== lockedTransportId) {
+      setSelectedTransport(lockedTransportId)
     }
-  }, [user, supabase.auth, includedMeal, includedTransport])
+  }, [lockedTransportId, selectedTransport])
+
+  useEffect(() => {
+    // Preselect ALL included services and keep them locked.
+    // Also drop selections that no longer exist.
+    const validIds = new Set(serviceOptions.map((s: any) => String(s.id)))
+
+    setSelectedServiceIds((prev) => {
+      const merged = new Set(prev.filter((id) => validIds.has(id)))
+      for (const id of includedServiceIds) merged.add(id)
+      const next = Array.from(merged).sort()
+
+      if (
+        prev.length === next.length &&
+        prev.every((id, i) => id === next[i])
+      ) {
+        return prev
+      }
+      return next
+    })
+  }, [includedServiceIds, serviceOptions])
+
+  const toggleService = (serviceId: string) => {
+    if (includedServiceIds.includes(serviceId)) return
+    setSelectedServiceIds((prev) =>
+      prev.includes(serviceId)
+        ? prev.filter((id) => id !== serviceId)
+        : [...prev, serviceId],
+    )
+  }
 
   const minAdvanceDays = trip.min_days_advance || 0
   const maxDays = trip.max_days || 14
@@ -284,19 +347,37 @@ export function BookingForm({
         })
         .filter(Boolean)
 
-      const selectedMealOption = mealOptions.find(
-        (meal: any) => meal.id === selectedMeal,
-      )
-      const mealOptionName = selectedMealOption?.is_included
-        ? `${selectedMealOption.name} (Included)`
-        : selectedMealOption?.name || "None"
+      const mealOptionName =
+        includedMealIds.length > 0
+          ? `${mealOptions
+              .filter((meal: any) => meal.is_included)
+              .map((meal: any) => meal.name)
+              .join(", ")} (Included)`
+          : (() => {
+              const selectedMealOption = mealOptions.find(
+                (meal: any) => String(meal.id) === selectedMeal,
+              )
+              if (!selectedMealOption) return "None"
+              return selectedMealOption.is_included
+                ? `${selectedMealOption.name} (Included)`
+                : selectedMealOption.name
+            })()
 
-      const selectedTransportOption = transportationOptions.find(
-        (transport: any) => transport.id === selectedTransport,
-      )
-      const transportOptionName = selectedTransportOption?.is_included
-        ? `${selectedTransportOption.name} (Included)`
-        : selectedTransportOption?.name || "None"
+      const transportOptionName =
+        includedTransportIds.length > 0
+          ? `${transportationOptions
+              .filter((t: any) => t.is_included)
+              .map((t: any) => t.name)
+              .join(", ")} (Included)`
+          : (() => {
+              const selectedTransportOption = transportationOptions.find(
+                (transport: any) => String(transport.id) === selectedTransport,
+              )
+              if (!selectedTransportOption) return "None"
+              return selectedTransportOption.is_included
+                ? `${selectedTransportOption.name} (Included)`
+                : selectedTransportOption.name
+            })()
 
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -330,8 +411,8 @@ export function BookingForm({
       setTravelDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
       setRoomType("")
-      setSelectedMeal(includedMeal?.id || "")
-      setSelectedTransport(includedTransport?.id || "")
+      setSelectedMeal(lockedMealId || "")
+      setSelectedTransport(lockedTransportId || "")
       setAdditionalRequests("")
     } catch (error) {
       console.error("Error submitting inquiry:", error)
@@ -373,17 +454,21 @@ export function BookingForm({
   const RadioOption = ({
     selected,
     onClick,
+    disabled,
     children,
   }: {
     selected: boolean
     onClick: () => void
+    disabled?: boolean
     children: React.ReactNode
   }) => (
     <div
-      onClick={onClick}
-      className={`cursor-pointer border bg-[#f5f5f5] px-4 py-3 transition-colors ${
-        selected ? "border-[#3D5A80]" : "border-gray-200 hover:border-gray-300"
-      }`}
+      onClick={disabled ? undefined : onClick}
+      className={`border bg-[#f5f5f5] px-4 py-3 transition-colors ${
+        disabled
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-pointer hover:border-gray-300"
+      } ${selected ? "border-[#3D5A80]" : "border-gray-200"}`}
     >
       <div className="flex items-center justify-between">
         {children}
@@ -755,13 +840,18 @@ export function BookingForm({
                 {mealOptions.map((meal: any) => (
                   <RadioOption
                     key={meal.id}
-                    selected={selectedMeal === meal.id}
-                    onClick={() => setSelectedMeal(meal.id)}
+                    selected={
+                      includedMealIds.length > 0
+                        ? includedMealIds.includes(String(meal.id))
+                        : selectedMeal === String(meal.id)
+                    }
+                    disabled={includedMealIds.length > 0}
+                    onClick={() => setSelectedMeal(String(meal.id))}
                   >
                     <div className="flex items-center gap-3">
                       <span className="font-serif text-lg font-medium">
                         {meal.name}
-                        {meal.is_included && " (Recommended)"}
+                        {meal.is_included && " (Included)"}
                       </span>
                       {meal.is_included && (
                         <Utensils className="h-4 w-4 text-muted-foreground" />
@@ -781,13 +871,18 @@ export function BookingForm({
                 {transportationOptions.map((transport: any) => (
                   <RadioOption
                     key={transport.id}
-                    selected={selectedTransport === transport.id}
-                    onClick={() => setSelectedTransport(transport.id)}
+                    selected={
+                      includedTransportIds.length > 0
+                        ? includedTransportIds.includes(String(transport.id))
+                        : selectedTransport === String(transport.id)
+                    }
+                    disabled={includedTransportIds.length > 0}
+                    onClick={() => setSelectedTransport(String(transport.id))}
                   >
                     <div className="flex items-center gap-3">
                       <span className="font-serif text-lg font-medium">
                         {transport.name}
-                        {transport.is_included && " (Recommended)"}
+                        {transport.is_included && " (Included)"}
                       </span>
                       {transport.is_included && (
                         <Car className="h-4 w-4 text-muted-foreground" />
@@ -799,43 +894,48 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 7/8: Service Options (read-only) */}
+          {/* Section 7/8: Service Options */}
           {serviceOptions.length > 0 && (
             <div className="overflow-hidden">
               <SectionHeader number={7} title="Service Options" />
               <div className="py-6">
                 <p className="mb-4 text-sm text-muted-foreground">
-                  The following services are available for this trip:
+                  Select any additional services for your trip. Included
+                  services are already selected.
                 </p>
-                <ul className="space-y-3">
-                  {serviceOptions.map((service: any) => (
-                    <li
-                      key={service.id || service.name}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      {service.is_included ? (
-                        <Check className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <X className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                      )}
-                      <div className="leading-snug">
-                        <div className="text-foreground">
-                          {service.name}{" "}
-                          <span className="text-muted-foreground">
-                            {service.is_included
-                              ? "(Included)"
-                              : "(Not included)"}
-                          </span>
-                        </div>
-                        {service.description && (
-                          <div className="text-muted-foreground">
-                            {service.description}
+                <div className="space-y-4">
+                  {serviceOptions.map((service: any) => {
+                    const id = String(service.id)
+                    const isIncluded = !!service.is_included
+                    const isSelected =
+                      isIncluded || selectedServiceIds.includes(id)
+
+                    return (
+                      <RadioOption
+                        key={service.id || service.name}
+                        selected={isSelected}
+                        disabled={isIncluded}
+                        onClick={() => toggleService(id)}
+                      >
+                        <div className="flex-1">
+                          <div className="font-serif text-lg font-medium">
+                            {service.name}{" "}
+                            {isIncluded && (
+                              <span className="text-sm text-muted-foreground">
+                                (Included)
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                          {service.description && (
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {service.description}
+                            </p>
+                          )}
+                        </div>
+                      </RadioOption>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )}
