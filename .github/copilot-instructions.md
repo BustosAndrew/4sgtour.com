@@ -30,16 +30,16 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 
 1. **Server-side:** `@/lib/supabase/server` - for Server Components, API routes, Server Actions
 
-   ```typescript
+   \`\`\`typescript
    import { createClient } from '@/lib/supabase/server';
    const supabase = await createClient(); // Note: async
-   ```
+   \`\`\`
 
 2. **Client-side:** `@/lib/supabase/client` - for Client Components only
-   ```typescript
+   \`\`\`typescript
    import { createClient } from '@/lib/supabase/client';
    const supabase = createClient(); // Singleton pattern
-   ```
+   \`\`\`
 
 ### Authentication & Authorization
 
@@ -47,7 +47,7 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 - **User roles:** "admin" | "regular" stored in `profiles.user_type`
 - **Auth check pattern:**
 
-  ```typescript
+  \`\`\`typescript
   const {
   data: { user },
   } = await supabase.auth.getUser();
@@ -55,7 +55,7 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 
   const userType = await getUserType(); // from @/lib/supabase/get-user-type
   if (userType !== 'admin') redirect('/');
-  ```
+  \`\`\`
 
 ### Database Schema & Relationships
 
@@ -71,12 +71,12 @@ This is a Next.js 16 (App Router) golf trip booking platform with Supabase backe
 
 **Query pattern with joins:**
 
-```typescript
+\`\`\`typescript
 const { data } = await supabase.from('trips').select(`    *,
     packages(id, name, price),
     trip_golf_courses(course_name, max_rounds, description)
  `);
-```
+\`\`\`
 
 **RLS (Row Level Security):** All tables have RLS enabled. Most are public-readable, admin-only writable. Check `scripts/*.sql` for policies.
 
@@ -84,11 +84,11 @@ const { data } = await supabase.from('trips').select(`    *,
 
 ### Running the App
 
-```powershell
+\`\`\`powershell
 pnpm dev # Start dev server (default port 3000)
 pnpm build # Production build
 pnpm lint # ESLint check
-```
+\`\`\`
 
 ### Database Migrations
 

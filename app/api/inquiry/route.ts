@@ -18,22 +18,37 @@ export async function POST(request: Request) {
       endDate,
       addOns,
       rounds,
+      golfCourses,
+      mealOption,
+      transportOption,
+      roomType,
       additionalRequests,
       totalPrice,
     } = body
+
+    const totalRounds = golfCourses?.length || rounds || 0
+
+    const finalAddOns =
+      addOns ||
+      [
+        ...(golfCourses || []),
+        mealOption ? `Meals: ${mealOption}` : null,
+        transportOption ? `Transport: ${transportOption}` : null,
+        roomType ? `Room: ${roomType}` : null,
+      ].filter(Boolean)
 
     const { data: inquiry, error: dbError } = await supabase
       .from("inquiries")
       .insert({
         trip_id: tripId,
         trip_title: tripTitle,
-        customer_name: customerName,
-        customer_email: customerEmail,
+        customer_name: customerName || "Guest",
+        customer_email: customerEmail || "",
         package_name: packageName,
         start_date: startDate,
         end_date: endDate,
-        add_ons: addOns,
-        rounds: rounds,
+        add_ons: finalAddOns,
+        rounds: totalRounds,
         additional_requests: additionalRequests,
         total_price: totalPrice,
         status: "pending",
@@ -43,6 +58,7 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error("[v0] Database error:", dbError)
+      // Don't fail the request if DB insert fails, still send email
     }
 
     const emailContent = `
@@ -51,14 +67,16 @@ New Trip Inquiry
 Trip: ${tripTitle}
 
 Customer Information:
-Name: ${customerName}
-Email: ${customerEmail}
+Name: ${customerName || "Guest"}
+Email: ${customerEmail || "Not provided"}
 
 Booking Details:
 Package: ${packageName}
 Travel Dates: ${startDate} to ${endDate}
-Selected Add-ons: ${addOns && addOns.length > 0 ? addOns.join(", ") : "None"}
-Number of Rounds: ${rounds}
+${roomType ? `Room Type: ${roomType}` : ""}
+${golfCourses?.length > 0 ? `Golf Courses: ${golfCourses.join(", ")}` : ""}
+${mealOption ? `Meals: ${mealOption}` : ""}
+${transportOption ? `Transportation: ${transportOption}` : ""}
 
 Total Price: $${totalPrice}
 
