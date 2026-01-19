@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Logo } from "@/components/logo"
 
 type SiteHeaderProps = {
   user?: any
@@ -49,16 +50,12 @@ export function SiteHeader({
 
   const header = (
     <header
-      className={`fixed top-0 left-0 right-0 z-[40] isolate bg-[#274C77] w-full h-[70px] ${className}`}
+      className={`fixed top-0 left-0 right-0 z-[40] isolate bg-[#735C38] w-full h-[70px] ${className}`}
     >
       <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 lg:justify-self-start lg:w-fit">
-          <img
-            src="/logo.png"
-            alt="4SG Tour Logo"
-            className="h-[40px] lg:h-[50px] w-auto object-contain"
-          />
+          <Logo size="sm" textColor="text-white" />
         </Link>
 
         {/* Desktop Navigation - centered */}
@@ -180,7 +177,7 @@ export function SiteHeader({
       ? createPortal(
           <div
             className="lg:hidden fixed left-0 right-0 top-[70px] bottom-0 border-t border-white/20"
-            style={{ backgroundColor: "#274C77", zIndex: 99999 }}
+            style={{ backgroundColor: "#735C38", zIndex: 99999 }}
           >
             <div className="px-4 sm:px-6 py-6 h-full overflow-y-auto">
               <nav className="flex flex-col gap-1">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import Link from "next/link"
 
 const heroImages = [
   "/images/royalty1.png",
@@ -30,7 +31,7 @@ export function HeroCarousel() {
   }, [goToNext])
 
   return (
-    <section className="relative h-[500px] sm:h-[600px] md:h-[700px] bg-muted shadow-xl overflow-hidden">
+    <section className="relative h-[500px] sm:h-[600px] md:h-[700px] bg-[#22333b] overflow-hidden">
       {/* Carousel Images */}
       {heroImages.map((src, index) => (
         <div
@@ -45,35 +46,56 @@ export function HeroCarousel() {
             className="h-full w-full object-cover"
           />
           {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       ))}
 
-      {/* Text Content - Center Left */}
-      <div className="absolute inset-0 flex items-center">
-        <div className="container">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl sm:text-5xl font-sans font-bold text-white tracking-wide md:text-5xl">
-              4 Seasons Golf Tour
-            </h1>
-            <p className="mt-4 text-white/90 font-sans text-3xl font-semibold">
-              Customize your golf journey
-            </p>
-          </div>
+      {/* Text Content - Right Aligned */}
+      <div className="absolute inset-0 flex items-center justify-end">
+        <div className="text-right px-8 md:px-16 lg:px-24">
+          {/* Subtitle */}
+          <p 
+            className="text-xs md:text-sm tracking-[0.3em] uppercase text-white/80 mb-4"
+            style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+          >
+            Luxury Golf Travel
+          </p>
+          {/* Main heading */}
+          <h1 
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl italic text-white mb-4"
+            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+          >
+            4 Seasons Golf Tour
+          </h1>
+          {/* Tagline */}
+          <p 
+            className="text-base sm:text-lg md:text-xl text-white/90 mb-8"
+            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+          >
+            Customize <em>your</em> golf journey.
+          </p>
+          {/* CTA Button */}
+          <Link 
+            href="/destinations"
+            className="inline-block bg-[#735c38] hover:bg-[#5d4a2d] text-white px-8 py-3 text-sm uppercase tracking-[0.15em] transition-colors"
+            style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+          >
+            Start Exploring &gt;
+          </Link>
         </div>
       </div>
 
       {/* Navigation Arrows */}
       <button
         onClick={goToPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-6 w-6 text-white" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
         aria-label="Next slide"
       >
         <ChevronRight className="h-6 w-6 text-white" />
@@ -85,8 +107,8 @@ export function HeroCarousel() {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              index === currentIndex ? "bg-white" : "bg-white/50"
+            className={`w-2 h-2 rounded-full transition-colors ${
+              index === currentIndex ? "bg-white" : "bg-white/40"
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

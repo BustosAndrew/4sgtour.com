@@ -5,6 +5,7 @@ import { Flag, LogOut, BarChart3, MessageSquare } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { Logo } from "@/components/logo"
 
 interface AdminSidebarProps {
   userName: string
@@ -26,11 +27,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
       {/* Logo */}
       <div className="border-b border-white/10 p-6">
         <div className="flex items-center justify-center">
-          <img
-            src="/logo.png"
-            alt="4SG Tour"
-            className="h-16 w-auto object-contain"
-          />
+          <Logo size="md" textColor="text-white" />
         </div>
       </div>
 

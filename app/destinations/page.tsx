@@ -12,7 +12,7 @@ export default async function DestinationsPage() {
     .order("name", { ascending: true })
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#22333b]">
       <SiteHeaderWrapper />
       <main>
         <ContinentsView destinations={destinations || []} />

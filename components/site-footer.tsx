@@ -1,23 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { BackToTopButton } from "./back-to-top-button"
+import { Logo } from "@/components/logo"
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#274C77] text-white">
+    <footer className="bg-[#22333b] text-white">
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <div className="mb-4">
-              <Image
-                src="/logo.png"
-                alt="4SG Tour"
-                width={150}
-                height={50}
-                className="h-auto w-auto"
-              />
+            <div className="mb-6">
+              <Logo size="md" textColor="text-white" />
             </div>
             <p className="text-sm leading-relaxed text-white/80 font-medium font-serif">
               4SGTour is a premier golf travel agency specializing in overseas
@@ -27,7 +21,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold">Site Map</h3>
+            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Site Map</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/" className="text-white/80 hover:text-white">
@@ -59,7 +53,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold">Legal</h3>
+            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/terms" className="text-white/80 hover:text-white">
@@ -78,7 +72,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold">Customer Service:</h3>
+            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Customer Service</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <a
@@ -89,7 +83,7 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-            <h3 className="mb-2 mt-4 font-semibold">Other:</h3>
+            <h3 className="mb-2 mt-4 font-semibold uppercase tracking-wider text-[#735c38]">Other</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <a
@@ -118,7 +112,9 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-        <div className="flex items-center gap-10 mt-8 border-t border-white/20 pt-8">
+        {/* Divider line and back to top button */}
+        <div className="mt-12 pt-8">
+          <div className="w-16 h-0.5 bg-white/30 mb-6"></div>
           <BackToTopButton />
         </div>
       </div>

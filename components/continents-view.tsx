@@ -7,27 +7,29 @@ import { Button } from "@/components/ui/button"
 
 const CONTINENTS = [
   {
-    name: "Europe",
+    name: "EUROPE",
     slug: "europe",
     image: "/images/eu.png",
   },
   {
-    name: "North America",
+    name: "NORTH\nAMERICA",
+    displayName: "NORTH AMERICA",
     slug: "north-america",
     image: "/images/na.png",
   },
   {
-    name: "Latin America",
+    name: "LATIN\nAMERICA",
+    displayName: "LATIN AMERICA",
     slug: "south-america",
     image: "/images/sa.png",
   },
   {
-    name: "Asia",
+    name: "ASIA",
     slug: "asia",
     image: "/images/asia.png",
   },
   {
-    name: "World",
+    name: "WORLD",
     slug: "africa",
     image: "/images/world.png",
   },
@@ -51,6 +53,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(
     null,
   )
+  const [hoveredContinent, setHoveredContinent] = useState<string | null>(null)
 
   const filteredDestinations = selectedContinent
     ? destinations.filter(
@@ -60,36 +63,58 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
   if (!selectedContinent) {
     return (
-      <div className="relative h-screen pt-[70px] lg:pt-0">
-        <div className="absolute left-0 right-0 top-0 z-10 hidden px-4 pt-32 text-center lg:block">
-          <h1 className="text-balance text-6xl font-bold leading-tight text-white drop-shadow-lg xl:text-4xl">
+      <div className="relative min-h-screen bg-[#22333b]">
+        {/* Header text overlay */}
+        <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-28 text-center lg:pt-36">
+          <h1 
+            className="text-4xl italic text-white drop-shadow-lg md:text-5xl lg:text-6xl"
+            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+          >
             Explore Golf Destinations
           </h1>
-          <p className="mx-auto mt-5 max-w-4xl px-2 text-pretty text-xl font-semibold leading-relaxed text-white drop-shadow-lg lg:text-2xl">
+          <p 
+            className="mx-auto mt-4 max-w-2xl text-base font-light tracking-wide text-white/80 md:text-lg"
+            style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+          >
             Choose a continent to discover world-class golf destinations and
             unforgettable experiences
           </p>
         </div>
 
-        <div className="flex h-full w-full flex-col lg:h-screen lg:flex-row">
+        {/* Vertical panels container */}
+        <div className="flex min-h-screen w-full flex-col pt-[70px] lg:flex-row lg:pt-0">
           {CONTINENTS.map((continent) => (
             <Link
               key={continent.slug}
               href={`/destinations/${continent.slug}`}
-              className="group relative flex-1 overflow-hidden"
+              className="group relative flex-1 overflow-hidden transition-all duration-500 ease-out lg:hover:flex-[1.5]"
+              onMouseEnter={() => setHoveredContinent(continent.slug)}
+              onMouseLeave={() => setHoveredContinent(null)}
             >
+              {/* Background image */}
               <div className="absolute inset-0 overflow-hidden">
                 <img
                   src={continent.image || "/placeholder.svg"}
-                  alt={continent.name}
-                  className="h-full w-full scale-100 object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                  alt={continent.displayName || continent.name.replace("\n", " ")}
+                  className="h-full w-full scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                {/* Dark overlay that lightens on hover */}
+                <div 
+                  className={`absolute inset-0 transition-all duration-500 ${
+                    hoveredContinent === continent.slug 
+                      ? "bg-black/20" 
+                      : "bg-black/40"
+                  }`} 
+                />
+                {/* Vertical divider line */}
+                <div className="absolute bottom-0 left-0 top-0 hidden w-px bg-white/20 lg:block" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-center sm:p-6 md:p-8">
+
+              {/* Continent name - positioned at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center p-6 lg:p-8">
                 <h2
-                  className="text-balance text-xl font-bold text-white drop-shadow-lg sm:text-2xl md:text-3xl lg:text-4xl"
-                  style={{ fontFamily: "Bitter, serif" }}
+                  className="whitespace-pre-line text-center text-xl font-medium uppercase tracking-[0.2em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.3em] md:text-2xl lg:text-2xl"
+                  style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
                 >
                   {continent.name}
                 </h2>
@@ -102,73 +127,78 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
   }
 
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => setSelectedContinent(null)}
-          className="mb-4"
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Back to Continents
-        </Button>
-
-        <div className="text-center">
-          <h1
-            className="text-balance text-4xl font-bold text-foreground"
-            style={{ fontFamily: "Bitter, serif" }}
+    <div className="min-h-screen bg-[#fffff8] pt-[70px]">
+      <div className="container py-12">
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedContinent(null)}
+            className="mb-4 text-[#735c38] hover:bg-[#735c38]/10 hover:text-[#735c38]"
           >
-            {selectedContinent}
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-pretty text-muted-foreground">
-            Discover amazing golf destinations in {selectedContinent}
-          </p>
-        </div>
-      </div>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Back to Continents
+          </Button>
 
-      {filteredDestinations.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredDestinations.map((destination) => (
-            <Link
-              key={destination.id}
-              href={`/destinations/${destination.slug}`}
-              className="group block overflow-hidden border border-border bg-card transition-transform hover:scale-[1.02]"
+          <div className="text-center">
+            <h1 
+              className="text-4xl italic text-[#22333b] md:text-5xl"
+              style={{ fontFamily: "var(--font-display), Georgia, serif" }}
             >
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={
-                    destination.image_url ||
-                    `/placeholder.svg?height=400&width=600&query=golf+course+${
-                      destination.name || "/placeholder.svg"
-                    }`
-                  }
-                  alt={destination.name}
-                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground">
-                  {destination.name}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {destination.country}
-                </p>
-                {destination.description && (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                    {destination.description}
+              {selectedContinent}
+            </h1>
+            <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
+              Discover amazing golf destinations in {selectedContinent}
+            </p>
+          </div>
+        </div>
+
+        {filteredDestinations.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredDestinations.map((destination) => (
+              <Link
+                key={destination.id}
+                href={`/destinations/${destination.slug}`}
+                className="group block overflow-hidden border border-[#d9d9d9] bg-white transition-all duration-300 hover:shadow-lg"
+              >
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={
+                      destination.image_url ||
+                      `/placeholder.svg?height=400&width=600&query=golf+course+${
+                        destination.name || "/placeholder.svg"
+                      }`
+                    }
+                    alt={destination.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 
+                    className="text-xl font-medium text-[#22333b]"
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+                  >
+                    {destination.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#735c38]">
+                    {destination.country}
                   </p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="py-12 text-center">
-          <p className="text-muted-foreground">
-            No destinations available in {selectedContinent} yet.
-          </p>
-        </div>
-      )}
+                  {destination.description && (
+                    <p className="mt-3 line-clamp-2 text-sm text-[#666666]">
+                      {destination.description}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <p className="text-[#666666]">
+              No destinations available in {selectedContinent} yet.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

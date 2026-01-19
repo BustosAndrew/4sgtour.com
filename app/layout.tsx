@@ -1,25 +1,100 @@
 import type React from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
+import localFont from "next/font/local"
 
 import { Analytics } from "@vercel/analytics/next"
 import { ErrorHandler } from "@/components/error-handler"
 import "./globals.css"
 
-import { Playfair_Display, Geist_Mono, Bitter } from "next/font/google"
+// Loretta Display - elegant serif for headings
+const lorettaDisplay = localFont({
+  src: [
+    {
+      path: "../public/fonts/LorettaDisplay-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/LorettaDisplay-Italic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/LorettaDisplay-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/LorettaDisplay-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-display",
+  display: "swap",
+  fallback: ["Georgia", "Times New Roman", "serif"],
+})
 
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+// Sweet Sans Pro - clean sans-serif for body text
+const sweetSansPro = localFont({
+  src: [
+    {
+      path: "../public/fonts/SweetSansPro-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/SweetSansPro-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/SweetSansPro-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-body",
+  display: "swap",
+  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
 })
-const _geistMono = Geist_Mono({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+
+// Declare the missing variables
+const playfairDisplay = localFont({
+  src: [
+    {
+      path: "../public/fonts/PlayfairDisplay-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/PlayfairDisplay-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-playfair-display",
+  display: "swap",
+  fallback: ["Times New Roman", "serif"],
 })
-const bitter = Bitter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+
+const bitter = localFont({
+  src: [
+    {
+      path: "../public/fonts/Bitter-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Bitter-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-bitter",
+  display: "swap",
+  fallback: ["Georgia", "serif"],
 })
 
 export const metadata: Metadata = {
@@ -36,7 +111,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`antialiased ${playfairDisplay.className} ${bitter.variable}`}
+        className={`antialiased ${sweetSansPro.variable} ${lorettaDisplay.variable}`}
       >
         <ErrorHandler />
         {children}

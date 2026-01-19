@@ -1,10 +1,9 @@
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
-import { RecommendationsCarousel } from "@/components/recommendations-carousel"
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import { AnimatedHr } from "@/components/ui/animated-hr"
 import { HeroCarousel } from "@/components/hero-carousel"
+import { DestinationsCarousel } from "@/components/destinations-carousel"
+import { TournamentsCarousel } from "@/components/tournaments-carousel"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -23,121 +22,214 @@ export default async function HomePage() {
     .order("created_at", { ascending: false })
     .limit(4)
 
+  const stats = [
+    { number: "220+", label: "GOLF TOURS" },
+    { number: "220+", label: "GOLF PARTNERS" },
+    { number: "220+", label: "WORLD-WIDE DESTINATIONS" },
+    { number: "220+", label: "SCHEDULED TOURS" },
+  ]
+
+
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <main>
         <HeroCarousel />
 
-        <section className="container py-12 text-center">
-          <h1 className="text-balance text-4xl font-bold text-foreground font-serif">
-            Setting a New Standard for Overseas Golf Travel
-          </h1>
-          <p className="mx-auto mt-4 text-pretty text-lg leading-relaxed font-serif text-black font-semibold text-center">
-            4SGTour is a Korean travel agency specializing in overseas golf
-            travel, offering exceptional service and a variety of destinations,
-            offering the best golf tours. We emphasize overseas golf travel and
-            tours, and you can enjoy the various special offers and benefits
-            offered by 4SGTour.
-          </p>
-        </section>
-
-        <section className="bg-background py-12">
+        {/* Setting a New Standard Section */}
+        <section className="bg-[#fffff8] py-16 md:py-24">
           <div className="container">
-            <h2 className="mb-8 text-center text-3xl font-bold text-foreground font-serif">
-              Recommendations
-            </h2>
-            <RecommendationsCarousel trips={featuredTrips || []} />
-            <p className="mx-auto mt-8 text-pretty text-lg leading-relaxed font-serif text-black font-semibold text-center">
-              Explore our curated selection of top golf travel packages,
-              handpicked to offer you unforgettable experiences on the best
-              courses around the world.
-            </p>
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <h2 
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-6"
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+              >
+                Setting a New Standard<br />for Overseas Golf Travel
+              </h2>
+              <p 
+                className="text-[#888888] leading-relaxed mb-8"
+                style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+              >
+                We are a Korean travel agency specializing in overseas golf travel,
+                offering exceptional service and a variety of destinations, offering the
+                best golf tours. We emphasize overseas golf travel and tours, and you
+                can enjoy the various special offers and benefits offered by our tours.
+              </p>
+              {/* Gold divider line */}
+              <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
+              <Link 
+                href="/destinations"
+                className="inline-flex items-center gap-1 text-[#735c38] font-medium uppercase tracking-wider text-sm hover:text-[#5d4a2d] transition-colors"
+                style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+              >
+                View All &gt;
+              </Link>
+            </div>
+            
+            {/* Destinations Carousel - contained within container */}
+            <DestinationsCarousel />
           </div>
         </section>
 
-        <section className="container py-12">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <div
-              className="aspect-video overflow-hidden rounded-lg bg-muted"
-              style={{ boxShadow: "0 8px 10px rgba(0, 0, 0, 0.25)" }}
-            >
-              <img
-                src="/images/ex.png"
-                alt="golf course"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="flex flex-col justify-center">
-              <h2 className="text-balance text-3xl font-bold text-foreground font-serif">
-                The Joy of Golf Travel
+        {/* The 4 Seasons Difference Section */}
+        <section className="bg-[#22333b] py-16 md:py-24">
+          <div className="container">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 
+                className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+              >
+                The 4 Seasons <em className="italic">Difference.</em>
               </h2>
-              <AnimatedHr maxWidth="75%" />
-              <p className="mt-4 w-3/4 text-pretty text-lg leading-relaxed font-serif font-semibold text-black">
-                An overseas golf trip is a special experience that allows you to
-                experience the joy of golf while exploring various destinations.
-                With 4SGTour, you can enjoy a truly special golf trip abroad.
+              <p 
+                className="text-white/70 leading-relaxed mb-8"
+                style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+              >
+                At 4SGTours, we believe your journey should be as extraordinary as the
+                courses you play. With curated luxury, exclusive insider access,
+                seamless planning, and the option of a personal host, we create
+                unforgettable golf experiences tailored to you.
               </p>
-              <Link href="/destinations" className="mt-6 w-fit">
-                <AnimatedButton
-                  startColor="#6096BA"
-                  endColor="#7ab0d0"
-                  hoverText="Explore!"
-                >
-                  Learn More
-                </AnimatedButton>
+              {/* White divider line */}
+              <div className="w-12 h-0.5 bg-white/40 mx-auto"></div>
+            </div>
+            
+            {/* Stats grid - filled cream circles with stats below */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  {/* Filled cream/light gray circle */}
+                  <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-6 rounded-full bg-[#d9d9d9]"></div>
+                  {/* Number below circle */}
+                  <p 
+                    className="text-2xl md:text-3xl text-white mb-2"
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+                  >
+                    {stat.number}
+                  </p>
+                  <p 
+                    className="text-white/50 text-[10px] md:text-xs uppercase tracking-wider leading-tight"
+                    style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+                  >
+                    World Wide<br />Destinations
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* View Golf Tournaments Section */}
+        <section className="bg-[#fffff8] py-16 md:py-24 overflow-hidden">
+          <div className="container">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <h2 
+                className="text-3xl md:text-4xl lg:text-5xl text-[#22333b] mb-6 italic"
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+              >
+                View Golf Tournaments
+              </h2>
+              <p 
+                className="text-[#888888] leading-relaxed mb-8 text-sm md:text-base"
+                style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+              >
+                We are a Korean travel agency specializing in overseas golf travel,
+                offering exceptional service and a variety of destinations, offering the
+                best golf tours. We emphasize overseas golf travel and tours, and you
+                can enjoy the various special offers and benefits offered by our tours.
+              </p>
+              {/* Gold divider line */}
+              <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
+              <Link 
+                href="/tournaments"
+                className="inline-flex items-center gap-1 text-[#22333b] font-medium uppercase tracking-wider text-sm hover:text-[#735c38] transition-colors"
+                style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+              >
+                View All &gt;
               </Link>
             </div>
           </div>
+          
+          {/* Tournament Carousel - bleeding to the right */}
+          <TournamentsCarousel />
         </section>
 
-        <section className="py-12">
+        {/* Travel with us now Section */}
+        <section className="bg-[#fffff8] py-16 md:py-24 border-t border-[#d9d9d9]">
           <div className="container">
-            <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-              <div className="flex flex-col justify-center">
-                <h2 className="text-balance text-3xl font-bold text-foreground font-serif">
-                  Start Your Adventure Today
-                </h2>
-                <AnimatedHr maxWidth="75%" />
-                <p className="mt-4 w-3/4 text-pretty text-lg leading-relaxed font-semibold text-black font-serif">
-                  With customer-focused service, a team of professional guides,
-                  and special benefits from Korean travel agents, 4SGTour offers
-                  you the ultimate overseas golf trip. If you're looking for a
-                  unique experience and new adventure, join 4SGTour today! The
-                  joy and enrichment of travel await you. Join 4SGTour, the new
-                  standard in overseas golf travel!
-                </p>
-                <Link href="/destinations" className="mt-6 w-fit">
-                  <AnimatedButton
-                    startColor="#6096BA"
-                    endColor="#7ab0d0"
-                    hoverText="Explore!"
-                  >
-                    Get Started
-                  </AnimatedButton>
-                </Link>
-              </div>
-              <div
-                className="aspect-video overflow-hidden rounded-lg bg-muted lg:order-1"
-                style={{ boxShadow: "0 8px 10px rgba(0, 0, 0, 0.25)" }}
+            <div className="flex items-center gap-4 mb-8">
+              <h2 
+                className="text-3xl md:text-4xl text-[#22333b] italic whitespace-nowrap"
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
               >
-                <img
-                  src="/images/ex2.png"
-                  alt="golf courses"
-                  className="h-full w-full object-cover"
+                Travel with us now
+              </h2>
+              <div className="flex-1 h-px bg-[#d9d9d9]"></div>
+            </div>
+            
+            {/* Video embed placeholder */}
+            <div className="aspect-video bg-[#22333b] relative overflow-hidden">
+              <img
+                src="/images/royalty1.png"
+                alt="The Ancient Links of Scotland and Ireland"
+                className="h-full w-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <p 
+                    className="text-white/60 text-sm uppercase tracking-wider mb-2"
+                    style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+                  >
+                    Travel The World with Premier Golf
+                  </p>
+                  <h3 
+                    className="text-3xl md:text-5xl text-white uppercase tracking-wide"
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+                  >
+                    The Ancient<br />Links of Scotland<br />& Ireland
+                  </h3>
+                </div>
+              </div>
+              <div className="absolute bottom-4 right-4">
+                <p 
+                  className="text-white/80 text-sm"
+                  style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+                >
+                  Old Head, Ireland
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Partner Logos Section */}
+        <section className="bg-[#fffff8] py-12 border-t border-[#d9d9d9]">
+          <div className="container">
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60">
+              <div className="h-8 flex items-center">
+                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">Experiences</span>
+              </div>
+              <div className="h-8 flex items-center">
+                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">PGA Magazine</span>
+              </div>
+              <div className="h-8 flex items-center">
+                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">Signature</span>
+              </div>
+              <div className="h-8 flex items-center">
+                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">IATAN</span>
+              </div>
+              <div className="h-8 flex items-center">
+                <Image
+                  src="/images/golf-member.png"
+                  alt="IAGTO Member Logo"
+                  width={60}
+                  height={40}
+                  className="object-contain"
                 />
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="flex items-center justify-center py-12">
-          <Image
-            src="/images/golf-member.png"
-            alt="IAGTO Member Logo"
-            width={100}
-            height={100}
-          />
         </section>
       </main>
       <SiteFooter />
