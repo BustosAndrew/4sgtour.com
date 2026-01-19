@@ -1,18 +1,18 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { UserNav } from "@/components/user-nav"
-import { Globe, Menu, X, ChevronDown } from "lucide-react"
-import { useState, useEffect } from "react"
-import { createPortal } from "react-dom"
-import "./glass.css"
+import Link from 'next/link'
+import { UserNav } from '@/components/user-nav'
+import { Globe, Menu, X, ChevronDown } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import './glass.css'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Logo } from "@/components/logo"
+} from '@/components/ui/dropdown-menu'
+import { Logo } from '@/components/logo'
 
 type SiteHeaderProps = {
   user?: any
@@ -22,22 +22,22 @@ type SiteHeaderProps = {
 
 const languages = [
   {
-    code: "en",
-    name: "English",
-    flag: "https://flagcdn.com/w40/us.png",
-    alt: "US",
+    code: 'en',
+    name: 'English',
+    flag: 'https://flagcdn.com/w40/us.png',
+    alt: 'US',
   },
   {
-    code: "ko",
-    name: "한국어",
-    flag: "https://flagcdn.com/w40/kr.png",
-    alt: "Korea",
+    code: 'ko',
+    name: '한국어',
+    flag: 'https://flagcdn.com/w40/kr.png',
+    alt: 'Korea',
   },
 ]
 
 export function SiteHeader({
   user,
-  userType = "regular",
+  userType = 'regular',
   className,
 }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -73,7 +73,7 @@ export function SiteHeader({
             Destinations
           </Link>
           <Link
-            href="#"
+            href="/tournaments"
             className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
           >
             Tournaments
@@ -95,7 +95,7 @@ export function SiteHeader({
                 <Globe className="w-4 h-4 text-white" />
                 <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                   <img
-                    src={currentLanguage.flag || "/placeholder.svg"}
+                    src={currentLanguage.flag || '/placeholder.svg'}
                     alt={currentLanguage.alt}
                     className="h-full w-full object-cover"
                   />
@@ -118,7 +118,7 @@ export function SiteHeader({
                   >
                     <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                       <img
-                        src={lang.flag || "/placeholder.svg"}
+                        src={lang.flag || '/placeholder.svg'}
                         alt={lang.alt}
                         className="h-full w-full object-cover"
                       />
@@ -155,7 +155,7 @@ export function SiteHeader({
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="lg:hidden -mr-2"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileMenuOpen}
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
@@ -164,7 +164,7 @@ export function SiteHeader({
             ) : (
               <Menu className="h-4 w-4" />
             )}
-            <span>{mobileMenuOpen ? "Close" : "Menu"}</span>
+            <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
           </span>
         </button>
       </div>
@@ -177,7 +177,7 @@ export function SiteHeader({
       ? createPortal(
           <div
             className="lg:hidden fixed left-0 right-0 top-[70px] bottom-0 border-t border-white/20"
-            style={{ backgroundColor: "#735C38", zIndex: 99999 }}
+            style={{ backgroundColor: '#735C38', zIndex: 99999 }}
           >
             <div className="px-4 sm:px-6 py-6 h-full overflow-y-auto">
               <nav className="flex flex-col gap-1">
@@ -196,7 +196,7 @@ export function SiteHeader({
                   Destinations
                 </Link>
                 <Link
-                  href="#"
+                  href="/tournaments"
                   className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -220,13 +220,13 @@ export function SiteHeader({
                         onClick={() => setCurrentLanguage(lang)}
                         className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
                           currentLanguage.code === lang.code
-                            ? "bg-white/20 border border-white/30"
-                            : "bg-white/5 border border-white/10 hover:bg-white/10"
+                            ? 'bg-white/20 border border-white/30'
+                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
                         } transition-colors`}
                       >
                         <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
                           <img
-                            src={lang.flag || "/placeholder.svg"}
+                            src={lang.flag || '/placeholder.svg'}
                             alt={lang.alt}
                             className="h-full w-full object-cover"
                           />
@@ -248,7 +248,7 @@ export function SiteHeader({
                         <div className="text-sm text-white font-medium truncate">
                           {user.email}
                         </div>
-                        {userType !== "regular" && (
+                        {userType !== 'regular' && (
                           <div className="text-xs font-medium text-white/80 capitalize mt-1">
                             {userType}
                           </div>
@@ -268,7 +268,7 @@ export function SiteHeader({
                       >
                         Favorites
                       </Link>
-                      {userType === "admin" && (
+                      {userType === 'admin' && (
                         <Link
                           href="/admin"
                           className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
@@ -280,11 +280,11 @@ export function SiteHeader({
                       <button
                         onClick={async () => {
                           const supabase = (
-                            await import("@/lib/supabase/client")
+                            await import('@/lib/supabase/client')
                           ).createClient()
                           await supabase.auth.signOut()
                           setMobileMenuOpen(false)
-                          window.location.href = "/"
+                          window.location.href = '/'
                         }}
                         className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4 text-left"
                       >

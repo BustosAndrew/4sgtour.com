@@ -1,37 +1,37 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const CONTINENTS = [
   {
-    name: "EUROPE",
-    slug: "europe",
-    image: "/images/eu.png",
+    name: 'EUROPE',
+    slug: 'europe',
+    image: '/images/eu.png',
   },
   {
-    name: "NORTH\nAMERICA",
-    displayName: "NORTH AMERICA",
-    slug: "north-america",
-    image: "/images/na.png",
+    name: 'NORTH\nAMERICA',
+    displayName: 'NORTH AMERICA',
+    slug: 'north-america',
+    image: '/images/na.png',
   },
   {
-    name: "LATIN\nAMERICA",
-    displayName: "LATIN AMERICA",
-    slug: "south-america",
-    image: "/images/sa.png",
+    name: 'LATIN\nAMERICA',
+    displayName: 'LATIN AMERICA',
+    slug: 'south-america',
+    image: '/images/sa.png',
   },
   {
-    name: "ASIA",
-    slug: "asia",
-    image: "/images/asia.png",
+    name: 'ASIA',
+    slug: 'asia',
+    image: '/images/asia.png',
   },
   {
-    name: "WORLD",
-    slug: "africa",
-    image: "/images/world.png",
+    name: 'WORLD',
+    slug: 'africa',
+    image: '/images/world.png',
   },
 ]
 
@@ -66,15 +66,15 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
       <div className="relative min-h-screen bg-[#22333b]">
         {/* Header text overlay */}
         <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-28 text-center lg:pt-36">
-          <h1 
-            className="text-4xl italic text-white drop-shadow-lg md:text-5xl lg:text-6xl"
-            style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+          <h1
+            className="text-4xl text-white drop-shadow-lg md:text-5xl lg:text-6xl"
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             Explore Golf Destinations
           </h1>
-          <p 
-            className="mx-auto mt-4 max-w-2xl text-base font-light tracking-wide text-white/80 md:text-lg"
-            style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+          <p
+            className="mx-auto mt-4 max-w-2xl text-base tracking-wide text-white/80 md:text-lg"
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             Choose a continent to discover world-class golf destinations and
             unforgettable experiences
@@ -94,17 +94,19 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
               {/* Background image */}
               <div className="absolute inset-0 overflow-hidden">
                 <img
-                  src={continent.image || "/placeholder.svg"}
-                  alt={continent.displayName || continent.name.replace("\n", " ")}
+                  src={continent.image || '/placeholder.svg'}
+                  alt={
+                    continent.displayName || continent.name.replace('\n', ' ')
+                  }
                   className="h-full w-full scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
                 {/* Dark overlay that lightens on hover */}
-                <div 
+                <div
                   className={`absolute inset-0 transition-all duration-500 ${
-                    hoveredContinent === continent.slug 
-                      ? "bg-black/20" 
-                      : "bg-black/40"
-                  }`} 
+                    hoveredContinent === continent.slug
+                      ? 'bg-black/20'
+                      : 'bg-black/40'
+                  }`}
                 />
                 {/* Vertical divider line */}
                 <div className="absolute bottom-0 left-0 top-0 hidden w-px bg-white/20 lg:block" />
@@ -113,8 +115,8 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
               {/* Continent name - positioned at bottom */}
               <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center p-6 lg:p-8">
                 <h2
-                  className="whitespace-pre-line text-center text-xl font-medium uppercase tracking-[0.2em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.3em] md:text-2xl lg:text-2xl"
-                  style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+                  className="whitespace-pre-line text-center text-xl font-semibold uppercase tracking-[0.2em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.3em] md:text-2xl lg:text-2xl"
+                  style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {continent.name}
                 </h2>
@@ -140,9 +142,9 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
           </Button>
 
           <div className="text-center">
-            <h1 
+            <h1
               className="text-4xl italic text-[#22333b] md:text-5xl"
-              style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               {selectedContinent}
             </h1>
@@ -165,7 +167,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                     src={
                       destination.image_url ||
                       `/placeholder.svg?height=400&width=600&query=golf+course+${
-                        destination.name || "/placeholder.svg"
+                        destination.name || '/placeholder.svg'
                       }`
                     }
                     alt={destination.name}
@@ -173,9 +175,9 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 
+                  <h3
                     className="text-xl font-medium text-[#22333b]"
-                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+                    style={{ fontFamily: 'var(--font-display)' }}
                   >
                     {destination.name}
                   </h3>

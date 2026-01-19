@@ -1,13 +1,31 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ChevronLeft, ChevronRight, Users, User, Check, Utensils, Car, Minus, Plus, X } from "lucide-react"
-import { format, addDays, differenceInDays, isWithinInterval, isBefore, isSameDay } from "date-fns"
-import { createClient } from "@/lib/supabase/client"
-import Image from "next/image"
+import type React from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  User,
+  Check,
+  Utensils,
+  Car,
+  Minus,
+  Plus,
+  X,
+} from 'lucide-react'
+import {
+  format,
+  addDays,
+  differenceInDays,
+  isWithinInterval,
+  isBefore,
+  isSameDay,
+} from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 interface Trip {
   id: string
@@ -51,23 +69,30 @@ interface BookingFormProps {
   preSelectedPackageId?: string
 }
 
-export function BookingForm({ trip, user, profile, preSelectedPackageId }: BookingFormProps) {
+export function BookingForm({
+  trip,
+  user,
+  profile,
+  preSelectedPackageId,
+}: BookingFormProps) {
   const supabase = createClient()
 
-  const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>({})
-  const [roomType, setRoomType] = useState<string>("")
-  const [selectedMeal, setSelectedMeal] = useState<string>("")
-  const [selectedTransport, setSelectedTransport] = useState<string>("")
+  const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>(
+    {},
+  )
+  const [roomType, setRoomType] = useState<string>('')
+  const [selectedMeal, setSelectedMeal] = useState<string>('')
+  const [selectedTransport, setSelectedTransport] = useState<string>('')
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
-  const [additionalRequests, setAdditionalRequests] = useState("")
+  const [additionalRequests, setAdditionalRequests] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(user)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [galleryIndex, setGalleryIndex] = useState(0)
 
   const packages = trip.packages || []
-  const premiumPackage = packages.find((pkg: any) => pkg.name === "Premium")
-  const upgradePackage = packages.find((pkg: any) => pkg.name === "Upgrade")
+  const premiumPackage = packages.find((pkg: any) => pkg.name === 'Premium')
+  const upgradePackage = packages.find((pkg: any) => pkg.name === 'Upgrade')
 
   const golfCourses = trip.golf_courses || []
   const mealOptions = trip.meal_options || []
@@ -102,9 +127,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   )
 
   const lockedMealId = includedMealIds.length > 0 ? includedMealIds[0] : null
-  const lockedTransportId = includedTransportIds.length > 0 ? includedTransportIds[0] : null
+  const lockedTransportId =
+    includedTransportIds.length > 0 ? includedTransportIds[0] : null
 
-  const [selectedPlan, setSelectedPlan] = useState<string>(preSelectedPackageId || premiumPackage?.id || "")
+  const [selectedPlan, setSelectedPlan] = useState<string>(
+    preSelectedPackageId || premiumPackage?.id || '',
+  )
   const [travelDateRange, setTravelDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
@@ -124,7 +152,8 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   }
 
   // Add trip_images after course photo
-  const sortedTripImages = trip.images?.sort((a, b) => a.display_order - b.display_order) || []
+  const sortedTripImages =
+    trip.images?.sort((a, b) => a.display_order - b.display_order) || []
   sortedTripImages.forEach((img, idx) => {
     courseImages.push({
       image_url: img.image_url,
@@ -186,7 +215,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       for (const id of includedServiceIds) merged.add(id)
       const next = Array.from(merged).sort()
 
-      if (prev.length === next.length && prev.every((id, i) => id === next[i])) {
+      if (
+        prev.length === next.length &&
+        prev.every((id, i) => id === next[i])
+      ) {
         return prev
       }
       return next
@@ -196,7 +228,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   const toggleService = (serviceId: string) => {
     if (includedServiceIds.includes(serviceId)) return
     setSelectedServiceIds((prev) =>
-      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId],
+      prev.includes(serviceId)
+        ? prev.filter((id) => id !== serviceId)
+        : [...prev, serviceId],
     )
   }
 
@@ -237,10 +271,17 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     })
   }
 
-  const handleCourseRoundChange = (courseId: string, delta: number, maxRounds?: number | null) => {
+  const handleCourseRoundChange = (
+    courseId: string,
+    delta: number,
+    maxRounds?: number | null,
+  ) => {
     setCourseRounds((prev) => {
       const current = prev[courseId] || 0
-      const cap = typeof maxRounds === "number" && maxRounds > 0 ? maxRounds : Number.POSITIVE_INFINITY
+      const cap =
+        typeof maxRounds === 'number' && maxRounds > 0
+          ? maxRounds
+          : Number.POSITIVE_INFINITY
       const nextValue = Math.min(cap, Math.max(0, current + delta))
 
       const next = { ...prev }
@@ -274,17 +315,17 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     e.preventDefault()
 
     if (!currentUser) {
-      alert("Please sign in to submit an inquiry")
+      alert('Please sign in to submit an inquiry')
       return
     }
 
     if (!travelDateRange.from || !travelDateRange.to) {
-      alert("Please select your travel dates")
+      alert('Please select your travel dates')
       return
     }
 
     if (!roomType) {
-      alert("Please select a room type (Double or Single Occupancy)")
+      alert('Please select a room type (Double or Single Occupancy)')
       return
     }
 
@@ -292,12 +333,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
     try {
       const total = calculateTotal()
-      const startDate = travelDateRange.from.toISOString().split("T")[0]
-      const endDate = travelDateRange.to.toISOString().split("T")[0]
+      const startDate = travelDateRange.from.toISOString().split('T')[0]
+      const endDate = travelDateRange.to.toISOString().split('T')[0]
 
       const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-      const packageName = selectedPackage?.name || ""
-      const occupancyType = roomType === "double" ? "Double Occupancy" : "Single Occupancy"
+      const packageName = selectedPackage?.name || ''
+      const occupancyType =
+        roomType === 'double' ? 'Double Occupancy' : 'Single Occupancy'
 
       const courseDetails = Object.entries(courseRounds)
         .filter(([_, rounds]) => rounds > 0)
@@ -312,11 +354,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           ? `${mealOptions
               .filter((meal: any) => meal.is_included)
               .map((meal: any) => meal.name)
-              .join(", ")} (Included)`
+              .join(', ')} (Included)`
           : (() => {
-              const selectedMealOption = mealOptions.find((meal: any) => String(meal.id) === selectedMeal)
-              if (!selectedMealOption) return "None"
-              return selectedMealOption.is_included ? `${selectedMealOption.name} (Included)` : selectedMealOption.name
+              const selectedMealOption = mealOptions.find(
+                (meal: any) => String(meal.id) === selectedMeal,
+              )
+              if (!selectedMealOption) return 'None'
+              return selectedMealOption.is_included
+                ? `${selectedMealOption.name} (Included)`
+                : selectedMealOption.name
             })()
 
       const transportOptionName =
@@ -324,24 +370,25 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           ? `${transportationOptions
               .filter((t: any) => t.is_included)
               .map((t: any) => t.name)
-              .join(", ")} (Included)`
+              .join(', ')} (Included)`
           : (() => {
               const selectedTransportOption = transportationOptions.find(
                 (transport: any) => String(transport.id) === selectedTransport,
               )
-              if (!selectedTransportOption) return "None"
+              if (!selectedTransportOption) return 'None'
               return selectedTransportOption.is_included
                 ? `${selectedTransportOption.name} (Included)`
                 : selectedTransportOption.name
             })()
 
-      const customerName = profile?.display_name || currentUser?.email?.split("@")[0] || "Guest"
-      const customerEmail = profile?.email || currentUser?.email || ""
+      const customerName =
+        profile?.display_name || currentUser?.email?.split('@')[0] || 'Guest'
+      const customerEmail = profile?.email || currentUser?.email || ''
 
-      const response = await fetch("/api/inquiry", {
-        method: "POST",
+      const response = await fetch('/api/inquiry', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           tripId: trip.id,
@@ -361,20 +408,20 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       })
 
       if (!response.ok) {
-        throw new Error("Failed to send inquiry")
+        throw new Error('Failed to send inquiry')
       }
 
       alert("Your inquiry has been submitted! We'll contact you shortly.")
 
       setTravelDateRange({ from: undefined, to: undefined })
       setCourseRounds({})
-      setRoomType("")
-      setSelectedMeal(lockedMealId || "")
-      setSelectedTransport(lockedTransportId || "")
-      setAdditionalRequests("")
+      setRoomType('')
+      setSelectedMeal(lockedMealId || '')
+      setSelectedTransport(lockedTransportId || '')
+      setAdditionalRequests('')
     } catch (error) {
-      console.error("Error submitting inquiry:", error)
-      alert("There was an error submitting your inquiry. Please try again.")
+      console.error('Error submitting inquiry:', error)
+      alert('There was an error submitting your inquiry. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -423,14 +470,16 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
     <div
       onClick={disabled ? undefined : onClick}
       className={`border bg-[#f5f5f5] px-4 py-3 transition-colors ${
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-gray-300"
-      } ${selected ? "border-[#3D5A80]" : "border-gray-200"}`}
+        disabled
+          ? 'cursor-not-allowed opacity-60'
+          : 'cursor-pointer hover:border-gray-300'
+      } ${selected ? 'border-[#3D5A80]' : 'border-gray-200'}`}
     >
       <div className="flex items-center justify-between">
         {children}
         <div
           className={`ml-4 flex h-5 w-5 shrink-0 items-center justify-center border-2 ${
-            selected ? "border-[#3D5A80] bg-[#3D5A80]" : "border-gray-300"
+            selected ? 'border-[#3D5A80] bg-[#3D5A80]' : 'border-gray-300'
           }`}
         >
           {selected && <div className="h-2 w-2 bg-white" />}
@@ -442,24 +491,40 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   // Calendar renderer
   const renderCalendar = () => {
     const days = generateCalendarDays(currentMonth)
-    const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
     return (
       <div className="border border-border bg-white p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold font-bitter">{format(currentMonth, "MMMM yyyy")}</h3>
+          <h3 className="text-lg font-semibold font-serif">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h3>
           <div className="flex gap-1">
             <button
               type="button"
               className="p-1 hover:bg-muted"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() - 1,
+                  ),
+                )
+              }
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               type="button"
               className="p-1 hover:bg-muted"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() + 1,
+                  ),
+                )
+              }
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -482,8 +547,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
             const isDisabled = isBefore(date, minDate)
             const isTravel = isTravelDate(date)
-            const isStart = travelDateRange.from && isSameDay(date, travelDateRange.from)
-            const isEnd = travelDateRange.to && isSameDay(date, travelDateRange.to)
+            const isStart =
+              travelDateRange.from && isSameDay(date, travelDateRange.from)
+            const isEnd =
+              travelDateRange.to && isSameDay(date, travelDateRange.to)
 
             return (
               <button
@@ -493,10 +560,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 disabled={isDisabled}
                 className={`
                   relative p-2 text-center text-sm transition-colors
-                  ${isDisabled ? "cursor-not-allowed text-muted-foreground/40" : "cursor-pointer hover:bg-muted"}
-                  ${isTravel ? "bg-[#274C77] text-white" : ""}
-                  ${isStart ? "rounded-l" : ""}
-                  ${isEnd ? "rounded-r" : ""}
+                  ${isDisabled ? 'cursor-not-allowed text-muted-foreground/40' : 'cursor-pointer hover:bg-muted'}
+                  ${isTravel ? 'bg-[#274C77] text-white' : ''}
+                  ${isStart ? 'rounded-l' : ''}
+                  ${isEnd ? 'rounded-r' : ''}
                 `}
               >
                 {date.getDate()}
@@ -509,9 +576,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
   }
 
   const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-  const selectedMealOption = mealOptions.find((meal: any) => meal.id === selectedMeal)
-  const selectedTransportOption = transportationOptions.find((transport: any) => transport.id === selectedTransport)
-  const includedServices = serviceOptions.filter((service: any) => service.is_included)
+  const selectedMealOption = mealOptions.find(
+    (meal: any) => meal.id === selectedMeal,
+  )
+  const selectedTransportOption = transportationOptions.find(
+    (transport: any) => transport.id === selectedTransport,
+  )
+  const includedServices = serviceOptions.filter(
+    (service: any) => service.is_included,
+  )
   const additionalRequestsSectionNumber = serviceOptions.length > 0 ? 8 : 7
 
   return (
@@ -519,21 +592,33 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
       <div className="flex flex-col gap-16 lg:flex-row">
         {/* Left Column - Form Sections */}
         <div className="flex-1 space-y-8">
-          <h1 className="font-bitter text-[40px] font-bold leading-tight text-foreground">Make A Reservation</h1>
+          <h1 className="font-serif text-[40px] font-bold leading-tight text-foreground">
+            Make A Reservation
+          </h1>
 
           {/* Section 1: Select Your Plan */}
           <div className="overflow-hidden">
             <SectionHeader number={1} title="Select Your Plan" />
             <div className="mt-6 space-y-4">
               {packages.map((pkg) => (
-                <RadioOption key={pkg.id} selected={selectedPlan === pkg.id} onClick={() => setSelectedPlan(pkg.id)}>
+                <RadioOption
+                  key={pkg.id}
+                  selected={selectedPlan === pkg.id}
+                  onClick={() => setSelectedPlan(pkg.id)}
+                >
                   <div className="flex-1">
-                    <h3 className="font-serif text-xl font-medium">{pkg.name}</h3>
+                    <h3 className="font-serif text-xl font-medium">
+                      {pkg.name}
+                    </h3>
                     {pkg.description && (
-                      <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{pkg.description}</p>
+                      <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
+                        {pkg.description}
+                      </p>
                     )}
                   </div>
-                  <span className="mr-4 text-2xl font-medium">${pkg.price}</span>
+                  <span className="mr-4 text-2xl font-medium">
+                    ${pkg.price}
+                  </span>
                 </RadioOption>
               ))}
             </div>
@@ -543,23 +628,34 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
           <div className="overflow-hidden">
             <SectionHeader number={2} title="Select Room Type" />
             <div className="mt-6 space-y-4">
-              <RadioOption selected={roomType === "double"} onClick={() => setRoomType("double")}>
+              <RadioOption
+                selected={roomType === 'double'}
+                onClick={() => setRoomType('double')}
+              >
                 <div className="flex items-start gap-3">
                   <Users className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
-                    <h3 className="font-serif text-xl font-medium">Double Occupancy</h3>
+                    <h3 className="font-serif text-xl font-medium">
+                      Double Occupancy
+                    </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Share a room with another guest for a more economical option
+                      Share a room with another guest for a more economical
+                      option
                     </p>
                   </div>
                 </div>
               </RadioOption>
 
-              <RadioOption selected={roomType === "single"} onClick={() => setRoomType("single")}>
+              <RadioOption
+                selected={roomType === 'single'}
+                onClick={() => setRoomType('single')}
+              >
                 <div className="flex items-start gap-3">
                   <User className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
-                    <h3 className="font-serif text-xl font-medium">Single Occupancy</h3>
+                    <h3 className="font-serif text-xl font-medium">
+                      Single Occupancy
+                    </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Private room for yourself for maximum comfort and privacy
                     </p>
@@ -575,15 +671,21 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
             <div className="py-6">
               <div className="mb-1">
                 <Label className="text-base font-medium">Select Dates</Label>
-                <p className="mt-1 text-sm text-muted-foreground">Choose your travel dates for your golf experience</p>
-                <p className="mt-1 text-sm text-muted-foreground italic">Maximum stay: {maxDays} nights</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Choose your travel dates for your golf experience
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground italic">
+                  Maximum stay: {maxDays} nights
+                </p>
                 {minDays > 1 && (
-                  <p className="mt-1 text-sm text-muted-foreground italic">Minimum stay: {minDays} nights</p>
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    Minimum stay: {minDays} nights
+                  </p>
                 )}
                 {minAdvanceDays > 0 && (
                   <p className="mt-1 text-sm text-muted-foreground italic">
-                    Must be booked at least {minAdvanceDays} days in advance (earliest arrival{" "}
-                    {format(minDate, "MMM d, yyyy")} ).
+                    Must be booked at least {minAdvanceDays} days in advance
+                    (earliest arrival {format(minDate, 'MMM d, yyyy')} ).
                   </p>
                 )}
               </div>
@@ -592,10 +694,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 {renderCalendar()}
 
                 <div className="flex flex-col justify-start">
-                  <Label className="mb-2 text-sm text-muted-foreground">Select Travel Dates</Label>
+                  <Label className="mb-2 text-sm text-muted-foreground">
+                    Select Travel Dates
+                  </Label>
                   <div className="flex items-center gap-2">
                     <div className="h-[45px] w-[45px] bg-[#3D5A80]" />
-                    <span className="font-bitter border border-border bg-white px-4 py-2 text-sm font-medium">
+                    <span className="font-serif border border-border bg-white px-4 py-2 text-sm font-medium">
                       Travel Days
                     </span>
                   </div>
@@ -605,9 +709,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
               {travelDateRange.from && travelDateRange.to && (
                 <div className="mt-4 border-2 border-gray-200 bg-gray-50 px-8 py-3 w-fit">
                   <span className="text-sm">
-                    Reservation for:{" "}
-                    <strong className="font-bitter">
-                      {format(travelDateRange.from, "MMM d")} – {format(travelDateRange.to, "MMM d, yyyy")}
+                    Reservation for:{' '}
+                    <strong className="font-serif">
+                      {format(travelDateRange.from, 'MMM d')} –{' '}
+                      {format(travelDateRange.to, 'MMM d, yyyy')}
                     </strong>
                   </span>
                 </div>
@@ -621,7 +726,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
               <SectionHeader number={4} title="Golf Courses & Rounds" />
               <div className="py-6">
                 <div className="mb-4">
-                  <Label className="text-base font-medium">Select Courses</Label>
+                  <Label className="text-base font-medium">
+                    Select Courses
+                  </Label>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Choose the golf courses you'd like to play during your trip
                   </p>
@@ -648,11 +755,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                           handleCourseRoundChange(course.id, 1, maxRounds)
                         }}
                         className={`cursor-pointer border-2 px-6 py-4 transition-colors ${
-                          isSelected ? "border-[#3D5A80]" : "border-gray-200 hover:border-gray-300"
+                          isSelected
+                            ? 'border-[#3D5A80]'
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-4">
-                          <span className="font-serif text-lg font-medium">{course.course_name}</span>
+                          <span className="font-serif text-lg font-medium">
+                            {course.course_name}
+                          </span>
 
                           <div className="flex items-center gap-3">
                             <button
@@ -660,7 +771,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
-                                handleCourseRoundChange(course.id, -1, maxRounds)
+                                handleCourseRoundChange(
+                                  course.id,
+                                  -1,
+                                  maxRounds,
+                                )
                               }}
                               className="flex h-9 w-9 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
                               aria-label={`Decrease rounds for ${course.course_name}`}
@@ -687,16 +802,22 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
                             <div
                               className={`flex h-6 w-6 items-center justify-center border-2 ${
-                                isSelected ? "border-[#3D5A80] bg-[#3D5A80]" : "border-gray-300"
+                                isSelected
+                                  ? 'border-[#3D5A80] bg-[#3D5A80]'
+                                  : 'border-gray-300'
                               }`}
                             >
-                              {isSelected && <div className="h-2.5 w-2.5 bg-white" />}
+                              {isSelected && (
+                                <div className="h-2.5 w-2.5 bg-white" />
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        {typeof maxRounds === "number" && maxRounds > 0 && (
-                          <p className="mt-2 text-sm text-muted-foreground">Max rounds: {maxRounds}</p>
+                        {typeof maxRounds === 'number' && maxRounds > 0 && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            Max rounds: {maxRounds}
+                          </p>
                         )}
                       </div>
                     )
@@ -704,7 +825,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </div>
 
                 <div className="mt-4 border-2 border-gray-200 bg-gray-50 px-6 py-3">
-                  <span className="text-sm">Number of Rounds: {totalRounds}</span>
+                  <span className="text-sm">
+                    Number of Rounds: {totalRounds}
+                  </span>
                 </div>
               </div>
             </div>
@@ -729,9 +852,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                     <div className="flex items-center gap-3">
                       <span className="font-serif text-lg font-medium">
                         {meal.name}
-                        {meal.is_included && " (Included)"}
+                        {meal.is_included && ' (Included)'}
                       </span>
-                      {meal.is_included && <Utensils className="h-4 w-4 text-muted-foreground" />}
+                      {meal.is_included && (
+                        <Utensils className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </div>
                   </RadioOption>
                 ))}
@@ -758,9 +883,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                     <div className="flex items-center gap-3">
                       <span className="font-serif text-lg font-medium">
                         {transport.name}
-                        {transport.is_included && " (Included)"}
+                        {transport.is_included && ' (Included)'}
                       </span>
-                      {transport.is_included && <Car className="h-4 w-4 text-muted-foreground" />}
+                      {transport.is_included && (
+                        <Car className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </div>
                   </RadioOption>
                 ))}
@@ -774,13 +901,15 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
               <SectionHeader number={7} title="Service Options" />
               <div className="py-6">
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Select any additional services for your trip. Included services are already selected.
+                  Select any additional services for your trip. Included
+                  services are already selected.
                 </p>
                 <div className="space-y-4">
                   {serviceOptions.map((service: any) => {
                     const id = String(service.id)
                     const isIncluded = !!service.is_included
-                    const isSelected = isIncluded || selectedServiceIds.includes(id)
+                    const isSelected =
+                      isIncluded || selectedServiceIds.includes(id)
 
                     return (
                       <RadioOption
@@ -791,11 +920,17 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                       >
                         <div className="flex-1">
                           <div className="font-serif text-lg font-medium">
-                            {service.name}{" "}
-                            {isIncluded && <span className="text-sm text-muted-foreground">(Included)</span>}
+                            {service.name}{' '}
+                            {isIncluded && (
+                              <span className="text-sm text-muted-foreground">
+                                (Included)
+                              </span>
+                            )}
                           </div>
                           {service.description && (
-                            <p className="mt-1 text-sm text-muted-foreground">{service.description}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {service.description}
+                            </p>
                           )}
                         </div>
                       </RadioOption>
@@ -808,10 +943,14 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
           {/* Section 7 or 8: Additional Requests */}
           <div className="overflow-hidden">
-            <SectionHeader number={additionalRequestsSectionNumber} title="Additional Requests" />
+            <SectionHeader
+              number={additionalRequestsSectionNumber}
+              title="Additional Requests"
+            />
             <div className="py-6">
               <p className="mb-4 text-sm text-muted-foreground">
-                Let us know if you have any special requests or requirements for your trip
+                Let us know if you have any special requests or requirements for
+                your trip
               </p>
               <Textarea
                 value={additionalRequests}
@@ -831,7 +970,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
               <div className="relative flex">
                 <div className="absolute left-[-3px] top-0 h-[45px] w-[48px] bg-[#14184E] z-10" />
                 <div className="flex-1 bg-[#3D5A80] px-4 h-[45px] flex items-center pl-[60px]">
-                  <h3 className="font-serif text-lg text-white">Confirmation</h3>
+                  <h3 className="font-serif text-lg text-white">
+                    Confirmation
+                  </h3>
                 </div>
               </div>
               <div className="bg-white p-5">
@@ -839,7 +980,8 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   {travelDateRange.from && travelDateRange.to && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        Reservation for: {format(travelDateRange.from, "MMM d")} – {format(travelDateRange.to, "MMM d")}
+                        Reservation for: {format(travelDateRange.from, 'MMM d')}{' '}
+                        – {format(travelDateRange.to, 'MMM d')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -848,7 +990,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   {roomType && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {roomType === "single" ? "Single Occupancy" : "Double Occupancy"}
+                        {roomType === 'single'
+                          ? 'Single Occupancy'
+                          : 'Double Occupancy'}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -857,10 +1001,14 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   {Object.entries(courseRounds)
                     .filter(([_, rounds]) => rounds > 0)
                     .map(([courseId, rounds]) => {
-                      const course = golfCourses.find((c: any) => c.id === courseId)
+                      const course = golfCourses.find(
+                        (c: any) => c.id === courseId,
+                      )
                       return course ? (
                         <div key={courseId} className="flex items-center gap-2">
-                          <span className="text-muted-foreground">{course.course_name}</span>
+                          <span className="text-muted-foreground">
+                            {course.course_name}
+                          </span>
                           <Check className="h-4 w-4 text-muted-foreground" />
                         </div>
                       ) : null
@@ -868,21 +1016,27 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
 
                   {totalRounds > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">{totalRounds} Rounds</span>
+                      <span className="text-muted-foreground">
+                        {totalRounds} Rounds
+                      </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
 
                   {selectedTransportOption && (
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">{selectedTransportOption.name}</span>
+                      <span className="text-muted-foreground">
+                        {selectedTransportOption.name}
+                      </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
 
                   {selectedMealOption && (
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">{selectedMealOption.name}</span>
+                      <span className="text-muted-foreground">
+                        {selectedMealOption.name}
+                      </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
@@ -890,7 +1044,10 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   {includedServices.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        Included Services: {includedServices.map((service: any) => service.name).join(", ")}
+                        Included Services:{' '}
+                        {includedServices
+                          .map((service: any) => service.name)
+                          .join(', ')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -909,7 +1066,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   disabled={submitting}
                   className="mt-4 w-full text-xl bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
                 >
-                  {submitting ? "Submitting..." : "Book Now"}
+                  {submitting ? 'Submitting...' : 'Book Now'}
                 </button>
               </div>
             </div>
@@ -921,7 +1078,7 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   {/* Main large image */}
                   <div className="relative aspect-[4/3] flex-1 overflow-hidden">
                     <Image
-                      src={tripImages[0]?.image_url || "/placeholder.svg"}
+                      src={tripImages[0]?.image_url || '/placeholder.svg'}
                       alt={trip.title}
                       fill
                       className="object-cover"
@@ -943,14 +1100,16 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                           className="relative aspect-square w-full overflow-hidden"
                         >
                           <Image
-                            src={img.image_url || "/placeholder.svg"}
+                            src={img.image_url || '/placeholder.svg'}
                             alt={`${trip.title} ${idx + 2}`}
                             fill
                             className="object-cover"
                           />
                           {idx === 1 && tripImages.length > 2 && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                              <span className="text-sm font-medium text-white">+ {tripImages.length - 2} Photos</span>
+                              <span className="text-sm font-medium text-white">
+                                + {tripImages.length - 2} Photos
+                              </span>
                             </div>
                           )}
                         </button>
@@ -960,9 +1119,13 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 </div>
                 <div className="mt-4">
                   <p className="text-sm italic text-muted-foreground">
-                    {roomType === "single" ? "Single Occupancy Room" : "Double Occupancy Room"}
+                    {roomType === 'single'
+                      ? 'Single Occupancy Room'
+                      : 'Double Occupancy Room'}
                   </p>
-                  <p className="font-serif text-lg font-medium">{trip.location}</p>
+                  <p className="font-serif text-lg font-medium">
+                    {trip.location}
+                  </p>
                 </div>
               </div>
             )}
@@ -993,7 +1156,9 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
             <div className="relative w-full max-w-6xl">
               <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg shadow-2xl">
                 <Image
-                  src={tripImages[galleryIndex]?.image_url || "/placeholder.svg"}
+                  src={
+                    tripImages[galleryIndex]?.image_url || '/placeholder.svg'
+                  }
                   alt={`${trip.title} ${galleryIndex + 1}`}
                   fill
                   className="object-contain"
@@ -1006,7 +1171,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                 <>
                   <button
                     type="button"
-                    onClick={() => setGalleryIndex((prev) => (prev === 0 ? tripImages.length - 1 : prev - 1))}
+                    onClick={() =>
+                      setGalleryIndex((prev) =>
+                        prev === 0 ? tripImages.length - 1 : prev - 1,
+                      )
+                    }
                     className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:left-4 sm:h-12 sm:w-12"
                     aria-label="Previous image"
                   >
@@ -1014,7 +1183,11 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                   </button>
                   <button
                     type="button"
-                    onClick={() => setGalleryIndex((prev) => (prev === tripImages.length - 1 ? 0 : prev + 1))}
+                    onClick={() =>
+                      setGalleryIndex((prev) =>
+                        prev === tripImages.length - 1 ? 0 : prev + 1,
+                      )
+                    }
                     className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:right-4 sm:h-12 sm:w-12"
                     aria-label="Next image"
                   >
@@ -1027,8 +1200,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:p-6">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-sm text-white/80 sm:text-base">{trip.title}</p>
-                    <p className="text-xs text-white/60 sm:text-sm">{trip.location}</p>
+                    <p className="text-sm text-white/80 sm:text-base">
+                      {trip.title}
+                    </p>
+                    <p className="text-xs text-white/60 sm:text-sm">
+                      {trip.location}
+                    </p>
                   </div>
                   <div className="rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
                     {galleryIndex + 1} / {tripImages.length}
@@ -1046,12 +1223,12 @@ export function BookingForm({ trip, user, profile, preSelectedPackageId }: Booki
                       onClick={() => setGalleryIndex(idx)}
                       className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded transition-all ${
                         idx === galleryIndex
-                          ? "ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-105"
-                          : "opacity-60 hover:opacity-100"
+                          ? 'ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-105'
+                          : 'opacity-60 hover:opacity-100'
                       }`}
                     >
                       <Image
-                        src={img.image_url || "/placeholder.svg"}
+                        src={img.image_url || '/placeholder.svg'}
                         alt={`Thumbnail ${idx + 1}`}
                         fill
                         className="object-cover"

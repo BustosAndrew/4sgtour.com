@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { BackToTopButton } from "./back-to-top-button"
-import { Logo } from "@/components/logo"
+import Link from 'next/link'
+import { BackToTopButton } from './back-to-top-button'
+import { Logo } from '@/components/logo'
 
 export function SiteFooter() {
   return (
@@ -11,7 +11,7 @@ export function SiteFooter() {
         <div className="grid gap-8 md:grid-cols-4">
           <div>
             <div className="mb-6">
-              <Logo size="md" textColor="text-white" />
+              <Logo size="md" textColor="text-white" variant="footer" />
             </div>
             <p className="text-sm leading-relaxed text-white/80 font-medium font-serif">
               4SGTour is a premier golf travel agency specializing in overseas
@@ -21,7 +21,9 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Site Map</h3>
+            <h3 className="mb-4 font-sans uppercase tracking-wider">
+              Site Map
+            </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/" className="text-white/80 hover:text-white">
@@ -53,7 +55,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Legal</h3>
+            <h3 className="mb-4 font-sans uppercase tracking-wider">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/terms" className="text-white/80 hover:text-white">
@@ -72,7 +74,9 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="mb-4 font-semibold uppercase tracking-wider text-[#735c38]">Customer Service</h3>
+            <h3 className="mb-4 font-sans uppercase tracking-wider">
+              Customer Service
+            </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <a
@@ -83,7 +87,9 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-            <h3 className="mb-2 mt-4 font-semibold uppercase tracking-wider text-[#735c38]">Other</h3>
+            <h3 className="mb-2 mt-4 font-sans uppercase tracking-wider">
+              Other
+            </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <a

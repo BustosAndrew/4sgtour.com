@@ -1,106 +1,15 @@
-import type React from "react"
-import type { Metadata } from "next"
-import Script from "next/script"
-import localFont from "next/font/local"
+import type React from 'react'
+import type { Metadata } from 'next'
+import Script from 'next/script'
 
-import { Analytics } from "@vercel/analytics/next"
-import { ErrorHandler } from "@/components/error-handler"
-import "./globals.css"
-
-// Loretta Display - elegant serif for headings
-const lorettaDisplay = localFont({
-  src: [
-    {
-      path: "../public/fonts/LorettaDisplay-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/LorettaDisplay-Italic.woff2",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/LorettaDisplay-Medium.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/LorettaDisplay-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-display",
-  display: "swap",
-  fallback: ["Georgia", "Times New Roman", "serif"],
-})
-
-// Sweet Sans Pro - clean sans-serif for body text
-const sweetSansPro = localFont({
-  src: [
-    {
-      path: "../public/fonts/SweetSansPro-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SweetSansPro-Medium.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SweetSansPro-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-body",
-  display: "swap",
-  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
-})
-
-// Declare the missing variables
-const playfairDisplay = localFont({
-  src: [
-    {
-      path: "../public/fonts/PlayfairDisplay-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/PlayfairDisplay-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-playfair-display",
-  display: "swap",
-  fallback: ["Times New Roman", "serif"],
-})
-
-const bitter = localFont({
-  src: [
-    {
-      path: "../public/fonts/Bitter-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Bitter-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-bitter",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-})
+import { Analytics } from '@vercel/analytics/next'
+import { ErrorHandler } from '@/components/error-handler'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "Golf Trip Booking",
-  description: "Book your perfect golf vacation",
-  generator: "v0.app",
+  title: 'Golf Trip Booking',
+  description: 'Book your perfect golf vacation',
+  generator: 'v0.app',
 }
 
 export default function RootLayout({
@@ -110,9 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased ${sweetSansPro.variable} ${lorettaDisplay.variable}`}
-      >
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://p.typekit.net/p.css?s=1&k=rzv4yqs&ht=tk&f=44872.44874.48600.52429.52432.52434.52435&a=165152875&app=typekit&e=css"
+        />
+      </head>
+      <body className="antialiased">
         <ErrorHandler />
         {children}
         <Script id="chatbase" strategy="afterInteractive">

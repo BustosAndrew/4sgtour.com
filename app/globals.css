@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '../styles/adobe-typekit-rzv4yqs.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -78,14 +79,16 @@
 }
 
 @theme inline {
-  /* 4 Seasons Golf typography - Loretta Display for headings, Sweet Sans Pro for body */
-  --font-sans: "Sweet Sans Pro", "Helvetica Neue", Arial, sans-serif;
-  --font-serif: "Loretta Display", Georgia, "Times New Roman", serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
+  /* Typography - Loretta (serif) + Sweet Sans Pro (sans) */
+  --font-sans: 'sweet-sans-pro';
+  --font-serif: 'loretta';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   /* Sweet Sans Pro for body text */
-  --font-body: "Sweet Sans Pro", "Helvetica Neue", Arial, sans-serif;
-  /* Loretta Display for elegant headings */
-  --font-display: "Loretta Display", Georgia, "Times New Roman", serif;
+  --font-body: 'sweet-sans-pro';
+  /* Loretta for headings / display text */
+  --font-display: 'loretta';
+  /* Legacy utility still used in a few places */
+  --font-bitter: 'loretta';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -128,13 +131,28 @@
   * {
     @apply border-border outline-ring/50;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body);
   }
 }
 
 /* Add scrollbar-hide utility for horizontal scrolling sections */
 @layer utilities {
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+  .font-serif {
+    font-family: var(--font-serif);
+  }
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

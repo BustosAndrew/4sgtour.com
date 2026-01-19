@@ -1,52 +1,70 @@
 type LogoProps = {
   className?: string
   textColor?: string
-  size?: "sm" | "md" | "lg"
+  size?: 'sm' | 'md' | 'lg'
+  variant?: 'default' | 'footer'
 }
 
-export function Logo({ className = "", textColor = "text-white", size = "md" }: LogoProps) {
+export function Logo({
+  className = '',
+  textColor = 'text-white',
+  size = 'md',
+  variant = 'default',
+}: LogoProps) {
   const sizeClasses = {
     sm: {
-      container: "gap-0",
-      title: "text-lg",
-      subtitle: "text-[8px] tracking-[0.3em]",
-      line: "w-4",
+      four: 'text-lg',
+      seasons: 'text-[13px]',
+      subtitle: 'text-[6px] tracking-[0.2em]',
+      line: 'w-6',
     },
     md: {
-      container: "gap-0.5",
-      title: "text-2xl",
-      subtitle: "text-[10px] tracking-[0.35em]",
-      line: "w-6",
+      four: 'text-2xl',
+      seasons: 'text-base',
+      subtitle: 'text-[8px] tracking-[0.25em]',
+      line: 'w-10',
     },
     lg: {
-      container: "gap-1",
-      title: "text-3xl",
-      subtitle: "text-xs tracking-[0.4em]",
-      line: "w-8",
+      four: 'text-3xl',
+      seasons: 'text-xl',
+      subtitle: 'text-[10px] tracking-[0.3em]',
+      line: 'w-14',
     },
   }
 
   const sizes = sizeClasses[size]
 
+  const isFooter = variant === 'footer'
+
   return (
-    <div className={`flex flex-col items-center ${sizes.container} ${className}`}>
+    <div
+      className={`inline-flex flex-col ${isFooter ? 'items-start' : 'items-center'} ${className}`}
+      style={{ fontFamily: "'loretta', serif" }}
+    >
       {/* 4 SEASONS */}
-      <span 
-        className={`${sizes.title} font-medium ${textColor}`}
-        style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-      >
-        4 SEASONS
-      </span>
-      {/* GOLF with lines */}
-      <div className="flex items-center gap-2">
-        <span className={`${sizes.line} h-px bg-current ${textColor} opacity-60`}></span>
-        <span 
-          className={`${sizes.subtitle} uppercase ${textColor}`}
-          style={{ fontFamily: "var(--font-body), Helvetica Neue, sans-serif" }}
+      <div className="flex items-baseline gap-1.5">
+        <span
+          className={`${sizes.four} italic font-normal leading-none ${textColor}`}
         >
-          Golf
+          4
         </span>
-        <span className={`${sizes.line} h-px bg-current ${textColor} opacity-60`}></span>
+        <span
+          className={`${sizes.seasons} font-medium uppercase tracking-[0.12em] leading-none ${textColor}`}
+        >
+          Seasons
+        </span>
+      </div>
+      {/* GOLF with lines on each side */}
+      <div className="flex items-center gap-2 mt-1">
+        <span
+          className={`${sizes.line} h-px ${textColor} opacity-60 ${isFooter && 'w-6!'}`}
+          style={{ backgroundColor: 'currentColor' }}
+        />
+        <span className={`${sizes.subtitle} uppercase ${textColor}`}>GOLF</span>
+        <span
+          className={`${sizes.line} h-px ${textColor} opacity-60 ${isFooter && 'w-6!'}`}
+          style={{ backgroundColor: 'currentColor' }}
+        />
       </div>
     </div>
   )

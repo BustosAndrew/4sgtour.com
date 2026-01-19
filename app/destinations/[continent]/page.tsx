@@ -1,28 +1,28 @@
-import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { SiteFooter } from "@/components/site-footer"
-import { TripCard } from "@/components/trip-card"
-import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
-import type { Trip } from "@/lib/types/database"
+import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
+import { SiteFooter } from '@/components/site-footer'
+import { TripCard } from '@/components/trip-card'
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import type { Trip } from '@/lib/types/database'
 
 interface ContinentTripsPageProps {
   params: Promise<{ continent: string }>
 }
 
 const CONTINENT_NAMES: Record<string, string> = {
-  africa: "World",
-  asia: "Asia",
-  europe: "Europe",
-  "north-america": "North America",
-  "south-america": "Latin America",
+  africa: 'World',
+  asia: 'Asia',
+  europe: 'Europe',
+  'north-america': 'North America',
+  'south-america': 'Latin America',
 }
 
 const CONTINENT_IMAGES: Record<string, string> = {
-  africa: "/images/world.png",
-  asia: "/images/asia.png",
-  europe: "/images/eu.png",
-  "north-america": "/images/na2.jpg",
-  "south-america": "/images/sa.png",
+  africa: '/images/world.png',
+  asia: '/images/asia.png',
+  europe: '/images/eu.png',
+  'north-america': '/images/na2.jpg',
+  'south-america': '/images/sa.png',
 }
 
 export default async function ContinentTripsPage({
@@ -38,15 +38,15 @@ export default async function ContinentTripsPage({
   const supabase = await createClient()
 
   const { data: trips } = await supabase
-    .from("trips")
+    .from('trips')
     .select(
       `
       *,
       packages(id, name, price)
     `,
     )
-    .eq("continent", continentName)
-    .order("created_at", { ascending: false })
+    .eq('continent', continentName)
+    .order('created_at', { ascending: false })
 
   const heroImage =
     CONTINENT_IMAGES[continentSlug] ||
@@ -58,14 +58,14 @@ export default async function ContinentTripsPage({
 
       <section className="relative h-screen">
         <img
-          src={heroImage || "/placeholder.svg"}
+          src={heroImage || '/placeholder.svg'}
           alt={`Golf courses in ${continentName}`}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center lg:justify-start px-4 lg:px-20">
           <div className="container text-center lg:text-left text-white">
-            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl font-bitter">
+            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl font-serif">
               4 Season Golf Tour
             </h1>
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
