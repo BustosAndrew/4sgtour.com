@@ -55,13 +55,13 @@ export function HeroCarousel() {
         <div className="text-right px-8 md:px-16 lg:px-24">
           {/* Subtitle */}
           <p
-            className="uppercase text-white/80 text-[24px] font-normal"
+            className="uppercase text-white/80 text-[24px] font-semibold"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
             Luxury Golf Travel
           </p>
           {/* Main heading */}
-          <h1
+          <p
             className="text-[64px] text-white"
             style={{
               fontFamily: "'loretta', serif",
@@ -69,7 +69,7 @@ export function HeroCarousel() {
             }}
           >
             4 Seasons Golf Tour
-          </h1>
+          </p>
           {/* Tagline */}
           <p className="text-[24px] text-white/90 mb-8">
             Customize <em>your</em> golf journey.

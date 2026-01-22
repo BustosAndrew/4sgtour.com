@@ -36,7 +36,7 @@ export default async function HomePage() {
         <HeroCarousel />
 
         {/* Setting a New Standard Section */}
-        <section className="bg-[#fffff8] py-16 md:py-24">
+        <section className="bg-[#fffff8] py-16 md:py-24 overflow-hidden">
           <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2
@@ -67,8 +67,10 @@ export default async function HomePage() {
                 View All &gt;
               </Link>
             </div>
+          </div>
 
-            {/* Destinations Carousel - contained within container */}
+          {/* Destinations Carousel - bleeding to the right, clipped at viewport edge */}
+          <div className="mt-12">
             <DestinationsCarousel />
           </div>
         </section>
@@ -84,7 +86,7 @@ export default async function HomePage() {
                 The 4 Seasons <em className="italic">Difference.</em>
               </h2>
               <p
-                className="text-white/70 leading-relaxed mb-8"
+                className="text-white leading-relaxed mb-8"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 At 4SGTours, we believe your journey should be as extraordinary
@@ -93,24 +95,24 @@ export default async function HomePage() {
                 create unforgettable golf experiences tailored to you.
               </p>
               {/* White divider line */}
-              <div className="w-12 h-0.5 bg-white/40 mx-auto"></div>
+              <div className="w-12 h-0.5 bg-white mx-auto"></div>
             </div>
 
             {/* Stats grid - filled cream circles with stats below */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
                   {/* Filled cream/light gray circle */}
                   <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-6 rounded-full bg-[#d9d9d9]"></div>
                   {/* Number below circle */}
                   <p
-                    className="text-2xl md:text-3xl text-white mb-2"
-                    style={{ fontFamily: 'var(--font-display)' }}
+                    className="text-2xl md:text-5xl text-white mb-2 font-semibold"
+                    style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {stat.number}
                   </p>
                   <p
-                    className="text-white/50 text-[10px] md:text-xs uppercase tracking-wider leading-tight"
+                    className="text-white text-[10px] md:text-xs uppercase tracking-wider leading-tight"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     World Wide
@@ -189,34 +191,23 @@ export default async function HomePage() {
         {/* Partner Logos Section */}
         <section className="bg-[#fffff8] py-12">
           <div className="container">
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60">
-              <div className="h-8 flex items-center">
-                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">
-                  Experiences
-                </span>
-              </div>
-              <div className="h-8 flex items-center">
-                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">
-                  PGA Magazine
-                </span>
-              </div>
-              <div className="h-8 flex items-center">
-                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">
-                  Signature
-                </span>
-              </div>
-              <div className="h-8 flex items-center">
-                <span className="text-[#22333b] font-medium text-sm uppercase tracking-wider">
-                  IATAN
-                </span>
-              </div>
-              <div className="h-8 flex items-center">
+            <div className="flex flex-col items-center gap-10 opacity-80">
+              <div className="flex w-full max-w-4xl flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
                 <Image
-                  src="/images/golf-member.png"
-                  alt="IAGTO Member Logo"
-                  width={60}
-                  height={40}
-                  className="object-contain"
+                  src="/images/image 6.png"
+                  alt="IATAN"
+                  width={360}
+                  height={240}
+                  className="h-auto w-full object-contain"
+                  sizes="(min-width: 640px) 14rem, 45vw"
+                />
+                <Image
+                  src="/images/image 7.png"
+                  alt="IAGTO"
+                  width={720}
+                  height={240}
+                  className="h-auto w-full max-w-[420px] object-contain"
+                  sizes="(min-width: 640px) 26rem, 75vw"
                 />
               </div>
             </div>

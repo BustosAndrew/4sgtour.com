@@ -15,20 +15,20 @@ export function Logo({
     sm: {
       four: 'text-lg',
       seasons: 'text-[13px]',
-      subtitle: 'text-[6px] tracking-[0.2em]',
+      subtitle: 'text-[7px] tracking-[0.2em]',
       line: 'w-6',
     },
     md: {
-      four: 'text-2xl',
-      seasons: 'text-base',
-      subtitle: 'text-[8px] tracking-[0.25em]',
-      line: 'w-10',
-    },
-    lg: {
       four: 'text-3xl',
       seasons: 'text-xl',
-      subtitle: 'text-[10px] tracking-[0.3em]',
-      line: 'w-14',
+      subtitle: 'text-[10px] tracking-[0.25em]',
+      line: 'w-8',
+    },
+    lg: {
+      four: 'text-4xl',
+      seasons: 'text-2xl',
+      subtitle: 'text-[11px] tracking-[0.3em]',
+      line: 'w-11',
     },
   }
 
@@ -57,12 +57,12 @@ export function Logo({
       {/* GOLF with lines on each side */}
       <div className="flex items-center gap-2 mt-1">
         <span
-          className={`${sizes.line} h-px ${textColor} opacity-60 ${isFooter && 'w-6!'}`}
+          className={`${sizes.line} h-px ${textColor} opacity-60`}
           style={{ backgroundColor: 'currentColor' }}
         />
         <span className={`${sizes.subtitle} uppercase ${textColor}`}>GOLF</span>
         <span
-          className={`${sizes.line} h-px ${textColor} opacity-60 ${isFooter && 'w-6!'}`}
+          className={`${sizes.line} h-px ${textColor} opacity-60`}
           style={{ backgroundColor: 'currentColor' }}
         />
       </div>

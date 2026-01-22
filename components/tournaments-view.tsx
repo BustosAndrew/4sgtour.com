@@ -6,26 +6,26 @@ const TOURNAMENTS = [
   {
     name: 'MASTERS',
     slug: 'masters',
-    image:
-      'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&q=80',
+    image: '/images/masters.png',
+    objectPosition: '50% 35%',
   },
   {
     name: 'US OPEN',
     slug: 'us-open',
-    image:
-      'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=800&q=80',
+    image: '/images/us.png',
+    objectPosition: '50% 35%',
   },
   {
     name: 'THE OPEN',
     slug: 'the-open',
-    image:
-      'https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=800&q=80',
+    image: '/images/open.png',
+    objectPosition: '50% 35%',
   },
   {
     name: 'RYDER CUP',
     slug: 'ryder-cup',
-    image:
-      'https://images.unsplash.com/photo-1592919505780-303950717480?w=800&q=80',
+    image: '/images/ryder.png',
+    objectPosition: '50% 35%',
   },
 ]
 
@@ -54,7 +54,7 @@ export function TournamentsView() {
       </div>
 
       {/* Vertical panels container */}
-      <div className="flex min-h-screen w-full flex-col pt-[70px] lg:flex-row lg:pt-0">
+      <div className="flex min-h-screen w-full flex-col pt-[82px] lg:flex-row lg:pt-20">
         {TOURNAMENTS.map((tournament) => (
           <div
             key={tournament.slug}
@@ -67,7 +67,8 @@ export function TournamentsView() {
               <img
                 src={tournament.image || '/placeholder.svg'}
                 alt={tournament.name}
-                className="h-full w-full scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                className="h-full w-full scale-100 object-cover object-top transition-transform duration-700 ease-out group-hover:scale-110 md:object-center"
+                style={{ objectPosition: tournament.objectPosition }}
               />
               {/* Dark overlay that lightens on hover */}
               <div

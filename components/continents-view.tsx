@@ -21,17 +21,17 @@ const CONTINENTS = [
     name: 'LATIN\nAMERICA',
     displayName: 'LATIN AMERICA',
     slug: 'south-america',
-    image: '/images/sa.png',
+    image: '/images/sa.jpg',
   },
   {
     name: 'ASIA',
     slug: 'asia',
-    image: '/images/asia.png',
+    image: '/images/asia.jpg',
   },
   {
     name: 'WORLD',
     slug: 'africa',
-    image: '/images/world.png',
+    image: '/images/world.jpg',
   },
 ]
 
