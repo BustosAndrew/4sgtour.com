@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { UserNav } from '@/components/user-nav'
-import { Globe, Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { usePathname } from 'next/navigation'
 import './glass.css'
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ export function SiteHeader({
   userType = 'regular',
   className,
 }: SiteHeaderProps) {
+  const pathname = usePathname()
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentLanguage, setCurrentLanguage] = useState(languages[0])
   const [mounted, setMounted] = useState(false)
@@ -61,16 +64,26 @@ export function SiteHeader({
     return () => window.removeEventListener('scroll', update)
   }, [mounted])
 
-  // Mobile behavior: scroll toggles light header.
+  // Force white header on these routes (DESKTOP ONLY behaviors below still apply)
+  const forceWhiteHeader =
+    pathname.startsWith('/destinations') || pathname.startsWith('/tournaments')
+
   // Desktop behavior: hover toggles light header (no scroll dependency).
-  const headerBgClass = isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
-  const textClass = isScrolled ? 'text-[#735C38]' : 'text-white'
-  const textHoverClass = isScrolled
-    ? 'hover:text-[#735C38]/70'
-    : 'hover:text-white/80'
-  const borderClass = isScrolled ? 'border-black/15' : 'border-white/40'
-  const pillBgClass = isScrolled ? 'bg-white/70' : 'bg-black/40'
-  const pillTextClass = isScrolled ? 'text-[#735C38]' : 'text-white'
+  // Mobile behavior remains unchanged because we keep using `isScrolled` everywhere mobile relies on it.
+  const headerBgClass =
+    isScrolled || forceWhiteHeader ? 'bg-white shadow-sm' : 'bg-transparent'
+  const textClass =
+    isScrolled || forceWhiteHeader ? 'text-[#735C38]' : 'text-white'
+  const textHoverClass =
+    isScrolled || forceWhiteHeader
+      ? 'hover:text-[#735C38]/70'
+      : 'hover:text-white/80'
+  const borderClass =
+    isScrolled || forceWhiteHeader ? 'border-black/15' : 'border-white/40'
+  const pillBgClass =
+    isScrolled || forceWhiteHeader ? 'bg-white/70' : 'bg-black/40'
+  const pillTextClass =
+    isScrolled || forceWhiteHeader ? 'text-[#735C38]' : 'text-white'
 
   const header = (
     <header
@@ -216,7 +229,7 @@ export function SiteHeader({
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button (unchanged) */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="lg:hidden -mr-2"
@@ -238,7 +251,7 @@ export function SiteHeader({
     </header>
   )
 
-  // Mobile menu rendered as a portal to escape stacking context
+  // Mobile menu rendered as a portal (UNCHANGED: still uses isScrolled everywhere)
   const mobileMenu =
     mounted && mobileMenuOpen
       ? createPortal(
@@ -304,7 +317,9 @@ export function SiteHeader({
                 {/* Language Section */}
                 <div className="border-t border-white/20 mt-4 pt-4">
                   <div
-                    className={`${isScrolled ? 'text-[#735C38]/60' : 'text-white/60'} text-sm mb-3 uppercase`}
+                    className={`${
+                      isScrolled ? 'text-[#735C38]/60' : 'text-white/60'
+                    } text-sm mb-3 uppercase`}
                   >
                     Language
                   </div>
@@ -331,7 +346,9 @@ export function SiteHeader({
                           />
                         </div>
                         <span
-                          className={`${isScrolled ? 'text-[#735C38]' : 'text-white'} text-sm`}
+                          className={`${
+                            isScrolled ? 'text-[#735C38]' : 'text-white'
+                          } text-sm`}
                         >
                           {lang.name}
                         </span>
@@ -346,18 +363,24 @@ export function SiteHeader({
                     <div className="flex flex-col gap-1">
                       <div className="px-4 py-2 mb-2">
                         <div
-                          className={`${isScrolled ? 'text-[#735C38]/60' : 'text-white/60'} text-xs mb-1`}
+                          className={`${
+                            isScrolled ? 'text-[#735C38]/60' : 'text-white/60'
+                          } text-xs mb-1`}
                         >
                           Signed in as
                         </div>
                         <div
-                          className={`${isScrolled ? 'text-[#735C38]' : 'text-white'} text-sm font-medium truncate uppercase`}
+                          className={`${
+                            isScrolled ? 'text-[#735C38]' : 'text-white'
+                          } text-sm font-medium truncate uppercase`}
                         >
                           {user.email}
                         </div>
                         {userType !== 'regular' && (
                           <div
-                            className={`${isScrolled ? 'text-[#735C38]/80' : 'text-white/80'} text-xs font-medium capitalize mt-1 uppercase`}
+                            className={`${
+                              isScrolled ? 'text-[#735C38]/80' : 'text-white/80'
+                            } text-xs font-medium capitalize mt-1 uppercase`}
                           >
                             {userType}
                           </div>
