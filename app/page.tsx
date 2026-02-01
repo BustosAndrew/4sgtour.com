@@ -164,7 +164,7 @@ export default async function HomePage() {
         {/* Travel with us now Section */}
         <section className="bg-[#fffff8] py-12 sm:py-16 md:py-24">
           <div className="container">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-20">
               <h2
                 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[60px] text-[#735C38]"
                 style={{ fontFamily: 'var(--font-display)' }}
@@ -177,9 +177,9 @@ export default async function HomePage() {
             {/* Video embed */}
             <div className="aspect-video relative overflow-hidden">
               <iframe
-                className="absolute inset-0 h-full w-full"
-                src="https://www.youtube.com/embed/kS8ULAe8OW8?si=3eJnVZUvI1_ZX8AV"
+                src="https://www.youtube.com/embed/Yxf8G3SCMpU?si=dE0jE9EuiEjitBQV"
                 title="YouTube video player"
+                className="border-0 w-full h-full absolute top-0 left-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
@@ -188,27 +188,101 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Partner Logos Section */}
-        <section className="bg-[#fffff8] py-12">
+        {/* Golf Club Delivery Service Section */}
+        <section className="bg-[#fffff8] py-12 md:py-16">
           <div className="container">
-            <div className="flex flex-col items-center gap-10 opacity-80">
-              <div className="flex w-full max-w-4xl flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
-                <Image
-                  src="/images/image 6.png"
-                  alt="IATAN"
-                  width={360}
-                  height={240}
-                  className="h-auto w-full object-contain"
-                  sizes="(min-width: 640px) 14rem, 45vw"
-                />
-                <Image
-                  src="/images/image 7.png"
-                  alt="IAGTO"
-                  width={720}
-                  height={240}
-                  className="h-auto w-full max-w-[420px] object-contain"
-                  sizes="(min-width: 640px) 26rem, 75vw"
-                />
+            <div className="mx-auto max-w-6xl">
+              <div className="bg-[#e8e8e8] px-6 py-10 md:px-12 md:py-16 lg:px-16">
+                <div className="grid items-center gap-8 md:grid-cols-[1.25fr_auto_1fr]">
+                  {/* Left: Text */}
+                  <div className="text-center md:text-left">
+                    <h3
+                      className="mb-3 text-[24px] font-bold uppercase tracking-wide text-[#22333b] md:mb-4"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      Golf Club Delivery Service
+                    </h3>
+                    <p
+                      className="mx-auto max-w-xl text-[18px] leading-relaxed text-[#735C38] md:mx-0"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      Ship Sticks makes it easier than ever to transport your
+                      golf clubs to your destination, allowing you to enjoy a
+                      hassle-free travel experience anywhere in the world.
+                    </p>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="hidden h-full w-[1.5px] bg-[#22333b]/20 md:block ml-26" />
+
+                  {/* Right: Logo */}
+                  <div className="mx-auto w-full max-w-[420px] md:mx-0">
+                    <div className="relative h-20 w-full sm:h-24 md:h-28 lg:h-32">
+                      <Image
+                        src="/images/sticks.png"
+                        alt="Ship Sticks"
+                        fill
+                        className="object-contain"
+                        sizes="(min-width: 1024px) 26rem, (min-width: 768px) 22rem, 80vw"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Partner Logos Section */}
+        <section className="py-12 pb-20">
+          <div className="container">
+            <div className="mx-auto w-full max-w-6xl opacity-80">
+              <div className="grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                  <Image
+                    src="/images/iagto.png"
+                    alt="IAGTO"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                  />
+                </div>
+                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                  <Image
+                    src="/images/times.png"
+                    alt="Global Golf Times"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                  />
+                </div>
+                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                  <Image
+                    src="/images/ritz.png"
+                    alt="Ritz Carlton"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                  />
+                </div>
+                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                  <Image
+                    src="/images/pebble.png"
+                    alt="Pebble Beach Golf Links"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                  />
+                </div>
+                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                  <Image
+                    src="/images/tiger.png"
+                    alt="Tiger Booking"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                  />
+                </div>
               </div>
             </div>
           </div>

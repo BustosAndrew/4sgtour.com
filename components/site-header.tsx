@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { UserNav } from '@/components/user-nav'
 import { Globe, Menu, X, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -12,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Logo } from '@/components/logo'
 
 type SiteHeaderProps = {
   user?: any
@@ -23,7 +23,7 @@ type SiteHeaderProps = {
 const languages = [
   {
     code: 'en',
-    name: 'English',
+    name: 'ENG',
     flag: 'https://flagcdn.com/w40/us.png',
     alt: 'US',
   },
@@ -43,46 +43,77 @@ export function SiteHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentLanguage, setCurrentLanguage] = useState(languages[0])
   const [mounted, setMounted] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (!mounted) return
+
+    const update = () => {
+      setIsScrolled(window.scrollY > 8)
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [mounted])
+
+  const headerBgClass = isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
+  const textClass = isScrolled ? 'text-[#735C38]' : 'text-white'
+  const textHoverClass = isScrolled
+    ? 'hover:text-[#735C38]/70'
+    : 'hover:text-white/80'
+  const borderClass = isScrolled ? 'border-black/15' : 'border-white/40'
+  const pillBgClass = isScrolled ? 'bg-white/70' : 'bg-black/40'
+  const pillTextClass = isScrolled ? 'text-[#735C38]' : 'text-white'
+
   const header = (
     <header
-      className={`fixed top-0 left-0 right-0 z-[40] isolate bg-[#735C38] w-full h-[82px] ${className}`}
+      className={`fixed top-0 left-0 right-0 z-[40] isolate w-full h-[82px] transition-colors duration-300 ${headerBgClass} ${className}`}
     >
       <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 lg:justify-self-start lg:w-fit">
-          <Logo size="md" textColor="text-white" />
+          <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px]">
+            <Image
+              src={isScrolled ? '/images/logo2.png' : '/images/logo.png'}
+              alt="4 Seasons Golf"
+              fill
+              className="object-contain"
+              priority
+              sizes="200px"
+            />
+          </div>
         </Link>
 
         {/* Desktop Navigation - centered */}
         <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10 lg:col-start-2 lg:justify-self-center">
           <Link
             href="/"
-            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Home
           </Link>
           <Link
             href="/destinations"
-            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Destinations
           </Link>
           <Link
             href="/tournaments"
-            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Tournaments
           </Link>
           <Link
             href="/contact"
-            className="text-white text-base xl:text-lg font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
-            Contact Us
+            Contact
           </Link>
         </nav>
 
@@ -92,7 +123,6 @@ export function SiteHeader({
           {mounted && (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
-                <Globe className="w-4 h-4 text-white" />
                 <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                   <img
                     src={currentLanguage.flag || '/placeholder.svg'}
@@ -100,21 +130,40 @@ export function SiteHeader({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <span className="text-white text-sm">
+                <span className={`${textClass} text-sm`}>
                   {currentLanguage.name}
                 </span>
-                <ChevronDown className="w-3 h-3 text-white" />
+                <svg
+                  width="10"
+                  height="5"
+                  viewBox="0 0 10 5"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10 8.74228e-07L5 5L0 0L10 8.74228e-07Z"
+                    fill={isScrolled ? '#735C38' : 'white'}
+                  />
+                </svg>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="bg-black/80 backdrop-blur-md border-white/20"
+                className={
+                  isScrolled
+                    ? 'bg-white/95 backdrop-blur-md border-black/10'
+                    : 'bg-black/80 backdrop-blur-md border-white/20'
+                }
                 sideOffset={5}
               >
                 {languages.map((lang) => (
                   <DropdownMenuItem
                     key={lang.code}
                     onClick={() => setCurrentLanguage(lang)}
-                    className="flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white"
+                    className={
+                      isScrolled
+                        ? 'flex items-center gap-2 cursor-pointer text-[#735C38] hover:bg-black/5 focus:bg-black/5 focus:text-[#735C38]'
+                        : 'flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white'
+                    }
                   >
                     <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                       <img
@@ -136,16 +185,16 @@ export function SiteHeader({
           ) : (
             <>
               <Link
-                href="/auth/sign-up"
-                className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+                href="/auth/login"
+                className={`${textClass} text-sm ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
-                Sign Up
+                Sign In
               </Link>
               <Link
-                href="/auth/login"
-                className="text-white text-sm hover:text-white/80 transition-colors whitespace-nowrap"
+                href="/auth/sign-up"
+                className={`${textClass} text-sm ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
-                Log In
+                Get Started
               </Link>
             </>
           )}
@@ -158,7 +207,9 @@ export function SiteHeader({
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileMenuOpen}
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border ${borderClass} ${pillBgClass} px-3 py-1.5 text-sm font-medium ${pillTextClass} shadow-sm backdrop-blur-sm transition-colors duration-300 uppercase`}
+          >
             {mobileMenuOpen ? (
               <X className="h-4 w-4" />
             ) : (
@@ -176,43 +227,71 @@ export function SiteHeader({
     mounted && mobileMenuOpen
       ? createPortal(
           <div
-            className="lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t border-white/20"
-            style={{ backgroundColor: '#735C38', zIndex: 99999 }}
+            className={`lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t ${
+              isScrolled ? 'border-black/10' : 'border-white/20'
+            }`}
+            style={{
+              backgroundColor: isScrolled ? '#ffffff' : 'transparent',
+              zIndex: 99999,
+            }}
           >
-            <div className="px-4 sm:px-6 py-6 h-full overflow-y-auto">
+            <div
+              className="px-4 sm:px-6 py-6 h-full overflow-y-auto"
+              style={{ backgroundColor: isScrolled ? '#ffffff' : '#735C38' }}
+            >
               <nav className="flex flex-col gap-1">
                 <Link
                   href="/"
-                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  className={`${
+                    isScrolled
+                      ? 'text-[#735C38] font-medium hover:bg-black/5'
+                      : 'text-white font-medium hover:bg-white/10'
+                  } py-3 px-4 -mx-4 uppercase`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Home
                 </Link>
                 <Link
                   href="/destinations"
-                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  className={`${
+                    isScrolled
+                      ? 'text-[#735C38] font-medium hover:bg-black/5'
+                      : 'text-white font-medium hover:bg-white/10'
+                  } py-3 px-4 -mx-4 uppercase`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Destinations
                 </Link>
                 <Link
                   href="/tournaments"
-                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  className={`${
+                    isScrolled
+                      ? 'text-[#735C38] font-medium hover:bg-black/5'
+                      : 'text-white font-medium hover:bg-white/10'
+                  } py-3 px-4 -mx-4 uppercase`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Tournaments
                 </Link>
                 <Link
                   href="/contact"
-                  className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                  className={`${
+                    isScrolled
+                      ? 'text-[#735C38] font-medium hover:bg-black/5'
+                      : 'text-white font-medium hover:bg-white/10'
+                  } py-3 px-4 -mx-4 uppercase`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Contact Us
+                  Contact
                 </Link>
 
                 {/* Language Section */}
                 <div className="border-t border-white/20 mt-4 pt-4">
-                  <div className="text-white/60 text-sm mb-3">Language</div>
+                  <div
+                    className={`${isScrolled ? 'text-[#735C38]/60' : 'text-white/60'} text-sm mb-3 uppercase`}
+                  >
+                    Language
+                  </div>
                   <div className="flex gap-2">
                     {languages.map((lang) => (
                       <button
@@ -220,8 +299,12 @@ export function SiteHeader({
                         onClick={() => setCurrentLanguage(lang)}
                         className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
                           currentLanguage.code === lang.code
-                            ? 'bg-white/20 border border-white/30'
-                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                            ? isScrolled
+                              ? 'bg-black/5 border border-black/10'
+                              : 'bg-white/20 border border-white/30'
+                            : isScrolled
+                              ? 'bg-black/0 border border-black/10 hover:bg-black/5'
+                              : 'bg-white/5 border border-white/10 hover:bg-white/10'
                         } transition-colors`}
                       >
                         <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
@@ -231,7 +314,11 @@ export function SiteHeader({
                             className="h-full w-full object-cover"
                           />
                         </div>
-                        <span className="text-white text-sm">{lang.name}</span>
+                        <span
+                          className={`${isScrolled ? 'text-[#735C38]' : 'text-white'} text-sm`}
+                        >
+                          {lang.name}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -242,28 +329,42 @@ export function SiteHeader({
                   {user ? (
                     <div className="flex flex-col gap-1">
                       <div className="px-4 py-2 mb-2">
-                        <div className="text-xs text-white/60 mb-1">
+                        <div
+                          className={`${isScrolled ? 'text-[#735C38]/60' : 'text-white/60'} text-xs mb-1`}
+                        >
                           Signed in as
                         </div>
-                        <div className="text-sm text-white font-medium truncate">
+                        <div
+                          className={`${isScrolled ? 'text-[#735C38]' : 'text-white'} text-sm font-medium truncate uppercase`}
+                        >
                           {user.email}
                         </div>
                         {userType !== 'regular' && (
-                          <div className="text-xs font-medium text-white/80 capitalize mt-1">
+                          <div
+                            className={`${isScrolled ? 'text-[#735C38]/80' : 'text-white/80'} text-xs font-medium capitalize mt-1 uppercase`}
+                          >
                             {userType}
                           </div>
                         )}
                       </div>
                       <Link
                         href="/bookings"
-                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                        className={`${
+                          isScrolled
+                            ? 'text-[#735C38] font-medium hover:bg-black/5'
+                            : 'text-white font-medium hover:bg-white/10'
+                        } py-3 px-4 -mx-4 uppercase`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         My Bookings
                       </Link>
                       <Link
                         href="/favorites"
-                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                        className={`${
+                          isScrolled
+                            ? 'text-[#735C38] font-medium hover:bg-black/5'
+                            : 'text-white font-medium hover:bg-white/10'
+                        } py-3 px-4 -mx-4 uppercase`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Favorites
@@ -271,7 +372,11 @@ export function SiteHeader({
                       {userType === 'admin' && (
                         <Link
                           href="/admin"
-                          className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4"
+                          className={`${
+                            isScrolled
+                              ? 'text-[#735C38] font-medium hover:bg-black/5'
+                              : 'text-white font-medium hover:bg-white/10'
+                          } py-3 px-4 -mx-4 uppercase`}
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Admin Dashboard
@@ -286,7 +391,11 @@ export function SiteHeader({
                           setMobileMenuOpen(false)
                           window.location.href = '/'
                         }}
-                        className="text-white font-medium hover:bg-white/10 py-3 px-4 -mx-4 text-left"
+                        className={`${
+                          isScrolled
+                            ? 'text-[#735C38] font-medium hover:bg-black/5'
+                            : 'text-white font-medium hover:bg-white/10'
+                        } py-3 px-4 -mx-4 text-left uppercase`}
                       >
                         Log Out
                       </button>
@@ -295,17 +404,21 @@ export function SiteHeader({
                     <div className="flex gap-3">
                       <Link
                         href="/auth/sign-up"
-                        className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors"
+                        className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Sign Up
+                        Get Started
                       </Link>
                       <Link
                         href="/auth/login"
-                        className="flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors"
+                        className={`${
+                          isScrolled
+                            ? 'flex-1 text-center py-3 border border-black/20 text-[#735C38] font-medium hover:bg-black/5 transition-colors'
+                            : 'flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors'
+                        } uppercase`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Log In
+                        Sign In
                       </Link>
                     </div>
                   )}
