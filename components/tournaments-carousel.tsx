@@ -1,131 +1,138 @@
-"use client"
+'use client'
 
-import React from "react"
+import React from 'react'
+import Link from 'next/link'
+import { useState, useRef, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
 
-import { useState, useRef, useEffect } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-
+// Single placeholder tournament item
 const tournamentItems = [
-  { src: "/placeholder.svg?height=400&width=600&query=golf+tournament+pebble+beach", alt: "Pebble Beach tournament" },
-  { src: "/placeholder.svg?height=400&width=600&query=golf+tournament+st+andrews", alt: "St Andrews tournament" },
-  { src: "/placeholder.svg?height=400&width=600&query=golf+tournament+augusta", alt: "Augusta tournament" },
-  { src: "/placeholder.svg?height=400&width=600&query=golf+tournament+royal+birkdale", alt: "Royal Birkdale tournament" },
-  { src: "/placeholder.svg?height=400&width=600&query=golf+tournament+torrey+pines", alt: "Torrey Pines tournament" },
+  {
+    id: '1',
+    title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
+    location: 'Southport, England',
+    image:
+      '/placeholder.svg?height=400&width=600&query=golf+tournament+royal+birkdale',
+    href: '/tournaments',
+  },
+  {
+    id: '2',
+    title: 'THE 2027 RYDER CUP',
+    location: 'Limerick, Ireland',
+    image:
+      '/placeholder.svg?height=400&width=600&query=golf+tournament+ryder+cup+ireland',
+    href: '/tournaments',
+  },
+  {
+    id: '3',
+    title: 'THE MASTERS 2026',
+    location: 'Augusta, Georgia',
+    image:
+      '/placeholder.svg?height=400&width=600&query=golf+tournament+masters+augusta',
+    href: '/tournaments',
+  },
+  {
+    id: '4',
+    title: 'US OPEN 2026',
+    location: 'Shinnecock Hills, New York',
+    image:
+      '/placeholder.svg?height=400&width=600&query=golf+tournament+us+open+shinnecock',
+    href: '/tournaments',
+  },
 ]
+
+const cardWidth = 420 // Base card width
+const gap = 32 // Gap between cards
 
 export function TournamentsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const cardWidth = 380 // Base card width
-  const gap = 24 // Gap between cards
+  // Show 2 cards at a time, stop correctly at the end
+  const visibleSlides = 2
+  const maxIndex = Math.max(0, tournamentItems.length - visibleSlides)
 
   const goToPrev = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1))
   }
 
   const goToNext = () => {
-    setCurrentIndex((prev) => Math.min(tournamentItems.length - 1, prev + 1))
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1))
   }
-
-  // Touch/drag handling for mobile
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    setStartX(e.pageX - (containerRef.current?.offsetLeft || 0))
-    setScrollLeft(currentIndex * (cardWidth + gap))
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return
-    e.preventDefault()
-    const x = e.pageX - (containerRef.current?.offsetLeft || 0)
-    const walk = (startX - x) * 1.5
-    const newIndex = Math.round((scrollLeft + walk) / (cardWidth + gap))
-    if (newIndex >= 0 && newIndex < tournamentItems.length) {
-      setCurrentIndex(newIndex)
-    }
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  useEffect(() => {
-    const handleMouseUpGlobal = () => setIsDragging(false)
-    window.addEventListener('mouseup', handleMouseUpGlobal)
-    return () => window.removeEventListener('mouseup', handleMouseUpGlobal)
-  }, [])
 
   return (
     <div className="relative">
-      {/* Navigation Arrow - Left side only since it bleeds right */}
+      {/* Navigation Arrow - Left */}
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute left-4 md:left-8 lg:left-16 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="absolute left-2 md:left-6 lg:left-10 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-5 w-5 text-[#22333b]" />
-      </button>
-      <button
-        onClick={goToNext}
-        disabled={currentIndex >= tournamentItems.length - 2}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-        aria-label="Next slide"
-      >
-        <ChevronRight className="h-5 w-5 text-[#22333b]" />
+        <ChevronLeft className="h-5 w-5 text-white" strokeWidth={4} />
       </button>
 
-      {/* Carousel Container - bleeding to the right */}
-      <div 
-        className="pl-4 md:pl-8 lg:pl-16 xl:pl-24 overflow-hidden cursor-grab active:cursor-grabbing"
-        ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+      {/* Navigation Arrow - Right */}
+      <button
+        onClick={goToNext}
+        disabled={currentIndex >= maxIndex}
+        className="absolute right-2 md:right-6 lg:right-10 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        aria-label="Next slide"
       >
-        <div 
-          className="flex gap-4 md:gap-6 transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${currentIndex * (cardWidth + gap)}px)` }}
+        <ChevronRight className="h-5 w-5 text-white" strokeWidth={4} />
+      </button>
+
+      {/* Carousel Container - bleeds to both sides */}
+      <div className="overflow-hidden" ref={containerRef}>
+        <div
+          className="flex gap-4 md:gap-8 transition-transform duration-500 ease-out px-[calc(50vw-220px)] md:px-[calc(50vw-440px)]"
+          style={{
+            transform: `translateX(-${currentIndex * (cardWidth + gap)}px)`,
+          }}
         >
-          {tournamentItems.map((item, index) => (
-            <div 
-              key={index} 
-              className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[380px]"
+          {tournamentItems.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex-shrink-0 w-sm lg:w-md border-2 border-[#DEW388]"
             >
-              {/* Tournament image */}
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={item.src || "/placeholder.svg"}
-                  alt={item.alt}
-                  className="h-full w-full object-cover hover:scale-105 transition-transform duration-500 pointer-events-none"
-                  draggable={false}
-                />
+              <div className="group cursor-pointer">
+                {/* Image */}
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={'/images/tourney.png'}
+                    alt={item.title}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    draggable={false}
+                  />
+                </div>
+                {/* White card with title and location */}
+                <div className="bg-white py-6 px-4 text-center">
+                  <h3
+                    className="text-base md:text-lg font-bold text-[#735C38] tracking-wide mb-2"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    {item.title}
+                  </h3>
+                  <div className="flex items-center justify-center gap-1.5 text-[#22333b]">
+                    <MapPin className="h-4 w-4" />
+                    <span
+                      className="text-sm"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      {item.location}
+                    </span>
+                  </div>
+                </div>
               </div>
-              {/* Gray placeholder area below image */}
-              <div className="bg-[#d9d9d9] h-16 md:h-20"></div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-2 mt-6 px-4">
-        {tournamentItems.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? "bg-[#735c38]" : "bg-[#d9d9d9]"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+      {/* Side fades (match page background) */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-r from-[#fff]/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-l from-[#fff]/50 to-transparent" />
     </div>
   )
 }

@@ -4,36 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-const CONTINENTS = [
-  {
-    name: 'EUROPE',
-    slug: 'europe',
-    image: '/images/eu.png',
-  },
-  {
-    name: 'NORTH\nAMERICA',
-    displayName: 'NORTH AMERICA',
-    slug: 'north-america',
-    image: '/images/na.png',
-  },
-  {
-    name: 'LATIN\nAMERICA',
-    displayName: 'LATIN AMERICA',
-    slug: 'south-america',
-    image: '/images/sa.jpg',
-  },
-  {
-    name: 'ASIA',
-    slug: 'asia',
-    image: '/images/asia.jpg',
-  },
-  {
-    name: 'WORLD',
-    slug: 'africa',
-    image: '/images/world.jpg',
-  },
-]
+import { CONTINENTS } from '@/lib/continents'
 
 type Destination = {
   id: string

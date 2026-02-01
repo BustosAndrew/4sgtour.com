@@ -8,25 +8,31 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export default async function HomePage() {
-  const supabase = await createClient()
-
-  const { data: featuredTrips } = await supabase
-    .from('trips')
-    .select(
-      `
-      *,
-      packages(id, name, price),
-      courses_photo_url
-    `,
-    )
-    .order('created_at', { ascending: false })
-    .limit(4)
-
   const stats = [
-    { number: '220+', label: 'GOLF TOURS' },
-    { number: '220+', label: 'GOLF PARTNERS' },
-    { number: '220+', label: 'WORLD-WIDE DESTINATIONS' },
-    { number: '220+', label: 'SCHEDULED TOURS' },
+    {
+      iconSrc: '/svg/plane.svg',
+      iconAlt: 'Plane',
+      number: '15+',
+      lines: ['YEARS OF GOLF', 'TRAVEL EXPERTISE'],
+    },
+    {
+      iconSrc: '/svg/flag.svg',
+      iconAlt: 'Flag',
+      number: '120+',
+      lines: ['ELITE GOLF', 'DESTINATIONS'],
+    },
+    {
+      iconSrc: '/svg/location.svg',
+      iconAlt: 'Location',
+      number: '250+',
+      lines: ['CUSTOM LUXURY', 'GOLF JOURNEYS'],
+    },
+    {
+      iconSrc: '/svg/support.svg',
+      iconAlt: 'Support',
+      number: '100%',
+      lines: ['TAILORED CLIENT', 'EXPERIENCES'],
+    },
   ]
 
   return (
@@ -69,8 +75,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Destinations Carousel - bleeding to the right, clipped at viewport edge */}
-          <div className="mt-12">
+          {/* Destinations Carousel */}
+          <div className="mt-12 container">
             <DestinationsCarousel />
           </div>
         </section>
@@ -83,7 +89,8 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                The 4 Seasons <em className="italic">Difference.</em>
+                The <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span>{' '}
+                Seasons <em className="italic">Difference.</em>
               </h2>
               <p
                 className="text-white leading-relaxed mb-8"
@@ -98,13 +105,18 @@ export default async function HomePage() {
               <div className="w-12 h-0.5 bg-white mx-auto"></div>
             </div>
 
-            {/* Stats grid - filled cream circles with stats below */}
-            <div className="grid grid-cols-2 md:grid-cols-4">
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 md:gap-y-0">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  {/* Filled cream/light gray circle */}
-                  <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-6 rounded-full bg-[#d9d9d9]"></div>
-                  {/* Number below circle */}
+                  <div className="mx-auto mb-6 flex items-center justify-center">
+                    <img
+                      src={stat.iconSrc}
+                      alt={stat.iconAlt}
+                      className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24"
+                      draggable={false}
+                    />
+                  </div>
                   <p
                     className="text-2xl md:text-5xl text-white mb-2 font-semibold"
                     style={{ fontFamily: 'var(--font-body)' }}
@@ -115,9 +127,9 @@ export default async function HomePage() {
                     className="text-white text-[10px] md:text-xs uppercase tracking-wider leading-tight"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    World Wide
+                    {stat.lines[0]}
                     <br />
-                    Destinations
+                    {stat.lines[1]}
                   </p>
                 </div>
               ))}

@@ -68,7 +68,8 @@ export function HeroCarousel() {
               fontWeight: 400,
             }}
           >
-            4 Seasons Golf Tour
+            <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span> Seasons
+            Golf Tour
           </p>
           {/* Tagline */}
           <p className="text-[24px] text-white/90 mb-8">
@@ -85,30 +86,14 @@ export function HeroCarousel() {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft className="h-6 w-6 text-white" />
-      </button>
-      <button
-        onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-        aria-label="Next slide"
-      >
-        <ChevronRight className="h-6 w-6 text-white" />
-      </button>
-
       {/* Dot Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-30 left-1/2 -translate-x-1/2 flex gap-2">
         {heroImages.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-white/40'
+            className={`w-2.5 h-2.5 rounded-full transition-colors border-2 border-white ${
+              index === currentIndex ? 'bg-white' : 'bg-white/30'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
