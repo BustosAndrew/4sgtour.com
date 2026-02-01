@@ -34,7 +34,7 @@ export function UserNextTripBannerClient({
 
   return (
     <div
-      className={`fixed left-0 right-0 top-[82px] z-[39] transition-colors duration-300 ${bgClass}`}
+      className={`fixed left-0 right-0 top-[100px] z-[39] transition-colors duration-300 ${bgClass}`}
     >
       <div className="container px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center">

@@ -61,6 +61,8 @@ export function SiteHeader({
     return () => window.removeEventListener('scroll', update)
   }, [mounted])
 
+  // Mobile behavior: scroll toggles light header.
+  // Desktop behavior: hover toggles light header (no scroll dependency).
   const headerBgClass = isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
   const textClass = isScrolled ? 'text-[#735C38]' : 'text-white'
   const textHoverClass = isScrolled
@@ -72,19 +74,30 @@ export function SiteHeader({
 
   const header = (
     <header
-      className={`fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} ${className}`}
+      className={`group fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} lg:bg-transparent lg:shadow-none lg:hover:bg-white lg:hover:shadow-sm ${className}`}
     >
       <div className="flex h-full w-full items-center justify-between px-6 sm:px-10 lg:px-16">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
-          <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px]">
+          <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px] lg:h-14 lg:w-[260px]">
             <Image
-              src={isScrolled ? '/images/logo2.png' : '/images/logo.png'}
+              src="/images/logo.png"
               alt="4 Seasons Golf"
               fill
-              className="object-contain"
+              className={`object-contain transition-opacity duration-300 ${
+                isScrolled ? 'opacity-0' : 'opacity-100'
+              } lg:opacity-100 lg:group-hover:opacity-0`}
               priority
-              sizes="200px"
+              sizes="(min-width: 1024px) 260px, 200px"
+            />
+            <Image
+              src="/images/logo2.png"
+              alt="4 Seasons Golf"
+              fill
+              className={`object-contain transition-opacity duration-300 ${
+                isScrolled ? 'opacity-100' : 'opacity-0'
+              } lg:opacity-0 lg:group-hover:opacity-100`}
+              sizes="(min-width: 1024px) 260px, 200px"
             />
           </div>
         </Link>
@@ -93,25 +106,25 @@ export function SiteHeader({
         <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10">
           <Link
             href="/"
-            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
           >
             Home
           </Link>
           <Link
             href="/destinations"
-            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
           >
             Destinations
           </Link>
           <Link
             href="/tournaments"
-            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
           >
             Tournaments
           </Link>
           <Link
             href="/contact"
-            className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
           >
             Contact
           </Link>
@@ -130,7 +143,9 @@ export function SiteHeader({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <span className={`${textClass} text-sm`}>
+                <span
+                  className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm`}
+                >
                   {currentLanguage.name}
                 </span>
                 <svg
@@ -139,10 +154,11 @@ export function SiteHeader({
                   viewBox="0 0 10 5"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  className={`${textClass} lg:text-white lg:group-hover:text-[#735C38]`}
                 >
                   <path
                     d="M10 8.74228e-07L5 5L0 0L10 8.74228e-07Z"
-                    fill={isScrolled ? '#735C38' : 'white'}
+                    fill="currentColor"
                   />
                 </svg>
               </DropdownMenuTrigger>
@@ -186,13 +202,13 @@ export function SiteHeader({
             <>
               <Link
                 href="/auth/login"
-                className={`${textClass} text-sm ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/sign-up"
-                className={`${textClass} text-sm ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
               >
                 Get Started
               </Link>
