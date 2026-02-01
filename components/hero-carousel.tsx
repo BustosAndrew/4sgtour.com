@@ -5,10 +5,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 const heroImages = [
-  '/images/royalty1.png',
-  '/images/royalty2.jpg',
-  '/images/royalty3.png',
-  '/images/royalty4.jpg',
+  '/images/main1.png',
+  '/images/main2.jpg',
+  '/images/main3.jpg',
+  '/images/main4.png',
 ]
 
 export function HeroCarousel() {
