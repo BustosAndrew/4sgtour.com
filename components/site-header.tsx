@@ -47,10 +47,30 @@ export function SiteHeader({
   const [currentLanguage, setCurrentLanguage] = useState(languages[0])
   const [mounted, setMounted] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Track desktop breakpoint (Tailwind lg = 1024px)
+  useEffect(() => {
+    if (!mounted) return
+
+    const mq = window.matchMedia('(min-width: 1024px)')
+
+    const update = () => setIsDesktop(mq.matches)
+    update()
+
+    // Support older Safari
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', update)
+      return () => mq.removeEventListener('change', update)
+    } else {
+      mq.addListener(update)
+      return () => mq.removeListener(update)
+    }
+  }, [mounted])
 
   useEffect(() => {
     if (!mounted) return
@@ -64,26 +84,26 @@ export function SiteHeader({
     return () => window.removeEventListener('scroll', update)
   }, [mounted])
 
-  // Force white header on these routes (DESKTOP ONLY behaviors below still apply)
-  const forceWhiteHeader =
+  // Force white header ONLY on desktop for these routes
+  const forceWhiteHeaderRoutes =
     pathname.startsWith('/destinations') || pathname.startsWith('/tournaments')
 
-  // Desktop behavior: hover toggles light header (no scroll dependency).
-  // Mobile behavior remains unchanged because we keep using `isScrolled` everywhere mobile relies on it.
-  const headerBgClass =
-    isScrolled || forceWhiteHeader ? 'bg-white shadow-sm' : 'bg-transparent'
-  const textClass =
-    isScrolled || forceWhiteHeader ? 'text-[#735C38]' : 'text-white'
-  const textHoverClass =
-    isScrolled || forceWhiteHeader
-      ? 'hover:text-[#735C38]/70'
-      : 'hover:text-white/80'
-  const borderClass =
-    isScrolled || forceWhiteHeader ? 'border-black/15' : 'border-white/40'
-  const pillBgClass =
-    isScrolled || forceWhiteHeader ? 'bg-white/70' : 'bg-black/40'
-  const pillTextClass =
-    isScrolled || forceWhiteHeader ? 'text-[#735C38]' : 'text-white'
+  const forceWhiteHeaderDesktopOnly = isDesktop && forceWhiteHeaderRoutes
+
+  // This drives header + desktop styling; mobile remains scroll-driven.
+  const headerIsLight = isScrolled || forceWhiteHeaderDesktopOnly
+
+  // Header / desktop styles (can be forced by route on desktop)
+  const headerBgClass = headerIsLight ? 'bg-white shadow-sm' : 'bg-transparent'
+  const textClass = headerIsLight ? 'text-[#735C38]' : 'text-white'
+  const textHoverClass = headerIsLight
+    ? 'hover:text-[#735C38]/70'
+    : 'hover:text-white/80'
+
+  // Mobile button styles (MOBILE SHOULD ONLY CHANGE ON SCROLL)
+  const mobileBorderClass = isScrolled ? 'border-black/15' : 'border-white/40'
+  const mobilePillBgClass = isScrolled ? 'bg-white/70' : 'bg-black/40'
+  const mobilePillTextClass = isScrolled ? 'text-[#735C38]' : 'text-white'
 
   const header = (
     <header
@@ -98,7 +118,7 @@ export function SiteHeader({
               alt="4 Seasons Golf"
               fill
               className={`object-contain transition-opacity duration-300 ${
-                isScrolled ? 'opacity-0' : 'opacity-100'
+                headerIsLight ? 'opacity-0' : 'opacity-100'
               } lg:opacity-100 lg:group-hover:opacity-0`}
               priority
               sizes="(min-width: 1024px) 260px, 200px"
@@ -108,7 +128,7 @@ export function SiteHeader({
               alt="4 Seasons Golf"
               fill
               className={`object-contain transition-opacity duration-300 ${
-                isScrolled ? 'opacity-100' : 'opacity-0'
+                headerIsLight ? 'opacity-100' : 'opacity-0'
               } lg:opacity-0 lg:group-hover:opacity-100`}
               sizes="(min-width: 1024px) 260px, 200px"
             />
@@ -178,7 +198,7 @@ export function SiteHeader({
               <DropdownMenuContent
                 align="end"
                 className={
-                  isScrolled
+                  headerIsLight
                     ? 'bg-white/95 backdrop-blur-md border-black/10'
                     : 'bg-black/80 backdrop-blur-md border-white/20'
                 }
@@ -189,7 +209,7 @@ export function SiteHeader({
                     key={lang.code}
                     onClick={() => setCurrentLanguage(lang)}
                     className={
-                      isScrolled
+                      headerIsLight
                         ? 'flex items-center gap-2 cursor-pointer text-[#735C38] hover:bg-black/5 focus:bg-black/5 focus:text-[#735C38]'
                         : 'flex items-center gap-2 cursor-pointer text-white hover:bg-white/20 focus:bg-white/20 focus:text-white'
                     }
@@ -229,7 +249,7 @@ export function SiteHeader({
           )}
         </div>
 
-        {/* Mobile Menu Button (unchanged) */}
+        {/* Mobile Menu Button (NOW strictly scroll-driven) */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="lg:hidden -mr-2"
@@ -237,13 +257,9 @@ export function SiteHeader({
           aria-expanded={mobileMenuOpen}
         >
           <span
-            className={`inline-flex items-center gap-2 rounded-full border ${borderClass} ${pillBgClass} px-3 py-1.5 text-sm font-medium ${pillTextClass} shadow-sm backdrop-blur-sm transition-colors duration-300 uppercase`}
+            className={`inline-flex items-center gap-2 rounded-full border ${mobileBorderClass} ${mobilePillBgClass} px-3 py-1.5 text-sm font-medium ${mobilePillTextClass} shadow-sm backdrop-blur-sm transition-colors duration-300 uppercase`}
           >
-            {mobileMenuOpen ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Menu className="h-4 w-4" />
-            )}
+            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
           </span>
         </button>
