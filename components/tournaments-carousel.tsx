@@ -11,32 +11,28 @@ const tournamentItems = [
     id: '1',
     title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
     location: 'Southport, England',
-    image:
-      '/placeholder.svg?height=400&width=600&query=golf+tournament+royal+birkdale',
+    image: '/images/tourney.png',
     href: '/tournaments',
   },
   {
     id: '2',
     title: 'THE 2027 RYDER CUP',
     location: 'Limerick, Ireland',
-    image:
-      '/placeholder.svg?height=400&width=600&query=golf+tournament+ryder+cup+ireland',
+    image: '/images/tourney2.png',
     href: '/tournaments',
   },
   {
     id: '3',
     title: 'THE MASTERS 2026',
     location: 'Augusta, Georgia',
-    image:
-      '/placeholder.svg?height=400&width=600&query=golf+tournament+masters+augusta',
+    image: '/images/tourney.png',
     href: '/tournaments',
   },
   {
     id: '4',
     title: 'US OPEN 2026',
     location: 'Shinnecock Hills, New York',
-    image:
-      '/placeholder.svg?height=400&width=600&query=golf+tournament+us+open+shinnecock',
+    image: '/images/tourney2.png',
     href: '/tournaments',
   },
 ]
@@ -100,7 +96,7 @@ export function TournamentsCarousel() {
                 {/* Image */}
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={'/images/tourney.png'}
+                    src={item.image}
                     alt={item.title}
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     draggable={false}
