@@ -176,7 +176,7 @@ export default async function HomePage() {
         {/* Travel with us now Section */}
         <section className="bg-[#fffff8] py-12 sm:py-16 md:py-24">
           <div className="container">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-20">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-20 max-w-6xl mx-auto">
               <h2
                 className="text-3xl md:text-4xl lg:text-5xl text-[#735C38]"
                 style={{ fontFamily: 'var(--font-display)' }}
@@ -187,7 +187,7 @@ export default async function HomePage() {
             </div>
 
             {/* Video embed */}
-            <div className="aspect-video relative overflow-hidden">
+            <div className="aspect-video relative overflow-hidden max-w-6xl mx-auto">
               <iframe
                 src="https://www.youtube.com/embed/Yxf8G3SCMpU?si=dE0jE9EuiEjitBQV"
                 title="YouTube video player"
