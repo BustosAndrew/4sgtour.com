@@ -72,11 +72,11 @@ export function SiteHeader({
 
   const header = (
     <header
-      className={`fixed top-0 left-0 right-0 z-[40] isolate w-full h-[82px] transition-colors duration-300 ${headerBgClass} ${className}`}
+      className={`fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} ${className}`}
     >
-      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
+      <div className="flex h-full w-full items-center justify-between px-6 sm:px-10 lg:px-16">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 lg:justify-self-start lg:w-fit">
+        <Link href="/" className="flex-shrink-0">
           <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px]">
             <Image
               src={isScrolled ? '/images/logo2.png' : '/images/logo.png'}
@@ -90,7 +90,7 @@ export function SiteHeader({
         </Link>
 
         {/* Desktop Navigation - centered */}
-        <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10 lg:col-start-2 lg:justify-self-center">
+        <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10">
           <Link
             href="/"
             className={`${textClass} text-base text-[14px] font-medium ${textHoverClass} transition-colors whitespace-nowrap uppercase`}
@@ -118,7 +118,7 @@ export function SiteHeader({
         </nav>
 
         {/* Desktop Right Section */}
-        <div className="hidden lg:flex items-center justify-end gap-4 xl:gap-6 lg:col-start-3 lg:justify-self-end lg:w-fit">
+        <div className="hidden lg:flex items-center justify-end gap-4 xl:gap-6">
           {/* Language Dropdown */}
           {mounted && (
             <DropdownMenu modal={false}>

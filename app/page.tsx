@@ -178,7 +178,7 @@ export default async function HomePage() {
           <div className="container">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-20">
               <h2
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[60px] text-[#735C38]"
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735C38]"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 Travel with us now
