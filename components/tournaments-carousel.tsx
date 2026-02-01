@@ -42,11 +42,23 @@ const gap = 32 // Gap between cards
 
 export function TournamentsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Show 2 cards at a time, stop correctly at the end
   const visibleSlides = 2
   const maxIndex = Math.max(0, tournamentItems.length - visibleSlides)
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth)
+      }
+    }
+    updateWidth()
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
 
   const goToPrev = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1))
@@ -54,6 +66,26 @@ export function TournamentsCarousel() {
 
   const goToNext = () => {
     setCurrentIndex((prev) => Math.min(maxIndex, prev + 1))
+  }
+
+  // Calculate transform: scroll by card+gap, but cap at max scroll distance
+  const getTransform = () => {
+    if (currentIndex === 0) {
+      return 0
+    }
+    // Total content width (4 cards + 3 gaps + left/right padding)
+    const leftPadding = 64 // lg:pl-16 = 4rem = 64px
+    const rightPadding = 64
+    const totalContentWidth =
+      tournamentItems.length * cardWidth +
+      (tournamentItems.length - 1) * gap +
+      leftPadding +
+      rightPadding
+    // Maximum we can scroll before last card hits right edge
+    const maxScroll = Math.max(0, totalContentWidth - containerWidth)
+    // Regular step-based scroll, capped at max
+    const stepScroll = currentIndex * (cardWidth + gap)
+    return Math.min(stepScroll, maxScroll)
   }
 
   return (
@@ -78,12 +110,12 @@ export function TournamentsCarousel() {
         <ChevronRight className="h-5 w-5 text-white" strokeWidth={4} />
       </button>
 
-      {/* Carousel Container - bleeds to both sides */}
+      {/* Carousel Container - first slide at left edge, last slide at right edge */}
       <div className="overflow-hidden" ref={containerRef}>
         <div
-          className="flex gap-4 md:gap-8 transition-transform duration-500 ease-out px-[calc(50vw-220px)] md:px-[calc(50vw-440px)]"
+          className="flex gap-4 md:gap-8 transition-transform duration-500 ease-out pl-6 sm:pl-10 lg:pl-16 pr-6 sm:pr-10 lg:pr-16"
           style={{
-            transform: `translateX(-${currentIndex * (cardWidth + gap)}px)`,
+            transform: `translateX(-${getTransform()}px)`,
           }}
         >
           {tournamentItems.map((item) => (
@@ -126,9 +158,9 @@ export function TournamentsCarousel() {
         </div>
       </div>
 
-      {/* Side fades (match page background) */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-r from-[#fff]/50 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-l from-[#fff]/50 to-transparent" />
+      {/* Side fades for bleed effect */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-r from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-l from-[#fffff8] to-transparent" />
     </div>
   )
 }
