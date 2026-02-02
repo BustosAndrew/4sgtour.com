@@ -31,7 +31,7 @@ export function HeroCarousel() {
   }, [goToNext])
 
   return (
-    <section className="relative h-[500px] sm:h-[600px] md:h-[700px] bg-[#22333b] overflow-hidden">
+    <section className="relative h-screen bg-[#22333b] overflow-hidden">
       {/* Carousel Images */}
       {heroImages.map((src, index) => (
         <div
@@ -51,18 +51,18 @@ export function HeroCarousel() {
       ))}
 
       {/* Text Content - Right Aligned */}
-      <div className="absolute inset-0 flex items-center justify-end">
-        <div className="text-right px-8 md:px-16 lg:px-24">
+      <div className="absolute inset-0 flex items-center justify-center sm:justify-end">
+        <div className="text-center sm:text-right px-4 sm:px-8 md:px-16 lg:px-24">
           {/* Subtitle */}
           <p
-            className="uppercase text-white/80 text-[24px] font-semibold"
+            className="uppercase text-white/80 text-sm sm:text-lg md:text-xl lg:text-[24px] font-semibold"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
             Luxury Golf Travel
           </p>
           {/* Main heading */}
           <p
-            className="text-[64px] text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] text-white leading-tight"
             style={{
               fontFamily: "'loretta', serif",
               fontWeight: 400,
@@ -72,13 +72,13 @@ export function HeroCarousel() {
             Golf Tour
           </p>
           {/* Tagline */}
-          <p className="text-[24px] text-white/90 mb-8">
+          <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white/90 mb-6 sm:mb-8">
             Customize <em>your</em> golf journey.
           </p>
           {/* CTA Button */}
           <Link
             href="/destinations"
-            className="inline-block bg-[#735c38] hover:bg-[#5d4a2d] text-white px-8 py-3 text-sm uppercase tracking-[0.15em] transition-colors"
+            className="inline-block bg-[#735c38] hover:bg-[#5d4a2d] text-white px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm uppercase tracking-[0.15em] transition-colors"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
             Start Exploring &gt;
@@ -87,12 +87,12 @@ export function HeroCarousel() {
       </div>
 
       {/* Dot Indicators */}
-      <div className="absolute bottom-30 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-6 sm:bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
         {heroImages.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2.5 h-2.5 rounded-full transition-colors border-2 border-white ${
+            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-colors border-2 border-white ${
               index === currentIndex ? 'bg-white' : 'bg-white/30'
             }`}
             aria-label={`Go to slide ${index + 1}`}

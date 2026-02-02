@@ -37,15 +37,15 @@ export function TournamentsView() {
   return (
     <div className="relative min-h-screen bg-[#22333b]">
       {/* Header text overlay */}
-      <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-28 text-center lg:pt-36">
+      <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-24 text-center sm:pt-28 lg:pt-36">
         <h1
-          className="text-4xl text-white drop-shadow-lg md:text-5xl lg:text-6xl"
+          className="text-2xl text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-6xl"
           style={{ fontFamily: 'var(--font-display)' }}
         >
           Follow the Greatest Tournaments
         </h1>
         <p
-          className="mx-auto mt-4 max-w-2xl text-base tracking-wide text-white/80 md:text-lg"
+          className="mx-auto mt-3 max-w-2xl px-4 text-sm tracking-wide text-white/80 sm:mt-4 sm:text-base md:text-lg"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Journey through golf&apos;s most prestigious events across legendary
@@ -54,11 +54,11 @@ export function TournamentsView() {
       </div>
 
       {/* Vertical panels container */}
-      <div className="flex min-h-screen w-full flex-col pt-[82px] lg:flex-row lg:pt-20">
+      <div className="flex min-h-screen w-full flex-col pt-[140px] sm:pt-[160px] lg:flex-row lg:pt-20">
         {TOURNAMENTS.map((tournament) => (
           <div
             key={tournament.slug}
-            className="group relative flex-1 cursor-default overflow-hidden transition-all duration-500 ease-out lg:hover:flex-[1.5]"
+            className="group relative min-h-[120px] flex-1 cursor-default overflow-hidden transition-all duration-500 ease-out sm:min-h-[150px] lg:min-h-0 lg:hover:flex-[1.5]"
             onMouseEnter={() => setHoveredTournament(tournament.slug)}
             onMouseLeave={() => setHoveredTournament(null)}
           >
@@ -83,9 +83,9 @@ export function TournamentsView() {
             </div>
 
             {/* Tournament name - positioned at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center p-6 lg:p-8">
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center p-4 sm:p-6 lg:p-8">
               <h2
-                className="whitespace-pre-line text-center text-xl font-semibold uppercase tracking-[0.2em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.3em] md:text-2xl lg:text-2xl"
+                className="whitespace-pre-line text-center text-base font-semibold uppercase tracking-[0.15em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.25em] sm:text-lg sm:tracking-[0.2em] md:text-xl lg:text-2xl lg:group-hover:tracking-[0.3em]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 {tournament.name}

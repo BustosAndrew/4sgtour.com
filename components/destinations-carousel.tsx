@@ -95,24 +95,27 @@ export function DestinationsCarousel({
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute -left-6 sm:-left-8 md:-left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="absolute -left-2 sm:-left-6 md:-left-8 lg:-left-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-6 w-6 text-[#735c38]" />
+        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-[#735c38]" />
       </button>
 
       {/* Navigation Arrow - Right */}
       <button
         onClick={goToNext}
         disabled={currentIndex >= maxIndex}
-        className="absolute -right-6 sm:-right-8 md:-right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="absolute -right-2 sm:-right-6 md:-right-8 lg:-right-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-6 w-6 text-[#735c38]" />
+        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-[#735c38]" />
       </button>
 
       {/* Carousel Container */}
-      <div className="overflow-hidden px-6 sm:px-8 md:px-10" ref={containerRef}>
+      <div
+        className="overflow-hidden px-4 sm:px-6 md:px-8 lg:px-10"
+        ref={containerRef}
+      >
         <div
           className="flex transition-transform duration-500 ease-out"
           style={{
@@ -123,7 +126,7 @@ export function DestinationsCarousel({
             <Link
               key={index}
               href={item.href}
-              className="flex-shrink-0 px-2 md:px-3"
+              className="flex-shrink-0 px-1.5 sm:px-2 md:px-3"
               style={{ width: `${100 / visibleSlides}%` }}
             >
               <div className="group cursor-pointer">
@@ -137,9 +140,9 @@ export function DestinationsCarousel({
                   />
                 </div>
                 {/* Label */}
-                <div className="mt-3 pt-2">
+                <div className="mt-2 sm:mt-3 pt-1 sm:pt-2">
                   <p
-                    className="text-sm md:text-base font-semibold text-[#22333b] tracking-wider text-center uppercase"
+                    className="text-xs sm:text-sm md:text-base font-semibold text-[#22333b] tracking-wider text-center uppercase"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {item.name}

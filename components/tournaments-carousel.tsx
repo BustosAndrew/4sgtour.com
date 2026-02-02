@@ -37,28 +37,50 @@ const tournamentItems = [
   },
 ]
 
-const cardWidth = 420 // Base card width
-const gap = 32 // Gap between cards
-
 export function TournamentsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [containerWidth, setContainerWidth] = useState(0)
+  const [cardWidth, setCardWidth] = useState(420)
+  const [gap, setGap] = useState(32)
+  const [padding, setPadding] = useState(64)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Show 2 cards at a time, stop correctly at the end
-  const visibleSlides = 2
-  const maxIndex = Math.max(0, tournamentItems.length - visibleSlides)
-
+  // Responsive: adjust card width, gap, and visible slides based on screen size
   useEffect(() => {
-    const updateWidth = () => {
+    const updateDimensions = () => {
       if (containerRef.current) {
         setContainerWidth(containerRef.current.offsetWidth)
       }
+      const width = window.innerWidth
+      if (width < 640) {
+        // Mobile: single card, smaller gap and padding
+        setCardWidth(Math.min(320, width - 80))
+        setGap(16)
+        setPadding(24)
+      } else if (width < 1024) {
+        // Tablet: medium cards
+        setCardWidth(340)
+        setGap(24)
+        setPadding(40)
+      } else {
+        // Desktop: full size
+        setCardWidth(420)
+        setGap(32)
+        setPadding(64)
+      }
     }
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
   }, [])
+
+  // Calculate visible slides based on screen width
+  const visibleSlides =
+    containerWidth < 640 ? 1 : containerWidth < 1024 ? 1.5 : 2
+  const maxIndex = Math.max(
+    0,
+    tournamentItems.length - Math.ceil(visibleSlides),
+  )
 
   const goToPrev = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1))
@@ -73,14 +95,11 @@ export function TournamentsCarousel() {
     if (currentIndex === 0) {
       return 0
     }
-    // Total content width (4 cards + 3 gaps + left/right padding)
-    const leftPadding = 64 // lg:pl-16 = 4rem = 64px
-    const rightPadding = 64
+    // Total content width (cards + gaps + left/right padding)
     const totalContentWidth =
       tournamentItems.length * cardWidth +
       (tournamentItems.length - 1) * gap +
-      leftPadding +
-      rightPadding
+      padding * 2
     // Maximum we can scroll before last card hits right edge
     const maxScroll = Math.max(0, totalContentWidth - containerWidth)
     // Regular step-based scroll, capped at max
@@ -113,16 +132,20 @@ export function TournamentsCarousel() {
       {/* Carousel Container - first slide at left edge, last slide at right edge */}
       <div className="overflow-hidden" ref={containerRef}>
         <div
-          className="flex gap-4 md:gap-8 transition-transform duration-500 ease-out pl-6 sm:pl-10 lg:pl-16 pr-6 sm:pr-10 lg:pr-16"
+          className="flex transition-transform duration-500 ease-out"
           style={{
             transform: `translateX(-${getTransform()}px)`,
+            gap: `${gap}px`,
+            paddingLeft: `${padding}px`,
+            paddingRight: `${padding}px`,
           }}
         >
           {tournamentItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="flex-shrink-0 w-sm lg:w-md border-2 border-[#DEW388]"
+              className="flex-shrink-0 border-2 border-[#DEW388]"
+              style={{ width: `${cardWidth}px` }}
             >
               <div className="group cursor-pointer">
                 {/* Image */}

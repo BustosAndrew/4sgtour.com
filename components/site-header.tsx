@@ -121,10 +121,10 @@ export function SiteHeader({
     <header
       className={`group fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} ${desktopBgClasses} ${className}`}
     >
-      <div className="flex h-full w-full items-center justify-between px-6 sm:px-10 lg:px-16">
+      <div className="relative flex h-full w-full items-center justify-between px-6 sm:px-10 lg:px-16">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
-          <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px] lg:h-14 lg:w-[260px]">
+          <div className="relative h-10 w-[180px] sm:h-11 sm:w-[200px] lg:h-18 lg:w-[260px]">
             <Image
               src="/images/logo.png"
               alt="4 Seasons Golf"
@@ -148,7 +148,7 @@ export function SiteHeader({
         </Link>
 
         {/* Desktop Navigation - centered */}
-        <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10">
+        <nav className="hidden lg:flex lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 items-center justify-center gap-6 xl:gap-10">
           <Link
             href="/"
             className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
