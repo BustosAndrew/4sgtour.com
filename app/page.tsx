@@ -82,8 +82,22 @@ export default async function HomePage() {
         </section>
 
         {/* The 4 Seasons Difference Section */}
-        <section className="bg-[#22333b] py-16 md:py-24">
-          <div className="container">
+        <section className="relative overflow-hidden bg-[#22333b] py-16 md:py-24">
+          {/* Background image + overlays */}
+          <div className="absolute inset-0">
+            <Image
+              src="/images/main4.png"
+              alt=""
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority={false}
+            />
+            <div className="absolute inset-0 bg-[#22333b]/25" />
+            <div className="absolute inset-0 bg-black/55" />
+          </div>
+
+          <div className="container relative z-10">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2
                 className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"

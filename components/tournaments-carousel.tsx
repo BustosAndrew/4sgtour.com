@@ -113,20 +113,20 @@ export function TournamentsCarousel() {
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute left-2 md:left-6 lg:left-10 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute left-2 md:left-6 lg:left-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-5 w-5 text-white" strokeWidth={4} />
+        <ChevronLeft className="h-7 w-7 text-white" strokeWidth={4} />
       </button>
 
       {/* Navigation Arrow - Right */}
       <button
         onClick={goToNext}
         disabled={currentIndex >= maxIndex}
-        className="absolute right-2 md:right-6 lg:right-10 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute right-2 md:right-10 lg:right-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-5 w-5 text-white" strokeWidth={4} />
+        <ChevronRight className="h-7 w-7 text-white" strokeWidth={4} />
       </button>
 
       {/* Carousel Container - first slide at left edge, last slide at right edge */}
@@ -182,8 +182,8 @@ export function TournamentsCarousel() {
       </div>
 
       {/* Side fades for bleed effect */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-r from-[#fffff8] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 sm:w-16 md:w-24 bg-gradient-to-l from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-50 bg-gradient-to-r from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-50 bg-gradient-to-l from-[#fffff8] to-transparent" />
     </div>
   )
 }
