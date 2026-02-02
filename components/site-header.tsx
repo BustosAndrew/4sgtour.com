@@ -84,16 +84,23 @@ export function SiteHeader({
     return () => window.removeEventListener('scroll', update)
   }, [mounted])
 
-  // Force white header ONLY on desktop for these routes
+  // Force white header on these routes (all screen sizes)
   const forceWhiteHeaderRoutes =
     pathname.startsWith('/destinations') || pathname.startsWith('/tournaments')
 
-  const forceWhiteHeaderDesktopOnly = isDesktop && forceWhiteHeaderRoutes
+  // This drives header styling
+  const headerIsLight = isScrolled || forceWhiteHeaderRoutes
 
-  // This drives header + desktop styling; mobile remains scroll-driven.
-  const headerIsLight = isScrolled || forceWhiteHeaderDesktopOnly
+  // Desktop text classes: forced routes stay dark, others use hover
+  const desktopTextClass = forceWhiteHeaderRoutes
+    ? 'lg:text-[#735C38]'
+    : 'lg:text-white lg:group-hover:text-[#735C38]'
 
-  // Header / desktop styles (can be forced by route on desktop)
+  const desktopTextHoverClass = forceWhiteHeaderRoutes
+    ? 'lg:hover:text-[#735C38]/70'
+    : 'lg:hover:text-[#735C38]/70'
+
+  // Header / desktop styles (can be forced by route)
   const headerBgClass = headerIsLight ? 'bg-white shadow-sm' : 'bg-transparent'
   const textClass = headerIsLight ? 'text-[#735C38]' : 'text-white'
   const textHoverClass = headerIsLight
@@ -105,9 +112,14 @@ export function SiteHeader({
   const mobilePillBgClass = isScrolled ? 'bg-white/70' : 'bg-black/40'
   const mobilePillTextClass = isScrolled ? 'text-[#735C38]' : 'text-white'
 
+  // Desktop transparent/hover styles only when NOT forcing white
+  const desktopBgClasses = forceWhiteHeaderRoutes
+    ? ''
+    : 'lg:bg-transparent lg:shadow-none lg:hover:bg-white lg:hover:shadow-sm'
+
   const header = (
     <header
-      className={`group fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} lg:bg-transparent lg:shadow-none lg:hover:bg-white lg:hover:shadow-sm ${className}`}
+      className={`group fixed top-0 left-0 right-0 z-[40] isolate w-full h-[100px] transition-colors duration-300 ${headerBgClass} ${desktopBgClasses} ${className}`}
     >
       <div className="flex h-full w-full items-center justify-between px-6 sm:px-10 lg:px-16">
         {/* Logo */}
@@ -119,7 +131,7 @@ export function SiteHeader({
               fill
               className={`object-contain transition-opacity duration-300 ${
                 headerIsLight ? 'opacity-0' : 'opacity-100'
-              } lg:opacity-100 lg:group-hover:opacity-0`}
+              } ${forceWhiteHeaderRoutes ? 'lg:opacity-0' : 'lg:opacity-100 lg:group-hover:opacity-0'}`}
               priority
               sizes="(min-width: 1024px) 260px, 200px"
             />
@@ -129,7 +141,7 @@ export function SiteHeader({
               fill
               className={`object-contain transition-opacity duration-300 ${
                 headerIsLight ? 'opacity-100' : 'opacity-0'
-              } lg:opacity-0 lg:group-hover:opacity-100`}
+              } ${forceWhiteHeaderRoutes ? 'lg:opacity-100' : 'lg:opacity-0 lg:group-hover:opacity-100'}`}
               sizes="(min-width: 1024px) 260px, 200px"
             />
           </div>
@@ -139,25 +151,25 @@ export function SiteHeader({
         <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-10">
           <Link
             href="/"
-            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Home
           </Link>
           <Link
             href="/destinations"
-            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Destinations
           </Link>
           <Link
             href="/tournaments"
-            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Tournaments
           </Link>
           <Link
             href="/contact"
-            className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-base text-[14px] font-medium ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Contact
           </Link>
@@ -176,9 +188,7 @@ export function SiteHeader({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <span
-                  className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm`}
-                >
+                <span className={`${textClass} ${desktopTextClass} text-sm`}>
                   {currentLanguage.name}
                 </span>
                 <svg
@@ -187,7 +197,7 @@ export function SiteHeader({
                   viewBox="0 0 10 5"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`${textClass} lg:text-white lg:group-hover:text-[#735C38]`}
+                  className={`${textClass} ${desktopTextClass}`}
                 >
                   <path
                     d="M10 8.74228e-07L5 5L0 0L10 8.74228e-07Z"
@@ -235,13 +245,13 @@ export function SiteHeader({
             <>
               <Link
                 href="/auth/login"
-                className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} ${desktopTextClass} text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/sign-up"
-                className={`${textClass} lg:text-white lg:group-hover:text-[#735C38] text-sm ${textHoverClass} lg:hover:text-[#735C38]/70 transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} ${desktopTextClass} text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
                 Get Started
               </Link>
@@ -259,7 +269,11 @@ export function SiteHeader({
           <span
             className={`inline-flex items-center gap-2 rounded-full border ${mobileBorderClass} ${mobilePillBgClass} px-3 py-1.5 text-sm font-medium ${mobilePillTextClass} shadow-sm backdrop-blur-sm transition-colors duration-300 uppercase`}
           >
-            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {mobileMenuOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
             <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
           </span>
         </button>
