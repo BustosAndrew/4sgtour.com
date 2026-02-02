@@ -31,7 +31,7 @@ export function HeroCarousel() {
   }, [goToNext])
 
   return (
-    <section className="relative h-screen bg-[#22333b] overflow-hidden">
+    <section className="relative h-[105vh] bg-[#22333b] overflow-hidden">
       {/* Carousel Images */}
       {heroImages.map((src, index) => (
         <div
