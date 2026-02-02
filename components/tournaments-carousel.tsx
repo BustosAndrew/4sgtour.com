@@ -11,7 +11,7 @@ const tournamentItems = [
     id: '1',
     title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
     location: 'Southport, England',
-    image: '/images/tourney.png',
+    image: '/images/154.png',
     href: '/tournaments',
   },
   {
@@ -32,7 +32,7 @@ const tournamentItems = [
     id: '4',
     title: 'US OPEN 2026',
     location: 'Shinnecock Hills, New York',
-    image: '/images/tourney2.png',
+    image: '/images/open-home.png',
     href: '/tournaments',
   },
 ]
