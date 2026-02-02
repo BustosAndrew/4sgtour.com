@@ -36,7 +36,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
     return (
       <div className="relative min-h-screen bg-[#22333b]">
         {/* Header text overlay */}
-        <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-24 text-center sm:pt-28 lg:pt-36">
+        <div className="relative z-20 px-4 pt-38 pb-10 text-center sm:pt-28 sm:pb-12 lg:absolute lg:left-0 lg:right-0 lg:top-0 lg:pb-0 lg:pt-36">
           <h1
             className="text-2xl text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-6xl"
             style={{ fontFamily: 'var(--font-display)' }}
@@ -53,7 +53,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
         </div>
 
         {/* Vertical panels container */}
-        <div className="flex min-h-screen w-full flex-col pt-[140px] sm:pt-[160px] lg:flex-row lg:pt-0">
+        <div className="flex min-h-screen w-full flex-col pt-6 lg:flex-row lg:pt-0">
           {CONTINENTS.map((continent) => (
             <Link
               key={continent.slug}
