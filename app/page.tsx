@@ -188,7 +188,7 @@ export default async function HomePage() {
         </section>
 
         {/* The Charm of Overseas Golf Travel Section */}
-        <section className="bg-[#e8e8e8] py-12 sm:py-16 md:py-24">
+        <section className="bg-white py-12 sm:py-16 md:py-24">
           <div className="container">
             {/* Section heading */}
             <h2
@@ -215,7 +215,7 @@ export default async function HomePage() {
         </section>
 
         {/* A Special Journey with 4 Seasons Golf Tour Section */}
-        <section className="bg-[#e8e8e8] pb-12 sm:pb-16 md:pb-24">
+        <section className="bg-white pb-12 sm:pb-16 md:pb-24">
           <div className="container">
             {/* Section heading */}
             <h2
