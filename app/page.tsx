@@ -125,7 +125,7 @@ export default async function HomePage() {
                 <div key={index} className="text-center">
                   <div className="mx-auto mb-6 flex items-center justify-center">
                     <img
-                      src={stat.iconSrc}
+                      src={stat.iconSrc || "/placeholder.svg"}
                       alt={stat.iconAlt}
                       className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24"
                       draggable={false}
@@ -187,29 +187,81 @@ export default async function HomePage() {
           <TournamentsCarousel />
         </section>
 
-        {/* Travel with us now Section */}
-        <section className="bg-[#fffff8] py-12 sm:py-16 md:py-24">
+        {/* The Charm of Overseas Golf Travel Section */}
+        <section className="bg-white py-12 sm:py-16 md:py-24">
           <div className="container">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 md:gap-12 mb-6 sm:mb-20 max-w-6xl mx-auto">
-              <h2
-                className="text-3xl md:text-4xl lg:text-5xl text-[#735C38]"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Travel with us now
-              </h2>
-              <div className="flex-1 h-[2px] bg-[#735C38] hidden sm:block"></div>
-            </div>
+            {/* Section heading */}
+            <h2
+              className="text-2xl md:text-3xl lg:text-4xl text-[#22333b] text-center mb-8 md:mb-12 font-bold"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              The Charm of Overseas Golf Travel
+            </h2>
 
-            {/* Video embed */}
-            <div className="aspect-video relative overflow-hidden max-w-6xl mx-auto">
-              <iframe
-                src="https://www.youtube.com/embed/Yxf8G3SCMpU?si=dE0jE9EuiEjitBQV"
-                title="YouTube video player"
-                className="border-0 w-full h-full absolute top-0 left-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+            {/* Single large video */}
+            <div className="max-w-4xl mx-auto">
+              <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  poster="/placeholder.svg?height=720&width=1280"
+                >
+                  <source src="/videos/golf-travel-main.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* A Special Journey with 4 Seasons Golf Tour Section */}
+        <section className="bg-white pb-12 sm:pb-16 md:pb-24">
+          <div className="container">
+            {/* Section heading */}
+            <h2
+              className="text-2xl md:text-3xl lg:text-4xl text-[#22333b] text-center mb-8 md:mb-12 font-bold"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              A Special Journey with 4 Seasons Golf Tour
+            </h2>
+
+            {/* Three videos in a row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
+              {/* Video 1 */}
+              <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  poster="/placeholder.svg?height=360&width=640"
+                >
+                  <source src="/videos/golf-journey-1.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+
+              {/* Video 2 */}
+              <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  poster="/placeholder.svg?height=360&width=640"
+                >
+                  <source src="/videos/golf-journey-2.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+
+              {/* Video 3 */}
+              <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  poster="/placeholder.svg?height=360&width=640"
+                >
+                  <source src="/videos/golf-journey-3.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
             </div>
           </div>
         </section>
