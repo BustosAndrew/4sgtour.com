@@ -125,7 +125,7 @@ export default async function HomePage() {
                 <div key={index} className="text-center">
                   <div className="mx-auto mb-6 flex items-center justify-center">
                     <img
-                      src={stat.iconSrc || "/placeholder.svg"}
+                      src={stat.iconSrc || '/placeholder.svg'}
                       alt={stat.iconAlt}
                       className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24"
                       draggable={false}
@@ -192,8 +192,8 @@ export default async function HomePage() {
           <div className="container">
             {/* Section heading */}
             <h2
-              className="text-2xl md:text-3xl lg:text-4xl text-[#22333b] text-center mb-8 md:mb-12 font-bold"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 text-center"
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               The Charm of Overseas Golf Travel
             </h2>
@@ -201,12 +201,8 @@ export default async function HomePage() {
             {/* Single large video */}
             <div className="max-w-4xl mx-auto">
               <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
-                <video
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/placeholder.svg?height=720&width=1280"
-                >
-                  <source src="/videos/golf-travel-main.mp4" type="video/mp4" />
+                <video className="w-full h-full object-cover" controls>
+                  <source src="/videos/vid1.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
@@ -219,8 +215,8 @@ export default async function HomePage() {
           <div className="container">
             {/* Section heading */}
             <h2
-              className="text-2xl md:text-3xl lg:text-4xl text-[#22333b] text-center mb-8 md:mb-12 font-bold"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 text-center"
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               A Special Journey with 4 Seasons Golf Tour
             </h2>
@@ -229,36 +225,24 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
               {/* Video 1 */}
               <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
-                <video
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/placeholder.svg?height=360&width=640"
-                >
-                  <source src="/videos/golf-journey-1.mp4" type="video/mp4" />
+                <video className="w-full h-full object-cover" controls>
+                  <source src="/videos/vid2.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
 
               {/* Video 2 */}
               <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
-                <video
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/placeholder.svg?height=360&width=640"
-                >
-                  <source src="/videos/golf-journey-2.mp4" type="video/mp4" />
+                <video className="w-full h-full object-cover" controls>
+                  <source src="/videos/vid3.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
 
               {/* Video 3 */}
               <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
-                <video
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/placeholder.svg?height=360&width=640"
-                >
-                  <source src="/videos/golf-journey-3.mp4" type="video/mp4" />
+                <video className="w-full h-full object-cover" controls>
+                  <source src="/videos/vid4.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
