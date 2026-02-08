@@ -78,25 +78,24 @@ export function LoginForm() {
   return (
     <div className="flex min-h-screen w-full">
       {/* Left side - Form */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-12 lg:w-1/2 lg:px-20 xl:px-28">
-        <div className="mx-auto w-full max-w-md">
-          {/* Logo */}
-          <div className="mb-10">
-            <Image
-              src="/images/cert-logo.png"
-              alt="4 Seasons Golf Tour"
-              width={64}
-              height={64}
-              className="object-contain"
-            />
-          </div>
+      <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-1/2 lg:px-20 xl:px-28">
+        <div className="mb-8 lg:mb-6">
+          <Image
+            src="/images/cert-logo.png"
+            alt="4 Seasons Golf Tour"
+            width={56}
+            height={56}
+            className="object-contain"
+          />
+        </div>
 
+        <div className="mx-auto w-full max-w-md flex-1 flex flex-col justify-center">
           {/* Heading */}
           <div className="mb-8">
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-[#22333b] sm:text-4xl">
+            <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
               Welcome Back!
             </h1>
-            <p className="mt-2 text-base text-[#735c38]">
+            <p className="mt-2 text-base text-[#735c38]/70">
               {"Let's get you signed in securely."}
             </p>
           </div>
@@ -106,7 +105,7 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-[#22333b]"
+                className="text-sm font-medium text-[#735c38]"
               >
                 Email
               </Label>
@@ -116,7 +115,7 @@ export function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#22333b] focus-visible:ring-[#495c48]"
+                className="h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#22333b] focus-visible:ring-[#735c38]"
               />
             </div>
 
@@ -124,7 +123,7 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="password"
-                className="text-sm font-medium text-[#22333b]"
+                className="text-sm font-medium text-[#735c38]"
               >
                 Password
               </Label>
@@ -135,7 +134,7 @@ export function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] pr-10 text-[#22333b] focus-visible:ring-[#495c48]"
+                  className="h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] pr-10 text-[#22333b] focus-visible:ring-[#735c38]"
                 />
                 <button
                   type="button"
@@ -160,7 +159,7 @@ export function LoginForm() {
                   onChange={(e) => setKeepLoggedIn(e.target.checked)}
                   className="h-4 w-4 rounded border-[#d9d9d9] accent-[#495c48]"
                 />
-                <span className="text-sm text-[#22333b]">Keep me login</span>
+                <span className="text-sm text-[#735c38]">Keep me login</span>
               </label>
               <Link
                 href="/auth/reset-password"
@@ -179,7 +178,7 @@ export function LoginForm() {
             {/* Log In Button */}
             <Button
               type="submit"
-              className="h-11 w-full rounded-md bg-[#22333b] text-[#ffffff] font-semibold hover:bg-[#22333b]/90"
+              className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
               disabled={isLoading}
             >
               {isLoading ? "Logging in..." : "Log In"}
@@ -197,7 +196,7 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#22333b] hover:bg-[#eae0d6]/30 font-medium"
+            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-medium"
             onClick={handleGoogleLogin}
             disabled={isLoading}
           >
@@ -223,7 +222,7 @@ export function LoginForm() {
           </Button>
 
           {/* Create Account */}
-          <p className="mt-8 text-center text-sm text-[#22333b]">
+          <p className="mt-8 text-center text-sm text-[#735c38]">
             {"Don't have an account?"}{" "}
             <Link
               href="/auth/sign-up"

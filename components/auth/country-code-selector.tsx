@@ -47,10 +47,10 @@ export function CountryCodeSelector({ value, onChange, className = "" }: Country
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-center gap-1 bg-white/30 border border-white/40 text-white px-2 rounded-md text-base font-bold hover:bg-white/40 transition-colors h-9"
+        className="w-full flex items-center justify-center gap-1 bg-[#ffffff] border border-[#d9d9d9] text-[#22333b] px-2 rounded-md text-sm font-medium hover:bg-[#eae0d6]/30 transition-colors h-11"
       >
         <FlagIcon country={value} />
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-3 w-3 text-[#735c38] transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && <div className="fixed top-0 left-0 w-screen h-screen z-40" onClick={() => setIsOpen(false)} />}
@@ -58,14 +58,14 @@ export function CountryCodeSelector({ value, onChange, className = "" }: Country
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-1 sm:p-0">
           <div className="absolute inset-0 bg-black/20 sm:hidden" onClick={() => setIsOpen(false)} />
-          <div className="relative w-full max-w-sm bg-gray-900 border border-white/40 rounded-md shadow-2xl overflow-hidden flex flex-col max-h-[70vh] sm:max-h-64 sm:w-80">
+          <div className="relative w-full max-w-sm bg-[#ffffff] border border-[#d9d9d9] rounded-md shadow-lg overflow-hidden flex flex-col max-h-[70vh] sm:max-h-64 sm:w-80">
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search country..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-gray-800 border-b border-white/20 text-white placeholder:text-white/50 px-3 py-2 text-base font-bold focus:outline-none focus:ring-1 focus:ring-white/30"
+              className="bg-[#ffffff] border-b border-[#d9d9d9] text-[#22333b] placeholder:text-[#735c38]/50 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#735c38]"
             />
             <div className="overflow-y-auto">
               {filteredCountries.map((country) => (
@@ -77,19 +77,19 @@ export function CountryCodeSelector({ value, onChange, className = "" }: Country
                     setIsOpen(false)
                     setSearch("")
                   }}
-                  className={`w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-white/10 transition-colors ${
-                    value.code === country.code ? "bg-white/20" : ""
+                  className={`w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-[#eae0d6]/30 transition-colors ${
+                    value.code === country.code ? "bg-[#eae0d6]/50" : ""
                   }`}
                 >
                   <span className="flex-shrink-0">
                     <FlagIcon country={country} />
                   </span>
-                  <span className="text-white text-base font-bold flex-1">{country.name}</span>
-                  <span className="text-white/70 text-base font-bold flex-shrink-0">{country.dialCode}</span>
+                  <span className="text-[#22333b] text-sm flex-1">{country.name}</span>
+                  <span className="text-[#735c38] text-sm flex-shrink-0">{country.dialCode}</span>
                 </button>
               ))}
               {filteredCountries.length === 0 && (
-                <div className="px-3 py-4 text-center text-white/50 text-base font-bold">No countries found</div>
+                <div className="px-3 py-4 text-center text-[#735c38]/50 text-sm">No countries found</div>
               )}
             </div>
           </div>
