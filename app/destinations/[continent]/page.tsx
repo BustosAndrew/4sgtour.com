@@ -18,11 +18,11 @@ const CONTINENT_NAMES: Record<string, string> = {
 }
 
 const CONTINENT_IMAGES: Record<string, string> = {
-  africa: '/images/world.png',
-  asia: '/images/asia.png',
+  africa: '/images/world.jpg',
+  asia: '/images/asia.jpg',
   europe: '/images/eu.png',
   'north-america': '/images/na2.jpg',
-  'south-america': '/images/sa.png',
+  'south-america': '/images/sa.jpg',
 }
 
 export default async function ContinentTripsPage({
