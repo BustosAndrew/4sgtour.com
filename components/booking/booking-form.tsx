@@ -10,8 +10,6 @@ import {
   Users,
   User,
   Check,
-  Utensils,
-  Car,
   Minus,
   Plus,
   X,
@@ -850,13 +848,15 @@ export function BookingForm({
                     onClick={() => setSelectedMeal(String(meal.id))}
                   >
                     <div className="flex items-center gap-3">
+                      {meal.is_included && (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                          <Check className="h-4 w-4 stroke-[3]" />
+                          Included
+                        </span>
+                      )}
                       <span className="font-serif text-lg font-medium">
                         {meal.name}
-                        {meal.is_included && ' (Included)'}
                       </span>
-                      {meal.is_included && (
-                        <Utensils className="h-4 w-4 text-muted-foreground" />
-                      )}
                     </div>
                   </RadioOption>
                 ))}
@@ -881,13 +881,15 @@ export function BookingForm({
                     onClick={() => setSelectedTransport(String(transport.id))}
                   >
                     <div className="flex items-center gap-3">
+                      {transport.is_included && (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                          <Check className="h-4 w-4 stroke-[3]" />
+                          Included
+                        </span>
+                      )}
                       <span className="font-serif text-lg font-medium">
                         {transport.name}
-                        {transport.is_included && ' (Included)'}
                       </span>
-                      {transport.is_included && (
-                        <Car className="h-4 w-4 text-muted-foreground" />
-                      )}
                     </div>
                   </RadioOption>
                 ))}
@@ -919,13 +921,14 @@ export function BookingForm({
                         onClick={() => toggleService(id)}
                       >
                         <div className="flex-1">
-                          <div className="font-serif text-lg font-medium">
-                            {service.name}{' '}
+                          <div className="flex items-center gap-3">
                             {isIncluded && (
-                              <span className="text-sm text-muted-foreground">
-                                (Included)
+                              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                                <Check className="h-4 w-4 stroke-[3]" />
+                                Included
                               </span>
                             )}
+                            <span className="font-serif text-lg font-medium">{service.name}</span>
                           </div>
                           {service.description && (
                             <p className="mt-1 text-sm text-muted-foreground">

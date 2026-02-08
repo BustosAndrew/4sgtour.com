@@ -1,97 +1,157 @@
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { ContactForm } from "@/components/contact-form"
+import Image from "next/image"
+import { Mail, Globe, Phone } from "lucide-react"
 
 export default async function ContactPage() {
   return (
-    <div className="min-h-screen relative">
-      {/* Background image */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: "url('/images/contact-bg.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+    <div className="min-h-screen bg-[#ffffff]">
+      <SiteHeaderWrapper />
 
-      {/* Content wrapper with relative positioning */}
-      <div className="relative z-10">
-        <SiteHeaderWrapper />
-        <main className="py-12 md:py-16 lg:py-20 pt-28 lg:pt-32 px-4 sm:px-6 md:px-10 lg:px-20">
-          <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-stretch lg:gap-70 w-full">
-            <div className="max-w-3xl h-fit bg-white">
-              <div className="flex flex-col">
-                <div className="p-8 py-6 lg:pb-0">
-                  <h2 className="mb-2 sm:mb-3 text-2xl sm:text-3xl font-semibold text-foreground">
-                    Contact Us
-                  </h2>
-                  <p className="mb-3 text-base sm:text-lg leading-relaxed text-muted-foreground font-bold">
-                    We&apos;d love to hear from you! Whether you have questions,
-                    feedback, or need assistance, our team is here to help.
-                    Please fill out the form below or reach us through the
-                    provided contact details.
-                  </p>
-                  <ContactForm />
-                </div>
-                <div className="p-6 lg:pb-8 space-y-8 h-fit flex flex-col lg:flex-row justify-center items-center lg:items-start lg:space-x-8">
-                  <div className="flex flex-col items-center">
-                    <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-medium text-foreground">
-                      Representative Email:
+      {/* Hero Banner */}
+      <section className="relative h-[340px] sm:h-[400px] flex items-center justify-center">
+        <Image
+          src="/images/contact-bg.jpg"
+          alt="Golf course"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative z-10 text-center px-4">
+          <h1
+            className="text-4xl sm:text-5xl text-[#ffffff] mb-4"
+            style={{
+              fontFamily: "'loretta', serif",
+              fontWeight: 400,
+            }}
+          >
+            Contact Us
+          </h1>
+          <p className="max-w-xl mx-auto text-[#ffffff]/90 text-sm sm:text-base leading-relaxed">
+            {"We'd love to hear from you! Whether you have questions, feedback, or need assistance, our team is here to help. Please fill out the form below or reach us through the provided contact details."}
+          </p>
+          <div className="mt-6 w-12 h-[2px] bg-[#ffffff] mx-auto" />
+        </div>
+      </section>
+
+      {/* Contact Content */}
+      <main className="py-16 sm:py-20 px-4 sm:px-6 lg:px-20 xl:px-28">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 xl:gap-28">
+            {/* Left: Form */}
+            <div>
+              <ContactForm />
+            </div>
+
+            {/* Right: Get In Touch */}
+            <div>
+              <h2
+                className="text-3xl sm:text-4xl text-[#735c38] mb-4"
+                style={{
+                  fontFamily: "'loretta', serif",
+                  fontWeight: 400,
+                }}
+              >
+                Get In Touch
+              </h2>
+              <p className="text-[#735c38]/70 text-sm sm:text-base leading-relaxed mb-8">
+                We are a Korean travel agency specializing in overseas golf travel, offering exceptional service and a variety of destinations, offering the best golf tours. Feel free to contact us. {"We'd love to hear from you!"}
+              </p>
+
+              <div className="w-10 h-[2px] bg-[#735c38] mb-8" />
+
+              <div className="space-y-6">
+                {/* Email */}
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 flex-shrink-0">
+                    <Mail className="h-5 w-5 text-[#22333b]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                      Representative Email
                     </h3>
                     <a
                       href="mailto:info@4sgtour.com"
-                      className="text-base sm:text-lg text-foreground underline decoration-muted-foreground/30 hover:text-foreground font-bold"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
                     >
                       info@4sgtour.com
                     </a>
                   </div>
+                </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-medium text-foreground">
-                      Customer Service:
+                {/* Website */}
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 flex-shrink-0">
+                    <Globe className="h-5 w-5 text-[#22333b]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                      Website
+                    </h3>
+                    <a
+                      href="https://www.4sgtour.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                    >
+                      www.4sgtour.com
+                    </a>
+                  </div>
+                </div>
+
+                {/* Customer Service */}
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 flex-shrink-0">
+                    <Phone className="h-5 w-5 text-[#22333b]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                      Customer Service
                     </h3>
                     <a
                       href="tel:1-714-877-5998"
-                      className="text-base sm:text-lg text-foreground hover:text-foreground font-bold"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
                     >
                       1-714-877-5998
                     </a>
                   </div>
+                </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-medium text-foreground">
-                      Other:
-                    </h3>
-                    <div className="space-y-2 sm:space-y-3 text-base sm:text-lg">
-                      <a
-                        href="tel:1-213-214-3355"
-                        className="block text-foreground hover:text-foreground font-bold"
-                      >
-                        1-213-214-3355
-                      </a>
-                      <a
-                        href="tel:1-714-486-5463"
-                        className="block text-foreground hover:text-foreground font-bold"
-                      >
-                        1-714-486-5463
-                      </a>
-                      <a
-                        href="tel:070-4517-5998"
-                        className="block text-foreground hover:text-foreground font-bold"
-                      >
-                        070-4517-5998
-                      </a>
-                    </div>
+                {/* Other Numbers */}
+                <div className="pl-9">
+                  <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide mb-1">
+                    Other Numbers
+                  </h3>
+                  <div className="space-y-0.5">
+                    <a
+                      href="tel:1-213-214-3355"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                    >
+                      1-213-214-3355
+                    </a>
+                    <a
+                      href="tel:1-714-486-5463"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                    >
+                      1-714-486-5463
+                    </a>
+                    <a
+                      href="tel:070-4517-5998"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                    >
+                      070-4517-5998
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </main>
-        <SiteFooter />
-      </div>
+        </div>
+      </main>
+
+      <SiteFooter />
     </div>
   )
 }

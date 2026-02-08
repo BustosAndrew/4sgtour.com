@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { UserNav } from '@/components/user-nav'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, CalendarClock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
@@ -19,6 +19,8 @@ type SiteHeaderProps = {
   user?: any
   userType?: string
   className?: string
+  tripMessage?: string | null
+  tripDateLabel?: string | null
 }
 
 const languages = [
@@ -40,6 +42,8 @@ export function SiteHeader({
   user,
   userType = 'regular',
   className,
+  tripMessage,
+  tripDateLabel,
 }: SiteHeaderProps) {
   const pathname = usePathname()
 
@@ -177,6 +181,23 @@ export function SiteHeader({
 
         {/* Desktop Right Section */}
         <div className="hidden lg:flex items-center justify-end gap-4 xl:gap-6">
+          {/* Trip Countdown */}
+          {tripMessage && (
+            <div
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 ${
+                isScrolled
+                  ? 'bg-[#735C38]/10 text-[#735C38]'
+                  : forceWhiteHeaderRoutes
+                    ? 'bg-[#735C38]/10 text-[#735C38]'
+                    : 'bg-white/15 text-white lg:group-hover:bg-[#735C38]/10 lg:group-hover:text-[#735C38]'
+              }`}
+              title={tripDateLabel || undefined}
+            >
+              <CalendarClock className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="whitespace-nowrap">{tripMessage}</span>
+            </div>
+          )}
+
           {/* Language Dropdown */}
           {mounted && (
             <DropdownMenu modal={false}>
@@ -299,6 +320,25 @@ export function SiteHeader({
               style={{ backgroundColor: isScrolled ? '#ffffff' : '#735C38' }}
             >
               <nav className="flex flex-col gap-1">
+                {tripMessage && (
+                  <div
+                    className={`flex items-center gap-2 px-4 -mx-4 py-3 mb-1 ${
+                      isScrolled
+                        ? 'bg-[#735C38]/10 text-[#735C38]'
+                        : 'bg-white/10 text-white'
+                    }`}
+                  >
+                    <CalendarClock className="h-4 w-4 flex-shrink-0" />
+                    <div>
+                      <span className="text-sm font-medium">{tripMessage}</span>
+                      {tripDateLabel && (
+                        <span className={`text-xs ml-2 ${isScrolled ? 'text-[#735C38]/60' : 'text-white/70'}`}>
+                          ({tripDateLabel})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <Link
                   href="/"
                   className={`${

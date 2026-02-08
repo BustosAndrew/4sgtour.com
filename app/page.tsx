@@ -4,6 +4,7 @@ import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { DestinationsCarousel } from '@/components/destinations-carousel'
 import { TournamentsCarousel } from '@/components/tournaments-carousel'
+import { PartnerLogosCarousel } from '@/components/partner-logos-carousel'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -305,74 +306,7 @@ export default async function HomePage() {
 
         {/* Partner Logos Section */}
         <section className="py-12 pb-20">
-          <div className="container">
-            <div className="grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
-              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                <Image
-                  src="/images/tiger.png"
-                  alt="Tiger Booking"
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                />
-              </div>
-              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                <Image
-                  src="/images/iagto.png"
-                  alt="IAGTO"
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                />
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Austria"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <p className="font-bold mt-2 uppercase text-center">
-                  4 Seasons Golf Tour Austria
-                </p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Germany"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <p className="font-bold mt-2 uppercase text-center">
-                  4 Seasons Golf Tour Germany
-                </p>
-              </div>
-              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                <Image
-                  src="/images/pebble.png"
-                  alt="Pebble Beach Golf Links"
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                />
-              </div>
-              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                <Image
-                  src="/images/times.png"
-                  alt="Global Golf Times"
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                />
-              </div>
-            </div>
-          </div>
+          <PartnerLogosCarousel />
         </section>
       </main>
       <SiteFooter />
