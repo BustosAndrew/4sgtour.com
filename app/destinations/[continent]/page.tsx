@@ -65,9 +65,16 @@ export default async function ContinentTripsPage({
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center lg:justify-start px-4 lg:px-20">
           <div className="container text-center lg:text-left text-white">
-            <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl font-serif">
-              4 Season Golf Tour
-            </h1>
+            <p
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] text-white leading-tight"
+              style={{
+                fontFamily: "'loretta', serif",
+                fontWeight: 600
+              }}
+            >
+              <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span> Seasons
+              Golf Tour
+            </p>
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
           </div>
         </div>

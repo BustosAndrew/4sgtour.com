@@ -114,13 +114,12 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
 
           <div className="text-center">
             <h1
-              className="text-4xl text-[#22333b] md:text-5xl"
+              className="text-4xl font-bold text-[#22333b] md:text-5xl"
               style={{
                 fontFamily: "'loretta', serif",
-                fontWeight: 400,
               }}
             >
-              <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span>{' '}
+              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400 }}>4</span>{' '}
               Seasons Golf Tour - {selectedContinent}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
