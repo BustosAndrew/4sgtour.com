@@ -921,14 +921,14 @@ export function BookingForm({
                         onClick={() => toggleService(id)}
                       >
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 font-serif text-lg font-medium">
+                          <div className="flex items-center gap-3">
                             {isIncluded && (
                               <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
                                 <Check className="h-4 w-4 stroke-[3]" />
                                 Included
                               </span>
                             )}
-                            {service.name}
+                            <span className="font-serif text-lg font-medium">{service.name}</span>
                           </div>
                           {service.description && (
                             <p className="mt-1 text-sm text-muted-foreground">
