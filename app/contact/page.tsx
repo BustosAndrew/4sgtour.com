@@ -66,7 +66,7 @@ export default async function ContactPage() {
                 {/* Email */}
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 flex-shrink-0">
-                    <Mail className="h-5 w-5 text-[#735c38]" />
+                    <Mail className="h-5 w-5 text-[#22333b]" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
@@ -84,7 +84,7 @@ export default async function ContactPage() {
                 {/* Website */}
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 flex-shrink-0">
-                    <Globe className="h-5 w-5 text-[#735c38]" />
+                    <Globe className="h-5 w-5 text-[#22333b]" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
@@ -104,7 +104,7 @@ export default async function ContactPage() {
                 {/* Customer Service */}
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 flex-shrink-0">
-                    <Phone className="h-5 w-5 text-[#735c38]" />
+                    <Phone className="h-5 w-5 text-[#22333b]" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
