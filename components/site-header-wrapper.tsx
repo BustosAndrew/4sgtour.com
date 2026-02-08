@@ -1,12 +1,14 @@
 import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
-import { UserNextTripBanner } from "@/components/user-next-trip-banner"
+import { differenceInCalendarDays, format } from "date-fns"
 
 export async function SiteHeaderWrapper() {
   const supabase = await createClient()
 
   let user = null
   let userType = "regular"
+  let tripMessage: string | null = null
+  let tripDateLabel: string | null = null
 
   try {
     const { data, error } = await supabase.auth.getUser()
@@ -15,11 +17,43 @@ export async function SiteHeaderWrapper() {
       user = data.user
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_type")
+        .select("user_type, email")
         .eq("id", user.id)
         .single()
       if (profile) {
         userType = profile.user_type
+      }
+
+      // Fetch next trip data
+      const customerEmail = profile?.email || user.email
+      if (customerEmail) {
+        const { data: inquiries } = await supabase
+          .from("inquiries")
+          .select("start_date, status")
+          .eq("customer_email", customerEmail)
+
+        if (inquiries && inquiries.length > 0) {
+          const now = new Date()
+          const upcoming = inquiries
+            .filter((inq) => inq.start_date && inq.status !== "cancelled")
+            .map((inq) => {
+              const start = new Date(inq.start_date as string)
+              return { start, daysUntil: differenceInCalendarDays(start, now) }
+            })
+            .filter((item) => item.daysUntil >= 0)
+
+          if (upcoming.length > 0) {
+            const nearest = upcoming.reduce(
+              (min, item) => (item.daysUntil < min.daysUntil ? item : min),
+              upcoming[0]
+            )
+            tripMessage =
+              nearest.daysUntil === 0
+                ? "Trip starts today!"
+                : `Next trip in ${nearest.daysUntil} day${nearest.daysUntil === 1 ? "" : "s"}`
+            tripDateLabel = format(nearest.start, "MMM d, yyyy")
+          }
+        }
       }
     }
   } catch (error) {
@@ -27,9 +61,11 @@ export async function SiteHeaderWrapper() {
   }
 
   return (
-    <>
-      <SiteHeader user={user} userType={userType} />
-      <UserNextTripBanner />
-    </>
+    <SiteHeader
+      user={user}
+      userType={userType}
+      tripMessage={tripMessage}
+      tripDateLabel={tripDateLabel}
+    />
   )
 }
