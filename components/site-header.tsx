@@ -185,11 +185,11 @@ export function SiteHeader({
           {tripMessage && (
             <div
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 ${
-                headerIsLight
+                isScrolled
                   ? 'bg-[#735C38]/10 text-[#735C38]'
                   : forceWhiteHeaderRoutes
                     ? 'bg-[#735C38]/10 text-[#735C38]'
-                    : 'bg-white/15 text-white group-hover:bg-[#735C38]/10 group-hover:text-[#735C38]'
+                    : 'bg-white/15 text-white lg:group-hover:bg-[#735C38]/10 lg:group-hover:text-[#735C38]'
               }`}
               title={tripDateLabel || undefined}
             >
