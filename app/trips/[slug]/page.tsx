@@ -58,17 +58,19 @@ export default async function TripPage({ params }: TripPageProps) {
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute left-0 top-0 p-4 pt-24 sm:p-6 sm:pt-28 md:p-8 md:pt-32 lg:p-12 lg:pt-36">
-          <h1 className="text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-5xl">
-            {trip.title}
-          </h1>
-          <p className="mt-1 text-sm text-white/90 drop-shadow-lg sm:text-base md:text-lg">
-            {trip.location}
-          </p>
+        <div className="absolute inset-x-0 top-0 pt-24 sm:pt-28 md:pt-32 lg:pt-36">
+          <div className="container px-4 sm:px-6 lg:px-8">
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-5xl">
+              {trip.title}
+            </h1>
+            <p className="mt-1 text-sm text-white/90 drop-shadow-lg sm:text-base md:text-lg">
+              {trip.location}
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="container px-2 py-8 sm:py-12">
+      <section className="container px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-4">
           {/* Right Column - Images */}
           <div className="order-1 lg:order-2">
