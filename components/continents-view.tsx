@@ -117,7 +117,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
               className="text-4xl italic text-[#22333b] md:text-5xl"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              {selectedContinent}
+              <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span> Seasons Golf Tour - {selectedContinent}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
               Discover amazing golf destinations in {selectedContinent}
