@@ -123,8 +123,8 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             >
               <span
                 style={{
-                  fontVariantNumeric: 'lining-nums',
-                  fontFeatureSettings: "'lnum' 1",
+                  display: 'inline-block',
+                  transform: 'translateY(0.08em)',
                 }}
               >
                 4
