@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
@@ -18,14 +17,14 @@ const tournamentItems = [
     id: '2',
     title: 'THE 2027 RYDER CUP',
     location: 'Limerick, Ireland',
-    image: '/images/tourney2.png',
+    image: '/images/ryder-home.png',
     href: '/tournaments',
   },
   {
     id: '3',
     title: 'THE MASTERS 2026',
     location: 'Augusta, Georgia',
-    image: '/images/tourney.png',
+    image: '/images/masters-home.png',
     href: '/tournaments',
   },
   {
