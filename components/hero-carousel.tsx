@@ -46,7 +46,7 @@ export function HeroCarousel() {
             className="h-full w-full object-cover"
           />
           {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/10" />
         </div>
       ))}
 
@@ -55,7 +55,7 @@ export function HeroCarousel() {
         <div className="text-center sm:text-right px-4 sm:px-8 md:px-16 lg:px-24">
           {/* Subtitle */}
           <p
-            className="uppercase text-white/80 text-sm sm:text-lg md:text-xl lg:text-[24px] font-semibold"
+            className="uppercase text-white text-sm sm:text-lg md:text-xl lg:text-[24px] font-semibold"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
             Luxury Golf Travel
@@ -72,7 +72,7 @@ export function HeroCarousel() {
             Golf Tour
           </p>
           {/* Tagline */}
-          <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white/90 mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white mb-6 sm:mb-8 font-semibold">
             Customize <em>your</em> golf journey.
           </p>
           {/* CTA Button */}

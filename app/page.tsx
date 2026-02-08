@@ -94,7 +94,7 @@ export default async function HomePage() {
               priority={false}
             />
             <div className="absolute inset-0 bg-[#22333b]/25" />
-            <div className="absolute inset-0 bg-black/55" />
+            <div className="absolute inset-0 bg-black/15" />
           </div>
 
           <div className="container relative z-10">
@@ -271,7 +271,7 @@ export default async function HomePage() {
                 <div className="hidden w-[2.5px] bg-[#22333b]/20 md:block md:h-28 lg:h-32 mx-8" />
 
                 {/* Right: Text */}
-                <div className="text-center md:text-left flex flex-col gap-6">
+                <div className="text-center md:text-right flex flex-col gap-6">
                   <div>
                     <h3
                       className="mb-3 text-[24px] font-bold uppercase tracking-wide text-[#22333b] md:mb-4"
