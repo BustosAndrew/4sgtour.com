@@ -26,13 +26,13 @@ export function SiteFooter() {
               golf tours. We are dedicated to providing exceptional service and
               unforgettable golf experiences around the world.
             </p>
-            <div className="mt-4 flex justify-center md:justify-start">
-              <div className="bg-white/6 border border-white/20 rounded-md px-3 py-2 text-center md:text-left max-w-[320px]">
-                <p className="text-[12px] sm:text-sm text-white font-semibold leading-tight">
-                  Travel Consumer Protection Registered Corporation (TCRC)
+            <div className="mt-5 flex justify-center md:justify-start">
+              <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
+                <p className="text-xs uppercase tracking-wide text-[#EAE0D6] font-semibold">
+                  TCRC Registered
                 </p>
-                <p className="text-[12px] sm:text-sm text-white/90 leading-tight mt-0.5">
-                  Seller of Travel Registration No.: CST 2156865-70
+                <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                  Seller of Travel Reg. No.: CST 2156865-70
                 </p>
               </div>
             </div>
