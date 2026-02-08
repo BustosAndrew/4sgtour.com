@@ -38,24 +38,24 @@ export function SiteFooter() {
             </div>
             
             {/* Social Icons */}
-            <div className="mt-6 flex justify-center md:justify-start gap-3">
+            <div className="mt-6 flex justify-center md:justify-start gap-4">
               <Link
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center h-10 w-10 rounded bg-white text-[#22333b] hover:bg-white/90 transition-colors"
+                className="text-white hover:text-white/70 transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <Facebook className="h-6 w-6" />
               </Link>
               <Link
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center h-10 w-10 rounded bg-white text-[#22333b] hover:bg-white/90 transition-colors"
+                className="text-white hover:text-white/70 transition-colors"
                 aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <Instagram className="h-6 w-6" />
               </Link>
             </div>
           </div>
