@@ -18,13 +18,13 @@ export default async function HomePage() {
     {
       iconSrc: '/svg/flag.svg',
       iconAlt: 'Flag',
-      number: '120+',
-      lines: ['ELITE GOLF', 'DESTINATIONS'],
+      number: '3000+',
+      lines: ['GLOBAL GOLF', 'COURSE DESTINATIONS'],
     },
     {
       iconSrc: '/svg/location.svg',
       iconAlt: 'Location',
-      number: '250+',
+      number: '2500+',
       lines: ['CUSTOM LUXURY', 'GOLF JOURNEYS'],
     },
     {
@@ -44,7 +44,7 @@ export default async function HomePage() {
         {/* Setting a New Standard Section */}
         <section className="bg-[#fffff8] py-16 md:py-24 overflow-hidden">
           <div className="container">
-            <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="mb-12 text-center">
               <h2
                 className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
@@ -191,21 +191,22 @@ export default async function HomePage() {
         <section className="bg-white py-12 sm:py-16 md:py-24">
           <div className="container">
             {/* Section heading */}
-            <h2
-              className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 text-center"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              The Charm of Overseas Golf Travel
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                The Charm of Overseas Golf Travel
+              </h2>
+              <div className="w-4/12 h-0.5 bg-[#735c38] mb-10 hidden lg:block"></div>
+            </div>
 
             {/* Single large video */}
-            <div className="max-w-4xl mx-auto">
-              <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
-                <video className="w-full h-full object-cover" controls>
-                  <source src="/videos/vid1.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+            <div className="aspect-video relative overflow-hidden mt-6">
+              <video className="w-full h-full object-cover" controls>
+                <source src="/videos/vid1.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </section>
@@ -215,14 +216,14 @@ export default async function HomePage() {
           <div className="container">
             {/* Section heading */}
             <h2
-              className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 text-center"
+              className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] text-center"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              A Special Journey with 4 Seasons Golf Tour
+              Journey with 4 Seasons Golf Tour
             </h2>
 
             {/* Three videos in a row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-12">
               {/* Video 1 */}
               <div className="aspect-video relative overflow-hidden bg-black rounded-sm">
                 <video className="w-full h-full object-cover" controls>
@@ -251,13 +252,27 @@ export default async function HomePage() {
         </section>
 
         {/* Golf Club Delivery Service Section */}
-        <section className="bg-[#fffff8] py-12 md:py-16">
+        <section className="py-12 md:py-16">
           <div className="container">
-            <div className="mx-auto max-w-6xl">
-              <div className="bg-[#e8e8e8] px-6 py-10 md:px-12 md:py-16 lg:px-16">
-                <div className="grid items-center gap-8 md:grid-cols-[1.25fr_auto_1fr]">
-                  {/* Left: Text */}
-                  <div className="text-center md:text-left">
+            <div className="bg-[#e8e8e8] px-6 sm:px-10 py-10 md:py-16">
+              <div className="flex justify-center items-center gap-8 flex-col md:flex-row w-full">
+                {/* Left: Logo */}
+                <div className="flex items-center justify-center flex-shrink-0 h-20 sm:h-24 md:h-28 lg:h-32">
+                  <Image
+                    src="/images/sticks.png"
+                    alt="Ship Sticks"
+                    width={128}
+                    height={128}
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+
+                {/* Divider */}
+                <div className="hidden w-[2.5px] bg-[#22333b]/20 md:block md:h-28 lg:h-32 mx-8" />
+
+                {/* Right: Text */}
+                <div className="text-center md:text-left flex flex-col gap-6">
+                  <div>
                     <h3
                       className="mb-3 text-[24px] font-bold uppercase tracking-wide text-[#22333b] md:mb-4"
                       style={{ fontFamily: 'var(--font-body)' }}
@@ -273,22 +288,15 @@ export default async function HomePage() {
                       hassle-free travel experience anywhere in the world.
                     </p>
                   </div>
-
-                  {/* Divider */}
-                  <div className="hidden h-full w-[1.5px] bg-[#22333b]/20 md:block ml-26" />
-
-                  {/* Right: Logo */}
-                  <div className="mx-auto w-full max-w-[420px] md:mx-0">
-                    <div className="relative h-20 w-full sm:h-24 md:h-28 lg:h-32">
-                      <Image
-                        src="/images/sticks.png"
-                        alt="Ship Sticks"
-                        fill
-                        className="object-contain"
-                        sizes="(min-width: 1024px) 26rem, (min-width: 768px) 22rem, 80vw"
-                      />
-                    </div>
-                  </div>
+                  <Link
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-3 px-8 uppercase tracking-wider transition-colors text-center md:text-left w-fit mx-auto md:ml-auto mr-0"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    Delivery Request &gt;
+                  </Link>
                 </div>
               </div>
             </div>
@@ -298,53 +306,42 @@ export default async function HomePage() {
         {/* Partner Logos Section */}
         <section className="py-12 pb-20">
           <div className="container">
-            <div className="mx-auto w-full max-w-6xl opacity-80">
-              <div className="grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/iagto.png"
-                    alt="IAGTO"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/times.png"
-                    alt="Global Golf Times"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/ritz.png"
-                    alt="Ritz Carlton"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/pebble.png"
-                    alt="Pebble Beach Golf Links"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
-                <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
-                  <Image
-                    src="/images/tiger.png"
-                    alt="Tiger Booking"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
-                  />
-                </div>
+            <div className="grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                <Image
+                  src="/images/iagto.png"
+                  alt="IAGTO"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                />
+              </div>
+              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                <Image
+                  src="/images/times.png"
+                  alt="Global Golf Times"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                />
+              </div>
+              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                <Image
+                  src="/images/pebble.png"
+                  alt="Pebble Beach Golf Links"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                />
+              </div>
+              <div className="relative h-16 w-full max-w-[280px] sm:h-20 lg:h-24">
+                <Image
+                  src="/images/tiger.png"
+                  alt="Tiger Booking"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 1024px) 14rem, (min-width: 640px) 12rem, 45vw"
+                />
               </div>
             </div>
           </div>

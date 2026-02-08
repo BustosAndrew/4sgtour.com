@@ -101,7 +101,7 @@ export function SiteFooter() {
                 <li>
                   <a
                     href="tel:1-714-877-5998"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                   >
                     1-714-485-5463
                   </a>
@@ -114,7 +114,7 @@ export function SiteFooter() {
                 <li>
                   <a
                     href="tel:1-213-214-3355"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                   >
                     1-213-214-3355
                   </a>
@@ -122,7 +122,7 @@ export function SiteFooter() {
                 <li>
                   <a
                     href="tel:070-4517-5998"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                   >
                     070-4517-5998
                   </a>

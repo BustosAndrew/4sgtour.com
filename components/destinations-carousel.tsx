@@ -112,12 +112,9 @@ export function DestinationsCarousel({
       </button>
 
       {/* Carousel Container */}
-      <div
-        className="overflow-hidden px-4 sm:px-6 md:px-8 lg:px-10"
-        ref={containerRef}
-      >
+      <div className="overflow-hidden" ref={containerRef}>
         <div
-          className="flex transition-transform duration-500 ease-out"
+          className="flex transition-transform duration-500 ease-out gap-4"
           style={{
             transform: `translateX(-${currentIndex * (100 / visibleSlides)}%)`,
           }}
@@ -126,7 +123,7 @@ export function DestinationsCarousel({
             <Link
               key={index}
               href={item.href}
-              className="flex-shrink-0 px-1.5 sm:px-2 md:px-3"
+              className="flex-shrink-0"
               style={{ width: `${100 / visibleSlides}%` }}
             >
               <div className="group cursor-pointer">

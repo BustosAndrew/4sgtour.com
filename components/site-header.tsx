@@ -151,25 +151,25 @@ export function SiteHeader({
         <nav className="hidden lg:flex lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 items-center justify-center gap-6 xl:gap-10">
           <Link
             href="/"
-            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Home
           </Link>
           <Link
             href="/destinations"
-            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Destinations
           </Link>
           <Link
             href="/tournaments"
-            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Tournaments
           </Link>
           <Link
             href="/contact"
-            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-medium ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+            className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
             Contact
           </Link>
@@ -245,13 +245,13 @@ export function SiteHeader({
             <>
               <Link
                 href="/auth/login"
-                className={`${textClass} ${desktopTextClass} text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} ${desktopTextClass} font-semibold text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/sign-up"
-                className={`${textClass} ${desktopTextClass} text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
+                className={`${textClass} ${desktopTextClass} font-semibold text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
                 Get Started
               </Link>
