@@ -849,8 +849,8 @@ export function BookingForm({
                   >
                     <div className="flex items-center gap-3">
                       {meal.is_included && (
-                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          <Check className="h-3.5 w-3.5" />
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                          <Check className="h-4 w-4 stroke-[3]" />
                           Included
                         </span>
                       )}
@@ -882,8 +882,8 @@ export function BookingForm({
                   >
                     <div className="flex items-center gap-3">
                       {transport.is_included && (
-                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          <Check className="h-3.5 w-3.5" />
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                          <Check className="h-4 w-4 stroke-[3]" />
                           Included
                         </span>
                       )}
@@ -923,8 +923,8 @@ export function BookingForm({
                         <div className="flex-1">
                           <div className="flex items-center gap-3 font-serif text-lg font-medium">
                             {isIncluded && (
-                              <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                <Check className="h-3.5 w-3.5" />
+                              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
+                                <Check className="h-4 w-4 stroke-[3]" />
                                 Included
                               </span>
                             )}
