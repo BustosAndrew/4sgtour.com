@@ -36,22 +36,27 @@ export function SiteFooter() {
                 </p>
               </div>
             </div>
-            
+
             {/* Social Icons */}
             <div className="mt-6 flex justify-center md:justify-start gap-4">
               <Link
-                href="https://facebook.com"
+                href="https://www.facebook.com/golf4season/?locale=sr_RS"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white hover:text-white/70 transition-colors"
                 aria-label="Facebook"
               >
-                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  className="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path d="M2.5 0A2.5 2.5 0 000 2.5v19A2.5 2.5 0 002.5 24h10.024v-9.293H9.538V11.07h2.986V8.413c0-2.96 1.808-4.573 4.45-4.573 1.265 0 2.353.094 2.67.136v3.093h-1.833c-1.437 0-1.715.683-1.715 1.685v2.316h3.43l-.447 3.637h-2.983V24H21.5a2.5 2.5 0 002.5-2.5v-19A2.5 2.5 0 0021.5 0h-19z" />
                 </svg>
               </Link>
               <Link
-                href="https://instagram.com"
+                href="https://www.instagram.com/golf4season/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white hover:text-white/70 transition-colors"
