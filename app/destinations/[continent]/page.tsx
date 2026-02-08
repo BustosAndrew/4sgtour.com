@@ -72,7 +72,7 @@ export default async function ContinentTripsPage({
                 fontWeight: 600
               }}
             >
-              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400 }}>4</span> Seasons
+              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400, WebkitTextStroke: '1.5px currentColor' }}>4</span> Seasons
               Golf Tour
             </p>
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>

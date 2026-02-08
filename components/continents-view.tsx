@@ -119,7 +119,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                 fontFamily: "'loretta', serif",
               }}
             >
-              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400 }}>4</span>{' '}
+              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400, WebkitTextStroke: '1.5px currentColor' }}>4</span>{' '}
               Seasons Golf Tour - {selectedContinent}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
