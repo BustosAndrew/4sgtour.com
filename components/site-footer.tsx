@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BackToTopButton } from './back-to-top-button'
 import { Logo } from '@/components/logo'
+import { Facebook, Instagram } from 'lucide-react'
 import Image from 'next/image'
 
 export function SiteFooter() {
@@ -34,6 +35,28 @@ export function SiteFooter() {
                   Seller of Travel Registration No.: CST 2156865-70
                 </p>
               </div>
+            </div>
+            
+            {/* Social Icons */}
+            <div className="mt-6 flex justify-center md:justify-start gap-3">
+              <Link
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center h-10 w-10 rounded bg-white text-[#22333b] hover:bg-white/90 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center h-10 w-10 rounded bg-white text-[#22333b] hover:bg-white/90 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5" />
+              </Link>
             </div>
           </div>
 
