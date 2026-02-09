@@ -259,7 +259,7 @@ export default async function HomePage() {
             <div className="bg-[#e8e8e8] px-6 sm:px-10 py-10 md:py-16">
               <div className="flex justify-center items-center gap-8 flex-col md:flex-row w-full">
                 {/* Left: Logo */}
-                <div className="relative h-20 sm:h-24 md:h-28 lg:h-46">
+                <div className="relative h-20 sm:h-24 md:h-28 lg:h-36">
                   <Image
                     src="/images/sticks.png"
                     alt="Ship Sticks"
@@ -270,7 +270,7 @@ export default async function HomePage() {
                 </div>
 
                 {/* Divider */}
-                <div className="hidden w-[2.5px] bg-[#22333b]/20 md:block md:h-28 lg:h-32 mx-8" />
+                <div className="hidden w-[2.5px] bg-[#22333b]/20 md:block md:h-28 lg:h-32 mx-8 mr-6" />
 
                 {/* Right: Text */}
                 <div className="text-center md:text-right flex flex-col gap-6">

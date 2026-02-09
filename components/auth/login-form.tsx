@@ -80,13 +80,15 @@ export function LoginForm() {
       {/* Left side - Form */}
       <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-full lg:px-20 xl:px-28">
         <div className="mb-8 lg:mb-6">
-          <Image
-            src="/images/cert-logo.png"
-            alt="4 Seasons Golf Tour"
-            width={56}
-            height={56}
-            className="object-contain"
-          />
+          <Link href="/">
+            <Image
+              src="/images/cert-logo.png"
+              alt="4 Seasons Golf Tour"
+              width={56}
+              height={56}
+              className="object-contain"
+            />
+          </Link>
         </div>
 
         <div className="mx-auto w-full max-w-md flex-1 flex flex-col justify-center">
@@ -198,7 +200,7 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-semibold"
+            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38]! hover:bg-[#eae0d6]/30 font-semibold"
             onClick={handleGoogleLogin}
             disabled={isLoading}
           >
