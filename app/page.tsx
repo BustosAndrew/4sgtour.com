@@ -270,7 +270,7 @@ export default async function HomePage() {
                 </div>
 
                 {/* Divider */}
-                <div className="hidden w-[2.5px] bg-[#22333b]/20 md:block md:h-28 lg:h-32 mx-8 mr-6" />
+                <div className="hidden md:block w-[2.5px] bg-[#22333b]/20 h-44 mx-8 mr-6" />
 
                 {/* Right: Text */}
                 <div className="text-center md:text-right flex flex-col gap-6">
