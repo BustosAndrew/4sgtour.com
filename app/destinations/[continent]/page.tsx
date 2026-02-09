@@ -1,6 +1,7 @@
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { TripCard } from '@/components/trip-card'
+import { ScrollIndicator } from '@/components/scroll-indicator'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import type { Trip } from '@/lib/types/database'
@@ -78,6 +79,7 @@ export default async function ContinentTripsPage({
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
           </div>
         </div>
+        <ScrollIndicator />
       </section>
 
       <main className="container px-4 py-8 sm:px-6 sm:py-12 md:py-16 lg:py-20">
