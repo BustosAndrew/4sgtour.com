@@ -1,8 +1,8 @@
-import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { SiteFooter } from "@/components/site-footer"
-import { ContactForm } from "@/components/contact-form"
-import Image from "next/image"
-import { Mail, Globe, Phone } from "lucide-react"
+import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
+import { SiteFooter } from '@/components/site-footer'
+import { ContactForm } from '@/components/contact-form'
+import Image from 'next/image'
+import { Mail, Globe, Phone } from 'lucide-react'
 
 export default async function ContactPage() {
   return (
@@ -10,9 +10,9 @@ export default async function ContactPage() {
       <SiteHeaderWrapper />
 
       {/* Hero Banner */}
-      <section className="relative h-[340px] sm:h-[400px] flex items-center justify-center">
+      <section className="relative h-[340px] sm:h-[500px] sm:pt-20 flex items-center justify-center">
         <Image
-          src="/images/contact-bg.jpg"
+          src="/images/contact-bg.jpeg"
           alt="Golf course"
           fill
           className="object-cover"
@@ -29,8 +29,10 @@ export default async function ContactPage() {
           >
             Contact Us
           </h1>
-          <p className="max-w-xl mx-auto text-[#ffffff]/90 text-sm sm:text-base leading-relaxed">
-            {"We'd love to hear from you! Whether you have questions, feedback, or need assistance, our team is here to help. Please fill out the form below or reach us through the provided contact details."}
+          <p className="max-w-xl font-semibold mx-auto text-[#ffffff] text-sm sm:text-base leading-relaxed">
+            We'd love to hear from you! Whether you have questions, feedback, or
+            need assistance, our team is here to help. Please fill out the form
+            below or reach us through the provided contact details.
           </p>
           <div className="mt-6 w-12 h-[2px] bg-[#ffffff] mx-auto" />
         </div>
@@ -48,7 +50,7 @@ export default async function ContactPage() {
             {/* Right: Get In Touch */}
             <div>
               <h2
-                className="text-3xl sm:text-4xl text-[#735c38] mb-4"
+                className="text-3xl sm:text-4xl text-[#735c38] mb-4 font-semibold"
                 style={{
                   fontFamily: "'loretta', serif",
                   fontWeight: 400,
@@ -56,25 +58,31 @@ export default async function ContactPage() {
               >
                 Get In Touch
               </h2>
-              <p className="text-[#735c38]/70 text-sm sm:text-base leading-relaxed mb-8">
-                We are a Korean travel agency specializing in overseas golf travel, offering exceptional service and a variety of destinations, offering the best golf tours. Feel free to contact us. {"We'd love to hear from you!"}
+              <p className="text-[#735c38]/70 text-[20px] leading-relaxed mb-8 font-semibold">
+                We are a Korean travel agency specializing in overseas golf
+                travel, offering exceptional service and a variety of
+                destinations, offering the best golf tours. Feel free to contact
+                us. We'd love to hear from you!
               </p>
 
               <div className="w-10 h-[2px] bg-[#735c38] mb-8" />
 
               <div className="space-y-6">
                 {/* Email */}
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex-shrink-0">
-                    <Mail className="h-5 w-5 text-[#22333b]" />
+                <div className="flex items-start gap-8">
+                  <div className="mt-4 flex-shrink-0">
+                    <Mail className="h-7 w-7 text-[#22333b]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                    <h3
+                      className="font-semibold uppercase text-[#22333b] text-[20px] tracking-wide"
+                      style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
+                    >
                       Representative Email
                     </h3>
                     <a
                       href="mailto:info@4sgtour.com"
-                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
                       info@4sgtour.com
                     </a>
@@ -82,37 +90,43 @@ export default async function ContactPage() {
                 </div>
 
                 {/* Website */}
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex-shrink-0">
-                    <Globe className="h-5 w-5 text-[#22333b]" />
+                <div className="flex items-start gap-8">
+                  <div className="mt-4 flex-shrink-0">
+                    <Globe className="h-7 w-7 text-[#22333b]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                    <h3
+                      className="font-semibold uppercase text-[#22333b] text-[20px] tracking-wide"
+                      style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
+                    >
                       Website
                     </h3>
                     <a
                       href="https://www.4sgtour.com"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
-                      www.4sgtour.com
+                      4sgtour.com
                     </a>
                   </div>
                 </div>
 
                 {/* Customer Service */}
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex-shrink-0">
-                    <Phone className="h-5 w-5 text-[#22333b]" />
+                <div className="flex items-start gap-8">
+                  <div className="mt-4 flex-shrink-0">
+                    <Phone className="h-7 w-7 text-[#22333b]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide">
+                    <h3
+                      className="font-semibold uppercase text-[#22333b] text-[20px] tracking-wide"
+                      style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
+                    >
                       Customer Service
                     </h3>
                     <a
                       href="tel:1-714-877-5998"
-                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
                       1-714-877-5998
                     </a>
@@ -120,26 +134,29 @@ export default async function ContactPage() {
                 </div>
 
                 {/* Other Numbers */}
-                <div className="pl-9">
-                  <h3 className="text-sm font-bold uppercase text-[#22333b] tracking-wide mb-1">
+                <div className="pl-15">
+                  <h3
+                    className="font-semibold uppercase text-[#22333b] text-[20px] tracking-wide mb-1"
+                    style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
+                  >
                     Other Numbers
                   </h3>
                   <div className="space-y-0.5">
                     <a
                       href="tel:1-213-214-3355"
-                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
                       1-213-214-3355
                     </a>
                     <a
                       href="tel:1-714-486-5463"
-                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
                       1-714-486-5463
                     </a>
                     <a
                       href="tel:070-4517-5998"
-                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] transition-colors"
+                      className="block text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
                       070-4517-5998
                     </a>

@@ -90,7 +90,9 @@ export function SiteHeader({
 
   // Force white header on these routes (all screen sizes)
   const forceWhiteHeaderRoutes =
-    pathname.startsWith('/destinations') || pathname.startsWith('/tournaments')
+    pathname.startsWith('/destinations') ||
+    pathname.startsWith('/tournaments') ||
+    pathname.startsWith('/contact')
 
   // This drives header styling
   const headerIsLight = isScrolled || forceWhiteHeaderRoutes
@@ -332,7 +334,9 @@ export function SiteHeader({
                     <div>
                       <span className="text-sm font-medium">{tripMessage}</span>
                       {tripDateLabel && (
-                        <span className={`text-xs ml-2 ${isScrolled ? 'text-[#735C38]/60' : 'text-white/70'}`}>
+                        <span
+                          className={`text-xs ml-2 ${isScrolled ? 'text-[#735C38]/60' : 'text-white/70'}`}
+                        >
                           ({tripDateLabel})
                         </span>
                       )}

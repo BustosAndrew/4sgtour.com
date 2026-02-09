@@ -1,18 +1,18 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useState } from 'react'
 
 export function ContactForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [subject, setSubject] = useState("")
-  const [message, setMessage] = useState("")
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,10 +26,10 @@ export function ContactForm() {
     setTimeout(() => {
       setIsLoading(false)
       setIsSuccess(true)
-      setName("")
-      setEmail("")
-      setSubject("")
-      setMessage("")
+      setName('')
+      setEmail('')
+      setSubject('')
+      setMessage('')
 
       // Reset success message after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000)
@@ -45,7 +45,10 @@ export function ContactForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium text-[#735c38]">
+        <Label
+          htmlFor="name"
+          className="text-[20px] font-semibold text-[#735c38]"
+        >
           Your Name
         </Label>
         <Input
@@ -59,7 +62,10 @@ export function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium text-[#735c38]">
+        <Label
+          htmlFor="email"
+          className="text-[20px] font-semibold text-[#735c38]"
+        >
           Your Email
         </Label>
         <Input
@@ -73,7 +79,10 @@ export function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="subject" className="text-sm font-medium text-[#735c38]">
+        <Label
+          htmlFor="subject"
+          className="text-[20px] font-semibold text-[#735c38]"
+        >
           Subject
         </Label>
         <Input
@@ -87,7 +96,10 @@ export function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="message" className="text-sm font-medium text-[#735c38]">
+        <Label
+          htmlFor="message"
+          className="text-[20px] font-semibold text-[#735c38]"
+        >
           Your Message
         </Label>
         <Textarea
@@ -107,10 +119,10 @@ export function ContactForm() {
 
       <Button
         type="submit"
-        className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
+        className="h-11 w-fit text-lg rounded-md bg-[#495C48] text-[#ffffff] font-semibold hover:bg-[#3d4d3c]/90"
         disabled={isLoading}
       >
-        {isLoading ? "Sending..." : "Send Message"}
+        {isLoading ? 'Sending...' : 'Send Message'}
       </Button>
     </form>
   )
