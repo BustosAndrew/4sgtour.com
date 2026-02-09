@@ -64,25 +64,31 @@ export function TournamentsCarousel() {
   // Responsive: adjust card width, gap, and visible slides based on screen size
   useEffect(() => {
     const updateDimensions = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth)
-      }
+      const contWidth = containerRef.current?.offsetWidth ?? window.innerWidth
+      setContainerWidth(contWidth)
       const width = window.innerWidth
+
       if (width < 640) {
-        // Mobile: single card, smaller gap and padding
-        setCardWidth(Math.min(320, width - 80))
-        setGap(16)
-        setPadding(24)
+        // Mobile: use most of the container width so one card fits nicely
+        const p = 20
+        const g = 12
+        const cw = Math.min(360, Math.max(260, contWidth - p * 2 - 16))
+        setPadding(p)
+        setGap(g)
+        setCardWidth(cw)
       } else if (width < 1024) {
-        // Tablet: medium cards
-        setCardWidth(340)
-        setGap(24)
-        setPadding(40)
+        // Tablet: show a bit of the next card
+        const p = 40
+        const g = 20
+        const cw = Math.min(380, Math.max(320, contWidth / 1.9 - g))
+        setPadding(p)
+        setGap(g)
+        setCardWidth(cw)
       } else {
-        // Desktop: full size
-        setCardWidth(420)
-        setGap(32)
+        // Desktop: fixed card size
         setPadding(64)
+        setGap(32)
+        setCardWidth(420)
       }
     }
     updateDimensions()
@@ -90,12 +96,18 @@ export function TournamentsCarousel() {
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
-  // Calculate visible slides based on screen width
-  const visibleSlides =
-    containerWidth < 640 ? 1 : containerWidth < 1024 ? 1.5 : 2
+  // Calculate visible slides based on actual container and card sizes
+  const visibleSlides = containerWidth
+    ? Math.max(1, containerWidth / (cardWidth + gap))
+    : containerWidth < 640
+      ? 1
+      : containerWidth < 1024
+        ? 1.5
+        : 2
+
   const maxIndex = Math.max(
     0,
-    tournamentItems.length - Math.ceil(visibleSlides),
+    Math.ceil(tournamentItems.length - visibleSlides),
   )
 
   const goToPrev = () => {
@@ -120,7 +132,7 @@ export function TournamentsCarousel() {
     const maxScroll = Math.max(0, totalContentWidth - containerWidth)
     // Regular step-based scroll, capped at max
     const stepScroll = currentIndex * (cardWidth + gap)
-    return Math.min(stepScroll, maxScroll)
+    return Math.min(Math.round(stepScroll), Math.round(maxScroll))
   }
 
   return (
@@ -129,20 +141,26 @@ export function TournamentsCarousel() {
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute left-2 md:left-6 lg:left-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute left-3 md:left-6 lg:left-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center rounded-full bg-black/27 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-7 w-7 text-white" strokeWidth={4} />
+        <ChevronLeft
+          className="h-7 w-7 md:h-8 md:w-8 text-white"
+          strokeWidth={2.5}
+        />
       </button>
 
       {/* Navigation Arrow - Right */}
       <button
         onClick={goToNext}
         disabled={currentIndex >= maxIndex}
-        className="absolute right-2 md:right-10 lg:right-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute right-3 md:right-10 lg:right-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center rounded-full bg-black/27 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-7 w-7 text-white" strokeWidth={4} />
+        <ChevronRight
+          className="h-7 w-7 md:h-8 md:w-8 text-white"
+          strokeWidth={2.5}
+        />
       </button>
 
       {/* Carousel Container - first slide at left edge, last slide at right edge */}
@@ -224,8 +242,8 @@ export function TournamentsCarousel() {
       </div>
 
       {/* Side fades for bleed effect */}
-      <div className="hidden pointer-events-none absolute inset-y-0 left-0 z-20 w-50 bg-gradient-to-r from-[#fffff8] to-transparent md:block" />
-      <div className="hidden pointer-events-none absolute inset-y-0 right-0 z-20 w-50 bg-gradient-to-l from-[#fffff8] to-transparent md:block" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-40 w-10 sm:w-32 md:w-48 bg-gradient-to-r from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-40 w-10 sm:w-32 md:w-48 bg-gradient-to-l from-[#fffff8] to-transparent" />
     </div>
   )
 }
