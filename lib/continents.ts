@@ -27,11 +27,11 @@ export const CONTINENTS: ContinentItem[] = [
   {
     name: 'ASIA',
     slug: 'asia',
-    image: '/images/asia.jpg',
+    image: '/images/asia_1.jpg',
   },
   {
     name: 'WORLD',
     slug: 'africa',
-    image: '/images/world.jpg',
+    image: '/images/world.png',
   },
 ]

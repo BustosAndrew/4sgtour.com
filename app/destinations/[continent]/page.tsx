@@ -21,7 +21,7 @@ const CONTINENT_NAMES: Record<string, string> = {
 const CONTINENT_IMAGES: Record<string, string> = {
   africa: '/images/world.jpg',
   asia: '/images/asia.jpg',
-  europe: '/images/eu.png',
+  europe: '/images/europ.png',
   'north-america': '/images/na2.jpg',
   'south-america': '/images/sa.jpg',
 }
@@ -72,11 +72,19 @@ export default async function ContinentTripsPage({
               className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] text-white leading-tight"
               style={{
                 fontFamily: "'loretta', serif",
-                fontWeight: 600
+                fontWeight: 600,
               }}
             >
-              <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400, WebkitTextStroke: '1.5px currentColor' }}>4</span> Seasons
-              Golf Tour
+              <span
+                style={{
+                  fontVariantNumeric: 'lining-nums',
+                  fontWeight: 400,
+                  WebkitTextStroke: '1.5px currentColor',
+                }}
+              >
+                4
+              </span>{' '}
+              Seasons Golf Tour
             </p>
             <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
           </div>

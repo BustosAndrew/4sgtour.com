@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 const heroImages = [
-  '/images/main1.png',
+  '/images/main4.png',
   '/images/main2.jpg',
   '/images/main3.jpg',
-  '/images/main4.png',
+  '/images/main1.png',
 ]
 
 export function HeroCarousel() {

@@ -1,5 +1,4 @@
 import { SiteFooter } from '@/components/site-footer'
-import { createClient } from '@/lib/supabase/server'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { HeroCarousel } from '@/components/hero-carousel'
 import { DestinationsCarousel } from '@/components/destinations-carousel'
@@ -68,7 +67,7 @@ export default async function HomePage() {
               <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
               <Link
                 href="/destinations"
-                className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-[20px] hover:text-[#5d4a2d] transition-colors"
+                className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-base hover:text-[#5d4a2d] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 View All &gt;
@@ -87,7 +86,7 @@ export default async function HomePage() {
           {/* Background image + overlays */}
           <div className="absolute inset-0">
             <Image
-              src="/images/main4.png"
+              src="/images/difference.jpg"
               alt=""
               fill
               className="object-cover"
@@ -176,7 +175,7 @@ export default async function HomePage() {
               <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
               <Link
                 href="/tournaments"
-                className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-[20px] hover:text-[#735c38] transition-colors"
+                className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-base hover:text-[#735c38] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 View All &gt;
@@ -194,12 +193,12 @@ export default async function HomePage() {
             {/* Section heading */}
             <div className="flex items-center justify-between">
               <h2
-                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10"
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 tracking-wide"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 The Charm of Overseas Golf Travel
               </h2>
-              <div className="w-4/12 h-0.5 bg-[#735c38] mb-10 hidden lg:block"></div>
+              <div className="w-1/3 h-0.5 bg-[#735c38] mb-10 hidden lg:block"></div>
             </div>
 
             {/* Single large video */}
@@ -220,7 +219,9 @@ export default async function HomePage() {
               className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] text-center"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Journey with 4 Seasons Golf Tour
+              Journey with{' '}
+              <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span>{' '}
+              Seasons Golf Tour
             </h2>
 
             {/* Three videos in a row */}
