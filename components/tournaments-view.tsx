@@ -4,27 +4,27 @@ import { useState } from 'react'
 
 const TOURNAMENTS = [
   {
-    name: 'MASTERS',
-    slug: 'masters',
-    image: '/images/3.png',
-    objectPosition: '50% 35%',
-  },
-  {
-    name: 'US OPEN',
-    slug: 'us-open',
-    image: '/images/4.png',
-    objectPosition: '50% 35%',
-  },
-  {
     name: 'THE OPEN',
     slug: 'the-open',
-    image: '/images/1.png',
+    image: '/images/open.png',
     objectPosition: '50% 35%',
   },
   {
     name: 'RYDER CUP',
     slug: 'ryder-cup',
-    image: '/images/2.png',
+    image: '/images/ryder.png',
+    objectPosition: '50% 35%',
+  },
+  {
+    name: 'MASTERS',
+    slug: 'masters',
+    image: '/images/masters.png',
+    objectPosition: '50% 35%',
+  },
+  {
+    name: 'US OPEN',
+    slug: 'us-open',
+    image: '/images/us.png',
     objectPosition: '50% 35%',
   },
 ]
