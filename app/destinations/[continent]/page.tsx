@@ -22,7 +22,7 @@ const CONTINENT_IMAGES: Record<string, string> = {
   africa: '/images/world.jpg',
   asia: '/images/asia_2.jpg',
   europe: '/images/europ.png',
-  'north-america': '/images/na2.jpg',
+  'north-america': '/images/na_3.jpg',
   'south-america': '/images/sa.jpg',
 }
 
@@ -61,7 +61,7 @@ export default async function ContinentTripsPage({
         <img
           src={heroImage || '/placeholder.svg'}
           alt={`Golf courses in ${continentName}`}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${continentSlug === 'europe' ? 'object-top' : 'object-cover'}`}
           loading="eager"
           fetchPriority="high"
         />
