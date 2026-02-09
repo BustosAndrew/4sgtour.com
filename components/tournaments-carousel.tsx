@@ -2,14 +2,22 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Calendar,
+  Clock,
+} from 'lucide-react'
 
-// Single placeholder tournament item
 const tournamentItems = [
   {
     id: '1',
     title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
     location: 'Southport, England',
+    date: 'September, 2027',
+    duration: '3 Nights & 3 Rounds',
+    price: '$615',
     image: '/images/1.png',
     href: '/tournaments',
   },
@@ -17,6 +25,9 @@ const tournamentItems = [
     id: '2',
     title: 'THE 2027 RYDER CUP',
     location: 'Limerick, Ireland',
+    date: 'September, 2027',
+    duration: '3 Nights & 3 Rounds',
+    price: '$615',
     image: '/images/2.png',
     href: '/tournaments',
   },
@@ -24,6 +35,9 @@ const tournamentItems = [
     id: '3',
     title: 'THE MASTERS 2026',
     location: 'Augusta, Georgia',
+    date: 'April, 2026',
+    duration: '4 Nights & 3 Rounds',
+    price: '$1,250',
     image: '/images/3.png',
     href: '/tournaments',
   },
@@ -31,6 +45,9 @@ const tournamentItems = [
     id: '4',
     title: 'US OPEN 2026',
     location: 'Shinnecock Hills, New York',
+    date: 'June, 2026',
+    duration: '3 Nights & 3 Rounds',
+    price: '$950',
     image: '/images/4.png',
     href: '/tournaments',
   },
@@ -47,25 +64,31 @@ export function TournamentsCarousel() {
   // Responsive: adjust card width, gap, and visible slides based on screen size
   useEffect(() => {
     const updateDimensions = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth)
-      }
+      const contWidth = containerRef.current?.offsetWidth ?? window.innerWidth
+      setContainerWidth(contWidth)
       const width = window.innerWidth
+
       if (width < 640) {
-        // Mobile: single card, smaller gap and padding
-        setCardWidth(Math.min(320, width - 80))
-        setGap(16)
-        setPadding(24)
+        // Mobile: use most of the container width so one card fits nicely
+        const p = 20
+        const g = 12
+        const cw = Math.min(360, Math.max(260, contWidth - p * 2 - 16))
+        setPadding(p)
+        setGap(g)
+        setCardWidth(cw)
       } else if (width < 1024) {
-        // Tablet: medium cards
-        setCardWidth(340)
-        setGap(24)
-        setPadding(40)
+        // Tablet: show a bit of the next card
+        const p = 40
+        const g = 20
+        const cw = Math.min(380, Math.max(320, contWidth / 1.9 - g))
+        setPadding(p)
+        setGap(g)
+        setCardWidth(cw)
       } else {
-        // Desktop: full size
-        setCardWidth(420)
-        setGap(32)
+        // Desktop: fixed card size
         setPadding(64)
+        setGap(32)
+        setCardWidth(420)
       }
     }
     updateDimensions()
@@ -73,12 +96,18 @@ export function TournamentsCarousel() {
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
-  // Calculate visible slides based on screen width
-  const visibleSlides =
-    containerWidth < 640 ? 1 : containerWidth < 1024 ? 1.5 : 2
+  // Calculate visible slides based on actual container and card sizes
+  const visibleSlides = containerWidth
+    ? Math.max(1, containerWidth / (cardWidth + gap))
+    : containerWidth < 640
+      ? 1
+      : containerWidth < 1024
+        ? 1.5
+        : 2
+
   const maxIndex = Math.max(
     0,
-    tournamentItems.length - Math.ceil(visibleSlides),
+    Math.ceil(tournamentItems.length - visibleSlides),
   )
 
   const goToPrev = () => {
@@ -103,7 +132,7 @@ export function TournamentsCarousel() {
     const maxScroll = Math.max(0, totalContentWidth - containerWidth)
     // Regular step-based scroll, capped at max
     const stepScroll = currentIndex * (cardWidth + gap)
-    return Math.min(stepScroll, maxScroll)
+    return Math.min(Math.round(stepScroll), Math.round(maxScroll))
   }
 
   return (
@@ -112,20 +141,26 @@ export function TournamentsCarousel() {
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute left-2 md:left-6 lg:left-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute left-3 md:left-6 lg:left-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center rounded-full bg-black/27 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-7 w-7 text-white" strokeWidth={4} />
+        <ChevronLeft
+          className="h-7 w-7 md:h-8 md:w-8 text-white"
+          strokeWidth={2.5}
+        />
       </button>
 
       {/* Navigation Arrow - Right */}
       <button
         onClick={goToNext}
         disabled={currentIndex >= maxIndex}
-        className="absolute right-2 md:right-10 lg:right-20 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:shadow-md"
+        className="absolute right-3 md:right-10 lg:right-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center rounded-full bg-black/27 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform transition-all hover:scale-105"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-7 w-7 text-white" strokeWidth={4} />
+        <ChevronRight
+          className="h-7 w-7 md:h-8 md:w-8 text-white"
+          strokeWidth={2.5}
+        />
       </button>
 
       {/* Carousel Container - first slide at left edge, last slide at right edge */}
@@ -143,10 +178,10 @@ export function TournamentsCarousel() {
             <Link
               key={item.id}
               href={item.href}
-              className="flex-shrink-0 border-2 border-[#DEW388]"
+              className="flex-shrink-0"
               style={{ width: `${cardWidth}px` }}
             >
-              <div className="group cursor-pointer">
+              <div className="group cursor-pointer bg-white border border-gray-200">
                 {/* Image */}
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
@@ -156,23 +191,49 @@ export function TournamentsCarousel() {
                     draggable={false}
                   />
                 </div>
-                {/* White card with title and location */}
-                <div className="bg-white py-6 px-4 text-center">
+                {/* Info section */}
+                <div className="py-6 px-4 text-center">
                   <h3
-                    className="text-base md:text-lg font-bold text-[#735C38] tracking-wide mb-2"
+                    className="text-base md:text-lg font-bold text-[#735C38] uppercase tracking-wide mb-4"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {item.title}
                   </h3>
-                  <div className="flex items-center justify-center gap-1.5 text-[#22333b]">
-                    <MapPin className="h-4 w-4" />
-                    <span
-                      className="text-sm"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      {item.location}
-                    </span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.location}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.date}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <Clock className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.duration}
+                      </span>
+                    </div>
                   </div>
+                  <p
+                    className="mt-4 text-sm text-[#735C38] font-semibold"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    from <span className="text-lg font-bold">{item.price}</span>
+                  </p>
                 </div>
               </div>
             </Link>
@@ -181,8 +242,8 @@ export function TournamentsCarousel() {
       </div>
 
       {/* Side fades for bleed effect */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-50 bg-gradient-to-r from-[#fffff8] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-50 bg-gradient-to-l from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-40 w-10 sm:w-32 md:w-48 bg-gradient-to-r from-[#fffff8] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-40 w-10 sm:w-32 md:w-48 bg-gradient-to-l from-[#fffff8] to-transparent" />
     </div>
   )
 }
