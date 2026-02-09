@@ -1,29 +1,29 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { CountryCodeSelector } from "./country-code-selector"
-import { DEFAULT_COUNTRY, type Country } from "@/lib/countries"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import type React from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { CountryCodeSelector } from './country-code-selector'
+import { DEFAULT_COUNTRY, type Country } from '@/lib/countries'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export function SignUpForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY)
-  const [phone, setPhone] = useState("")
-  const [otp, setOtp] = useState("")
-  const [step, setStep] = useState<"signup" | "verify">("signup")
+  const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState('')
+  const [step, setStep] = useState<'signup' | 'verify'>('signup')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -41,18 +41,18 @@ export function SignUpForm() {
       const redirectTo = `${baseUrl}/auth/callback`
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
           redirectTo,
           queryParams: {
-            access_type: "offline",
-            prompt: "consent",
+            access_type: 'offline',
+            prompt: 'consent',
           },
         },
       })
       if (error) throw error
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : 'An error occurred')
       setIsLoading(false)
     }
   }
@@ -63,18 +63,18 @@ export function SignUpForm() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      setError('Passwords do not match')
       setIsLoading(false)
       return
     }
 
     const fullPhone = `${country.dialCode}${phone
-      .replace(/^\+/, "")
-      .replace(/\D/g, "")}`
+      .replace(/^\+/, '')
+      .replace(/\D/g, '')}`
     const phoneRegex = /^\+[1-9]\d{1,14}$/
 
     if (!phoneRegex.test(fullPhone)) {
-      setError("Please enter a valid phone number")
+      setError('Please enter a valid phone number')
       setIsLoading(false)
       return
     }
@@ -87,12 +87,12 @@ export function SignUpForm() {
 
       if (otpError) throw otpError
 
-      setStep("verify")
+      setStep('verify')
     } catch (error: unknown) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to send verification code",
+          : 'Failed to send verification code',
       )
     } finally {
       setIsLoading(false)
@@ -106,14 +106,14 @@ export function SignUpForm() {
 
     try {
       const fullPhone = `${country.dialCode}${phone
-        .replace(/^\+/, "")
-        .replace(/\D/g, "")}`
+        .replace(/^\+/, '')
+        .replace(/\D/g, '')}`
       const supabase = createClient()
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
         phone: fullPhone,
         token: otp,
-        type: "sms",
+        type: 'sms',
       })
 
       if (verifyError) throw verifyError
@@ -134,12 +134,12 @@ export function SignUpForm() {
         })
 
       if (signUpError) throw signUpError
-      if (!signUpData.session) throw new Error("Failed to establish session")
+      if (!signUpData.session) throw new Error('Failed to establish session')
 
-      router.push("/")
+      router.push('/')
       router.refresh()
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Verification failed")
+      setError(error instanceof Error ? error.message : 'Verification failed')
     } finally {
       setIsLoading(false)
     }
@@ -151,8 +151,8 @@ export function SignUpForm() {
 
     try {
       const fullPhone = `${country.dialCode}${phone
-        .replace(/^\+/, "")
-        .replace(/\D/g, "")}`
+        .replace(/^\+/, '')
+        .replace(/\D/g, '')}`
       const supabase = createClient()
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -161,16 +161,16 @@ export function SignUpForm() {
 
       if (otpError) throw otpError
 
-      setError("Code resent successfully!")
+      setError('Code resent successfully!')
       setTimeout(() => setError(null), 3000)
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Failed to resend OTP")
+      setError(error instanceof Error ? error.message : 'Failed to resend OTP')
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (step === "verify") {
+  if (step === 'verify') {
     return (
       <div className="flex min-h-screen w-full">
         {/* Left side - Verify Form */}
@@ -211,7 +211,7 @@ export function SignUpForm() {
                   required
                   value={otp}
                   onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
                   }
                   className="h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#22333b] text-center text-2xl tracking-widest font-semibold focus-visible:ring-[#735c38]"
                   maxLength={6}
@@ -222,9 +222,9 @@ export function SignUpForm() {
               {error && (
                 <div
                   className={`rounded-md p-3 text-sm border ${
-                    error.includes("success")
-                      ? "bg-[#34a853]/10 text-[#34a853] border-[#34a853]/20"
-                      : "bg-[#ea4335]/10 text-[#ea4335] border-[#ea4335]/20"
+                    error.includes('success')
+                      ? 'bg-[#34a853]/10 text-[#34a853] border-[#34a853]/20'
+                      : 'bg-[#ea4335]/10 text-[#ea4335] border-[#ea4335]/20'
                   }`}
                 >
                   {error}
@@ -236,7 +236,7 @@ export function SignUpForm() {
                 className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
                 disabled={isLoading || otp.length !== 6}
               >
-                {isLoading ? "Verifying..." : "Verify & Complete Signup"}
+                {isLoading ? 'Verifying...' : 'Verify & Complete Signup'}
               </Button>
 
               <div className="flex gap-3">
@@ -254,8 +254,8 @@ export function SignUpForm() {
                   variant="outline"
                   className="flex-1 h-11 rounded-md border-[#d9d9d9] text-[#735c38] hover:bg-[#eae0d6]/30"
                   onClick={() => {
-                    setStep("signup")
-                    setOtp("")
+                    setStep('signup')
+                    setOtp('')
                     setError(null)
                   }}
                   disabled={isLoading}
@@ -285,7 +285,7 @@ export function SignUpForm() {
   return (
     <div className="flex min-h-screen w-full">
       {/* Left side - Sign Up Form */}
-      <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-1/2 lg:px-20 xl:px-28">
+      <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-full lg:px-20 xl:px-28">
         <div className="mb-8 lg:mb-6">
           <Image
             src="/images/cert-logo.png"
@@ -302,7 +302,7 @@ export function SignUpForm() {
             <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
               Sign Up
             </h1>
-            <p className="mt-2 text-base text-[#735c38]/70">
+            <p className="mt-2 text-base text-[#735c38] font-semibold">
               Create your account with phone verification
             </p>
           </div>
@@ -312,7 +312,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="name"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Name
               </Label>
@@ -330,7 +330,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Email
               </Label>
@@ -348,14 +348,14 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="password"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Password
               </Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}
                   value={password}
@@ -380,14 +380,14 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="confirmPassword"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Confirm Password
               </Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   required
                   minLength={6}
                   value={confirmPassword}
@@ -412,7 +412,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="phone"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Phone Number
               </Label>
@@ -427,9 +427,7 @@ export function SignUpForm() {
                   type="tel"
                   required
                   value={phone}
-                  onChange={(e) =>
-                    setPhone(e.target.value.replace(/\D/g, ""))
-                  }
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   className="flex-1 h-11 rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#22333b] focus-visible:ring-[#735c38]"
                 />
               </div>
@@ -447,7 +445,7 @@ export function SignUpForm() {
               className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
               disabled={isLoading}
             >
-              {isLoading ? "Sending code..." : "Continue"}
+              {isLoading ? 'Sending code...' : 'Continue'}
             </Button>
           </form>
 
@@ -462,7 +460,7 @@ export function SignUpForm() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-medium"
+            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-semibold"
             onClick={handleGoogleSignUp}
             disabled={isLoading}
           >
@@ -488,8 +486,8 @@ export function SignUpForm() {
           </Button>
 
           {/* Sign In Link */}
-          <p className="mt-8 text-center text-sm text-[#735c38]">
-            Already have an account?{" "}
+          <p className="mt-8 text-center text-sm text-[#735c38] font-semibold">
+            Already have an account?{' '}
             <Link
               href="/auth/login"
               className="font-semibold text-blue-600 underline hover:text-blue-800"
@@ -501,7 +499,7 @@ export function SignUpForm() {
       </div>
 
       {/* Right side - Image (hidden on mobile) */}
-      <div className="relative hidden lg:block lg:w-1/2">
+      <div className="relative hidden lg:block lg:w-[90%]">
         <Image
           src="/images/na.png"
           alt="Aerial view of a beautiful golf course by the ocean"

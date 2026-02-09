@@ -1,26 +1,26 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import type React from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [keepLoggedIn, setKeepLoggedIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect")
+  const redirect = searchParams.get('redirect')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,10 +34,10 @@ export function LoginForm() {
         password,
       })
       if (error) throw error
-      router.push(redirect || "/")
+      router.push(redirect || '/')
       router.refresh()
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -59,18 +59,18 @@ export function LoginForm() {
         : callbackUrl
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
           redirectTo,
           queryParams: {
-            access_type: "offline",
-            prompt: "consent",
+            access_type: 'offline',
+            prompt: 'consent',
           },
         },
       })
       if (error) throw error
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : 'An error occurred')
       setIsLoading(false)
     }
   }
@@ -78,7 +78,7 @@ export function LoginForm() {
   return (
     <div className="flex min-h-screen w-full">
       {/* Left side - Form */}
-      <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-1/2 lg:px-20 xl:px-28">
+      <div className="flex w-full flex-col px-6 pt-6 pb-12 sm:px-12 lg:w-full lg:px-20 xl:px-28">
         <div className="mb-8 lg:mb-6">
           <Image
             src="/images/cert-logo.png"
@@ -95,8 +95,8 @@ export function LoginForm() {
             <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
               Welcome Back!
             </h1>
-            <p className="mt-2 text-base text-[#735c38]/70">
-              {"Let's get you signed in securely."}
+            <p className="mt-2 text-base text-[#735c38] font-semibold">
+              Let's get you signed in securely.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Email
               </Label>
@@ -123,14 +123,14 @@ export function LoginForm() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="password"
-                className="text-sm font-medium text-[#735c38]"
+                className="text-sm font-semibold text-[#735c38]"
               >
                 Password
               </Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -159,11 +159,13 @@ export function LoginForm() {
                   onChange={(e) => setKeepLoggedIn(e.target.checked)}
                   className="h-4 w-4 rounded border-[#d9d9d9] accent-[#495c48]"
                 />
-                <span className="text-sm text-[#735c38]">Keep me login</span>
+                <span className="text-sm text-[#735c38] font-semibold">
+                  Keep me logged in
+                </span>
               </label>
               <Link
                 href="/auth/reset-password"
-                className="text-sm font-medium text-[#735c38] hover:text-[#22333b] hover:underline"
+                className="text-sm font-semibold text-[#735c38] hover:text-[#22333b] hover:underline"
               >
                 Forgot password?
               </Link>
@@ -181,14 +183,14 @@ export function LoginForm() {
               className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
               disabled={isLoading}
             >
-              {isLoading ? "Logging in..." : "Log In"}
+              {isLoading ? 'Logging in...' : 'Log In'}
             </Button>
           </form>
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-[#d9d9d9]" />
-            <span className="text-sm text-[#735c38]">or</span>
+            <span className="text-sm text-[#735c38] font-semibold">or</span>
             <div className="h-px flex-1 bg-[#d9d9d9]" />
           </div>
 
@@ -196,7 +198,7 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-medium"
+            className="h-11 w-full rounded-md border-[#d9d9d9] bg-[#ffffff] text-[#735c38] hover:bg-[#eae0d6]/30 font-semibold"
             onClick={handleGoogleLogin}
             disabled={isLoading}
           >
@@ -222,8 +224,8 @@ export function LoginForm() {
           </Button>
 
           {/* Create Account */}
-          <p className="mt-8 text-center text-sm text-[#735c38]">
-            {"Don't have an account?"}{" "}
+          <p className="mt-8 text-center text-sm text-[#735c38] font-semibold">
+            Don't have an account?{' '}
             <Link
               href="/auth/sign-up"
               className="font-semibold text-blue-600 underline hover:text-blue-800"
@@ -235,7 +237,7 @@ export function LoginForm() {
       </div>
 
       {/* Right side - Image (hidden on mobile) */}
-      <div className="relative hidden lg:block lg:w-1/2">
+      <div className="relative hidden lg:block lg:w-[90%]">
         <Image
           src="/images/na.png"
           alt="Aerial view of a beautiful golf course by the ocean"

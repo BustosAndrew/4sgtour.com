@@ -211,7 +211,9 @@ export function SiteHeader({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <span className={`${textClass} ${desktopTextClass} text-sm`}>
+                <span
+                  className={`${textClass} ${desktopTextClass} text-sm font-semibold`}
+                >
                   {currentLanguage.name}
                 </span>
                 <svg
