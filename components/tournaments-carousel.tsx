@@ -2,14 +2,16 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock } from 'lucide-react'
 
-// Single placeholder tournament item
 const tournamentItems = [
   {
     id: '1',
     title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
     location: 'Southport, England',
+    date: 'September, 2027',
+    duration: '3 Nights & 3 Rounds',
+    price: '$615',
     image: '/images/1.png',
     href: '/tournaments',
   },
@@ -17,6 +19,9 @@ const tournamentItems = [
     id: '2',
     title: 'THE 2027 RYDER CUP',
     location: 'Limerick, Ireland',
+    date: 'September, 2027',
+    duration: '3 Nights & 3 Rounds',
+    price: '$615',
     image: '/images/2.png',
     href: '/tournaments',
   },
@@ -24,6 +29,9 @@ const tournamentItems = [
     id: '3',
     title: 'THE MASTERS 2026',
     location: 'Augusta, Georgia',
+    date: 'April, 2026',
+    duration: '4 Nights & 3 Rounds',
+    price: '$1,250',
     image: '/images/3.png',
     href: '/tournaments',
   },
@@ -31,6 +39,9 @@ const tournamentItems = [
     id: '4',
     title: 'US OPEN 2026',
     location: 'Shinnecock Hills, New York',
+    date: 'June, 2026',
+    duration: '3 Nights & 3 Rounds',
+    price: '$950',
     image: '/images/4.png',
     href: '/tournaments',
   },
@@ -143,10 +154,10 @@ export function TournamentsCarousel() {
             <Link
               key={item.id}
               href={item.href}
-              className="flex-shrink-0 border-2 border-[#DEW388]"
+              className="flex-shrink-0"
               style={{ width: `${cardWidth}px` }}
             >
-              <div className="group cursor-pointer">
+              <div className="group cursor-pointer bg-white shadow-sm">
                 {/* Image */}
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
@@ -156,23 +167,50 @@ export function TournamentsCarousel() {
                     draggable={false}
                   />
                 </div>
-                {/* White card with title and location */}
-                <div className="bg-white py-6 px-4 text-center">
+                {/* Info section */}
+                <div className="py-6 px-4 text-center">
                   <h3
-                    className="text-base md:text-lg font-bold text-[#735C38] tracking-wide mb-2"
+                    className="text-base md:text-lg font-bold text-[#735C38] uppercase tracking-wide mb-4"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {item.title}
                   </h3>
-                  <div className="flex items-center justify-center gap-1.5 text-[#22333b]">
-                    <MapPin className="h-4 w-4" />
-                    <span
-                      className="text-sm"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      {item.location}
-                    </span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.location}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.date}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                      <Clock className="h-4 w-4 flex-shrink-0" />
+                      <span
+                        className="text-sm"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {item.duration}
+                      </span>
+                    </div>
                   </div>
+                  <p
+                    className="mt-4 text-sm text-[#22333b]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    from{' '}
+                    <span className="text-lg font-bold">{item.price}</span>
+                  </p>
                 </div>
               </div>
             </Link>
