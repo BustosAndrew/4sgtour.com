@@ -62,6 +62,8 @@ export default async function ContinentTripsPage({
           src={heroImage || '/placeholder.svg'}
           alt={`Golf courses in ${continentName}`}
           className="h-full w-full object-cover"
+          loading="eager"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center lg:justify-start px-4 lg:px-20">
