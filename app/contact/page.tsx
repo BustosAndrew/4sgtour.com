@@ -12,7 +12,7 @@ export default async function ContactPage() {
       {/* Hero Banner */}
       <section className="relative h-[340px] sm:h-[500px] sm:pt-20 flex items-center justify-center">
         <Image
-          src="/images/contact-bg.jpeg"
+          src="/images/contact-bg.jpg"
           alt="Golf course"
           fill
           className="object-cover"
@@ -29,7 +29,7 @@ export default async function ContactPage() {
           >
             Contact Us
           </h1>
-          <p className="max-w-xl font-semibold mx-auto text-[#ffffff] text-sm sm:text-base leading-relaxed">
+          <p className="max-w-xl mx-auto text-[#ffffff] text-sm sm:text-[20px] leading-relaxed">
             We'd love to hear from you! Whether you have questions, feedback, or
             need assistance, our team is here to help. Please fill out the form
             below or reach us through the provided contact details.
