@@ -290,7 +290,7 @@ export default async function HomePage() {
                     </p>
                   </div>
                   <Link
-                    href="#"
+                    href="https://www.shipsticks.com/4seasons-golf-tour"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-3 px-8 uppercase tracking-wider transition-colors text-center md:text-left w-fit mx-auto md:ml-auto mr-0"
