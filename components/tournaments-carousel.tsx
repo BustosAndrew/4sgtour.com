@@ -2,7 +2,13 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Calendar,
+  Clock,
+} from 'lucide-react'
 
 const tournamentItems = [
   {
@@ -157,7 +163,7 @@ export function TournamentsCarousel() {
               className="flex-shrink-0"
               style={{ width: `${cardWidth}px` }}
             >
-              <div className="group cursor-pointer bg-white shadow-sm">
+              <div className="group cursor-pointer bg-white border border-gray-200">
                 {/* Image */}
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
@@ -179,7 +185,7 @@ export function TournamentsCarousel() {
                     <div className="flex items-center justify-center gap-2 text-[#22333b]">
                       <MapPin className="h-4 w-4 flex-shrink-0" />
                       <span
-                        className="text-sm"
+                        className="text-sm font-semibold"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {item.location}
@@ -188,7 +194,7 @@ export function TournamentsCarousel() {
                     <div className="flex items-center justify-center gap-2 text-[#22333b]">
                       <Calendar className="h-4 w-4 flex-shrink-0" />
                       <span
-                        className="text-sm"
+                        className="text-sm font-semibold"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {item.date}
@@ -197,7 +203,7 @@ export function TournamentsCarousel() {
                     <div className="flex items-center justify-center gap-2 text-[#22333b]">
                       <Clock className="h-4 w-4 flex-shrink-0" />
                       <span
-                        className="text-sm"
+                        className="text-sm font-semibold"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {item.duration}
@@ -205,11 +211,10 @@ export function TournamentsCarousel() {
                     </div>
                   </div>
                   <p
-                    className="mt-4 text-sm text-[#22333b]"
+                    className="mt-4 text-sm text-[#22333b] font-semibold"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    from{' '}
-                    <span className="text-lg font-bold">{item.price}</span>
+                    from <span className="text-lg font-bold">{item.price}</span>
                   </p>
                 </div>
               </div>
@@ -219,8 +224,8 @@ export function TournamentsCarousel() {
       </div>
 
       {/* Side fades for bleed effect */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-50 bg-gradient-to-r from-[#fffff8] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-50 bg-gradient-to-l from-[#fffff8] to-transparent" />
+      <div className="hidden pointer-events-none absolute inset-y-0 left-0 z-20 w-50 bg-gradient-to-r from-[#fffff8] to-transparent md:block" />
+      <div className="hidden pointer-events-none absolute inset-y-0 right-0 z-20 w-50 bg-gradient-to-l from-[#fffff8] to-transparent md:block" />
     </div>
   )
 }
