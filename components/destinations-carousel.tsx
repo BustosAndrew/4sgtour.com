@@ -90,12 +90,12 @@ export function DestinationsCarousel({
   }
 
   return (
-    <div className="relative">
+    <div className="relative px-8 sm:px-0">
       {/* Navigation Arrow - Left */}
       <button
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        className="absolute -left-2 sm:-left-6 md:-left-8 lg:-left-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="absolute left-0 sm:-left-6 md:-left-8 lg:-left-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-[#735c38]" />
@@ -105,7 +105,7 @@ export function DestinationsCarousel({
       <button
         onClick={goToNext}
         disabled={currentIndex >= maxIndex}
-        className="absolute -right-2 sm:-right-6 md:-right-8 lg:-right-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="absolute right-0 sm:-right-6 md:-right-8 lg:-right-10 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         aria-label="Next slide"
       >
         <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-[#735c38]" />
@@ -128,7 +128,7 @@ export function DestinationsCarousel({
             >
               <div className="group cursor-pointer">
                 {/* Image */}
-                <div className="aspect-[4/3] overflow-hidden">
+                <div className="aspect-[3/4] sm:aspect-[4/3] overflow-hidden">
                   <img
                     src={item.image || '/placeholder.svg'}
                     alt={item.name}

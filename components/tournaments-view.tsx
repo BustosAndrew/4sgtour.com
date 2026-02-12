@@ -60,7 +60,7 @@ export function TournamentsView() {
           <Link
             key={tournament.slug}
             href={`/tournaments/${tournament.slug}`}
-            className="group relative min-h-[120px] flex-1 cursor-pointer overflow-hidden transition-all duration-500 ease-out sm:min-h-[150px] lg:min-h-0 lg:hover:flex-[1.5]"
+            className="group relative min-h-[220px] flex-1 cursor-pointer overflow-hidden transition-all duration-500 ease-out sm:min-h-[250px] lg:min-h-0 lg:hover:flex-[1.5]"
             onMouseEnter={() => setHoveredTournament(tournament.slug)}
             onMouseLeave={() => setHoveredTournament(null)}
           >
