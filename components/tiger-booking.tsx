@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
 type Region = {
@@ -50,13 +51,20 @@ export function TigerBooking() {
     <div className="flex flex-col h-full px-6 sm:px-8 md:px-10 py-8 md:py-10">
       {/* Tiger Booking Logo */}
       <div className="flex items-center justify-center mb-6">
-        <Image
-          src="/images/tiger.png"
-          alt="Tiger Booking"
-          width={280}
-          height={140}
-          className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain"
-        />
+        <Link
+          href="https://www.tigerbooking.golf/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-opacity hover:opacity-80"
+        >
+          <Image
+            src="/images/tiger.png"
+            alt="Tiger Booking"
+            width={280}
+            height={140}
+            className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain"
+          />
+        </Link>
       </div>
 
       {/* Region Links */}

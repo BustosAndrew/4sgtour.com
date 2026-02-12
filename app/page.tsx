@@ -308,7 +308,7 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-[#22333b] hover:bg-[#22333b]/90 text-[#fffff8] font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[12px] lg:text-[13px] w-fit mx-auto"
+                      className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[12px] lg:text-[13px] w-fit mx-auto"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Delivery Request
