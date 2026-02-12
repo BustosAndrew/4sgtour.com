@@ -4,6 +4,7 @@ import { HeroCarousel } from '@/components/hero-carousel'
 import { DestinationsCarousel } from '@/components/destinations-carousel'
 import { TournamentsCarousel } from '@/components/tournaments-carousel'
 import { PartnerLogosCarousel } from '@/components/partner-logos-carousel'
+import { TigerBooking } from '@/components/tiger-booking'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -253,27 +254,13 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Golf Club Delivery Service Section */}
+        {/* Golf Club Delivery & Tiger Booking Section */}
         <section className="py-12 md:py-16">
           <div className="container">
             <div className="bg-[#e8e8e8] px-6 sm:px-10 py-10 md:py-16">
               <div className="flex justify-center items-center gap-8 flex-col md:flex-row w-full">
-                {/* Left: Logo */}
-                <div className="relative h-20 sm:h-24 md:h-28 lg:h-36">
-                  <Image
-                    src="/images/sticks.png"
-                    alt="Ship Sticks"
-                    width={128}
-                    height={128}
-                    className="h-full w-auto object-contain"
-                  />
-                </div>
-
-                {/* Divider */}
-                <div className="hidden md:block w-[2.5px] bg-[#22333b]/20 h-44 mx-8 mr-6" />
-
-                {/* Right: Text */}
-                <div className="text-center md:text-right flex flex-col gap-6">
+                {/* Left: Text */}
+                <div className="text-center md:text-left flex flex-col gap-6">
                   <div>
                     <h3
                       className="mb-3 text-[24px] font-bold uppercase tracking-wide text-[#22333b] md:mb-4"
@@ -294,13 +281,32 @@ export default async function HomePage() {
                     href="https://www.shipsticks.com/4seasons-golf-tour"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-3 px-8 uppercase tracking-wider transition-colors text-center md:text-left w-fit mx-auto md:ml-auto mr-0"
+                    className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-3 px-8 uppercase tracking-wider transition-colors text-center md:text-left w-fit mx-auto md:mr-auto ml-0"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     Delivery Request &gt;
                   </Link>
                 </div>
+
+                {/* Divider */}
+                <div className="hidden md:block w-[2.5px] bg-[#22333b]/20 h-44 mx-8 ml-6" />
+
+                {/* Right: Logo */}
+                <div className="relative h-20 sm:h-24 md:h-28 lg:h-36">
+                  <Image
+                    src="/images/sticks.png"
+                    alt="Ship Sticks"
+                    width={128}
+                    height={128}
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
               </div>
+            </div>
+
+            {/* Tiger Booking Region Links */}
+            <div className="mt-6 bg-[#e8e8e8] overflow-hidden">
+              <TigerBooking />
             </div>
           </div>
         </section>
