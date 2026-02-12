@@ -58,7 +58,7 @@ const REGIONS: Region[] = [
     ],
   },
   {
-    name: 'South America',
+    name: 'Latin America',
     slug: 'south-america',
     description:
       'Explore hidden gems across South America. Breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.',
@@ -123,11 +123,10 @@ export function TigerBooking() {
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
-                  selectedRegion === region.slug
+                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${selectedRegion === region.slug
                     ? 'text-[#735c38]'
                     : 'text-[#22333b] hover:text-[#735c38]'
-                }`}
+                  }`}
               >
                 <span
                   className="text-[16px] font-medium tracking-wide"
@@ -136,18 +135,16 @@ export function TigerBooking() {
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
-                    selectedRegion === region.slug ? 'rotate-90' : 'group-hover:translate-x-0.5'
-                  }`}
+                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${selectedRegion === region.slug ? 'rotate-90' : 'group-hover:translate-x-0.5'
+                    }`}
                 />
               </button>
 
               <div
-                className={`grid transition-all duration-300 ease-in-out ${
-                  selectedRegion === region.slug
+                className={`grid transition-all duration-300 ease-in-out ${selectedRegion === region.slug
                     ? 'grid-rows-[1fr] opacity-100'
                     : 'grid-rows-[0fr] opacity-0'
-                }`}
+                  }`}
               >
                 <div className="overflow-hidden">
                   <p
