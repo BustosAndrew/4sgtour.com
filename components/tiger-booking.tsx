@@ -62,9 +62,9 @@ export function TigerBooking() {
       </div>
 
       {/* Right: Region Links Card */}
-      <div className="md:w-1/2 bg-[#fffff8] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
+      <div className="md:w-1/2 bg-[#fafaf5] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
         <h3
-          className="text-[20px] sm:text-[22px] font-bold uppercase tracking-wide text-[#22333b] mb-6"
+          className="text-[20px] sm:text-[22px] font-bold uppercase tracking-wide text-[#22333b] mb-5"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Book by Region
@@ -73,6 +73,9 @@ export function TigerBooking() {
         <div className="flex flex-col">
           {REGIONS.map((region, index) => (
             <div key={region.slug}>
+              {/* Divider on top */}
+              {index === 0 && <div className="h-px bg-[#22333b]/10" />}
+
               {/* Region button row */}
               <button
                 onClick={() =>
@@ -80,20 +83,20 @@ export function TigerBooking() {
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-4 text-left transition-colors duration-200 ${
+                className={`group flex w-full items-center justify-between py-3.5 text-left transition-colors duration-200 ${
                   selectedRegion === region.slug
                     ? 'text-[#64CF69]'
                     : 'text-[#22333b] hover:text-[#64CF69]'
                 }`}
               >
                 <span
-                  className="text-[16px] sm:text-[18px] font-medium tracking-wide"
+                  className="text-[15px] sm:text-[17px] font-medium tracking-wide"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-5 w-5 transition-transform duration-200 ${
+                  className={`h-4 w-4 transition-transform duration-200 ${
                     selectedRegion === region.slug ? 'rotate-90' : ''
                   }`}
                 />
@@ -103,12 +106,12 @@ export function TigerBooking() {
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   selectedRegion === region.slug
-                    ? 'max-h-48 opacity-100 pb-4'
+                    ? 'max-h-48 opacity-100 pb-3'
                     : 'max-h-0 opacity-0'
                 }`}
               >
                 <p
-                  className="text-[14px] sm:text-[15px] leading-relaxed text-[#735c38] pl-1"
+                  className="text-[13px] sm:text-[14px] leading-relaxed text-[#735c38] pl-1"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.description}
@@ -116,9 +119,7 @@ export function TigerBooking() {
               </div>
 
               {/* Divider */}
-              {index < REGIONS.length - 1 && (
-                <div className="h-px bg-[#22333b]/10" />
-              )}
+              <div className="h-px bg-[#22333b]/10" />
             </div>
           ))}
         </div>
