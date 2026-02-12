@@ -10,7 +10,7 @@ export default async function ContactPage() {
       <SiteHeaderWrapper />
 
       {/* Hero Banner */}
-      <section className="relative h-[340px] sm:h-[500px] sm:pt-20 flex items-center justify-center">
+      <section className="relative h-[340px] sm:h-[500px] pt-16 sm:pt-20 flex items-end sm:items-center justify-center pb-8 sm:pb-0">
         <Image
           src="/images/contact-bg.jpg"
           alt="Golf course"
