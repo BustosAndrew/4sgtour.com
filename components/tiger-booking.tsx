@@ -47,73 +47,74 @@ export function TigerBooking() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
 
   return (
-    <div className="flex flex-col h-full p-5 sm:p-6 md:p-8">
+    <div className="flex flex-col h-full px-6 sm:px-8 md:px-10 py-8 md:py-10">
       {/* Tiger Booking Logo */}
-      <div className="flex items-center justify-center py-3 mb-4">
+      <div className="flex items-center justify-center mb-6">
         <Image
           src="/images/tiger.png"
           alt="Tiger Booking"
           width={280}
           height={140}
-          className="w-full max-w-[220px] md:max-w-[260px] h-auto object-contain"
+          className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain"
         />
       </div>
 
       {/* Region Links */}
       <div className="flex flex-col flex-1">
         <h4
-          className="text-[14px] sm:text-[15px] font-bold uppercase tracking-wide text-[#22333b] mb-3"
+          className="text-[13px] font-bold uppercase tracking-[0.15em] text-[#735c38] mb-4"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Book by Region
         </h4>
 
         <div className="flex flex-col">
-          {REGIONS.map((region, index) => (
+          <div className="h-px bg-[#22333b]/8" />
+          {REGIONS.map((region) => (
             <div key={region.slug}>
-              {index === 0 && <div className="h-px bg-[#22333b]/10" />}
-
               <button
                 onClick={() =>
                   setSelectedRegion(
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-2.5 text-left transition-colors duration-200 ${
+                className={`group flex w-full items-center justify-between py-3 text-left transition-all duration-200 ${
                   selectedRegion === region.slug
-                    ? 'text-[#64CF69]'
-                    : 'text-[#22333b] hover:text-[#64CF69]'
+                    ? 'text-[#735c38]'
+                    : 'text-[#22333b] hover:text-[#735c38]'
                 }`}
               >
                 <span
-                  className="text-[13px] sm:text-[14px] font-medium tracking-wide"
+                  className="text-[14px] font-medium tracking-wide"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                    selectedRegion === region.slug ? 'rotate-90' : ''
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-out ${
+                    selectedRegion === region.slug ? 'rotate-90' : 'group-hover:translate-x-0.5'
                   }`}
                 />
               </button>
 
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                className={`grid transition-all duration-300 ease-in-out ${
                   selectedRegion === region.slug
-                    ? 'max-h-40 opacity-100 pb-2'
-                    : 'max-h-0 opacity-0'
+                    ? 'grid-rows-[1fr] opacity-100'
+                    : 'grid-rows-[0fr] opacity-0'
                 }`}
               >
-                <p
-                  className="text-[12px] sm:text-[13px] leading-relaxed text-[#735c38] pl-1"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  {region.description}
-                </p>
+                <div className="overflow-hidden">
+                  <p
+                    className="text-[13px] leading-relaxed text-[#735c38]/80 pb-3 pr-4"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    {region.description}
+                  </p>
+                </div>
               </div>
 
-              <div className="h-px bg-[#22333b]/10" />
+              <div className="h-px bg-[#22333b]/8" />
             </div>
           ))}
         </div>

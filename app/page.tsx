@@ -7,6 +7,7 @@ import { PartnerLogosCarousel } from '@/components/partner-logos-carousel'
 import { TigerBooking } from '@/components/tiger-booking'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ChevronRight } from 'lucide-react'
 
 export default async function HomePage() {
   const stats = [
@@ -257,18 +258,23 @@ export default async function HomePage() {
         {/* Tiger Booking & Golf Club Delivery Section */}
         <section className="py-12 md:py-16">
           <div className="container">
-            <div className="bg-[#e8e8e8] flex flex-col md:flex-row items-stretch w-full overflow-hidden">
+            <div className="bg-[#f2f0ec] flex flex-col md:flex-row items-stretch w-full overflow-hidden">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-1/2">
+              <div className="md:w-[48%]">
                 <TigerBooking />
               </div>
 
               {/* Vertical Divider */}
-              <div className="hidden md:block w-[2px] bg-[#22333b]/10 self-stretch" />
+              <div className="hidden md:flex items-center py-8">
+                <div className="w-px h-full bg-[#22333b]/10" />
+              </div>
+
+              {/* Horizontal Divider (mobile) */}
+              <div className="md:hidden h-px bg-[#22333b]/10 mx-6" />
 
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="md:w-1/2 px-5 sm:px-8 py-8 md:py-10 flex items-center">
-                <div className="flex justify-center items-center gap-6 flex-col w-full">
+              <div className="flex-1 px-6 sm:px-8 md:px-10 py-8 md:py-10 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-5 w-full max-w-sm">
                   {/* Logo */}
                   <div className="relative h-16 sm:h-20 md:h-24 shrink-0">
                     <Image
@@ -281,16 +287,16 @@ export default async function HomePage() {
                   </div>
 
                   {/* Text */}
-                  <div className="text-center flex flex-col gap-3">
+                  <div className="text-center flex flex-col gap-4">
                     <div>
                       <h3
-                        className="mb-2 text-[16px] lg:text-[18px] font-bold uppercase tracking-wide text-[#22333b]"
+                        className="mb-2 text-[15px] lg:text-[17px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#735C38] max-w-sm mx-auto"
+                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#735C38]/80"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
@@ -302,10 +308,11 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-2 px-5 uppercase tracking-wider transition-colors text-center text-[12px] lg:text-[13px] w-fit mx-auto"
+                      className="inline-flex items-center justify-center bg-[#22333b] hover:bg-[#22333b]/90 text-[#fffff8] font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[12px] lg:text-[13px] w-fit mx-auto"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      Delivery Request &gt;
+                      Delivery Request
+                      <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </div>
