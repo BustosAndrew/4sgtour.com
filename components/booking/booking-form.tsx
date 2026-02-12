@@ -943,7 +943,7 @@ export function BookingForm({
               <Textarea
                 value={additionalRequests}
                 onChange={(e) => setAdditionalRequests(e.target.value)}
-                placeholder="Lorem ipsum dolor..."
+                placeholder="E.g., dietary restrictions, accessibility needs, early check-in, airport transfers..."
                 className="min-h-[100px] border-2 border-gray-200 bg-gray-50"
               />
             </div>
