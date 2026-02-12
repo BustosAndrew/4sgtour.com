@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -66,6 +66,76 @@ interface BookingFormProps {
   user: any
   profile: any
   preSelectedPackageId?: string
+}
+
+function PlanCard({
+  pkg,
+  selected,
+  onSelect,
+}: {
+  pkg: { id: string; name: string; description: string | null; price: number }
+  selected: boolean
+  onSelect: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const [clamped, setClamped] = useState(false)
+  const descRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    const el = descRef.current
+    if (el) {
+      setClamped(el.scrollHeight > el.clientHeight)
+    }
+  }, [pkg.description])
+
+  return (
+    <div
+      onClick={onSelect}
+      className={`border bg-[#f5f5f5] px-4 py-3 transition-colors cursor-pointer hover:border-gray-300 ${
+        selected ? 'border-[#3D5A80]' : 'border-gray-200'
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-serif text-xl font-medium">{pkg.name}</h3>
+          {pkg.description && (
+            <div className="mt-1">
+              <p
+                ref={descRef}
+                className={`text-sm text-muted-foreground whitespace-pre-wrap ${
+                  !expanded ? 'line-clamp-3' : ''
+                }`}
+              >
+                {pkg.description}
+              </p>
+              {clamped && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setExpanded((prev) => !prev)
+                  }}
+                  className="mt-1 text-xs font-medium text-[#3D5A80] hover:underline"
+                >
+                  {expanded ? 'Show less' : 'Read more'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-4 ml-4 shrink-0">
+          <span className="text-2xl font-medium">${pkg.price}</span>
+          <div
+            className={`flex h-5 w-5 items-center justify-center border-2 ${
+              selected ? 'border-[#3D5A80] bg-[#3D5A80]' : 'border-gray-300'
+            }`}
+          >
+            {selected && <div className="h-2 w-2 bg-white" />}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function BookingForm({
@@ -601,25 +671,12 @@ export function BookingForm({
             <SectionHeader number={1} title="Select Your Plan" />
             <div className="mt-6 space-y-4">
               {packages.map((pkg) => (
-                <RadioOption
+                <PlanCard
                   key={pkg.id}
+                  pkg={pkg}
                   selected={selectedPlan === pkg.id}
-                  onClick={() => setSelectedPlan(pkg.id)}
-                >
-                  <div className="flex-1">
-                    <h3 className="font-serif text-xl font-medium">
-                      {pkg.name}
-                    </h3>
-                    {pkg.description && (
-                      <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
-                        {pkg.description}
-                      </p>
-                    )}
-                  </div>
-                  <span className="mr-4 text-2xl font-medium">
-                    ${pkg.price}
-                  </span>
-                </RadioOption>
+                  onSelect={() => setSelectedPlan(pkg.id)}
+                />
               ))}
             </div>
           </div>
