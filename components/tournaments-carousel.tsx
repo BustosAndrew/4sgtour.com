@@ -19,7 +19,7 @@ const tournamentItems = [
     duration: '3 Nights & 3 Rounds',
     price: '$615',
     image: '/images/1.png',
-    href: '/tournaments',
+    href: '/tournaments/the-open',
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ const tournamentItems = [
     duration: '3 Nights & 3 Rounds',
     price: '$615',
     image: '/images/2.png',
-    href: '/tournaments',
+    href: '/tournaments/ryder-cup',
   },
   {
     id: '3',
@@ -39,7 +39,7 @@ const tournamentItems = [
     duration: '4 Nights & 3 Rounds',
     price: '$1,250',
     image: '/images/3.png',
-    href: '/tournaments',
+    href: '/tournaments/masters',
   },
   {
     id: '4',
@@ -49,7 +49,7 @@ const tournamentItems = [
     duration: '3 Nights & 3 Rounds',
     price: '$950',
     image: '/images/4.png',
-    href: '/tournaments',
+    href: '/tournaments/us-open',
   },
 ]
 
