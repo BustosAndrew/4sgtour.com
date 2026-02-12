@@ -237,9 +237,9 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </ul>
               </div>
 
-              {/* Gallery 1 - Course/Event images carousel */}
+              {/* Gallery 1 - Placeholder images */}
               <div className="mt-10">
-                <ImageCarousel images={event.galleryImages} alt={event.title} />
+                <ImageCarousel images={['/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200']} alt={event.title} />
               </div>
 
               {/* Travel Itinerary */}
@@ -306,9 +306,9 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </Accordion>
               </div>
 
-              {/* Gallery 2 - Accommodation images carousel */}
+              {/* Gallery 2 - Placeholder images */}
               <div className="mt-12">
-                <ImageCarousel images={event.galleryImages2} alt={`${event.title} accommodation`} />
+                <ImageCarousel images={['/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200']} alt={`${event.title} accommodation`} />
               </div>
 
               {/* Package Inclusions */}
