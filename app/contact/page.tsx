@@ -128,7 +128,7 @@ export default async function ContactPage() {
                       href="tel:1-714-877-5998"
                       className="text-sm text-[#735c38]/70 hover:text-[#735c38] text-[20px] transition-colors font-semibold"
                     >
-                      1-714-877-5998
+                      1-714-485-5463
                     </a>
                   </div>
                 </div>
