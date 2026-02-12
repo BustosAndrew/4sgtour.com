@@ -290,13 +290,13 @@ export default async function HomePage() {
                   <div className="text-center flex flex-col gap-4">
                     <div>
                       <h3
-                        className="mb-2 text-[15px] lg:text-[17px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
+                        className="mb-2 text-[17px] lg:text-[19px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#735C38]/80"
+                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#735C38]/80"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
@@ -308,7 +308,7 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[12px] lg:text-[13px] w-fit mx-auto"
+                      className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[14px] lg:text-[15px] w-fit mx-auto"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Delivery Request
