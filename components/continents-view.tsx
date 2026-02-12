@@ -58,7 +58,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             <Link
               key={continent.slug}
               href={`/destinations/${continent.slug}`}
-              className="group relative min-h-[120px] flex-1 overflow-hidden transition-all duration-500 ease-out sm:min-h-[150px] lg:min-h-0 lg:hover:flex-[1.5]"
+              className="group relative min-h-[220px] flex-1 overflow-hidden transition-all duration-500 ease-out sm:min-h-[250px] lg:min-h-0 lg:hover:flex-[1.5]"
               onMouseEnter={() => setHoveredContinent(continent.slug)}
               onMouseLeave={() => setHoveredContinent(null)}
             >

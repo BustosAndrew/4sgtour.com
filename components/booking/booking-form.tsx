@@ -14,13 +14,14 @@ import {
   Plus,
   X,
 } from 'lucide-react'
-import {
+  import {
   format,
   addDays,
   differenceInDays,
   isWithinInterval,
   isBefore,
   isSameDay,
+  isToday,
 } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
@@ -469,12 +470,20 @@ export function BookingForm({
   )
 
   // Calendar renderer
+  const selectionStep: 'pick-start' | 'pick-end' | 'complete' =
+    !travelDateRange.from
+      ? 'pick-start'
+      : !travelDateRange.to
+        ? 'pick-end'
+        : 'complete'
+
   const renderCalendar = () => {
     const days = generateCalendarDays(currentMonth)
     const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
     return (
-      <div className="border border-border bg-white p-4">
+      <div className="border border-border bg-white p-4 sm:p-5 flex-1">
+        {/* Month nav */}
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold font-serif">
             {format(currentMonth, 'MMMM yyyy')}
@@ -482,7 +491,7 @@ export function BookingForm({
           <div className="flex gap-1">
             <button
               type="button"
-              className="p-1 hover:bg-muted"
+              className="rounded p-1.5 hover:bg-muted transition-colors"
               onClick={() =>
                 setCurrentMonth(
                   new Date(
@@ -491,12 +500,13 @@ export function BookingForm({
                   ),
                 )
               }
+              aria-label="Previous month"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               type="button"
-              className="p-1 hover:bg-muted"
+              className="rounded p-1.5 hover:bg-muted transition-colors"
               onClick={() =>
                 setCurrentMonth(
                   new Date(
@@ -505,21 +515,24 @@ export function BookingForm({
                   ),
                 )
               }
+              aria-label="Next month"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-sm text-muted-foreground">
+        {/* Weekday headers */}
+        <div className="mb-1 grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {weekdays.map((day) => (
-            <div key={day} className="py-1">
+            <div key={day} className="py-1.5">
               {day}
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1">
+        {/* Day grid */}
+        <div className="grid grid-cols-7">
           {days.map((date, idx) => {
             if (!date) {
               return <div key={`empty-${idx}`} className="p-2" />
@@ -531,6 +544,8 @@ export function BookingForm({
               travelDateRange.from && isSameDay(date, travelDateRange.from)
             const isEnd =
               travelDateRange.to && isSameDay(date, travelDateRange.to)
+            const isMid = isTravel && !isStart && !isEnd
+            const isTodayDate = isToday(date)
 
             return (
               <button
@@ -540,13 +555,18 @@ export function BookingForm({
                 disabled={isDisabled}
                 className={`
                   relative p-2 text-center text-sm transition-colors
-                  ${isDisabled ? 'cursor-not-allowed text-muted-foreground/40' : 'cursor-pointer hover:bg-muted'}
-                  ${isTravel ? 'bg-[#274C77] text-white' : ''}
-                  ${isStart ? 'rounded-l' : ''}
-                  ${isEnd ? 'rounded-r' : ''}
+                  ${isDisabled ? 'cursor-not-allowed text-muted-foreground/30' : 'cursor-pointer'}
+                  ${!isTravel && !isDisabled ? 'hover:bg-[#3D5A80]/10' : ''}
+                  ${isStart ? 'bg-[#14184E] text-white rounded-l font-semibold' : ''}
+                  ${isEnd ? 'bg-[#14184E] text-white rounded-r font-semibold' : ''}
+                  ${isMid ? 'bg-[#3D5A80]/20 text-[#14184E]' : ''}
+                  ${isStart && !travelDateRange.to ? 'rounded' : ''}
                 `}
               >
                 {date.getDate()}
+                {isTodayDate && !isTravel && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#3D5A80]" />
+                )}
               </button>
             )
           })}
@@ -670,30 +690,99 @@ export function BookingForm({
                 )}
               </div>
 
-              <div className="mt-4 flex flex-col gap-6 lg:flex-row">
+              {/* Step indicator */}
+              <div className="mt-4 mb-2 flex items-center gap-2">
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                  selectionStep === 'pick-start' ? 'bg-[#3D5A80] text-white' : 'bg-[#3D5A80]/15 text-[#3D5A80]'
+                }`}>
+                  {selectionStep !== 'pick-start' ? <Check className="h-3.5 w-3.5" /> : '1'}
+                </div>
+                <span className={`text-sm ${selectionStep === 'pick-start' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                  Select check-in date
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                  selectionStep === 'pick-end' ? 'bg-[#3D5A80] text-white' : selectionStep === 'complete' ? 'bg-[#3D5A80]/15 text-[#3D5A80]' : 'bg-gray-100 text-muted-foreground'
+                }`}>
+                  {selectionStep === 'complete' ? <Check className="h-3.5 w-3.5" /> : '2'}
+                </div>
+                <span className={`text-sm ${selectionStep === 'pick-end' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                  Select check-out date
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-4 lg:flex-row">
                 {renderCalendar()}
 
-                <div className="flex flex-col justify-start">
-                  <Label className="mb-2 text-sm text-muted-foreground">
-                    Select Travel Dates
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <div className="h-[45px] w-[45px] bg-[#3D5A80]" />
-                    <span className="font-serif border border-border bg-white px-4 py-2 text-sm font-medium">
-                      Travel Days
-                    </span>
+                {/* Legend & summary side panel */}
+                <div className="flex flex-col gap-4 lg:w-48 shrink-0">
+                  <div className="border border-border bg-white p-4 space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legend</p>
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-5 w-5 rounded-sm bg-[#14184E]" />
+                      <span className="text-sm">Check-in / Check-out</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-5 w-5 rounded-sm bg-[#3D5A80]/20 border border-[#3D5A80]/30" />
+                      <span className="text-sm">Travel Days</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative h-5 w-5 rounded-sm border border-gray-200 flex items-center justify-center">
+                        <span className="h-1 w-1 rounded-full bg-[#3D5A80]" />
+                      </div>
+                      <span className="text-sm">Today</span>
+                    </div>
                   </div>
+
+                  {/* Check-in / Check-out display */}
+                  <div className="border border-border bg-white p-4 space-y-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Check-in</p>
+                      <p className="font-serif text-base font-medium mt-0.5">
+                        {travelDateRange.from ? format(travelDateRange.from, 'EEE, MMM d, yyyy') : '—'}
+                      </p>
+                    </div>
+                    <div className="border-t border-border pt-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Check-out</p>
+                      <p className="font-serif text-base font-medium mt-0.5">
+                        {travelDateRange.to ? format(travelDateRange.to, 'EEE, MMM d, yyyy') : '—'}
+                      </p>
+                    </div>
+                    {travelDateRange.from && travelDateRange.to && (
+                      <div className="border-t border-border pt-2">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</p>
+                        <p className="font-serif text-base font-medium mt-0.5">
+                          {differenceInDays(travelDateRange.to, travelDateRange.from)} nights
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Clear dates */}
+                  {travelDateRange.from && (
+                    <button
+                      type="button"
+                      onClick={() => setTravelDateRange({ from: undefined, to: undefined })}
+                      className="flex items-center justify-center gap-1.5 border border-gray-200 bg-white px-3 py-2 text-sm text-muted-foreground hover:bg-gray-50 hover:text-foreground transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Clear dates
+                    </button>
+                  )}
                 </div>
               </div>
 
               {travelDateRange.from && travelDateRange.to && (
-                <div className="mt-4 border-2 border-gray-200 bg-gray-50 px-8 py-3 w-fit">
+                <div className="mt-4 border-2 border-[#3D5A80]/20 bg-[#3D5A80]/5 px-6 py-3 w-fit">
                   <span className="text-sm">
                     Reservation for:{' '}
                     <strong className="font-serif">
                       {format(travelDateRange.from, 'MMM d')} –{' '}
                       {format(travelDateRange.to, 'MMM d, yyyy')}
                     </strong>
+                    <span className="text-muted-foreground ml-2">
+                      ({differenceInDays(travelDateRange.to, travelDateRange.from)} nights)
+                    </span>
                   </span>
                 </div>
               )}
@@ -943,7 +1032,7 @@ export function BookingForm({
               <Textarea
                 value={additionalRequests}
                 onChange={(e) => setAdditionalRequests(e.target.value)}
-                placeholder="Lorem ipsum dolor..."
+                placeholder="E.g., dietary restrictions, accessibility needs, early check-in, airport transfers..."
                 className="min-h-[100px] border-2 border-gray-200 bg-gray-50"
               />
             </div>

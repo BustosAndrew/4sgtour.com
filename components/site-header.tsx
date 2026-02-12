@@ -311,33 +311,27 @@ export function SiteHeader({
     mounted && mobileMenuOpen
       ? createPortal(
           <div
-            className={`lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t ${
-              isScrolled ? 'border-black/10' : 'border-white/20'
-            }`}
+            className="lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t border-black/10"
             style={{
-              backgroundColor: isScrolled ? '#ffffff' : 'transparent',
+              backgroundColor: '#ffffff',
               zIndex: 99999,
             }}
           >
             <div
               className="px-4 sm:px-6 py-6 h-full overflow-y-auto"
-              style={{ backgroundColor: isScrolled ? '#ffffff' : '#735C38' }}
+              style={{ backgroundColor: '#ffffff' }}
             >
               <nav className="flex flex-col gap-1">
                 {tripMessage && (
                   <div
-                    className={`flex items-center gap-2 px-4 -mx-4 py-3 mb-1 ${
-                      isScrolled
-                        ? 'bg-[#735C38]/10 text-[#735C38]'
-                        : 'bg-white/10 text-white'
-                    }`}
+                    className="flex items-center gap-2 px-4 -mx-4 py-3 mb-1 bg-[#735C38]/10 text-[#735C38]"
                   >
                     <CalendarClock className="h-4 w-4 flex-shrink-0" />
                     <div>
                       <span className="text-sm font-medium">{tripMessage}</span>
                       {tripDateLabel && (
                         <span
-                          className={`text-xs ml-2 ${isScrolled ? 'text-[#735C38]/60' : 'text-white/70'}`}
+                          className="text-xs ml-2 text-[#735C38]/60"
                         >
                           ({tripDateLabel})
                         </span>
@@ -347,55 +341,37 @@ export function SiteHeader({
                 )}
                 <Link
                   href="/"
-                  className={`${
-                    isScrolled
-                      ? 'text-[#735C38] font-medium hover:bg-black/5'
-                      : 'text-white font-medium hover:bg-white/10'
-                  } py-3 px-4 -mx-4 uppercase`}
+                  className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Home
                 </Link>
                 <Link
                   href="/destinations"
-                  className={`${
-                    isScrolled
-                      ? 'text-[#735C38] font-medium hover:bg-black/5'
-                      : 'text-white font-medium hover:bg-white/10'
-                  } py-3 px-4 -mx-4 uppercase`}
+                  className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Destinations
                 </Link>
                 <Link
                   href="/tournaments"
-                  className={`${
-                    isScrolled
-                      ? 'text-[#735C38] font-medium hover:bg-black/5'
-                      : 'text-white font-medium hover:bg-white/10'
-                  } py-3 px-4 -mx-4 uppercase`}
+                  className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Tournaments
                 </Link>
                 <Link
                   href="/contact"
-                  className={`${
-                    isScrolled
-                      ? 'text-[#735C38] font-medium hover:bg-black/5'
-                      : 'text-white font-medium hover:bg-white/10'
-                  } py-3 px-4 -mx-4 uppercase`}
+                  className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contact
                 </Link>
 
                 {/* Language Section */}
-                <div className="border-t border-white/20 mt-4 pt-4">
+                <div className="border-t border-black/10 mt-4 pt-4">
                   <div
-                    className={`${
-                      isScrolled ? 'text-[#735C38]/60' : 'text-white/60'
-                    } text-sm mb-3 uppercase`}
+                    className="text-[#735C38]/60 text-sm mb-3 uppercase"
                   >
                     Language
                   </div>
@@ -406,12 +382,8 @@ export function SiteHeader({
                         onClick={() => setCurrentLanguage(lang)}
                         className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
                           currentLanguage.code === lang.code
-                            ? isScrolled
-                              ? 'bg-black/5 border border-black/10'
-                              : 'bg-white/20 border border-white/30'
-                            : isScrolled
-                              ? 'bg-black/0 border border-black/10 hover:bg-black/5'
-                              : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                            ? 'bg-black/5 border border-black/10'
+                            : 'bg-black/0 border border-black/10 hover:bg-black/5'
                         } transition-colors`}
                       >
                         <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
@@ -422,9 +394,7 @@ export function SiteHeader({
                           />
                         </div>
                         <span
-                          className={`${
-                            isScrolled ? 'text-[#735C38]' : 'text-white'
-                          } text-sm`}
+                          className="text-[#735C38] text-sm"
                         >
                           {lang.name}
                         </span>
@@ -434,29 +404,23 @@ export function SiteHeader({
                 </div>
 
                 {/* Auth Section */}
-                <div className="border-t border-white/20 mt-4 pt-4">
+                <div className="border-t border-black/10 mt-4 pt-4">
                   {user ? (
                     <div className="flex flex-col gap-1">
                       <div className="px-4 py-2 mb-2">
                         <div
-                          className={`${
-                            isScrolled ? 'text-[#735C38]/60' : 'text-white/60'
-                          } text-xs mb-1`}
+                          className="text-[#735C38]/60 text-xs mb-1"
                         >
                           Signed in as
                         </div>
                         <div
-                          className={`${
-                            isScrolled ? 'text-[#735C38]' : 'text-white'
-                          } text-sm font-medium truncate uppercase`}
+                          className="text-[#735C38] text-sm font-medium truncate uppercase"
                         >
                           {user.email}
                         </div>
                         {userType !== 'regular' && (
                           <div
-                            className={`${
-                              isScrolled ? 'text-[#735C38]/80' : 'text-white/80'
-                            } text-xs font-medium capitalize mt-1 uppercase`}
+                            className="text-[#735C38]/80 text-xs font-medium capitalize mt-1 uppercase"
                           >
                             {userType}
                           </div>
@@ -464,22 +428,14 @@ export function SiteHeader({
                       </div>
                       <Link
                         href="/bookings"
-                        className={`${
-                          isScrolled
-                            ? 'text-[#735C38] font-medium hover:bg-black/5'
-                            : 'text-white font-medium hover:bg-white/10'
-                        } py-3 px-4 -mx-4 uppercase`}
+                        className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         My Bookings
                       </Link>
                       <Link
                         href="/favorites"
-                        className={`${
-                          isScrolled
-                            ? 'text-[#735C38] font-medium hover:bg-black/5'
-                            : 'text-white font-medium hover:bg-white/10'
-                        } py-3 px-4 -mx-4 uppercase`}
+                        className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Favorites
@@ -487,11 +443,7 @@ export function SiteHeader({
                       {userType === 'admin' && (
                         <Link
                           href="/admin"
-                          className={`${
-                            isScrolled
-                              ? 'text-[#735C38] font-medium hover:bg-black/5'
-                              : 'text-white font-medium hover:bg-white/10'
-                          } py-3 px-4 -mx-4 uppercase`}
+                          className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Admin Dashboard
@@ -506,11 +458,7 @@ export function SiteHeader({
                           setMobileMenuOpen(false)
                           window.location.href = '/'
                         }}
-                        className={`${
-                          isScrolled
-                            ? 'text-[#735C38] font-medium hover:bg-black/5'
-                            : 'text-white font-medium hover:bg-white/10'
-                        } py-3 px-4 -mx-4 text-left uppercase`}
+                        className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 text-left uppercase"
                       >
                         Log Out
                       </button>
@@ -519,18 +467,14 @@ export function SiteHeader({
                     <div className="flex gap-3">
                       <Link
                         href="/auth/sign-up"
-                        className="flex-1 text-center py-3 bg-white text-black font-medium hover:bg-white/90 transition-colors uppercase"
+                        className="flex-1 text-center py-3 bg-[#735C38] text-white font-medium hover:bg-[#735C38]/90 transition-colors uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Get Started
                       </Link>
                       <Link
                         href="/auth/login"
-                        className={`${
-                          isScrolled
-                            ? 'flex-1 text-center py-3 border border-black/20 text-[#735C38] font-medium hover:bg-black/5 transition-colors'
-                            : 'flex-1 text-center py-3 border border-white text-white font-medium hover:bg-white/10 transition-colors'
-                        } uppercase`}
+                        className="flex-1 text-center py-3 border border-black/20 text-[#735C38] font-medium hover:bg-black/5 transition-colors uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
