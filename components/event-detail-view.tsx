@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Clock, Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, Clock, Check, X, ChevronRight } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -14,6 +14,7 @@ import type { TournamentEvent } from '@/lib/tournament-data'
 interface EventDetailViewProps {
   event: TournamentEvent
   tournamentSlug: string
+  tournamentHeroImage: string
 }
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
@@ -23,35 +24,15 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 
   return (
     <div className="relative">
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
         <img
           src={images[current] || '/placeholder.svg'}
           alt={`${alt} ${current + 1}`}
           className="h-full w-full object-cover"
         />
-        {images.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-foreground transition-colors hover:bg-white"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-foreground transition-colors hover:bg-white"
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
       </div>
       {images.length > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-2.5">
           {images.map((_, idx) => (
             <button
               key={idx}
@@ -69,7 +50,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   )
 }
 
-export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps) {
+export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: EventDetailViewProps) {
   const [allExpanded, setAllExpanded] = useState(false)
   const [openItems, setOpenItems] = useState<string[]>(['day-0'])
 
@@ -92,10 +73,10 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
 
   return (
     <div>
-      {/* Hero Banner */}
+      {/* Hero Banner - always use the tournament-level hero image */}
       <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
         <img
-          src={event.heroImage || '/placeholder.svg'}
+          src={tournamentHeroImage || '/placeholder.svg'}
           alt={event.title}
           className="h-full w-full object-cover"
         />
@@ -116,51 +97,89 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
         </div>
       </section>
 
+      {/* Mobile Sidebar - On This Page (visible below lg) */}
+      <div className="bg-[#f2f0eb] px-4 py-6 sm:px-6 lg:hidden">
+        <p
+          className="text-sm font-bold uppercase tracking-wider text-[#2c2c2c]"
+          style={{ fontFamily: 'var(--font-body)' }}
+        >
+          On This Page
+        </p>
+        <hr className="mt-3 border-[#d5d0c7]" />
+        <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+          {[
+            { label: 'Trip Highlights', id: sectionIds.highlights },
+            { label: 'Travel Itinerary', id: sectionIds.itinerary },
+            { label: 'Package Inclusions', id: sectionIds.inclusions },
+            { label: 'Pricing', id: sectionIds.pricing },
+          ].map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className="flex items-center gap-2 text-sm text-[#2c2c2c] transition-colors hover:text-[#495c48]"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#8a8272]" />
+              <span className="underline underline-offset-2 decoration-[#8a8272]">{item.label}</span>
+            </a>
+          ))}
+        </nav>
+        <div className="mt-5">
+          <Link
+            href="/contact"
+            className="inline-block bg-[#495c48] px-8 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+            style={{ fontFamily: 'var(--font-body)' }}
+          >
+            Contact Us
+          </Link>
+        </div>
+      </div>
+
       {/* Main Content */}
       <section className="bg-[#fffff8] py-10 sm:py-14 md:py-16">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:gap-16">
-            {/* Sidebar - On This Page */}
-            <aside className="mb-10 lg:mb-0 lg:w-56 lg:shrink-0">
-              <div className="lg:sticky lg:top-28">
-                <p
-                  className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  On This Page
-                </p>
-                <nav className="mt-4 flex flex-col gap-2.5">
-                  {[
-                    { label: 'Trip Highlights', id: sectionIds.highlights },
-                    { label: 'Travel Itinerary', id: sectionIds.itinerary },
-                    { label: 'Package Inclusions', id: sectionIds.inclusions },
-                    { label: 'Pricing', id: sectionIds.pricing },
-                  ].map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      className="flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      <ChevronRight className="h-3.5 w-3.5 text-primary" />
-                      {item.label}
-                    </a>
-                  ))}
-                </nav>
-                <div className="mt-6">
-                  <Link
-                    href="/contact"
-                    className="inline-block w-full bg-[#495c48] px-6 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+        <div className="flex">
+          {/* Desktop Sidebar - flush left (hidden below lg) */}
+          <aside className="hidden lg:block lg:w-60 lg:shrink-0">
+            <div className="sticky top-28 bg-[#f2f0eb] px-6 py-8 ml-6 xl:ml-12">
+              <p
+                className="text-sm font-bold uppercase tracking-wider text-[#2c2c2c]"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                On This Page
+              </p>
+              <hr className="mt-3 border-[#d5d0c7]" />
+              <nav className="mt-5 flex flex-col gap-5">
+                {[
+                  { label: 'Trip Highlights', id: sectionIds.highlights },
+                  { label: 'Travel Itinerary', id: sectionIds.itinerary },
+                  { label: 'Package Inclusions', id: sectionIds.inclusions },
+                  { label: 'Pricing', id: sectionIds.pricing },
+                ].map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className="flex items-center gap-3 text-sm text-[#2c2c2c] transition-colors hover:text-[#495c48]"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    Contact Us
-                  </Link>
-                </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-[#8a8272]" />
+                    <span className="underline underline-offset-2 decoration-[#8a8272]">{item.label}</span>
+                  </a>
+                ))}
+              </nav>
+              <div className="mt-8">
+                <Link
+                  href="/contact"
+                  className="inline-block w-full bg-[#495c48] px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  Contact Us
+                </Link>
               </div>
-            </aside>
+            </div>
+          </aside>
 
-            {/* Main Content Column */}
-            <div className="flex-1 min-w-0">
+          {/* Main Content Column */}
+          <div className="flex-1 min-w-0 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               {/* Title & Meta */}
               <h2
                 className="text-2xl sm:text-3xl md:text-4xl text-foreground"
@@ -218,7 +237,7 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
                 </ul>
               </div>
 
-              {/* Gallery 1 */}
+              {/* Gallery 1 - Course/Event images carousel */}
               <div className="mt-10">
                 <ImageCarousel images={event.galleryImages} alt={event.title} />
               </div>
@@ -287,9 +306,9 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
                 </Accordion>
               </div>
 
-              {/* Gallery 2 */}
+              {/* Gallery 2 - Accommodation images carousel */}
               <div className="mt-12">
-                <ImageCarousel images={event.galleryImages.slice().reverse()} alt={`${event.title} accommodation`} />
+                <ImageCarousel images={event.galleryImages2} alt={`${event.title} accommodation`} />
               </div>
 
               {/* Package Inclusions */}
@@ -398,8 +417,7 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
               </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
-  )
+        </section>
+      </div>
+    )
 }
