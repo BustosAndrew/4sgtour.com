@@ -39,8 +39,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
   'the-open': {
     name: 'THE OPEN',
     displayName: 'The Open',
-    heroImage: '/images/open.png',
-    logo: '/images/1.png',
+    heroImage: '/images/1.png',
+    logo: '/images/open.png',
     objectPosition: '50% 35%',
     events: [
       {
@@ -304,8 +304,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
   'ryder-cup': {
     name: 'RYDER CUP',
     displayName: 'Ryder Cup',
-    heroImage: '/images/ryder.png',
-    logo: '/images/2.png',
+    heroImage: '/images/2.png',
+    logo: '/images/ryder.png',
     objectPosition: '50% 35%',
     events: [
       {
@@ -483,8 +483,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
   masters: {
     name: 'MASTERS',
     displayName: 'Masters',
-    heroImage: '/images/masters.png',
-    logo: '/images/3.png',
+    heroImage: '/images/3.png',
+    logo: '/images/masters.png',
     objectPosition: '50% 35%',
     events: [
       {
@@ -670,8 +670,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
   'us-open': {
     name: 'US OPEN',
     displayName: 'US Open',
-    heroImage: '/images/us.png',
-    logo: '/images/4.png',
+    heroImage: '/images/4.png',
+    logo: '/images/us.png',
     objectPosition: '50% 35%',
     events: [
       {
