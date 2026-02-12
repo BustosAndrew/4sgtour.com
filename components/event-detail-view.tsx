@@ -103,14 +103,15 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
           <div className="flex flex-col lg:flex-row lg:gap-16">
             {/* Sidebar - On This Page */}
             <aside className="mb-10 lg:mb-0 lg:w-56 lg:shrink-0">
-              <div className="lg:sticky lg:top-28">
+              <div className="lg:sticky lg:top-28 bg-[#f2f0eb] px-6 py-8">
                 <p
-                  className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                  className="text-sm font-bold uppercase tracking-wider text-[#2c2c2c]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   On This Page
                 </p>
-                <nav className="mt-4 flex flex-col gap-2.5">
+                <hr className="mt-3 border-[#d5d0c7]" />
+                <nav className="mt-5 flex flex-col gap-5">
                   {[
                     { label: 'Trip Highlights', id: sectionIds.highlights },
                     { label: 'Travel Itinerary', id: sectionIds.itinerary },
@@ -120,18 +121,18 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                     <a
                       key={item.id}
                       href={`#${item.id}`}
-                      className="flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
+                      className="flex items-center gap-3 text-sm text-[#2c2c2c] transition-colors hover:text-[#495c48]"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      <ChevronRight className="h-3.5 w-3.5 text-primary" />
-                      {item.label}
+                      <ChevronRight className="h-4 w-4 shrink-0 text-[#8a8272]" />
+                      <span className="underline underline-offset-2 decoration-[#8a8272]">{item.label}</span>
                     </a>
                   ))}
                 </nav>
-                <div className="mt-6">
+                <div className="mt-8">
                   <Link
                     href="/contact"
-                    className="inline-block w-full bg-[#495c48] px-6 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+                    className="inline-block w-full bg-[#495c48] px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     Contact Us
