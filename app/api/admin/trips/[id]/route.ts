@@ -114,6 +114,7 @@ export async function PATCH(
         course_name: course.course_name,
         description: course.description || null,
         max_rounds: course.max_rounds || 5,
+        num_holes: course.num_holes || 18,
       }))
 
       const { error: courseError } = await supabase

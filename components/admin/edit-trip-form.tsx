@@ -15,6 +15,7 @@ import {
   Trash2,
   ChevronRight,
   ChevronLeft,
+  GripVertical,
 } from "lucide-react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
@@ -121,6 +122,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     doubleRoom: trip.double_room_photo_url || "",
   })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
 
   const initializePackages = () => {
     const existingPackages = trip.packages || []
@@ -172,9 +174,10 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [golfCourses, setGolfCourses] = useState(() => {
     return (trip.golf_courses || []).map((course: any) => ({
       id: course.id,
-      name: course.name || "",
+      name: course.course_name || course.name || "",
       description: course.description || "",
       max_rounds: course.max_rounds || 5,
+      num_holes: course.num_holes || 18,
     }))
   })
   const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
@@ -297,6 +300,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         id: `new-${Date.now()}`,
         name: "",
         description: "",
+        num_holes: 18,
         max_rounds: 5,
       },
     ])
@@ -518,6 +522,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           packages,
           golf_courses: golfCourses.map((course) => ({
             ...course,
+            course_name: course.name,
           })),
           meal_options: mealOptions,
           transportation_options: transportationOptions,
@@ -669,13 +674,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               />
             </div>
 
-            {/* Description */}
+            {/* Trip Overview */}
             <div className="space-y-2">
               <Label
                 htmlFor="description"
                 className="text-sm text-foreground sm:text-base"
               >
-                Description
+                Trip Overview
               </Label>
               <Textarea
                 id="description"
@@ -683,7 +688,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Add a description..."
+                placeholder="Provide a brief overview of the trip for guests..."
                 rows={6}
                 className="resize-none"
               />
@@ -871,8 +876,28 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   {coursePhotos.map((url, index) => (
                     <div
                       key={`${url}-${index}`}
-                      className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border"
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (dragIndex !== null && dragIndex !== index) {
+                          setCoursePhotos((prev) => {
+                            const next = [...prev]
+                            const [moved] = next.splice(dragIndex, 1)
+                            next.splice(index, 0, moved)
+                            return next
+                          })
+                        }
+                        setDragIndex(null)
+                      }}
+                      onDragEnd={() => setDragIndex(null)}
+                      className={`relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
+                        dragIndex === index ? "border-primary bg-primary/5" : "border-border"
+                      } cursor-grab active:cursor-grabbing`}
                     >
+                      <div className="absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded bg-black/50 text-white">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
                       <Image
                         src={url || "/placeholder.svg"}
                         alt={`Golf course photo ${index + 1}`}
@@ -1077,7 +1102,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       </div>
                       <div>
                         <Label className="text-base text-foreground">
-                          Description
+                          Package Details
                         </Label>
                         <Textarea
                           value={pkg.description || ""}
@@ -1088,7 +1113,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                               e.target.value,
                             )
                           }
-                          placeholder="Package description (optional)"
+                          placeholder="What's included in this package..."
                           rows={2}
                         />
                       </div>
@@ -1202,7 +1227,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div>
                           <Label className="text-base text-foreground">
-                            Description
+                            Package Details
                           </Label>
                           <Textarea
                             value={pkg.description || ""}
@@ -1365,10 +1390,32 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           Max rounds (min: 0)
                         </p>
                       </div>
+                      <div>
+                        <Label className="text-base text-foreground">
+                          Number of Holes *
+                        </Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={course.num_holes || 18}
+                          onChange={(e) =>
+                            handleGolfCourseChange(
+                              index,
+                              "num_holes",
+                              Number(e.target.value),
+                            )
+                          }
+                          placeholder="18"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Holes per round (e.g., 9, 18)
+                        </p>
+                      </div>
                     </div>
                     <div>
                       <Label className="text-base text-foreground">
-                        Description
+                        Course Details
                       </Label>
                       <Textarea
                         value={course.description || ""}
@@ -1829,6 +1876,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           </p>
                         )}
                         <div>
+                          <span className="font-medium">Holes:</span>{" "}
+                          {course.num_holes || 18} |{" "}
                           <span className="font-medium">Max Rounds:</span>{" "}
                           {course.max_rounds || 5}
                         </div>

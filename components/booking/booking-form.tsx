@@ -812,11 +812,14 @@ export function BookingForm({
                           </div>
                         </div>
 
-                        {typeof maxRounds === 'number' && maxRounds > 0 && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Max rounds: {maxRounds}
-                          </p>
-                        )}
+                        <div className="mt-2 flex gap-4 text-sm text-muted-foreground">
+                          {course.num_holes && (
+                            <span>{course.num_holes} holes</span>
+                          )}
+                          {typeof maxRounds === 'number' && maxRounds > 0 && (
+                            <span>Max rounds: {maxRounds}</span>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -1010,7 +1013,7 @@ export function BookingForm({
                       return course ? (
                         <div key={courseId} className="flex items-center gap-2">
                           <span className="text-muted-foreground">
-                            {course.course_name}
+                            {course.course_name}{course.num_holes ? ` (${course.num_holes} holes)` : ''}
                           </span>
                           <Check className="h-4 w-4 text-muted-foreground" />
                         </div>
