@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 const TOURNAMENTS = [
@@ -56,9 +57,10 @@ export function TournamentsView() {
       {/* Vertical panels container */}
       <div className="flex min-h-screen w-full flex-col pt-6 lg:flex-row lg:pt-20">
         {TOURNAMENTS.map((tournament) => (
-          <div
+          <Link
             key={tournament.slug}
-            className="group relative min-h-[120px] flex-1 cursor-default overflow-hidden transition-all duration-500 ease-out sm:min-h-[150px] lg:min-h-0 lg:hover:flex-[1.5]"
+            href={`/tournaments/${tournament.slug}`}
+            className="group relative min-h-[120px] flex-1 cursor-pointer overflow-hidden transition-all duration-500 ease-out sm:min-h-[150px] lg:min-h-0 lg:hover:flex-[1.5]"
             onMouseEnter={() => setHoveredTournament(tournament.slug)}
             onMouseLeave={() => setHoveredTournament(null)}
           >
@@ -91,7 +93,7 @@ export function TournamentsView() {
                 {tournament.name}
               </h2>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
