@@ -257,47 +257,40 @@ export default async function HomePage() {
         {/* Tiger Booking & Golf Club Delivery Section */}
         <section className="py-12 md:py-16">
           <div className="container">
-            {/* Top Row: Tiger Booking Logo (left) | Ship Sticks Card (right) */}
-            <div className="flex flex-col md:flex-row items-stretch w-full gap-4">
-              {/* Left: Tiger Booking Logo */}
-              <div className="flex items-center justify-center bg-[#e8e8e8] p-8 md:p-12 md:w-1/2">
-                <Image
-                  src="/images/tiger.png"
-                  alt="Tiger Booking"
-                  width={400}
-                  height={200}
-                  className="w-full max-w-[360px] h-auto object-contain"
-                />
+            <div className="bg-[#e8e8e8] flex flex-col md:flex-row items-stretch w-full overflow-hidden">
+              {/* Left: Tiger Booking Logo + Region Links */}
+              <div className="md:w-1/2">
+                <TigerBooking />
               </div>
 
+              {/* Vertical Divider */}
+              <div className="hidden md:block w-[2px] bg-[#22333b]/10 self-stretch" />
+
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="bg-[#e8e8e8] px-6 sm:px-10 py-10 md:py-12 md:w-1/2 flex items-center">
-                <div className="flex justify-center items-center gap-8 flex-col md:flex-row w-full">
+              <div className="md:w-1/2 px-5 sm:px-8 py-8 md:py-10 flex items-center">
+                <div className="flex justify-center items-center gap-6 flex-col w-full">
                   {/* Logo */}
-                  <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 shrink-0">
+                  <div className="relative h-16 sm:h-20 md:h-24 shrink-0">
                     <Image
                       src="/images/sticks.png"
                       alt="Ship Sticks"
-                      width={128}
-                      height={128}
+                      width={96}
+                      height={96}
                       className="h-full w-auto object-contain"
                     />
                   </div>
 
-                  {/* Divider */}
-                  <div className="hidden md:block w-[2px] bg-[#22333b]/15 self-stretch my-4" />
-
                   {/* Text */}
-                  <div className="text-center md:text-right flex flex-col gap-4 flex-1">
+                  <div className="text-center flex flex-col gap-3">
                     <div>
                       <h3
-                        className="mb-2 text-[18px] lg:text-[20px] font-bold uppercase tracking-wide text-[#22333b] md:mb-3"
+                        className="mb-2 text-[16px] lg:text-[18px] font-bold uppercase tracking-wide text-[#22333b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[14px] lg:text-[15px] leading-relaxed text-[#735C38]"
+                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#735C38] max-w-sm mx-auto"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
@@ -309,7 +302,7 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-2.5 px-6 uppercase tracking-wider transition-colors text-center text-[13px] lg:text-[14px] w-fit mx-auto md:ml-auto md:mr-0"
+                      className="inline-block bg-[#64CF69] hover:bg-[#45a049] text-white font-bold py-2 px-5 uppercase tracking-wider transition-colors text-center text-[12px] lg:text-[13px] w-fit mx-auto"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Delivery Request &gt;
@@ -317,11 +310,6 @@ export default async function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Bottom: Tiger Booking Region Links */}
-            <div className="mt-4 bg-[#e8e8e8] overflow-hidden">
-              <TigerBooking />
             </div>
           </div>
         </section>
