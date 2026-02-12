@@ -311,17 +311,15 @@ export function SiteHeader({
     mounted && mobileMenuOpen
       ? createPortal(
           <div
-            className={`lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t ${
-              isScrolled ? 'border-black/10' : 'border-white/20'
-            }`}
+            className="lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t border-black/10"
             style={{
-              backgroundColor: isScrolled ? '#ffffff' : 'transparent',
+              backgroundColor: '#ffffff',
               zIndex: 99999,
             }}
           >
             <div
               className="px-4 sm:px-6 py-6 h-full overflow-y-auto"
-              style={{ backgroundColor: isScrolled ? '#ffffff' : '#735C38' }}
+              style={{ backgroundColor: '#ffffff' }}
             >
               <nav className="flex flex-col gap-1">
                 {tripMessage && (

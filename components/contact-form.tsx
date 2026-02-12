@@ -47,7 +47,7 @@ export function ContactForm() {
       <div className="space-y-2">
         <Label
           htmlFor="name"
-          className="text-[20px] font-semibold text-[#735c38]"
+          className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
           Your Name
         </Label>
@@ -64,7 +64,7 @@ export function ContactForm() {
       <div className="space-y-2">
         <Label
           htmlFor="email"
-          className="text-[20px] font-semibold text-[#735c38]"
+          className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
           Your Email
         </Label>
@@ -81,7 +81,7 @@ export function ContactForm() {
       <div className="space-y-2">
         <Label
           htmlFor="subject"
-          className="text-[20px] font-semibold text-[#735c38]"
+          className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
           Subject
         </Label>
@@ -98,7 +98,7 @@ export function ContactForm() {
       <div className="space-y-2">
         <Label
           htmlFor="message"
-          className="text-[20px] font-semibold text-[#735c38]"
+          className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
           Your Message
         </Label>
