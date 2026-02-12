@@ -107,6 +107,8 @@
   --font-body: 'sweet-sans-pro';
   /* Loretta for headings / display text */
   --font-display: 'loretta';
+  /* Loretta Display for prominent titles */
+  --font-display-alt: 'loretta-display';
   /* Legacy utility still used in a few places */
   --font-bitter: 'loretta';
   --color-background: var(--background);
