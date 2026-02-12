@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Clock, Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, Clock, Check, X, ChevronRight } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -14,6 +14,7 @@ import type { TournamentEvent } from '@/lib/tournament-data'
 interface EventDetailViewProps {
   event: TournamentEvent
   tournamentSlug: string
+  tournamentHeroImage: string
 }
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
@@ -23,35 +24,15 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 
   return (
     <div className="relative">
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
         <img
           src={images[current] || '/placeholder.svg'}
           alt={`${alt} ${current + 1}`}
           className="h-full w-full object-cover"
         />
-        {images.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-foreground transition-colors hover:bg-white"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-foreground transition-colors hover:bg-white"
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
       </div>
       {images.length > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-2.5">
           {images.map((_, idx) => (
             <button
               key={idx}
@@ -69,7 +50,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   )
 }
 
-export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps) {
+export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: EventDetailViewProps) {
   const [allExpanded, setAllExpanded] = useState(false)
   const [openItems, setOpenItems] = useState<string[]>(['day-0'])
 
@@ -92,10 +73,10 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
 
   return (
     <div>
-      {/* Hero Banner */}
+      {/* Hero Banner - always use the tournament-level hero image */}
       <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
         <img
-          src={event.heroImage || '/placeholder.svg'}
+          src={tournamentHeroImage || '/placeholder.svg'}
           alt={event.title}
           className="h-full w-full object-cover"
         />
@@ -218,7 +199,7 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
                 </ul>
               </div>
 
-              {/* Gallery 1 */}
+              {/* Gallery 1 - Course/Event images carousel */}
               <div className="mt-10">
                 <ImageCarousel images={event.galleryImages} alt={event.title} />
               </div>
@@ -287,9 +268,9 @@ export function EventDetailView({ event, tournamentSlug }: EventDetailViewProps)
                 </Accordion>
               </div>
 
-              {/* Gallery 2 */}
+              {/* Gallery 2 - Accommodation images carousel */}
               <div className="mt-12">
-                <ImageCarousel images={event.galleryImages.slice().reverse()} alt={`${event.title} accommodation`} />
+                <ImageCarousel images={event.galleryImages2} alt={`${event.title} accommodation`} />
               </div>
 
               {/* Package Inclusions */}

@@ -16,6 +16,7 @@ export interface TournamentEvent {
     content: string
   }[]
   galleryImages: string[]
+  galleryImages2: string[]
   includes: string[]
   excludes: string[]
   pricingTiers: {
@@ -92,9 +93,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/open.png',
-          '/images/1.png',
-          '/images/open.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -173,9 +179,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/open.png',
-          '/images/1.png',
-          '/images/open.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -253,9 +264,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/open.png',
-          '/images/1.png',
-          '/images/open.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -342,9 +358,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/ryder.png',
-          '/images/2.png',
-          '/images/ryder.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -422,9 +443,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/ryder.png',
-          '/images/2.png',
-          '/images/ryder.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -515,9 +541,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/masters.png',
-          '/images/3.png',
-          '/images/masters.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Four (4) Nights In A Premium Hotel',
@@ -599,9 +630,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/masters.png',
-          '/images/3.png',
-          '/images/masters.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Four (4) Nights In A Premium Hotel',
@@ -688,9 +724,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/us.png',
-          '/images/4.png',
-          '/images/us.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',
@@ -768,9 +809,14 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
         ],
         galleryImages: [
-          '/images/us.png',
-          '/images/4.png',
-          '/images/us.png',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+        ],
+        galleryImages2: [
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
+          '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
           'Three (3) Nights In A Premium Hotel',

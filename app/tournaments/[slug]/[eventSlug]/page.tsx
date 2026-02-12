@@ -26,7 +26,7 @@ export default async function EventPage({ params }: EventPageProps) {
     <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <main>
-        <EventDetailView event={event} tournamentSlug={slug} />
+        <EventDetailView event={event} tournamentSlug={slug} tournamentHeroImage={tournament.heroImage} />
       </main>
       <SiteFooter />
     </div>
