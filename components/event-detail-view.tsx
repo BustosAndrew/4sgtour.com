@@ -237,9 +237,9 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </ul>
               </div>
 
-              {/* Gallery - Accommodation images carousel */}
+              {/* Gallery 1 - Course/Event images carousel */}
               <div className="mt-10">
-                <ImageCarousel images={event.galleryImages2} alt={`${event.title} accommodation`} />
+                <ImageCarousel images={event.galleryImages} alt={event.title} />
               </div>
 
               {/* Travel Itinerary */}
