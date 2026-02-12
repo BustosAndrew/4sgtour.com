@@ -1,117 +1,6 @@
 import { MapPin, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
-
-interface TournamentEvent {
-  id: string
-  title: string
-  location: string
-  date: string
-  duration: string
-  price: string
-  image: string
-  bookingUrl: string
-}
-
-const TOURNAMENT_EVENTS: Record<string, TournamentEvent[]> = {
-  'the-open': [
-    {
-      id: '1',
-      title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
-      location: 'Southport, England',
-      date: 'July 17-20, 2025',
-      duration: '3 Nights & 3 Rounds',
-      price: '$615',
-      image: '/images/1.png',
-      bookingUrl: '/contact',
-    },
-    {
-      id: '2',
-      title: 'THE 155TH OPEN AT ROYAL PORTRUSH',
-      location: 'County Antrim, Northern Ireland',
-      date: 'July 16-19, 2026',
-      duration: '3 Nights & 3 Rounds',
-      price: '$615',
-      image: '/images/1.png',
-      bookingUrl: '/contact',
-    },
-    {
-      id: '3',
-      title: 'THE 156TH OPEN AT ST ANDREWS',
-      location: 'St Andrews, Scotland',
-      date: 'July 15-18, 2027',
-      duration: '3 Nights & 3 Rounds',
-      price: '$615',
-      image: '/images/1.png',
-      bookingUrl: '/contact',
-    },
-  ],
-  'ryder-cup': [
-    {
-      id: '1',
-      title: 'THE 2027 RYDER CUP',
-      location: 'Limerick, Ireland',
-      date: 'September, 2027',
-      duration: '3 Nights & 3 Rounds',
-      price: '$615',
-      image: '/images/2.png',
-      bookingUrl: '/contact',
-    },
-    {
-      id: '2',
-      title: 'THE 2029 RYDER CUP',
-      location: 'Bethpage, New York',
-      date: 'September, 2029',
-      duration: '3 Nights & 3 Rounds',
-      price: '$615',
-      image: '/images/2.png',
-      bookingUrl: '/contact',
-    },
-  ],
-  masters: [
-    {
-      id: '1',
-      title: 'THE MASTERS 2026',
-      location: 'Augusta, Georgia',
-      date: 'April 9-13, 2026',
-      duration: '4 Nights & 3 Rounds',
-      price: '$1,250',
-      image: '/images/3.png',
-      bookingUrl: '/contact',
-    },
-    {
-      id: '2',
-      title: 'THE MASTERS 2027',
-      location: 'Augusta, Georgia',
-      date: 'April 8-11, 2027',
-      duration: '4 Nights & 3 Rounds',
-      price: '$1,250',
-      image: '/images/3.png',
-      bookingUrl: '/contact',
-    },
-  ],
-  'us-open': [
-    {
-      id: '1',
-      title: 'US OPEN 2026',
-      location: 'Shinnecock Hills, New York',
-      date: 'June 18-21, 2026',
-      duration: '3 Nights & 3 Rounds',
-      price: '$950',
-      image: '/images/4.png',
-      bookingUrl: '/contact',
-    },
-    {
-      id: '2',
-      title: 'US OPEN 2027',
-      location: 'Pebble Beach, California',
-      date: 'June 17-20, 2027',
-      duration: '3 Nights & 3 Rounds',
-      price: '$950',
-      image: '/images/4.png',
-      bookingUrl: '/contact',
-    },
-  ],
-}
+import { TOURNAMENTS } from '@/lib/tournament-data'
 
 interface TournamentDetailViewProps {
   slug: string
@@ -128,7 +17,8 @@ export function TournamentDetailView({
   heroImage,
   objectPosition,
 }: TournamentDetailViewProps) {
-  const events = TOURNAMENT_EVENTS[slug] || []
+  const tournament = TOURNAMENTS[slug]
+  const events = tournament?.events || []
 
   return (
     <div>
@@ -165,9 +55,10 @@ export function TournamentDetailView({
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8 sm:gap-10">
             {events.map((event) => (
-              <div
+              <Link
                 key={event.id}
-                className="overflow-hidden border border-[#d9d9d9] bg-white shadow-sm"
+                href={`/tournaments/${slug}/${event.slug}`}
+                className="group overflow-hidden border border-[#d9d9d9] bg-white shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Event Image */}
@@ -229,17 +120,16 @@ export function TournamentDetailView({
                     </p>
 
                     <div className="mt-5 sm:mt-6">
-                      <Link
-                        href={event.bookingUrl}
-                        className="inline-block bg-[#495c48] px-8 py-3 text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:bg-[#3a4a3b] sm:px-10 sm:text-base"
+                      <span
+                        className="inline-block bg-[#495c48] px-8 py-3 text-sm font-semibold uppercase tracking-wider text-white transition-colors group-hover:bg-[#3a4a3b] sm:px-10 sm:text-base"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Get Tickets
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

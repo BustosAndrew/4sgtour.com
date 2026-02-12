@@ -78,7 +78,27 @@
   --sidebar-ring: #735c38;
 }
 
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
 @theme inline {
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
   /* Typography - Loretta (serif) + Sweet Sans Pro (sans) */
   --font-sans: 'sweet-sans-pro';
   --font-serif: 'loretta';
