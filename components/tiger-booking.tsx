@@ -5,10 +5,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
+type CountryLink = {
+  name: string
+  url: string
+}
+
 type Region = {
   name: string
   slug: string
   description: string
+  countries: CountryLink[]
 }
 
 const REGIONS: Region[] = [
@@ -16,31 +22,62 @@ const REGIONS: Region[] = [
     name: 'Asia',
     slug: 'asia',
     description:
-      'Discover premier golf courses across Thailand, Vietnam, Japan, and South Korea. Asia offers a unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.',
+      'Discover premier golf courses across Asia. A unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.',
+    countries: [
+      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
+      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
+      { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
+      { name: 'South Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
+    ],
   },
   {
     name: 'Europe',
     slug: 'europe',
     description:
-      'Play legendary links in Scotland, Ireland, Spain, and Portugal. Europe is home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.',
+      'Play legendary links across Europe. Home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.',
+    countries: [
+      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/FIT/IE' },
+      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { name: 'Portugal', url: 'https://www.tigerbooking.com/Product/FIT/PT' },
+    ],
   },
   {
     name: 'North America',
     slug: 'north-america',
     description:
-      'Experience iconic courses from Pebble Beach to Pinehurst. North America boasts some of the most celebrated championship venues, with diverse climates and terrain for year-round play.',
+      'Experience iconic championship venues with diverse climates and terrain for year-round play.',
+    countries: [
+      {
+        name: 'Pebble Beach',
+        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pebble%20Beach&searchCode=USC5155&searchType=city',
+      },
+      {
+        name: 'Pinehurst',
+        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pinehurst%20&searchCode=USC0931&searchType=city',
+      },
+    ],
   },
   {
     name: 'South America',
     slug: 'south-america',
     description:
-      'Explore hidden gems in Argentina, Brazil, and Chile. South America combines breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.',
+      'Explore hidden gems across South America. Breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.',
+    countries: [
+      { name: 'Argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
+      { name: 'Brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
+      { name: 'Chile', url: 'https://www.tigerbooking.com/Product/FIT/CL' },
+    ],
   },
   {
     name: 'World',
     slug: 'world',
     description:
-      'From Australia and New Zealand to South Africa and the Middle East, explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
+      'Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
+    countries: [
+      { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
+      { name: 'New Zealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
+      { name: 'South Africa', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
+    ],
   },
 ]
 
@@ -70,7 +107,7 @@ export function TigerBooking() {
       {/* Region Links */}
       <div className="flex flex-col flex-1">
         <h4
-          className="text-[13px] font-bold uppercase tracking-[0.15em] text-[#735c38] mb-4"
+          className="text-[15px] font-bold uppercase tracking-[0.15em] text-[#735c38] mb-4"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Book by Region
@@ -86,20 +123,20 @@ export function TigerBooking() {
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-3 text-left transition-all duration-200 ${
+                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
                   selectedRegion === region.slug
                     ? 'text-[#735c38]'
                     : 'text-[#22333b] hover:text-[#735c38]'
                 }`}
               >
                 <span
-                  className="text-[14px] font-medium tracking-wide"
+                  className="text-[16px] font-medium tracking-wide"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-out ${
+                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
                     selectedRegion === region.slug ? 'rotate-90' : 'group-hover:translate-x-0.5'
                   }`}
                 />
@@ -114,11 +151,25 @@ export function TigerBooking() {
               >
                 <div className="overflow-hidden">
                   <p
-                    className="text-[13px] leading-relaxed text-[#735c38]/80 pb-3 pr-4"
+                    className="text-[15px] leading-relaxed text-[#735c38]/80 pb-2 pr-4"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {region.description}
                   </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 pb-3">
+                    {region.countries.map((country) => (
+                      <a
+                        key={country.name}
+                        href={country.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[14px] font-medium text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {country.name}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
 
