@@ -282,7 +282,8 @@ export default async function HomePage() {
                       alt="Ship Sticks"
                       width={96}
                       height={96}
-                      className="h-full w-auto object-contain"
+                      className="h-full object-contain"
+                      style={{ width: "auto" }}
                     />
                   </div>
 
