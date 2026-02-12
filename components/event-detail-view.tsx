@@ -306,6 +306,11 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </Accordion>
               </div>
 
+              {/* Gallery 2 - Accommodation images carousel */}
+              <div className="mt-12">
+                <ImageCarousel images={event.galleryImages2} alt={`${event.title} accommodation`} />
+              </div>
+
               {/* Package Inclusions */}
               <div id={sectionIds.inclusions} className="mt-12 scroll-mt-28">
                 <h3

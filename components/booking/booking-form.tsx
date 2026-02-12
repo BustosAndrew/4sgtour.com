@@ -140,39 +140,21 @@ export function BookingForm({
   })
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // Prioritize courses_photo_url, then use trip_images or other fallbacks
-  const courseImages: Array<{ image_url: string; display_order: number }> = []
-  if (trip.courses_photo_url) {
-    courseImages.push({
-      image_url: trip.courses_photo_url,
+  // Show only accommodation images in booking details
+  const accommodationImages: Array<{ image_url: string; display_order: number }> = []
+  if (trip.double_room_photo_url) {
+    accommodationImages.push({
+      image_url: trip.double_room_photo_url,
       display_order: 0,
     })
   }
-
-  // Add trip_images after course photo
-  const sortedTripImages =
-    trip.images?.sort((a, b) => a.display_order - b.display_order) || []
-  sortedTripImages.forEach((img, idx) => {
-    courseImages.push({
-      image_url: img.image_url,
-      display_order: idx + 1,
-    })
-  })
-
-  // Add room photos as additional fallbacks
-  if (trip.double_room_photo_url) {
-    courseImages.push({
-      image_url: trip.double_room_photo_url,
-      display_order: courseImages.length,
-    })
-  }
   if (trip.single_room_photo_url) {
-    courseImages.push({
+    accommodationImages.push({
       image_url: trip.single_room_photo_url,
-      display_order: courseImages.length,
+      display_order: accommodationImages.length,
     })
   }
-  const tripImages = courseImages
+  const tripImages = accommodationImages
 
   useEffect(() => {
     const fetchUser = async () => {
