@@ -102,6 +102,7 @@ export async function POST(request: Request) {
         trip_id: tripData.id,
         course_name: course.course_name,
         max_rounds: Number(course.max_rounds),
+        num_holes: Number(course.num_holes) || 18,
         description: course.description || null,
       }))
 

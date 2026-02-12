@@ -14,6 +14,7 @@ import {
   Trash2,
   ChevronRight,
   ChevronLeft,
+  GripVertical,
 } from "lucide-react"
 import Image from "next/image"
 import {
@@ -41,6 +42,7 @@ type GolfCourse = {
   id: string
   course_name: string
   max_rounds: string
+  num_holes: string
 }
 
 type MealOption = {
@@ -97,6 +99,7 @@ export function CreateTripForm() {
   })
   const [highlights, setHighlights] = useState<string[]>([])
   const [coursePhotos, setCoursePhotos] = useState<string[]>([])
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [photos, setPhotos] = useState({
     singleRoom: "",
     doubleRoom: "",
@@ -452,6 +455,7 @@ export function CreateTripForm() {
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
             max_rounds: Number(course.max_rounds),
+            num_holes: Number(course.num_holes) || 18,
           })),
           mealOptions: mealOptions.map((meal) => ({
             name: meal.name,
@@ -522,9 +526,10 @@ export function CreateTripForm() {
     setGolfCourses([
       ...golfCourses,
       {
-        id: crypto.randomUUID(),
+        id: `course-${Date.now()}`,
         course_name: "",
         max_rounds: "5",
+        num_holes: "18",
       },
     ])
   }
@@ -787,7 +792,7 @@ export function CreateTripForm() {
                 htmlFor="description"
                 className="text-base text-foreground"
               >
-                Description
+                Trip Overview
               </Label>
               <Textarea
                 id="description"
@@ -795,7 +800,7 @@ export function CreateTripForm() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="Describe the trip experience..."
+                placeholder="Provide a brief overview of the trip for guests..."
                 rows={6}
               />
             </div>
@@ -961,8 +966,28 @@ export function CreateTripForm() {
                   {coursePhotos.map((url, index) => (
                     <div
                       key={`${url}-${index}`}
-                      className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border"
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (dragIndex !== null && dragIndex !== index) {
+                          setCoursePhotos((prev) => {
+                            const next = [...prev]
+                            const [moved] = next.splice(dragIndex, 1)
+                            next.splice(index, 0, moved)
+                            return next
+                          })
+                        }
+                        setDragIndex(null)
+                      }}
+                      onDragEnd={() => setDragIndex(null)}
+                      className={`relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
+                        dragIndex === index ? "border-primary bg-primary/5" : "border-border"
+                      } cursor-grab active:cursor-grabbing`}
                     >
+                      <div className="absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded bg-black/50 text-white">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
                       <Image
                         src={url || "/placeholder.svg"}
                         alt={`Golf course photo ${index + 1}`}
@@ -1130,14 +1155,14 @@ export function CreateTripForm() {
 
                     <div className="space-y-2">
                       <Label className="text-base text-foreground">
-                        Description (optional)
+                        Package Details (optional)
                       </Label>
                       <Textarea
                         value={pkg.description}
                         onChange={(e) =>
                           updatePackage(pkg.id, "description", e.target.value)
                         }
-                        placeholder="Enter package description (optional)"
+                        placeholder="What's included in this package..."
                         rows={3}
                       />
                     </div>
@@ -1244,14 +1269,14 @@ export function CreateTripForm() {
 
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
-                          Description (optional)
+                          Package Details (optional)
                         </Label>
                         <Textarea
                           value={pkg.description}
                           onChange={(e) =>
                             updatePackage(pkg.id, "description", e.target.value)
                           }
-                          placeholder="Enter package description (optional)"
+                          placeholder="What's included in this package..."
                           rows={3}
                         />
                       </div>
@@ -1449,6 +1474,29 @@ export function CreateTripForm() {
                       />
                       <p className="text-xs text-muted-foreground">
                         Maximum rounds available (min: 0)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-base text-foreground">
+                        Number of Holes *
+                      </Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={course.num_holes}
+                        onChange={(e) =>
+                          updateGolfCourse(
+                            course.id,
+                            "num_holes",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="18"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Number of holes per round (e.g., 9, 18)
                       </p>
                     </div>
                   </div>
@@ -1902,7 +1950,7 @@ export function CreateTripForm() {
                             `Course ${String.fromCharCode(65 + idx)}`}
                         </span>
                         <span className="font-medium">
-                          Max rounds: {course.max_rounds}
+                          {course.num_holes || 18} holes | Max rounds: {course.max_rounds}
                         </span>
                       </div>
                     ))}

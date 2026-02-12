@@ -140,39 +140,21 @@ export function BookingForm({
   })
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // Prioritize courses_photo_url, then use trip_images or other fallbacks
-  const courseImages: Array<{ image_url: string; display_order: number }> = []
-  if (trip.courses_photo_url) {
-    courseImages.push({
-      image_url: trip.courses_photo_url,
+  // Show only accommodation images in booking details
+  const accommodationImages: Array<{ image_url: string; display_order: number }> = []
+  if (trip.double_room_photo_url) {
+    accommodationImages.push({
+      image_url: trip.double_room_photo_url,
       display_order: 0,
     })
   }
-
-  // Add trip_images after course photo
-  const sortedTripImages =
-    trip.images?.sort((a, b) => a.display_order - b.display_order) || []
-  sortedTripImages.forEach((img, idx) => {
-    courseImages.push({
-      image_url: img.image_url,
-      display_order: idx + 1,
-    })
-  })
-
-  // Add room photos as additional fallbacks
-  if (trip.double_room_photo_url) {
-    courseImages.push({
-      image_url: trip.double_room_photo_url,
-      display_order: courseImages.length,
-    })
-  }
   if (trip.single_room_photo_url) {
-    courseImages.push({
+    accommodationImages.push({
       image_url: trip.single_room_photo_url,
-      display_order: courseImages.length,
+      display_order: accommodationImages.length,
     })
   }
-  const tripImages = courseImages
+  const tripImages = accommodationImages
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -812,11 +794,14 @@ export function BookingForm({
                           </div>
                         </div>
 
-                        {typeof maxRounds === 'number' && maxRounds > 0 && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Max rounds: {maxRounds}
-                          </p>
-                        )}
+                        <div className="mt-2 flex gap-4 text-sm text-muted-foreground">
+                          {course.num_holes && (
+                            <span>{course.num_holes} holes</span>
+                          )}
+                          {typeof maxRounds === 'number' && maxRounds > 0 && (
+                            <span>Max rounds: {maxRounds}</span>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -1010,7 +995,7 @@ export function BookingForm({
                       return course ? (
                         <div key={courseId} className="flex items-center gap-2">
                           <span className="text-muted-foreground">
-                            {course.course_name}
+                            {course.course_name}{course.num_holes ? ` (${course.num_holes} holes)` : ''}
                           </span>
                           <Check className="h-4 w-4 text-muted-foreground" />
                         </div>
