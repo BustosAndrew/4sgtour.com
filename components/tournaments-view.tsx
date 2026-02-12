@@ -7,25 +7,25 @@ const TOURNAMENTS = [
   {
     name: 'THE OPEN',
     slug: 'the-open',
-    image: '/images/open.png',
+    image: '/images/1.png',
     objectPosition: '50% 35%',
   },
   {
     name: 'RYDER CUP',
     slug: 'ryder-cup',
-    image: '/images/ryder.png',
+    image: '/images/2.png',
     objectPosition: '50% 35%',
   },
   {
     name: 'MASTERS',
     slug: 'masters',
-    image: '/images/masters.png',
+    image: '/images/3.png',
     objectPosition: '50% 35%',
   },
   {
     name: 'US OPEN',
     slug: 'us-open',
-    image: '/images/us.png',
+    image: '/images/4.png',
     objectPosition: '50% 35%',
   },
 ]
