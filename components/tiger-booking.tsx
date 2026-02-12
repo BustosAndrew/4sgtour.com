@@ -59,7 +59,7 @@ const REGIONS: Region[] = [
   },
   {
     name: 'Latin America',
-    slug: 'south-america',
+    slug: 'latin-america',
     description:
       'Explore hidden gems across South America. Breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.',
     countries: [
@@ -124,8 +124,8 @@ export function TigerBooking() {
                   )
                 }
                 className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${selectedRegion === region.slug
-                    ? 'text-[#735c38]'
-                    : 'text-[#22333b] hover:text-[#735c38]'
+                  ? 'text-[#735c38]'
+                  : 'text-[#22333b] hover:text-[#735c38]'
                   }`}
               >
                 <span
@@ -142,8 +142,8 @@ export function TigerBooking() {
 
               <div
                 className={`grid transition-all duration-300 ease-in-out ${selectedRegion === region.slug
-                    ? 'grid-rows-[1fr] opacity-100'
-                    : 'grid-rows-[0fr] opacity-0'
+                  ? 'grid-rows-[1fr] opacity-100'
+                  : 'grid-rows-[0fr] opacity-0'
                   }`}
               >
                 <div className="overflow-hidden">
