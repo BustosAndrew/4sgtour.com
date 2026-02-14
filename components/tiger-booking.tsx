@@ -27,7 +27,10 @@ const REGIONS: Region[] = [
       { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
       { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
       { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
-      { name: 'South Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
+      {
+        name: 'South Korea',
+        url: 'https://www.tigerbooking.com/Product/FIT/KR',
+      },
     ],
   },
   {
@@ -75,8 +78,14 @@ const REGIONS: Region[] = [
       'Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
     countries: [
       { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
-      { name: 'New Zealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
-      { name: 'South Africa', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
+      {
+        name: 'New Zealand',
+        url: 'https://www.tigerbooking.com/Product/FIT/NZ',
+      },
+      {
+        name: 'South Africa',
+        url: 'https://www.tigerbooking.com/Product/FIT/ZA',
+      },
     ],
   },
 ]
@@ -123,32 +132,37 @@ export function TigerBooking() {
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${selectedRegion === region.slug
-                  ? 'text-[#735c38]'
-                  : 'text-[#22333b] hover:text-[#735c38]'
-                  }`}
+                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
+                  selectedRegion === region.slug
+                    ? 'text-[#735c38]'
+                    : 'text-[#22333b] hover:text-[#735c38]'
+                }`}
               >
                 <span
-                  className="text-[16px] font-medium tracking-wide"
+                  className="text-[16px] font-semibold tracking-wide"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${selectedRegion === region.slug ? 'rotate-90' : 'group-hover:translate-x-0.5'
-                    }`}
+                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
+                    selectedRegion === region.slug
+                      ? 'rotate-90'
+                      : 'group-hover:translate-x-0.5'
+                  }`}
                 />
               </button>
 
               <div
-                className={`grid transition-all duration-300 ease-in-out ${selectedRegion === region.slug
-                  ? 'grid-rows-[1fr] opacity-100'
-                  : 'grid-rows-[0fr] opacity-0'
-                  }`}
+                className={`grid transition-all duration-300 ease-in-out ${
+                  selectedRegion === region.slug
+                    ? 'grid-rows-[1fr] opacity-100'
+                    : 'grid-rows-[0fr] opacity-0'
+                }`}
               >
                 <div className="overflow-hidden">
                   <p
-                    className="text-[15px] leading-relaxed text-[#735c38]/80 pb-2 pr-4"
+                    className="text-[15px] leading-relaxed text-[#735c38] pb-2 pr-4 font-semibold"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {region.description}
@@ -160,7 +174,7 @@ export function TigerBooking() {
                         href={country.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[14px] font-medium text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
+                        className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {country.name}

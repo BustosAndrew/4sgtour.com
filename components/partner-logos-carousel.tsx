@@ -43,30 +43,40 @@ export function PartnerLogosCarousel() {
 
       {/* Scrolling track: two copies for seamless loop */}
       <div className="flex w-max animate-scroll-logos">
-        {[...partners, ...partners].map((partner, i) => (
-          <div
-            key={`${partner.alt}-${i}`}
-            className="flex flex-shrink-0 flex-col items-center justify-center px-6 sm:px-10 md:px-14 lg:px-16"
-          >
-            <div className="relative h-14 w-28 sm:h-18 sm:w-36 md:h-20 md:w-44 lg:h-24 lg:w-52">
-              <Image
-                src={partner.src}
-                alt={partner.alt}
-                fill
-                className="object-contain"
-                sizes="(min-width: 1024px) 13rem, (min-width: 768px) 11rem, (min-width: 640px) 9rem, 7rem"
-              />
+        {[...partners, ...partners].map((partner, i) => {
+          const isTimes = partner.src?.includes('times.png') || partner.alt === 'Global Golf Times'
+          const containerClass = isTimes
+            ? 'relative h-20 w-36 sm:h-24 sm:w-44 md:h-28 md:w-52 lg:h-32 lg:w-60'
+            : 'relative h-14 w-28 sm:h-18 sm:w-36 md:h-20 md:w-44 lg:h-24 lg:w-52'
+          const sizes = isTimes
+            ? '(min-width: 1024px) 15rem, (min-width: 768px) 13rem, (min-width: 640px) 11rem, 9rem'
+            : '(min-width: 1024px) 13rem, (min-width: 768px) 11rem, (min-width: 640px) 9rem, 7rem'
+
+          return (
+            <div
+              key={`${partner.alt}-${i}`}
+              className="flex flex-shrink-0 flex-col items-center justify-center px-6 sm:px-10 md:px-14 lg:px-16"
+            >
+              <div className={containerClass}>
+                <Image
+                  src={partner.src}
+                  alt={partner.alt}
+                  fill
+                  className="object-contain"
+                  sizes={sizes}
+                />
+              </div>
+              {partner.label && (
+                <p
+                  className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {partner.label}
+                </p>
+              )}
             </div>
-            {partner.label && (
-              <p
-                className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                {partner.label}
-              </p>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

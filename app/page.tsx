@@ -283,7 +283,7 @@ export default async function HomePage() {
                       width={96}
                       height={96}
                       className="h-full object-contain"
-                      style={{ width: "auto" }}
+                      style={{ width: 'auto' }}
                     />
                   </div>
 
@@ -297,7 +297,7 @@ export default async function HomePage() {
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#735C38]/80"
+                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#735C38] font-semibold"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
