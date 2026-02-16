@@ -41,6 +41,7 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
           tierName={matchedTier?.name ?? null}
           tierPrice={matchedTier?.price ?? null}
           backHref={`/tournaments/${slug}/${eventSlug}`}
+          heroImage={tournament.heroImage}
         />
       </main>
       <SiteFooter />

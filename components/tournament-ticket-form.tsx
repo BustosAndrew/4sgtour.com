@@ -15,6 +15,7 @@ interface TournamentTicketFormProps {
   tierName: string | null
   tierPrice: string | null
   backHref: string
+  heroImage: string
 }
 
 export function TournamentTicketForm({
@@ -24,6 +25,7 @@ export function TournamentTicketForm({
   tierName,
   tierPrice,
   backHref,
+  heroImage,
 }: TournamentTicketFormProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -78,20 +80,22 @@ export function TournamentTicketForm({
   return (
     <div>
       {/* Hero */}
-      <section className="relative bg-[#22333b] py-16 sm:py-20 md:py-24">
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=600&width=1200')] bg-cover bg-center opacity-10" />
-        <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center border border-[#735c38]/30 bg-[#735c38]/10 sm:h-16 sm:w-16">
-            <Ticket className="h-7 w-7 text-[#735c38] sm:h-8 sm:w-8" />
-          </div>
+      <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
+        <img
+          src={heroImage || '/placeholder.svg?height=600&width=1200'}
+          alt={formattedTitle}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <p
-            className="text-xs uppercase tracking-[0.25em] text-white/70 sm:text-sm"
+            className="text-xs uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Get Tickets
           </p>
           <h1
-            className="mt-3 text-3xl italic text-white sm:text-4xl md:text-5xl text-balance"
+            className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
             {formattedTitle}
