@@ -256,66 +256,69 @@ export default async function HomePage() {
         </section>
 
         {/* Tiger Booking & Golf Club Delivery Section */}
-        <section className="py-12 md:py-16">
+        <section className="py-10 md:py-14">
           <div className="container">
-            <div className="bg-[#f2f0ec] flex flex-col md:flex-row items-stretch w-full overflow-hidden">
+            {/* Section heading */}
+            <div className="text-center mb-6">
+              <h2
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38]"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Our Partners
+              </h2>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-stretch w-full gap-4 md:gap-6">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-[48%]">
+              <div className="md:w-[50%] bg-white border border-[#22333b]/10 shadow-md">
                 <TigerBooking />
               </div>
 
-              {/* Vertical Divider */}
-              <div className="hidden md:flex items-center py-8">
-                <div className="w-px h-full bg-[#22333b]/10" />
-              </div>
-
-              {/* Horizontal Divider (mobile) */}
-              <div className="md:hidden h-px bg-[#22333b]/10 mx-6" />
-
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="flex-1 px-6 sm:px-8 md:px-10 py-8 md:py-10 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-5 w-full max-w-sm">
-                  {/* Logo */}
-                  <div className="relative h-16 sm:h-20 md:h-24 shrink-0">
-                    <Image
-                      src="/images/sticks.png"
-                      alt="Ship Sticks"
-                      width={96}
-                      height={96}
-                      className="h-full object-contain"
-                      style={{ width: 'auto' }}
-                    />
-                  </div>
+              <div className="flex-1 border border-[#22333b]/10 bg-white shadow-md px-5 sm:px-6 md:px-7 py-5 md:py-6 flex flex-col items-center justify-center">
+                {/* Logo - centered */}
+                <div className="relative h-16 sm:h-20 md:h-24 shrink-0 mb-4">
+                  <Image
+                    src="/images/sticks.png"
+                    alt="Ship Sticks"
+                    width={200}
+                    height={100}
+                    className="h-full object-contain"
+                    style={{ width: 'auto' }}
+                  />
+                </div>
 
-                  {/* Text */}
-                  <div className="text-center flex flex-col gap-4">
-                    <div>
-                      <h3
-                        className="mb-2 text-[17px] lg:text-[19px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        Golf Club Delivery Service
-                      </h3>
-                      <p
-                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#735C38] font-semibold"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        Ship Sticks makes it easier than ever to transport your
-                        golf clubs to your destination, allowing you to enjoy a
-                        hassle-free travel experience anywhere in the world.
-                      </p>
-                    </div>
-                    <Link
-                      href="https://www.shipsticks.com/4seasons-golf-tour"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[14px] lg:text-[15px] w-fit mx-auto"
+                {/* Divider */}
+                <div className="h-px w-full bg-[#22333b]/20 mb-4" />
+
+                {/* Text + CTA */}
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <div>
+                    <h3
+                      className="mb-1.5 text-[14px] lg:text-[16px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      Delivery Request
-                      <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
-                    </Link>
+                      Golf Club Delivery Service
+                    </h3>
+                    <p
+                      className="text-[14px] lg:text-[15px] leading-relaxed text-[#22333b]/80"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      Ship Sticks makes it easier than ever to transport your
+                      golf clubs to your destination, allowing you to enjoy a
+                      hassle-free travel experience anywhere in the world.
+                    </p>
                   </div>
+                  <Link
+                    href="https://www.shipsticks.com/4seasons-golf-tour"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2 px-6 uppercase tracking-[0.15em] transition-colors text-[13px] lg:text-[14px]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    Delivery Request
+                    <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
                 </div>
               </div>
             </div>

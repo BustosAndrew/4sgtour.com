@@ -24,13 +24,13 @@ const REGIONS: Region[] = [
     description:
       'Discover premier golf courses across Asia. A unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.',
     countries: [
-      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
-      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
       { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
-      {
-        name: 'South Korea',
-        url: 'https://www.tigerbooking.com/Product/FIT/KR',
-      },
+      { name: 'Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
+      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
+      { name: 'China', url: 'https://www.tigerbooking.com/Product/FIT/CN' },
+      { name: 'Malaysia', url: 'https://www.tigerbooking.com/Product/FIT/MY' },
+      { name: 'Singapore', url: 'https://www.tigerbooking.com/Product/FIT/SG' },
+      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
     ],
   },
   {
@@ -39,9 +39,19 @@ const REGIONS: Region[] = [
     description:
       'Play legendary links across Europe. Home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.',
     countries: [
-      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/FIT/IE' },
-      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { name: 'Austria', url: 'https://www.tigerbooking.com/Product/FIT/AT' },
+      { name: 'Bulgaria', url: 'https://www.tigerbooking.com/Product/FIT/BG' },
+      { name: 'Czech', url: 'https://www.tigerbooking.com/Product/FIT/CZ' },
+      { name: 'Denmark', url: 'https://www.tigerbooking.com/Product/FIT/DK' },
+      { name: 'Germany', url: 'https://www.tigerbooking.com/Product/FIT/DE' },
+      { name: 'Italy', url: 'https://www.tigerbooking.com/Product/FIT/IT' },
+      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/EVT/IE' },
+      { name: 'Poland', url: 'https://www.tigerbooking.com/Product/FIT/PL' },
       { name: 'Portugal', url: 'https://www.tigerbooking.com/Product/FIT/PT' },
+      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { name: 'Sweden', url: 'https://www.tigerbooking.com/Product/FIT/SE' },
+      { name: 'Turkey', url: 'https://www.tigerbooking.com/Product/FIT/TR' },
+      { name: 'UK', url: 'https://www.tigerbooking.com/Product/EVT/GB' },
     ],
   },
   {
@@ -50,14 +60,9 @@ const REGIONS: Region[] = [
     description:
       'Experience iconic championship venues with diverse climates and terrain for year-round play.',
     countries: [
-      {
-        name: 'Pebble Beach',
-        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pebble%20Beach&searchCode=USC5155&searchType=city',
-      },
-      {
-        name: 'Pinehurst',
-        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pinehurst%20&searchCode=USC0931&searchType=city',
-      },
+      { name: 'Canada', url: 'https://www.tigerbooking.com/Product/FIT/CA' },
+      { name: 'Mexico', url: 'https://www.tigerbooking.com/Product/FIT/MX' },
+      { name: 'USA', url: 'https://www.tigerbooking.com/Product/FIT/US' },
     ],
   },
   {
@@ -69,6 +74,11 @@ const REGIONS: Region[] = [
       { name: 'Argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
       { name: 'Brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
       { name: 'Chile', url: 'https://www.tigerbooking.com/Product/FIT/CL' },
+      { name: 'Colombia', url: 'https://www.tigerbooking.com/Product/FIT/CO' },
+      { name: 'Costa Rica', url: 'https://www.tigerbooking.com/Product/FIT/CR' },
+      { name: 'Los Cabos', url: 'https://www.tigerbooking.com/Product/EVT/MX' },
+      { name: 'Dominica', url: 'https://www.tigerbooking.com/Product/FIT/DO' },
+      { name: 'Panama', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
     ],
   },
   {
@@ -78,116 +88,97 @@ const REGIONS: Region[] = [
       'Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
     countries: [
       { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
-      {
-        name: 'New Zealand',
-        url: 'https://www.tigerbooking.com/Product/FIT/NZ',
-      },
-      {
-        name: 'South Africa',
-        url: 'https://www.tigerbooking.com/Product/FIT/ZA',
-      },
+      { name: 'Dubai', url: 'https://www.tigerbooking.com/Product/FIT/AE' },
+      { name: 'Morocco', url: 'https://www.tigerbooking.com/Product/FIT/MA' },
+      { name: 'Mauritius', url: 'https://www.tigerbooking.com/Product/FIT/MU' },
+      { name: 'New Zealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
+      { name: 'South Africa', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
     ],
   },
 ]
 
 export function TigerBooking() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
+  const activeRegion = REGIONS.find((r) => r.slug === selectedRegion)
 
   return (
-    <div className="flex flex-col h-full px-6 sm:px-8 md:px-10 py-8 md:py-10">
-      {/* Tiger Booking Logo */}
-      <div className="flex items-center justify-center mb-6">
+    <div className="flex flex-col h-full px-5 sm:px-6 md:px-7 py-5 md:py-6">
+      {/* Top row: logo left, region pill tabs right */}
+      <div className="flex items-center justify-between gap-4 mb-4">
         <Link
           href="https://www.tigerbooking.golf/"
           target="_blank"
           rel="noopener noreferrer"
-          className="transition-opacity hover:opacity-80"
+          className="transition-opacity hover:opacity-80 shrink-0"
         >
           <Image
             src="/images/tiger.png"
             alt="Tiger Booking"
             width={280}
             height={140}
-            className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain"
+            className="max-w-[100px] md:max-w-[120px] h-auto object-contain"
           />
         </Link>
-      </div>
 
-      {/* Region Links */}
-      <div className="flex flex-col flex-1">
-        <h4
-          className="text-[15px] font-bold uppercase tracking-[0.15em] text-[#735c38] mb-4"
-          style={{ fontFamily: 'var(--font-body)' }}
-        >
-          Book by Region
-        </h4>
-
-        <div className="flex flex-col">
-          <div className="h-px bg-[#22333b]/8" />
+        {/* Region pill tabs */}
+        <div className="flex flex-wrap justify-end gap-1.5">
           {REGIONS.map((region) => (
-            <div key={region.slug}>
-              <button
-                onClick={() =>
-                  setSelectedRegion(
-                    selectedRegion === region.slug ? null : region.slug,
-                  )
-                }
-                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
-                  selectedRegion === region.slug
-                    ? 'text-[#735c38]'
-                    : 'text-[#22333b] hover:text-[#735c38]'
-                }`}
-              >
-                <span
-                  className="text-[16px] font-semibold tracking-wide"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  {region.name}
-                </span>
-                <ChevronRight
-                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
-                    selectedRegion === region.slug
-                      ? 'rotate-90'
-                      : 'group-hover:translate-x-0.5'
-                  }`}
-                />
-              </button>
-
-              <div
-                className={`grid transition-all duration-300 ease-in-out ${
-                  selectedRegion === region.slug
-                    ? 'grid-rows-[1fr] opacity-100'
-                    : 'grid-rows-[0fr] opacity-0'
-                }`}
-              >
-                <div className="overflow-hidden">
-                  <p
-                    className="text-[15px] leading-relaxed text-[#735c38] pb-2 pr-4 font-semibold"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    {region.description}
-                  </p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 pb-3">
-                    {region.countries.map((country) => (
-                      <a
-                        key={country.name}
-                        href={country.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {country.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-px bg-[#22333b]/8" />
-            </div>
+            <button
+              key={region.slug}
+              onClick={() =>
+                setSelectedRegion(
+                  selectedRegion === region.slug ? null : region.slug,
+                )
+              }
+              className={`px-2.5 py-1 text-[11px] md:text-[12px] font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                selectedRegion === region.slug
+                  ? 'bg-[#22333b] text-[#fffff8] border-[#22333b]'
+                  : 'bg-transparent text-[#22333b]/60 border-[#22333b]/15 hover:border-[#735c38]/50 hover:text-[#735c38]'
+              }`}
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              {region.name}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-[#22333b]/20 mb-3" />
+
+      {/* Country links area */}
+      <div className="flex-1 min-h-[48px]">
+        {activeRegion ? (
+          <div>
+            <p
+              className="text-[14px] leading-relaxed text-[#22333b] mb-2.5"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              {activeRegion.description}
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {activeRegion.countries.map((country) => (
+                <a
+                  key={country.name}
+                  href={country.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {country.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p
+            className="text-[14px] text-[#22333b]/70"
+            style={{ fontFamily: 'var(--font-body)' }}
+          >
+            Select a region above to view available destinations
+          </p>
+        )}
       </div>
     </div>
   )
