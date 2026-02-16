@@ -144,82 +144,81 @@ export default async function TripPage({ params }: TripPageProps) {
                 </ul>
               </div>
             )}
-          </div>
-        </div>
-      </section>
 
-      {/* Packages Section */}
-      <section className="py-8 sm:py-10 md:py-12">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-              Inquire Now
-            </h2>
-            <p className="mt-2 text-xs text-muted-foreground sm:text-sm md:text-base">
-              Choose your perfect package and start your golf adventure today
-            </p>
-          </div>
+            {/* Packages / Inquire Now Section */}
+            <div>
+              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+                Inquire Now
+              </h2>
+              <div className="mt-2 mb-4">
+                <AnimatedHr />
+              </div>
+              <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
+                Choose your perfect package and start your golf adventure today
+              </p>
 
-          {trip.packages && trip.packages.length > 0 ? (
-            <div className="mt-6 flex flex-wrap justify-center gap-4 sm:mt-8 sm:gap-6 lg:gap-8">
-              {trip.packages.map((pkg: any) => {
-                const isUpgrade = pkg.name === "Upgrade"
-                const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
-                const borderColor = isUpgrade
-                  ? "border-[#274C77]"
-                  : "border-[#6096BA]"
-                const headerText = "text-white"
+              {trip.packages && trip.packages.length > 0 ? (
+                <div className="mt-6 flex flex-wrap gap-4 sm:gap-6">
+                  {trip.packages.map((pkg: any) => {
+                    const isUpgrade = pkg.name === "Upgrade"
+                    const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
+                    const borderColor = isUpgrade
+                      ? "border-[#274C77]"
+                      : "border-[#6096BA]"
+                    const headerText = "text-white"
 
-                return (
-                  <div
-                    key={pkg.id}
-                    className={`flex w-full flex-col overflow-hidden border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl sm:w-[280px] sm:max-w-[290px]`}
-                  >
-                    <div className={`${headerBg} px-6 py-6 text-center`}>
-                      <h3
-                        className={`text-xl font-bold ${headerText} sm:text-2xl`}
+                    return (
+                      <div
+                        key={pkg.id}
+                        className={`flex w-full flex-col overflow-hidden border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl sm:w-[240px] sm:max-w-[260px]`}
                       >
-                        {pkg.name}
-                      </h3>
-                    </div>
+                        <div className={`${headerBg} px-5 py-5 text-center`}>
+                          <h3
+                            className={`text-lg font-bold ${headerText} sm:text-xl`}
+                          >
+                            {pkg.name}
+                          </h3>
+                        </div>
 
-                    <div className="flex flex-1 flex-col p-6">
-                      <p className="mb-6 text-center text-3xl font-bold text-foreground sm:text-4xl">
-                        ${pkg.price.toFixed(0)}
-                      </p>
+                        <div className="flex flex-1 flex-col p-5">
+                          <p className="mb-5 text-center text-2xl font-bold text-foreground sm:text-3xl">
+                            ${pkg.price.toFixed(0)}
+                          </p>
 
-                      <Link
-                        href={`/trips/${trip.slug}/book?package=${pkg.id}`}
-                        className="mt-auto w-full"
-                      >
-                        <AnimatedButton
-                          startColor={isUpgrade ? "#274C77" : "#6096BA"}
-                          endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
-                          hoverText="Let's Go!"
-                          className="w-full"
-                        >
-                          Inquire Now
-                        </AnimatedButton>
-                      </Link>
-                    </div>
-                  </div>
-                )
-              })}
+                          <Link
+                            href={`/trips/${trip.slug}/book?package=${pkg.id}`}
+                            className="mt-auto w-full"
+                          >
+                            <AnimatedButton
+                              startColor={isUpgrade ? "#274C77" : "#6096BA"}
+                              endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
+                              hoverText="Let's Go!"
+                              className="w-full"
+                            >
+                              Inquire Now
+                            </AnimatedButton>
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="mt-6">
+                  <Link href={`/trips/${trip.slug}/book`}>
+                    <AnimatedButton
+                      startColor="#6096BA"
+                      endColor="#4a7a9e"
+                      hoverText="Let's Go!"
+                      className="w-full sm:w-auto"
+                    >
+                      Inquire Now
+                    </AnimatedButton>
+                  </Link>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="mt-6 text-center sm:mt-8">
-              <Link href={`/trips/${trip.slug}/book`}>
-                <AnimatedButton
-                  startColor="#6096BA"
-                  endColor="#4a7a9e"
-                  hoverText="Let's Go!"
-                  className="w-full sm:w-auto"
-                >
-                  Inquire Now
-                </AnimatedButton>
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
