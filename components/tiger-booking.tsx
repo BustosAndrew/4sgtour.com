@@ -116,7 +116,7 @@ export function TigerBooking() {
             alt="Tiger Booking"
             width={280}
             height={140}
-            className="max-w-[100px] md:max-w-[120px] h-auto object-contain brightness-0 invert"
+            className="max-w-[100px] md:max-w-[120px] h-auto object-contain"
           />
         </Link>
 
@@ -149,23 +149,31 @@ export function TigerBooking() {
       {/* Country links area */}
       <div className="flex-1 min-h-[48px]">
         {activeRegion ? (
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {activeRegion.countries.map((country) => (
-              <a
-                key={country.name}
-                href={country.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[13px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                {country.name}
-              </a>
-            ))}
+          <div>
+            <p
+              className="text-[14px] leading-relaxed text-[#fffff8]/60 mb-2.5"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              {activeRegion.description}
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {activeRegion.countries.map((country) => (
+                <a
+                  key={country.name}
+                  href={country.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {country.name}
+                </a>
+              ))}
+            </div>
           </div>
         ) : (
           <p
-            className="text-[13px] text-[#fffff8]/40 font-medium"
+            className="text-[14px] text-[#fffff8]/40"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Select a region above to view available destinations
