@@ -405,7 +405,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                         </p>
                       </div>
                       <Link
-                        href={tier.bookingUrl}
+                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
                         className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
