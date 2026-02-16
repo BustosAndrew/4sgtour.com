@@ -153,14 +153,6 @@ export function SiteFooter() {
               <ul className="text-sm">
                 <li>
                   <a
-                    href="tel:1-213-214-3355"
-                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                  >
-                    1-213-214-3355
-                  </a>
-                </li>
-                <li>
-                  <a
                     href="tel:070-4517-5998"
                     className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                   >
