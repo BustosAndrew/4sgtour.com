@@ -4,6 +4,90 @@ import { useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 
+interface RoomImageSectionProps {
+  imageUrl: string
+  heading: string
+  title: string
+}
+
+export function RoomImageSection({
+  imageUrl,
+  heading,
+  title,
+}: RoomImageSectionProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <>
+      <div>
+        <h3 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">
+          {heading}
+        </h3>
+        <div className="mt-2 mb-4">
+          <div className="h-px w-full bg-gradient-to-r from-[#6096BA] to-transparent" />
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="relative aspect-[4/3] w-full overflow-hidden group cursor-pointer"
+        >
+          <Image
+            src={imageUrl}
+            alt={`${title} - ${heading}`}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
+              View Photo
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* Popup */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="relative h-full w-full flex items-center justify-center p-4 sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-110 sm:right-8 sm:top-8"
+              aria-label="Close image"
+            >
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+
+            <div className="relative w-full max-w-6xl">
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg shadow-2xl">
+                <Image
+                  src={imageUrl}
+                  alt={`${title} - ${heading}`}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:p-6">
+                <p className="text-sm text-white/80 sm:text-base">
+                  {title} &mdash; {heading}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 interface TripImageGalleryProps {
   images: string[]
   title: string

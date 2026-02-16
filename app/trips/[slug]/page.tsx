@@ -6,7 +6,10 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import {} from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
-import { TripImageGallery } from "@/components/trip-image-gallery"
+import {
+  TripImageGallery,
+  RoomImageSection,
+} from "@/components/trip-image-gallery"
 
 interface TripPageProps {
   params: Promise<{ slug: string }>
@@ -44,7 +47,10 @@ export default async function TripPage({ params }: TripPageProps) {
   const additionalImages =
     tripImages.length > 0
       ? tripImages.map((img: any) => img.image_url)
-      : [trip.double_room_photo_url, trip.single_room_photo_url].filter(Boolean)
+      : []
+
+  const singleRoomImage = trip.single_room_photo_url || null
+  const doubleRoomImage = trip.double_room_photo_url || null
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,8 +79,30 @@ export default async function TripPage({ params }: TripPageProps) {
       <section className="container px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-4">
           {/* Right Column - Images */}
-          <div className="order-1 lg:order-2">
-            <TripImageGallery images={additionalImages} title={trip.title} />
+          <div className="order-1 lg:order-2 space-y-8">
+            {additionalImages.length > 0 && (
+              <TripImageGallery images={additionalImages} title={trip.title} />
+            )}
+
+            {/* Room Images */}
+            {(doubleRoomImage || singleRoomImage) && (
+              <div className="space-y-8">
+                {doubleRoomImage && (
+                  <RoomImageSection
+                    imageUrl={doubleRoomImage}
+                    heading="Double Occupancy Room"
+                    title={trip.title}
+                  />
+                )}
+                {singleRoomImage && (
+                  <RoomImageSection
+                    imageUrl={singleRoomImage}
+                    heading="Single Occupancy Room"
+                    title={trip.title}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* Left Column - Text Content */}
