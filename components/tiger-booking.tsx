@@ -151,7 +151,7 @@ export function TigerBooking() {
         {activeRegion ? (
           <div>
             <p
-              className="text-[14px] leading-relaxed text-[#22333b]/60 mb-2.5"
+              className="text-[14px] leading-relaxed text-[#22333b] mb-2.5"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               {activeRegion.description}
