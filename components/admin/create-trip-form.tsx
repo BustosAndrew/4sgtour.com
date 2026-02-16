@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
 type Package = {
   id: string
@@ -866,8 +866,8 @@ export function CreateTripForm() {
                   >
                     {continent === "North America"
                       ? "N. America"
-                      : continent === "South America"
-                      ? "S. America"
+                      : continent === "Latin America"
+                      ? "L. America"
                       : continent}
                   </button>
                 ))}

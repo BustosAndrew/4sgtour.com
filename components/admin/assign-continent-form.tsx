@@ -11,7 +11,7 @@ interface AssignContinentFormProps {
   currentContinent: string | null
 }
 
-const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
 export function AssignContinentForm({
   tripId,
