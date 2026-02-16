@@ -256,25 +256,31 @@ export default async function HomePage() {
         </section>
 
         {/* Tiger Booking & Golf Club Delivery Section */}
-        <section className="py-12 md:py-16">
-          <div className="container">
-            <div className="bg-[#f2f0ec] flex flex-col md:flex-row items-stretch w-full overflow-hidden">
+        <section className="relative py-16 md:py-24 bg-[#22333b] overflow-hidden">
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fffff8 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+
+          <div className="container relative z-10">
+            {/* Section heading */}
+            <div className="text-center mb-12">
+              <h2
+                className="text-3xl md:text-4xl lg:text-5xl text-[#fffff8] mb-4"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Our Partners
+              </h2>
+              <div className="w-12 h-0.5 bg-[#735c38] mx-auto"></div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-stretch w-full gap-6 md:gap-8">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-[48%]">
+              <div className="md:w-[52%] bg-[#fffff8]/[0.04] border border-[#fffff8]/[0.08]">
                 <TigerBooking />
               </div>
 
-              {/* Vertical Divider */}
-              <div className="hidden md:flex items-center py-8">
-                <div className="w-px h-full bg-[#22333b]/10" />
-              </div>
-
-              {/* Horizontal Divider (mobile) */}
-              <div className="md:hidden h-px bg-[#22333b]/10 mx-6" />
-
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="flex-1 px-6 sm:px-8 md:px-10 py-8 md:py-10 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-5 w-full max-w-sm">
+              <div className="flex-1 bg-[#fffff8]/[0.04] border border-[#fffff8]/[0.08] px-6 sm:px-8 md:px-10 py-8 md:py-10 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-6 w-full max-w-sm">
                   {/* Logo */}
                   <div className="relative h-16 sm:h-20 md:h-24 shrink-0">
                     <Image
@@ -282,22 +288,22 @@ export default async function HomePage() {
                       alt="Ship Sticks"
                       width={96}
                       height={96}
-                      className="h-full object-contain"
+                      className="h-full object-contain brightness-0 invert"
                       style={{ width: 'auto' }}
                     />
                   </div>
 
                   {/* Text */}
-                  <div className="text-center flex flex-col gap-4">
+                  <div className="text-center flex flex-col gap-5">
                     <div>
                       <h3
-                        className="mb-2 text-[17px] lg:text-[19px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
+                        className="mb-3 text-[17px] lg:text-[19px] font-bold uppercase tracking-[0.12em] text-[#fffff8]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#735C38] font-semibold"
+                        className="text-[15px] lg:text-[16px] leading-relaxed text-[#fffff8]/70 font-medium"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
@@ -309,7 +315,7 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2.5 px-6 uppercase tracking-[0.15em] transition-colors text-[14px] lg:text-[15px] w-fit mx-auto"
+                      className="inline-flex items-center justify-center bg-[#735c38] hover:bg-[#8a6f47] text-[#fffff8] font-semibold py-3 px-8 uppercase tracking-[0.15em] transition-colors text-[14px] lg:text-[15px] w-fit mx-auto"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Delivery Request

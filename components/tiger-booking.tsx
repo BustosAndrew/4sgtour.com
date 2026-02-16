@@ -24,13 +24,13 @@ const REGIONS: Region[] = [
     description:
       'Discover premier golf courses across Asia. A unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.',
     countries: [
-      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
-      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
       { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
-      {
-        name: 'South Korea',
-        url: 'https://www.tigerbooking.com/Product/FIT/KR',
-      },
+      { name: 'Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
+      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
+      { name: 'China', url: 'https://www.tigerbooking.com/Product/FIT/CN' },
+      { name: 'Malaysia', url: 'https://www.tigerbooking.com/Product/FIT/MY' },
+      { name: 'Singapore', url: 'https://www.tigerbooking.com/Product/FIT/SG' },
+      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
     ],
   },
   {
@@ -39,9 +39,19 @@ const REGIONS: Region[] = [
     description:
       'Play legendary links across Europe. Home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.',
     countries: [
-      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/FIT/IE' },
-      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { name: 'Austria', url: 'https://www.tigerbooking.com/Product/FIT/AT' },
+      { name: 'Bulgaria', url: 'https://www.tigerbooking.com/Product/FIT/BG' },
+      { name: 'Czech', url: 'https://www.tigerbooking.com/Product/FIT/CZ' },
+      { name: 'Denmark', url: 'https://www.tigerbooking.com/Product/FIT/DK' },
+      { name: 'Germany', url: 'https://www.tigerbooking.com/Product/FIT/DE' },
+      { name: 'Italy', url: 'https://www.tigerbooking.com/Product/FIT/IT' },
+      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/EVT/IE' },
+      { name: 'Poland', url: 'https://www.tigerbooking.com/Product/FIT/PL' },
       { name: 'Portugal', url: 'https://www.tigerbooking.com/Product/FIT/PT' },
+      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { name: 'Sweden', url: 'https://www.tigerbooking.com/Product/FIT/SE' },
+      { name: 'Turkey', url: 'https://www.tigerbooking.com/Product/FIT/TR' },
+      { name: 'UK', url: 'https://www.tigerbooking.com/Product/EVT/GB' },
     ],
   },
   {
@@ -50,14 +60,9 @@ const REGIONS: Region[] = [
     description:
       'Experience iconic championship venues with diverse climates and terrain for year-round play.',
     countries: [
-      {
-        name: 'Pebble Beach',
-        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pebble%20Beach&searchCode=USC5155&searchType=city',
-      },
-      {
-        name: 'Pinehurst',
-        url: 'https://www.tigerbooking.com/Product/Search?playdate=&playerCnt=&searchName=Pinehurst%20&searchCode=USC0931&searchType=city',
-      },
+      { name: 'Canada', url: 'https://www.tigerbooking.com/Product/FIT/CA' },
+      { name: 'Mexico', url: 'https://www.tigerbooking.com/Product/FIT/MX' },
+      { name: 'USA', url: 'https://www.tigerbooking.com/Product/FIT/US' },
     ],
   },
   {
@@ -69,6 +74,11 @@ const REGIONS: Region[] = [
       { name: 'Argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
       { name: 'Brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
       { name: 'Chile', url: 'https://www.tigerbooking.com/Product/FIT/CL' },
+      { name: 'Colombia', url: 'https://www.tigerbooking.com/Product/FIT/CO' },
+      { name: 'Costa Rica', url: 'https://www.tigerbooking.com/Product/FIT/CR' },
+      { name: 'Los Cabos', url: 'https://www.tigerbooking.com/Product/EVT/MX' },
+      { name: 'Dominica', url: 'https://www.tigerbooking.com/Product/FIT/DO' },
+      { name: 'Panama', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
     ],
   },
   {
@@ -78,14 +88,11 @@ const REGIONS: Region[] = [
       'Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
     countries: [
       { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
-      {
-        name: 'New Zealand',
-        url: 'https://www.tigerbooking.com/Product/FIT/NZ',
-      },
-      {
-        name: 'South Africa',
-        url: 'https://www.tigerbooking.com/Product/FIT/ZA',
-      },
+      { name: 'Dubai', url: 'https://www.tigerbooking.com/Product/FIT/AE' },
+      { name: 'Morocco', url: 'https://www.tigerbooking.com/Product/FIT/MA' },
+      { name: 'Mauritius', url: 'https://www.tigerbooking.com/Product/FIT/MU' },
+      { name: 'New Zealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
+      { name: 'South Africa', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
     ],
   },
 ]
@@ -108,7 +115,7 @@ export function TigerBooking() {
             alt="Tiger Booking"
             width={280}
             height={140}
-            className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain"
+            className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain brightness-0 invert"
           />
         </Link>
       </div>
@@ -123,7 +130,7 @@ export function TigerBooking() {
         </h4>
 
         <div className="flex flex-col">
-          <div className="h-px bg-[#22333b]/8" />
+          <div className="h-px bg-[#fffff8]/10" />
           {REGIONS.map((region) => (
             <div key={region.slug}>
               <button
@@ -135,7 +142,7 @@ export function TigerBooking() {
                 className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
                   selectedRegion === region.slug
                     ? 'text-[#735c38]'
-                    : 'text-[#22333b] hover:text-[#735c38]'
+                    : 'text-[#fffff8] hover:text-[#735c38]'
                 }`}
               >
                 <span
@@ -162,7 +169,7 @@ export function TigerBooking() {
               >
                 <div className="overflow-hidden">
                   <p
-                    className="text-[15px] leading-relaxed text-[#735c38] pb-2 pr-4 font-semibold"
+                    className="text-[15px] leading-relaxed text-[#fffff8]/60 pb-2 pr-4 font-medium"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {region.description}
@@ -174,7 +181,7 @@ export function TigerBooking() {
                         href={country.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
+                        className="text-[14px] font-semibold text-[#fffff8]/80 underline decoration-[#735c38]/40 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/70"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {country.name}
@@ -184,7 +191,7 @@ export function TigerBooking() {
                 </div>
               </div>
 
-              <div className="h-px bg-[#22333b]/8" />
+              <div className="h-px bg-[#fffff8]/10" />
             </div>
           ))}
         </div>
