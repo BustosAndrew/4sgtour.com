@@ -261,7 +261,7 @@ export default async function HomePage() {
             {/* Section heading */}
             <div className="text-center mb-6">
               <h2
-                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38]"
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 Our Partners

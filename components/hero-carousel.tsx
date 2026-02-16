@@ -8,6 +8,7 @@ const heroImages = [
   '/images/europ.png',
   '/images/main3.jpg',
   '/images/main1.png',
+  '/images/main2.png',
 ]
 
 export function HeroCarousel() {

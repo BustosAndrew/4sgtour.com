@@ -24,6 +24,13 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://p.typekit.net/p.css?s=1&k=rzv4yqs&ht=tk&f=44872.44874.48600.52429.52432.52434.52435&a=165152875&app=typekit&e=css"
         />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link
+          rel="apple-touch-icon"
+          href="/apple-icon?<generated>"
+          type="image/<generated>"
+          sizes="<generated>"
+        />
       </head>
       <body className="antialiased">
         <ErrorHandler />
