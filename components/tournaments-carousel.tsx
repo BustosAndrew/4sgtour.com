@@ -218,7 +218,7 @@ export function TournamentsCarousel() {
                         {item.date}
                       </span>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-[#22333b]">
+                    {/* <div className="flex items-center justify-center gap-2 text-[#22333b]">
                       <Clock className="h-4 w-4 flex-shrink-0" />
                       <span
                         className="text-sm font-semibold"
@@ -226,14 +226,14 @@ export function TournamentsCarousel() {
                       >
                         {item.duration}
                       </span>
-                    </div>
+                    </div> */}
                   </div>
-                  <p
+                  {/* <p
                     className="mt-4 text-sm text-[#735C38] font-semibold"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     from <span className="text-lg font-bold">{item.price}</span>
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </Link>
