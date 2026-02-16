@@ -270,7 +270,7 @@ export default async function HomePage() {
 
             <div className="flex flex-col md:flex-row items-stretch w-full gap-4 md:gap-6">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-[52%] bg-[#f8f5f0] border border-[#22333b]/15">
+              <div className="md:w-[50%] bg-[#f8f5f0] border border-[#22333b]/15">
                 <TigerBooking />
               </div>
 
