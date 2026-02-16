@@ -279,31 +279,34 @@ export default async function HomePage() {
               </div>
 
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="flex-1 bg-[#fffff8]/[0.04] border border-[#fffff8]/[0.08] px-5 sm:px-6 md:px-8 py-5 md:py-6 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+              <div className="flex-1 bg-[#fffff8]/[0.04] border border-[#fffff8]/[0.08] px-5 sm:px-6 md:px-7 py-5 md:py-6 flex items-center">
+                <div className="flex flex-col gap-4 w-full">
                   {/* Logo */}
-                  <div className="relative h-12 sm:h-14 md:h-16 shrink-0">
+                  <div className="relative h-14 sm:h-16 md:h-20 shrink-0">
                     <Image
                       src="/images/sticks.png"
                       alt="Ship Sticks"
-                      width={96}
-                      height={96}
+                      width={160}
+                      height={80}
                       className="h-full object-contain brightness-0 invert"
                       style={{ width: 'auto' }}
                     />
                   </div>
 
-                  {/* Text */}
-                  <div className="text-center flex flex-col gap-3">
+                  {/* Divider */}
+                  <div className="h-px bg-[#fffff8]/10" />
+
+                  {/* Text + CTA */}
+                  <div className="flex flex-col gap-3">
                     <div>
                       <h3
-                        className="mb-1.5 text-[15px] lg:text-[17px] font-bold uppercase tracking-[0.12em] text-[#fffff8]"
+                        className="mb-1 text-[13px] lg:text-[14px] font-bold uppercase tracking-[0.12em] text-[#EAE0D6]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Golf Club Delivery Service
                       </h3>
                       <p
-                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#fffff8]/70 font-medium"
+                        className="text-[13px] lg:text-[14px] leading-relaxed text-[#fffff8]/60 font-medium"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         Ship Sticks makes it easier than ever to transport your
@@ -315,7 +318,7 @@ export default async function HomePage() {
                       href="https://www.shipsticks.com/4seasons-golf-tour"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-[#EAE0D6] hover:bg-[#d4c9be] text-[#22333b] font-semibold py-2 px-6 uppercase tracking-[0.15em] transition-colors text-[13px] lg:text-[14px] w-fit mx-auto"
+                      className="inline-flex items-center justify-center bg-[#EAE0D6] hover:bg-[#d4c9be] text-[#22333b] font-semibold py-2 px-6 uppercase tracking-[0.15em] transition-colors text-[12px] lg:text-[13px] w-fit"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Delivery Request

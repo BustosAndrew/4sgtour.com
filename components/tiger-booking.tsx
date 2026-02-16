@@ -99,11 +99,12 @@ const REGIONS: Region[] = [
 
 export function TigerBooking() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
+  const activeRegion = REGIONS.find((r) => r.slug === selectedRegion)
 
   return (
-    <div className="flex flex-col h-full px-5 sm:px-6 md:px-8 py-5 md:py-6">
-      {/* Tiger Booking Logo + heading row */}
-      <div className="flex items-center gap-4 mb-4">
+    <div className="flex flex-col h-full px-5 sm:px-6 md:px-7 py-5 md:py-6">
+      {/* Top row: logo left, region pill tabs right */}
+      <div className="flex items-center justify-between gap-4 mb-4">
         <Link
           href="https://www.tigerbooking.golf/"
           target="_blank"
@@ -115,80 +116,61 @@ export function TigerBooking() {
             alt="Tiger Booking"
             width={280}
             height={140}
-            className="w-full max-w-[140px] md:max-w-[160px] h-auto object-contain brightness-0 invert"
+            className="max-w-[100px] md:max-w-[120px] h-auto object-contain brightness-0 invert"
           />
         </Link>
-        <div className="h-px flex-1 bg-[#fffff8]/10" />
-        <span
-          className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#EAE0D6] shrink-0"
-          style={{ fontFamily: 'var(--font-body)' }}
-        >
-          Book by Region
-        </span>
-      </div>
 
-      {/* Region Links */}
-      <div className="flex flex-col flex-1">
-        <div className="flex flex-col">
-          <div className="h-px bg-[#fffff8]/10" />
+        {/* Region pill tabs */}
+        <div className="flex flex-wrap justify-end gap-1.5">
           {REGIONS.map((region) => (
-            <div key={region.slug}>
-              <button
-                onClick={() =>
-                  setSelectedRegion(
-                    selectedRegion === region.slug ? null : region.slug,
-                  )
-                }
-                className={`group flex w-full items-center justify-between py-2 text-left transition-all duration-200 ${
-                  selectedRegion === region.slug
-                    ? 'text-[#EAE0D6]'
-                    : 'text-[#fffff8] hover:text-[#EAE0D6]'
-                }`}
-              >
-                <span
-                  className="text-[14px] font-semibold tracking-wide"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  {region.name}
-                </span>
-                <ChevronRight
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-out ${
-                    selectedRegion === region.slug
-                      ? 'rotate-90'
-                      : 'group-hover:translate-x-0.5'
-                  }`}
-                />
-              </button>
-
-              <div
-                className={`grid transition-all duration-300 ease-in-out ${
-                  selectedRegion === region.slug
-                    ? 'grid-rows-[1fr] opacity-100'
-                    : 'grid-rows-[0fr] opacity-0'
-                }`}
-              >
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 pb-2">
-                    {region.countries.map((country) => (
-                      <a
-                        key={country.name}
-                        href={country.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[13px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {country.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-px bg-[#fffff8]/10" />
-            </div>
+            <button
+              key={region.slug}
+              onClick={() =>
+                setSelectedRegion(
+                  selectedRegion === region.slug ? null : region.slug,
+                )
+              }
+              className={`px-2.5 py-1 text-[11px] md:text-[12px] font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                selectedRegion === region.slug
+                  ? 'bg-[#EAE0D6] text-[#22333b] border-[#EAE0D6]'
+                  : 'bg-transparent text-[#fffff8]/70 border-[#fffff8]/15 hover:border-[#EAE0D6]/50 hover:text-[#EAE0D6]'
+              }`}
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              {region.name}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-[#fffff8]/10 mb-3" />
+
+      {/* Country links area */}
+      <div className="flex-1 min-h-[48px]">
+        {activeRegion ? (
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {activeRegion.countries.map((country) => (
+              <a
+                key={country.name}
+                href={country.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[13px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                {country.name}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p
+            className="text-[13px] text-[#fffff8]/40 font-medium"
+            style={{ fontFamily: 'var(--font-body)' }}
+          >
+            Select a region above to view available destinations
+          </p>
+        )}
       </div>
     </div>
   )
