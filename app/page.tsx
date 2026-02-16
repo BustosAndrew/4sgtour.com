@@ -270,12 +270,12 @@ export default async function HomePage() {
 
             <div className="flex flex-col md:flex-row items-stretch w-full gap-4 md:gap-6">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-[50%] bg-[#f8f5f0] border border-[#22333b]/15">
+              <div className="md:w-[50%] bg-white border border-[#22333b]/10 shadow-md">
                 <TigerBooking />
               </div>
 
               {/* Right: Ship Sticks Delivery Card */}
-              <div className="flex-1 border border-[#22333b]/15 bg-[#f8f5f0] px-5 sm:px-6 md:px-7 py-5 md:py-6 flex flex-col items-center justify-center">
+              <div className="flex-1 border border-[#22333b]/10 bg-white shadow-md px-5 sm:px-6 md:px-7 py-5 md:py-6 flex flex-col items-center justify-center">
                 {/* Logo - centered */}
                 <div className="relative h-16 sm:h-20 md:h-24 shrink-0 mb-4">
                   <Image
@@ -289,7 +289,7 @@ export default async function HomePage() {
                 </div>
 
                 {/* Divider */}
-                <div className="h-px w-full bg-[#22333b]/10 mb-4" />
+                <div className="h-px w-full bg-[#22333b]/20 mb-4" />
 
                 {/* Text + CTA */}
                 <div className="flex flex-col items-center gap-3 text-center">
@@ -301,7 +301,7 @@ export default async function HomePage() {
                       Golf Club Delivery Service
                     </h3>
                     <p
-                      className="text-[14px] lg:text-[15px] leading-relaxed text-[#22333b]/60"
+                      className="text-[14px] lg:text-[15px] leading-relaxed text-[#22333b]/80"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       Ship Sticks makes it easier than ever to transport your

@@ -144,7 +144,7 @@ export function TigerBooking() {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-[#22333b]/10 mb-3" />
+      <div className="h-px bg-[#22333b]/20 mb-3" />
 
       {/* Country links area */}
       <div className="flex-1 min-h-[48px]">
@@ -173,7 +173,7 @@ export function TigerBooking() {
           </div>
         ) : (
           <p
-            className="text-[14px] text-[#22333b]/40"
+            className="text-[14px] text-[#22333b]/70"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Select a region above to view available destinations
