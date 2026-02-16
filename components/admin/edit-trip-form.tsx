@@ -65,7 +65,7 @@ interface TripData {
   min_days: string
 }
 
-const CONTINENTS = ["World", "Asia", "Europe", "North America", "South America"]
+const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
 const STEPS = [
   {
@@ -774,8 +774,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   >
                     {continent === "North America"
                       ? "N. America"
-                      : continent === "South America"
-                      ? "S. America"
+                      : continent === "Latin America"
+                      ? "L. America"
                       : continent}
                   </button>
                 ))}

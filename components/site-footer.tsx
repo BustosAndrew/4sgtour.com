@@ -148,17 +148,9 @@ export function SiteFooter() {
                 </li>
               </ul>
               <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
-                Other
+                Free To Call From South Korea to USA
               </h2>
               <ul className="text-sm">
-                <li>
-                  <a
-                    href="tel:1-213-214-3355"
-                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                  >
-                    1-213-214-3355
-                  </a>
-                </li>
                 <li>
                   <a
                     href="tel:070-4517-5998"
@@ -167,12 +159,17 @@ export function SiteFooter() {
                     070-4517-5998
                   </a>
                 </li>
+              </ul>
+              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+                Email
+              </h2>
+              <ul className="text-sm">
                 <li>
                   <a
-                    href="tel:070-4517-5998"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                    href="mailto:info@4sgtour.com"
+                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                   >
-                    Free To Call From South Korea to USA
+                    info@4sgtour.com
                   </a>
                 </li>
               </ul>

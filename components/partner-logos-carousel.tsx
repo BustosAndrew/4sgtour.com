@@ -45,10 +45,12 @@ export function PartnerLogosCarousel() {
       <div className="flex w-max animate-scroll-logos">
         {[...partners, ...partners].map((partner, i) => {
           const isTimes = partner.src?.includes('times.png') || partner.alt === 'Global Golf Times'
-          const containerClass = isTimes
+          const isPebble = partner.src?.includes('pebble.png') || partner.alt === 'Pebble Beach Golf Links'
+          const isLarger = isTimes || isPebble
+          const containerClass = isLarger
             ? 'relative h-20 w-36 sm:h-24 sm:w-44 md:h-28 md:w-52 lg:h-32 lg:w-60'
             : 'relative h-14 w-28 sm:h-18 sm:w-36 md:h-20 md:w-44 lg:h-24 lg:w-52'
-          const sizes = isTimes
+          const sizes = isLarger
             ? '(min-width: 1024px) 15rem, (min-width: 768px) 13rem, (min-width: 640px) 11rem, 9rem'
             : '(min-width: 1024px) 13rem, (min-width: 768px) 11rem, (min-width: 640px) 9rem, 7rem'
 

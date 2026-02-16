@@ -41,7 +41,7 @@ type Trip = {
 
 const CONTINENTS = [
   "World",
-  "South America",
+  "Latin America",
   "North America",
   "Asia",
   "Europe",
@@ -378,8 +378,8 @@ export function AdminCourses({
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {continent === "South America"
-                        ? "S. America"
+                      {continent === "Latin America"
+                        ? "L. America"
                         : continent === "North America"
                         ? "N. America"
                         : continent}
