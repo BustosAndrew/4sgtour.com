@@ -111,7 +111,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
             { label: 'Trip Highlights', id: sectionIds.highlights },
             { label: 'Travel Itinerary', id: sectionIds.itinerary },
             { label: 'Package Inclusions', id: sectionIds.inclusions },
-            { label: 'Pricing', id: sectionIds.pricing },
+            { label: 'Packages', id: sectionIds.pricing },
           ].map((item) => (
             <a
               key={item.id}
@@ -153,7 +153,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                   { label: 'Trip Highlights', id: sectionIds.highlights },
                   { label: 'Travel Itinerary', id: sectionIds.itinerary },
                   { label: 'Package Inclusions', id: sectionIds.inclusions },
-                  { label: 'Pricing', id: sectionIds.pricing },
+                  { label: 'Packages', id: sectionIds.pricing },
                 ].map((item) => (
                   <a
                     key={item.id}
@@ -366,13 +366,13 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </div>
               </div>
 
-              {/* Pricing */}
+              {/* Packages */}
               <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
                 <h3
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Pricing
+                  Packages
                 </h3>
                 <p
                   className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
