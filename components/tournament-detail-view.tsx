@@ -1,4 +1,4 @@
-import { MapPin, Calendar, Clock } from 'lucide-react'
+import { MapPin, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { TOURNAMENTS } from '@/lib/tournament-data'
 
@@ -98,15 +98,7 @@ export function TournamentDetailView({
                           {event.date}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2.5 text-[#22333b]">
-                        <Clock className="h-4 w-4 flex-shrink-0 text-[#735c38]" />
-                        <span
-                          className="text-sm sm:text-base"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {event.duration}
-                        </span>
-                      </div>
+
                     </div>
 
 

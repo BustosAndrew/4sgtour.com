@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Clock, Check, X, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, Check, X, ChevronRight } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -196,10 +196,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                   <Calendar className="h-4 w-4 text-[#735c38]" />
                   {event.date}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#735c38]" />
-                  {event.duration}
-                </span>
+
               </div>
 
               {/* Description */}
