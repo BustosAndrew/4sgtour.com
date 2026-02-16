@@ -109,15 +109,7 @@ export function TournamentDetailView({
                       </div>
                     </div>
 
-                    <p
-                      className="mt-4 text-sm text-[#735c38] sm:mt-5 sm:text-base"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      from{' '}
-                      <span className="text-lg font-bold sm:text-xl">
-                        {event.price}
-                      </span>
-                    </p>
+
 
                     <div className="mt-5 sm:mt-6">
                       <span

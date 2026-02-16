@@ -396,13 +396,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                         >
                           {tier.name}
                         </p>
-                        <p
-                          className="mt-1 text-sm text-[#22333b]/80"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          from <span className="text-lg font-bold text-[#22333b]">{tier.price}</span>
-                          <span className="text-[#22333b]/80">/golfer</span>
-                        </p>
+
                       </div>
                       <Link
                         href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}

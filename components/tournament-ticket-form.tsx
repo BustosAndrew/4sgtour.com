@@ -137,15 +137,12 @@ export function TournamentTicketForm({
             >
               {formattedTitle}
             </p>
-            {tierName && tierPrice && (
+            {tierName && (
               <p
                 className="mt-1 text-sm text-[#22333b]/70"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Package: <span className="font-semibold text-[#22333b]">{tierName}</span>
-                {' '}
-                &mdash; from{' '}
-                <span className="font-semibold text-[#22333b]">{tierPrice}</span>/golfer
               </p>
             )}
           </div>
