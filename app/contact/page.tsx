@@ -139,15 +139,9 @@ export default async function ContactPage() {
                     className="font-semibold uppercase text-[#22333b] text-base sm:text-lg lg:text-[20px] tracking-wide mb-1"
                     style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
                   >
-                    Other Numbers
+                    Free To Call From South Korea to USA
                   </h3>
                   <div className="space-y-0.5">
-                    <a
-                      href="tel:1-213-214-3355"
-                      className="block text-[#735c38]/70 hover:text-[#735c38] text-sm sm:text-base lg:text-[20px] transition-colors font-semibold"
-                    >
-                      1-213-214-3355
-                    </a>
                     <a
                       href="tel:070-4517-5998"
                       className="block text-[#735c38]/70 hover:text-[#735c38] text-sm sm:text-base lg:text-[20px] transition-colors font-semibold"
