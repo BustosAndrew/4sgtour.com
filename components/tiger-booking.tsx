@@ -132,8 +132,8 @@ export function TigerBooking() {
               }
               className={`px-2.5 py-1 text-[11px] md:text-[12px] font-semibold uppercase tracking-wider transition-all duration-200 border ${
                 selectedRegion === region.slug
-                  ? 'bg-[#EAE0D6] text-[#22333b] border-[#EAE0D6]'
-                  : 'bg-transparent text-[#fffff8]/70 border-[#fffff8]/15 hover:border-[#EAE0D6]/50 hover:text-[#EAE0D6]'
+                  ? 'bg-[#22333b] text-[#fffff8] border-[#22333b]'
+                  : 'bg-transparent text-[#22333b]/60 border-[#22333b]/15 hover:border-[#735c38]/50 hover:text-[#735c38]'
               }`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
@@ -144,14 +144,14 @@ export function TigerBooking() {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-[#fffff8]/10 mb-3" />
+      <div className="h-px bg-[#22333b]/10 mb-3" />
 
       {/* Country links area */}
       <div className="flex-1 min-h-[48px]">
         {activeRegion ? (
           <div>
             <p
-              className="text-[14px] leading-relaxed text-[#fffff8]/60 mb-2.5"
+              className="text-[14px] leading-relaxed text-[#22333b]/60 mb-2.5"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               {activeRegion.description}
@@ -163,7 +163,7 @@ export function TigerBooking() {
                   href={country.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[14px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
+                  className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {country.name}
@@ -173,7 +173,7 @@ export function TigerBooking() {
           </div>
         ) : (
           <p
-            className="text-[14px] text-[#fffff8]/40"
+            className="text-[14px] text-[#22333b]/40"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Select a region above to view available destinations

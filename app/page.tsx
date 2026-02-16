@@ -261,17 +261,16 @@ export default async function HomePage() {
             {/* Section heading */}
             <div className="text-center mb-6">
               <h2
-                className="text-2xl md:text-3xl text-[#22333b] mb-3"
+                className="text-3xl md:text-4xl lg:text-5xl text-[#735c38]"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 Our Partners
               </h2>
-              <div className="w-10 h-0.5 bg-[#735c38] mx-auto"></div>
             </div>
 
             <div className="flex flex-col md:flex-row items-stretch w-full gap-4 md:gap-6">
               {/* Left: Tiger Booking Logo + Region Links */}
-              <div className="md:w-[52%] bg-[#22333b] border border-[#22333b]/10">
+              <div className="md:w-[52%] bg-[#f8f5f0] border border-[#22333b]/15">
                 <TigerBooking />
               </div>
 
