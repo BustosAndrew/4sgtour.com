@@ -103,12 +103,10 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Open Championship Tickets',
           'Choice Of Practice Or Championship Round Attendance',
           'Official Open Championship Tickets',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -189,11 +187,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Open Championship Tickets',
           'Choice Of Practice Or Championship Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -274,11 +270,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Open Championship Tickets',
           'Choice Of Practice Or Championship Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -368,11 +362,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Ryder Cup Tickets',
           'Choice Of Practice Or Competition Day Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -453,11 +445,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Ryder Cup Tickets',
           'Choice Of Practice Or Competition Day Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -551,11 +541,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Four (4) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Masters Tournament Badges',
           'Choice Of Practice Or Tournament Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -640,11 +628,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Four (4) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official Masters Tournament Badges',
           'Choice Of Practice Or Tournament Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -734,11 +720,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official US Open Championship Tickets',
           'Choice Of Practice Or Championship Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [
@@ -819,11 +803,9 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           '/placeholder.svg?height=600&width=1000',
         ],
         includes: [
-          'Three (3) Nights In A Premium Hotel',
           'Daily Breakfast',
           'Official US Open Championship Tickets',
           'Choice Of Practice Or Championship Round Attendance',
-          'Three (3) Rounds Of Golf At Top Regional Courses (Subject To Availability)',
           'Transportation For All Scheduled Events',
         ],
         excludes: [

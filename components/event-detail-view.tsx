@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Clock, Check, X, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, Check, X, ChevronRight } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -111,7 +111,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
             { label: 'Trip Highlights', id: sectionIds.highlights },
             { label: 'Travel Itinerary', id: sectionIds.itinerary },
             { label: 'Package Inclusions', id: sectionIds.inclusions },
-            { label: 'Pricing', id: sectionIds.pricing },
+            { label: 'Packages', id: sectionIds.pricing },
           ].map((item) => (
             <a
               key={item.id}
@@ -153,7 +153,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                   { label: 'Trip Highlights', id: sectionIds.highlights },
                   { label: 'Travel Itinerary', id: sectionIds.itinerary },
                   { label: 'Package Inclusions', id: sectionIds.inclusions },
-                  { label: 'Pricing', id: sectionIds.pricing },
+                  { label: 'Packages', id: sectionIds.pricing },
                 ].map((item) => (
                   <a
                     key={item.id}
@@ -196,10 +196,7 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                   <Calendar className="h-4 w-4 text-[#735c38]" />
                   {event.date}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#735c38]" />
-                  {event.duration}
-                </span>
+
               </div>
 
               {/* Description */}
@@ -366,13 +363,13 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                 </div>
               </div>
 
-              {/* Pricing */}
+              {/* Packages */}
               <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
                 <h3
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Pricing
+                  Packages
                 </h3>
                 <p
                   className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
@@ -396,16 +393,10 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                         >
                           {tier.name}
                         </p>
-                        <p
-                          className="mt-1 text-sm text-[#22333b]/80"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          from <span className="text-lg font-bold text-[#22333b]">{tier.price}</span>
-                          <span className="text-[#22333b]/80">/golfer</span>
-                        </p>
+
                       </div>
                       <Link
-                        href={tier.bookingUrl}
+                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
                         className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
