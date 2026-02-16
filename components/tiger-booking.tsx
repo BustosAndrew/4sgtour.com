@@ -101,34 +101,34 @@ export function TigerBooking() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
 
   return (
-    <div className="flex flex-col h-full px-6 sm:px-8 md:px-10 py-8 md:py-10">
-      {/* Tiger Booking Logo */}
-      <div className="flex items-center justify-center mb-6">
+    <div className="flex flex-col h-full px-5 sm:px-6 md:px-8 py-5 md:py-6">
+      {/* Tiger Booking Logo + heading row */}
+      <div className="flex items-center gap-4 mb-4">
         <Link
           href="https://www.tigerbooking.golf/"
           target="_blank"
           rel="noopener noreferrer"
-          className="transition-opacity hover:opacity-80"
+          className="transition-opacity hover:opacity-80 shrink-0"
         >
           <Image
             src="/images/tiger.png"
             alt="Tiger Booking"
             width={280}
             height={140}
-            className="w-full max-w-[200px] md:max-w-[240px] h-auto object-contain brightness-0 invert"
+            className="w-full max-w-[140px] md:max-w-[160px] h-auto object-contain brightness-0 invert"
           />
         </Link>
+        <div className="h-px flex-1 bg-[#fffff8]/10" />
+        <span
+          className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#EAE0D6] shrink-0"
+          style={{ fontFamily: 'var(--font-body)' }}
+        >
+          Book by Region
+        </span>
       </div>
 
       {/* Region Links */}
       <div className="flex flex-col flex-1">
-        <h4
-          className="text-[15px] font-bold uppercase tracking-[0.15em] text-[#735c38] mb-4"
-          style={{ fontFamily: 'var(--font-body)' }}
-        >
-          Book by Region
-        </h4>
-
         <div className="flex flex-col">
           <div className="h-px bg-[#fffff8]/10" />
           {REGIONS.map((region) => (
@@ -139,20 +139,20 @@ export function TigerBooking() {
                     selectedRegion === region.slug ? null : region.slug,
                   )
                 }
-                className={`group flex w-full items-center justify-between py-3.5 text-left transition-all duration-200 ${
+                className={`group flex w-full items-center justify-between py-2 text-left transition-all duration-200 ${
                   selectedRegion === region.slug
-                    ? 'text-[#735c38]'
-                    : 'text-[#fffff8] hover:text-[#735c38]'
+                    ? 'text-[#EAE0D6]'
+                    : 'text-[#fffff8] hover:text-[#EAE0D6]'
                 }`}
               >
                 <span
-                  className="text-[16px] font-semibold tracking-wide"
+                  className="text-[14px] font-semibold tracking-wide"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {region.name}
                 </span>
                 <ChevronRight
-                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-out ${
                     selectedRegion === region.slug
                       ? 'rotate-90'
                       : 'group-hover:translate-x-0.5'
@@ -168,20 +168,14 @@ export function TigerBooking() {
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p
-                    className="text-[15px] leading-relaxed text-[#fffff8]/60 pb-2 pr-4 font-medium"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    {region.description}
-                  </p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 pb-3">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 pb-2">
                     {region.countries.map((country) => (
                       <a
                         key={country.name}
                         href={country.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[14px] font-semibold text-[#fffff8]/80 underline decoration-[#735c38]/40 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/70"
+                        className="text-[13px] font-semibold text-[#fffff8]/80 underline decoration-[#EAE0D6]/30 underline-offset-2 transition-colors hover:text-[#EAE0D6] hover:decoration-[#EAE0D6]/60"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {country.name}
