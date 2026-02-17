@@ -54,7 +54,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/1.png',
         heroImage: '/images/open.png',
         description: [
-          'The Open Championship is golf\'s oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.',
+          "The Open Championship is golf's oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.",
           'The 154th Open returns to Royal Birkdale, a classic links venue that has crowned legends of the game and is renowned for its demanding yet fair championship test.',
         ],
         tripHighlights: [
@@ -77,30 +77,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in England and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the local area.',
+            content:
+              'Arrive in England and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the local area.',
           },
           {
             title: 'Day 2: The Open Championship',
-            content: 'Full day at Royal Birkdale for The Open Championship. Experience the electric atmosphere, explore the championship village, and watch the world\'s best golfers compete on this legendary links course.',
+            content:
+              "Full day at Royal Birkdale for The Open Championship. Experience the electric atmosphere, explore the championship village, and watch the world's best golfers compete on this legendary links course.",
           },
           {
             title: 'Day 3: Golf & Exploration',
-            content: 'Morning round at a premier regional links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
+            content:
+              'Morning round at a premier regional links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -109,11 +113,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Official Open Championship Tickets',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -138,7 +138,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/1.png',
         heroImage: '/images/open.png',
         description: [
-          'The Open Championship is golf\'s oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.',
+          "The Open Championship is golf's oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.",
           'The 155th Open heads to Royal Portrush, a spectacular links venue on the dramatic Antrim coastline of Northern Ireland, offering breathtaking scenery and a world-class championship test.',
         ],
         tripHighlights: [
@@ -161,30 +161,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Northern Ireland and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the stunning Antrim coast.',
+            content:
+              'Arrive in Northern Ireland and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the stunning Antrim coast.',
           },
           {
             title: 'Day 2: The Open Championship',
-            content: 'Full day at Royal Portrush for The Open Championship. Experience the electric atmosphere along the dramatic coastline as the world\'s best golfers compete.',
+            content:
+              "Full day at Royal Portrush for The Open Championship. Experience the electric atmosphere along the dramatic coastline as the world's best golfers compete.",
           },
           {
             title: 'Day 3: Golf & Exploration',
-            content: 'Morning round at a premier regional links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
+            content:
+              'Morning round at a premier regional links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -192,11 +196,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Championship Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -221,7 +221,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/1.png',
         heroImage: '/images/open.png',
         description: [
-          'The Open Championship is golf\'s oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.',
+          "The Open Championship is golf's oldest major, first played in 1860 and governed by The R&A. Contested exclusively on traditional links courses, The Open presents a unique challenge defined by coastal winds, firm fairways, and storied history.",
           'The 156th Open returns to the Home of Golf at St Andrews, the most iconic venue in all of golf. The Old Course provides a timeless championship experience steeped in centuries of tradition.',
         ],
         tripHighlights: [
@@ -244,30 +244,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Scotland and check into your hotel in St Andrews. Enjoy a welcome briefing and evening strolling the historic streets of the Home of Golf.',
+            content:
+              'Arrive in Scotland and check into your hotel in St Andrews. Enjoy a welcome briefing and evening strolling the historic streets of the Home of Golf.',
           },
           {
             title: 'Day 2: The Open Championship',
-            content: 'Full day at the Old Course for The Open Championship. Witness golfing history unfold on the most famous course in the world.',
+            content:
+              'Full day at the Old Course for The Open Championship. Witness golfing history unfold on the most famous course in the world.',
           },
           {
             title: 'Day 3: Golf & Exploration',
-            content: 'Morning round at a premier Scottish links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
+            content:
+              'Morning round at a premier Scottish links course followed by an afternoon at leisure. Optional return to The Open for continued championship viewing.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure. Optional late checkout available.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -275,11 +279,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Championship Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -313,7 +313,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/2.png',
         heroImage: '/images/ryder.png',
         description: [
-          'The Ryder Cup is one of sport\'s greatest spectacles, pitting the best golfers from Europe against the United States in a biennial team competition that ignites passions on both sides of the Atlantic.',
+          "The Ryder Cup is one of sport's greatest spectacles, pitting the best golfers from Europe against the United States in a biennial team competition that ignites passions on both sides of the Atlantic.",
           'The 2027 Ryder Cup heads to Adare Manor in Limerick, Ireland, one of the most prestigious golf resorts in the world, promising an unforgettable atmosphere of competition and camaraderie.',
         ],
         tripHighlights: [
@@ -336,30 +336,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Ireland and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the charming city of Limerick.',
+            content:
+              'Arrive in Ireland and check into your hotel. Enjoy a welcome briefing and evening at leisure to explore the charming city of Limerick.',
           },
           {
             title: 'Day 2: Ryder Cup Day 1',
-            content: 'Full day at Adare Manor for the opening day of the Ryder Cup. Experience the incredible team atmosphere as foursomes and fourball matches get underway.',
+            content:
+              'Full day at Adare Manor for the opening day of the Ryder Cup. Experience the incredible team atmosphere as foursomes and fourball matches get underway.',
           },
           {
             title: 'Day 3: Golf & Ryder Cup',
-            content: 'Morning round at a premier Irish course followed by afternoon Ryder Cup singles action at Adare Manor.',
+            content:
+              'Morning round at a premier Irish course followed by afternoon Ryder Cup singles action at Adare Manor.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -367,11 +371,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Competition Day Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -396,8 +396,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/2.png',
         heroImage: '/images/ryder.png',
         description: [
-          'The Ryder Cup is one of sport\'s greatest spectacles, pitting the best golfers from Europe against the United States in a biennial team competition that ignites passions on both sides of the Atlantic.',
-          'The 2029 Ryder Cup takes place at Bethpage Black in New York, one of America\'s most iconic and challenging public golf courses, promising a thrilling atmosphere.',
+          "The Ryder Cup is one of sport's greatest spectacles, pitting the best golfers from Europe against the United States in a biennial team competition that ignites passions on both sides of the Atlantic.",
+          "The 2029 Ryder Cup takes place at Bethpage Black in New York, one of America's most iconic and challenging public golf courses, promising a thrilling atmosphere.",
         ],
         tripHighlights: [
           'Championship access to The 2029 Ryder Cup at Bethpage Black',
@@ -419,30 +419,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in New York and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
+            content:
+              'Arrive in New York and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
           },
           {
             title: 'Day 2: Ryder Cup Day 1',
-            content: 'Full day at Bethpage Black for the opening day of the Ryder Cup. Experience the incredible American sports atmosphere.',
+            content:
+              'Full day at Bethpage Black for the opening day of the Ryder Cup. Experience the incredible American sports atmosphere.',
           },
           {
             title: 'Day 3: Golf & Ryder Cup',
-            content: 'Morning round at a premier regional course followed by afternoon Ryder Cup singles action at Bethpage Black.',
+            content:
+              'Morning round at a premier regional course followed by afternoon Ryder Cup singles action at Bethpage Black.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -450,11 +454,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Competition Day Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -488,8 +488,8 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/3.png',
         heroImage: '/images/masters.png',
         description: [
-          'The Masters Tournament is golf\'s most prestigious invitation-only event, held annually at Augusta National Golf Club. Known for its iconic green jacket, azalea-lined fairways, and Amen Corner, The Masters represents the pinnacle of golf tradition.',
-          'The Masters 2026 invites you to witness greatness at Augusta National, where the world\'s finest golfers compete on one of the most beautiful and challenging courses in existence.',
+          "The Masters Tournament is golf's most prestigious invitation-only event, held annually at Augusta National Golf Club. Known for its iconic green jacket, azalea-lined fairways, and Amen Corner, The Masters represents the pinnacle of golf tradition.",
+          "The Masters 2026 invites you to witness greatness at Augusta National, where the world's finest golfers compete on one of the most beautiful and challenging courses in existence.",
         ],
         tripHighlights: [
           'Championship access to The Masters 2026 at Augusta National',
@@ -511,34 +511,39 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Augusta and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
+            content:
+              'Arrive in Augusta and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
           },
           {
             title: 'Day 2: Practice Round',
-            content: 'Attend the practice round at Augusta National. Explore the grounds, visit the merchandise shop, and soak in the legendary atmosphere.',
+            content:
+              'Attend the practice round at Augusta National. Explore the grounds, visit the merchandise shop, and soak in the legendary atmosphere.',
           },
           {
             title: 'Day 3: Tournament Day',
-            content: 'Full day at Augusta National for tournament play. Experience the drama of competitive golf at the highest level.',
+            content:
+              'Full day at Augusta National for tournament play. Experience the drama of competitive golf at the highest level.',
           },
           {
             title: 'Day 4: Golf & Exploration',
-            content: 'Morning round at a premier regional course. Afternoon at leisure or optional return to Augusta National.',
+            content:
+              'Morning round at a premier regional course. Afternoon at leisure or optional return to Augusta National.',
           },
           {
             title: 'Day 5: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -546,11 +551,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Tournament Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -575,7 +576,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/3.png',
         heroImage: '/images/masters.png',
         description: [
-          'The Masters Tournament is golf\'s most prestigious invitation-only event, held annually at Augusta National Golf Club. Known for its iconic green jacket, azalea-lined fairways, and Amen Corner, The Masters represents the pinnacle of golf tradition.',
+          "The Masters Tournament is golf's most prestigious invitation-only event, held annually at Augusta National Golf Club. Known for its iconic green jacket, azalea-lined fairways, and Amen Corner, The Masters represents the pinnacle of golf tradition.",
           'The Masters 2027 offers another opportunity to witness greatness at Augusta National, one of the most beautiful and challenging courses in existence.',
         ],
         tripHighlights: [
@@ -598,11 +599,13 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Augusta and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
+            content:
+              'Arrive in Augusta and check into your hotel. Enjoy a welcome briefing and evening at leisure.',
           },
           {
             title: 'Day 2: Practice Round',
-            content: 'Attend the practice round at Augusta National. Explore the grounds and soak in the legendary atmosphere.',
+            content:
+              'Attend the practice round at Augusta National. Explore the grounds and soak in the legendary atmosphere.',
           },
           {
             title: 'Day 3: Tournament Day',
@@ -610,22 +613,24 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           },
           {
             title: 'Day 4: Golf & Exploration',
-            content: 'Morning round at a premier regional course. Afternoon at leisure or optional return to Augusta National.',
+            content:
+              'Morning round at a premier regional course. Afternoon at leisure or optional return to Augusta National.',
           },
           {
             title: 'Day 5: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -633,11 +638,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Tournament Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -671,7 +672,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/4.png',
         heroImage: '/images/us.png',
         description: [
-          'The U.S. Open is America\'s national championship, conducted by the USGA and known as the toughest test in golf. With its demanding course setups, narrow fairways, and punishing rough, the U.S. Open rewards only the most complete golfers.',
+          "The U.S. Open is America's national championship, conducted by the USGA and known as the toughest test in golf. With its demanding course setups, narrow fairways, and punishing rough, the U.S. Open rewards only the most complete golfers.",
           'The US Open 2026 returns to Shinnecock Hills, one of the founding member clubs of the USGA and a venue that has produced some of the most dramatic championships in history.',
         ],
         tripHighlights: [
@@ -694,30 +695,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in New York and transfer to the Hamptons. Check into your hotel and enjoy a welcome briefing.',
+            content:
+              'Arrive in New York and transfer to the Hamptons. Check into your hotel and enjoy a welcome briefing.',
           },
           {
             title: 'Day 2: US Open Championship',
-            content: 'Full day at Shinnecock Hills for the US Open. Experience America\'s toughest test of golf on one of the nation\'s most prestigious links-style courses.',
+            content:
+              "Full day at Shinnecock Hills for the US Open. Experience America's toughest test of golf on one of the nation's most prestigious links-style courses.",
           },
           {
             title: 'Day 3: Golf & Exploration',
-            content: 'Morning round at a premier Long Island course. Afternoon at leisure in the Hamptons or optional return to Shinnecock Hills.',
+            content:
+              'Morning round at a premier Long Island course. Afternoon at leisure in the Hamptons or optional return to Shinnecock Hills.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -725,11 +730,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Championship Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',
@@ -754,7 +755,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         image: '/images/4.png',
         heroImage: '/images/us.png',
         description: [
-          'The U.S. Open is America\'s national championship, conducted by the USGA and known as the toughest test in golf. With its demanding course setups, narrow fairways, and punishing rough, the U.S. Open rewards only the most complete golfers.',
+          "The U.S. Open is America's national championship, conducted by the USGA and known as the toughest test in golf. With its demanding course setups, narrow fairways, and punishing rough, the U.S. Open rewards only the most complete golfers.",
           'The US Open 2027 heads to the breathtaking Pebble Beach Golf Links along the stunning Monterey Peninsula, offering one of the most scenic championship experiences in all of golf.',
         ],
         tripHighlights: [
@@ -777,30 +778,34 @@ export const TOURNAMENTS: Record<string, Tournament> = {
         itineraryDays: [
           {
             title: 'Day 1: Arrival',
-            content: 'Arrive in Monterey and check into your hotel. Enjoy a welcome briefing and evening exploring the charming coastal town.',
+            content:
+              'Arrive in Monterey and check into your hotel. Enjoy a welcome briefing and evening exploring the charming coastal town.',
           },
           {
             title: 'Day 2: US Open Championship',
-            content: 'Full day at Pebble Beach for the US Open. Watch the world\'s best golfers tackle one of the most scenic and challenging courses on Earth.',
+            content:
+              "Full day at Pebble Beach for the US Open. Watch the world's best golfers tackle one of the most scenic and challenging courses on Earth.",
           },
           {
             title: 'Day 3: Golf & Exploration',
-            content: 'Morning round at a premier Monterey Peninsula course. Afternoon at leisure or optional 17-Mile Drive tour.',
+            content:
+              'Morning round at a premier Monterey Peninsula course. Afternoon at leisure or optional 17-Mile Drive tour.',
           },
           {
             title: 'Day 4: Departure',
-            content: 'Enjoy a farewell breakfast before transfer to the airport for your departure.',
+            content:
+              'Enjoy a farewell breakfast before transfer to the airport for your departure.',
           },
         ],
         galleryImages: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/event.jpg',
+          '/images/event.jpg',
+          '/images/event.jpg',
         ],
         galleryImages2: [
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
-          '/placeholder.svg?height=600&width=1000',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
+          '/images/hotel.jpg',
         ],
         includes: [
           'Daily Breakfast',
@@ -808,11 +813,7 @@ export const TOURNAMENTS: Record<string, Tournament> = {
           'Choice Of Practice Or Championship Round Attendance',
           'Transportation For All Scheduled Events',
         ],
-        excludes: [
-          'Personal Items',
-          'Meal Is Unspecified',
-          'Travel Insurance',
-        ],
+        excludes: ['Personal Items', 'Meal Is Unspecified', 'Travel Insurance'],
         pricingTiers: [
           {
             name: 'ORIGINAL',

@@ -26,7 +26,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     <div className="relative">
       <div className="relative aspect-[16/10] w-full overflow-hidden">
         <img
-          src={images[current] || '/placeholder.svg'}
+          src={images[current]}
           alt={`${alt} ${current + 1}`}
           className="h-full w-full object-cover"
         />
@@ -50,7 +50,11 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   )
 }
 
-export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: EventDetailViewProps) {
+export function EventDetailView({
+  event,
+  tournamentSlug,
+  tournamentHeroImage,
+}: EventDetailViewProps) {
   const [allExpanded, setAllExpanded] = useState(false)
   const [openItems, setOpenItems] = useState<string[]>(['day-0'])
 
@@ -92,7 +96,10 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
             className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
-            {event.title.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
+            {event.title
+              .split(' ')
+              .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+              .join(' ')}
           </h1>
         </div>
       </section>
@@ -120,7 +127,9 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
               style={{ fontFamily: 'var(--font-body)' }}
             >
               <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#8a8272]" />
-              <span className="underline underline-offset-2 decoration-[#8a8272]">{item.label}</span>
+              <span className="underline underline-offset-2 decoration-[#8a8272]">
+                {item.label}
+              </span>
             </a>
           ))}
         </nav>
@@ -162,7 +171,9 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     <ChevronRight className="h-4 w-4 shrink-0 text-[#8a8272]" />
-                    <span className="underline underline-offset-2 decoration-[#8a8272]">{item.label}</span>
+                    <span className="underline underline-offset-2 decoration-[#8a8272]">
+                      {item.label}
+                    </span>
                   </a>
                 ))}
               </nav>
@@ -180,235 +191,248 @@ export function EventDetailView({ event, tournamentSlug, tournamentHeroImage }: 
 
           {/* Main Content Column */}
           <div className="flex-1 min-w-0 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              {/* Title & Meta */}
-              <h2
-                className="text-2xl sm:text-3xl md:text-4xl text-[#735c38]"
-                style={{ fontFamily: 'var(--font-display-alt)' }}
-              >
-                {event.title.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
-              </h2>
-              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#735c38]">
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-[#735c38]" />
-                  {event.location}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4 text-[#735c38]" />
-                  {event.date}
-                </span>
+            {/* Title & Meta */}
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl text-[#735c38]"
+              style={{ fontFamily: 'var(--font-display-alt)' }}
+            >
+              {event.title
+                .split(' ')
+                .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+                .join(' ')}
+            </h2>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#735c38]">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-[#735c38]" />
+                {event.location}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-[#735c38]" />
+                {event.date}
+              </span>
+            </div>
 
-              </div>
-
-              {/* Description */}
-              <div className="mt-6 flex flex-col gap-4">
-                {event.description.map((p, i) => (
-                  <p
-                    key={i}
-                    className="text-sm leading-relaxed text-[#735c38] sm:text-base"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    {p}
-                  </p>
-                ))}
-              </div>
-
-              {/* Trip Highlights */}
-              <div id={sectionIds.highlights} className="mt-10 scroll-mt-28">
-                <h3
-                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  Trip Highlights:
-                </h3>
-                <ul className="mt-4 flex flex-col gap-2">
-                  {event.tripHighlights.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Gallery 1 - Placeholder images */}
-              <div className="mt-10">
-                <ImageCarousel images={['/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200']} alt={event.title} />
-              </div>
-
-              {/* Travel Itinerary */}
-              <div id={sectionIds.itinerary} className="mt-12 scroll-mt-28">
-                <h3
-                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  Travel Itinerary & Features:
-                </h3>
-                <ul className="mt-4 flex flex-col gap-2">
-                  {event.travelItinerary.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Expand All */}
-                <div className="mt-5 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleExpandAll}
-                    className="text-sm font-medium text-[#735c38] underline underline-offset-2 transition-colors hover:text-[#735c38]/80"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    {allExpanded ? 'Collapse all days' : 'Expand all days'}
-                  </button>
-                </div>
-
-                {/* Day-by-Day Accordion */}
-                <Accordion
-                  type="multiple"
-                  value={openItems}
-                  onValueChange={(val) => {
-                    setOpenItems(val)
-                    setAllExpanded(val.length === event.itineraryDays.length)
-                  }}
-                  className="mt-2"
-                >
-                  {event.itineraryDays.map((day, i) => (
-                    <AccordionItem key={i} value={`day-${i}`} className="border-border">
-                      <AccordionTrigger
-                        className="text-sm font-semibold text-[#735c38] sm:text-base"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {day.title}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p
-                          className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {day.content}
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
-
-              {/* Gallery 2 - Placeholder images */}
-              <div className="mt-12">
-                <ImageCarousel images={['/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200', '/placeholder.svg?height=600&width=1200']} alt={`${event.title} accommodation`} />
-              </div>
-
-              {/* Package Inclusions */}
-              <div id={sectionIds.inclusions} className="mt-12 scroll-mt-28">
-                <h3
-                  className="text-base font-bold uppercase tracking-wide text-[#22333b] sm:text-lg"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  Package Inclusions:
-                </h3>
-                <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                  {/* Includes */}
-                  <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
-                    <h4
-                      className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      Includes:
-                    </h4>
-                    <ul className="mt-4 flex flex-col gap-3">
-                      {event.includes.map((item, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-3 text-sm text-[#22333b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#495c48]" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Excludes */}
-                  <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
-                    <h4
-                      className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      Excludes:
-                    </h4>
-                    <ul className="mt-4 flex flex-col gap-3">
-                      {event.excludes.map((item, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-3 text-sm text-[#22333b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Packages */}
-              <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
-                <h3
-                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  Packages
-                </h3>
+            {/* Description */}
+            <div className="mt-6 flex flex-col gap-4">
+              {event.description.map((p, i) => (
                 <p
-                  className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                  key={i}
+                  className="text-sm leading-relaxed text-[#735c38] sm:text-base"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {'Spaces for '}
-                  {event.title.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
-                  {' are extremely limited. Reserve your place early to guarantee access to one of golf\'s most iconic sporting events.'}
+                  {p}
                 </p>
+              ))}
+            </div>
 
-                <div className="mt-6 flex flex-col gap-4">
-                  {event.pricingTiers.map((tier, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+            {/* Trip Highlights */}
+            <div id={sectionIds.highlights} className="mt-10 scroll-mt-28">
+              <h3
+                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Trip Highlights:
+              </h3>
+              <ul className="mt-4 flex flex-col gap-2">
+                {event.tripHighlights.map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Gallery 1 - Placeholder images */}
+            <div className="mt-10">
+              <ImageCarousel images={event.galleryImages} alt={event.title} />
+            </div>
+
+            {/* Travel Itinerary */}
+            <div id={sectionIds.itinerary} className="mt-12 scroll-mt-28">
+              <h3
+                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Travel Itinerary & Features:
+              </h3>
+              <ul className="mt-4 flex flex-col gap-2">
+                {event.travelItinerary.map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Expand All */}
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleExpandAll}
+                  className="text-sm font-medium text-[#735c38] underline underline-offset-2 transition-colors hover:text-[#735c38]/80"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {allExpanded ? 'Collapse all days' : 'Expand all days'}
+                </button>
+              </div>
+
+              {/* Day-by-Day Accordion */}
+              <Accordion
+                type="multiple"
+                value={openItems}
+                onValueChange={(val) => {
+                  setOpenItems(val)
+                  setAllExpanded(val.length === event.itineraryDays.length)
+                }}
+                className="mt-2"
+              >
+                {event.itineraryDays.map((day, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`day-${i}`}
+                    className="border-border"
+                  >
+                    <AccordionTrigger
+                      className="text-sm font-semibold text-[#735c38] sm:text-base"
+                      style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      <div>
-                        <p
-                          className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {tier.name}
-                        </p>
-
-                      </div>
-                      <Link
-                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                        className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+                      {day.title}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <p
+                        className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        Get Tickets
-                      </Link>
-                    </div>
-                  ))}
+                        {day.content}
+                      </p>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+
+            {/* Gallery 2 - Placeholder images */}
+            <div className="mt-12">
+              <ImageCarousel
+                images={event.galleryImages2}
+                alt={`${event.title} accommodation`}
+              />
+            </div>
+
+            {/* Package Inclusions */}
+            <div id={sectionIds.inclusions} className="mt-12 scroll-mt-28">
+              <h3
+                className="text-base font-bold uppercase tracking-wide text-[#22333b] sm:text-lg"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Package Inclusions:
+              </h3>
+              <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                {/* Includes */}
+                <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
+                  <h4
+                    className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    Includes:
+                  </h4>
+                  <ul className="mt-4 flex flex-col gap-3">
+                    {event.includes.map((item, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 text-sm text-[#22333b]"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#495c48]" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Excludes */}
+                <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
+                  <h4
+                    className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    Excludes:
+                  </h4>
+                  <ul className="mt-4 flex flex-col gap-3">
+                    {event.excludes.map((item, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 text-sm text-[#22333b]"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
+
+            {/* Packages */}
+            <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
+              <h3
+                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Packages
+              </h3>
+              <p
+                className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                {'Spaces for '}
+                {event.title
+                  .split(' ')
+                  .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+                  .join(' ')}
+                {
+                  " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
+                }
+              </p>
+
+              <div className="mt-6 flex flex-col gap-4">
+                {event.pricingTiers.map((tier, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                  >
+                    <div>
+                      <p
+                        className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {tier.name}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                      className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      Get Tickets
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </section>
-      </div>
-    )
+        </div>
+      </section>
+    </div>
+  )
 }
