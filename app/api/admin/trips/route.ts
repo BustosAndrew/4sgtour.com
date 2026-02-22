@@ -65,6 +65,7 @@ export async function POST(request: Request) {
         courses_photo_url,
         room_photo_url,
         highlights: highlights || [],
+        show_from_price: body.show_from_price || false,
         is_payment_link_trip: false,
       })
       .select()

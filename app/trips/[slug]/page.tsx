@@ -146,47 +146,43 @@ export default async function TripPage({ params }: TripPageProps) {
               </p>
 
               {trip.packages && trip.packages.length > 0 ? (
-                <div className="mt-6 flex flex-wrap gap-4 sm:gap-6">
+                <div className="mt-6 space-y-4">
                   {trip.packages.map((pkg: any) => {
                     const isUpgrade = pkg.name === "Upgrade"
-                    const headerBg = isUpgrade ? "bg-[#274C77]" : "bg-[#6096BA]"
-                    const borderColor = isUpgrade
-                      ? "border-[#274C77]"
-                      : "border-[#6096BA]"
-                    const headerText = "text-white"
 
                     return (
                       <div
                         key={pkg.id}
-                        className={`flex w-full flex-col overflow-hidden border-2 ${borderColor} bg-white shadow-lg transition-shadow hover:shadow-xl sm:w-[240px] sm:max-w-[260px]`}
+                        className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors sm:flex-row sm:items-center sm:justify-between"
+                        style={{ borderColor: isUpgrade ? "#274C77" : "#6096BA" }}
                       >
-                        <div className={`${headerBg} px-5 py-5 text-center`}>
-                          <h3
-                            className={`text-lg font-bold ${headerText} sm:text-xl`}
-                          >
+                        <div className="flex-1">
+                          <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
                             {pkg.name}
                           </h3>
-                        </div>
-
-                        <div className="flex flex-1 flex-col p-5">
-                          <p className="mb-5 text-center text-2xl font-bold text-foreground sm:text-3xl">
+                          <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
+                            {trip.show_from_price && (
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {'From '}
+                              </span>
+                            )}
                             ${pkg.price.toFixed(0)}
                           </p>
-
-                          <Link
-                            href={`/trips/${trip.slug}/book?package=${pkg.id}`}
-                            className="mt-auto w-full"
-                          >
-                            <AnimatedButton
-                              startColor={isUpgrade ? "#274C77" : "#6096BA"}
-                              endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
-                              hoverText="Let's Go!"
-                              className="w-full"
-                            >
-                              Inquire Now
-                            </AnimatedButton>
-                          </Link>
                         </div>
+
+                        <Link
+                          href={`/trips/${trip.slug}/book?package=${pkg.id}`}
+                          className="shrink-0"
+                        >
+                          <AnimatedButton
+                            startColor={isUpgrade ? "#274C77" : "#6096BA"}
+                            endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
+                            hoverText="Let's Go!"
+                            className="w-full sm:w-auto sm:px-8"
+                          >
+                            Inquire Now
+                          </AnimatedButton>
+                        </Link>
                       </div>
                     )
                   })}

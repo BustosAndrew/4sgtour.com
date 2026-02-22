@@ -87,14 +87,17 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             {hasBothPackages ? (
               <>
                 <p className="text-base font-bold text-[#6096BA] sm:text-lg">
+                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
                   ${Number(premiumPackage.price).toFixed(2)}
                 </p>
                 <p className="text-base font-bold text-[#274C77] sm:text-lg">
+                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
                   ${Number(upgradePackage.price).toFixed(2)}
                 </p>
               </>
             ) : (
               <p className="text-base font-bold text-foreground sm:text-lg">
+                {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
                 {trip.packages && trip.packages.length > 0
                   ? `$${Number(trip.packages[0].price).toFixed(2)}`
                   : `$${trip.price_regular?.toFixed(2) || "0.00"}`}
