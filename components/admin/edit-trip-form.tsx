@@ -42,6 +42,7 @@ interface EditTripFormProps {
     min_days_advance?: number | null
     courses_photo_url: string | null
     room_photo_url: string | null
+    show_from_price?: boolean
     highlights?: string[]
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
@@ -116,6 +117,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     return existing.slice(0, 5)
   })
 
+  const [showFromPrice, setShowFromPrice] = useState(trip.show_from_price ?? false)
   const [photos, setPhotos] = useState({
     room: trip.room_photo_url || "",
   })
@@ -515,6 +517,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           courses_photo_url: coursePhotos[0] || null,
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
+          show_from_price: showFromPrice,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages,
           golf_courses: golfCourses.map((course) => ({
@@ -999,6 +1002,21 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <p className="text-sm text-muted-foreground">
                 Configure room types - Premium is required, Upgrade is optional
               </p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+              <div>
+                <Label className="text-base font-medium text-foreground">
+                  {'Show "From" before price'}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {'Displays "From $X" on the trip card instead of a fixed price'}
+                </p>
+              </div>
+              <Switch
+                checked={showFromPrice}
+                onCheckedChange={setShowFromPrice}
+              />
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">

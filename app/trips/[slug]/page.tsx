@@ -170,6 +170,7 @@ export default async function TripPage({ params }: TripPageProps) {
 
                         <div className="flex flex-1 flex-col p-5">
                           <p className="mb-5 text-center text-2xl font-bold text-foreground sm:text-3xl">
+                            {trip.show_from_price && <span className="text-sm font-medium text-muted-foreground">From </span>}
                             ${pkg.price.toFixed(0)}
                           </p>
 
