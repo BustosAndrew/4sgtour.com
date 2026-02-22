@@ -36,8 +36,7 @@ interface Trip {
   min_days?: number
   min_days_advance?: number
   courses_photo_url?: string | null
-  single_room_photo_url?: string | null
-  double_room_photo_url?: string | null
+  room_photo_url?: string | null
   images?: Array<{
     image_url: string
     display_order: number
@@ -211,18 +210,12 @@ export function BookingForm({
   })
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // Show only accommodation images in booking details
+  // Show accommodation image in booking details
   const accommodationImages: Array<{ image_url: string; display_order: number }> = []
-  if (trip.double_room_photo_url) {
+  if (trip.room_photo_url) {
     accommodationImages.push({
-      image_url: trip.double_room_photo_url,
+      image_url: trip.room_photo_url,
       display_order: 0,
-    })
-  }
-  if (trip.single_room_photo_url) {
-    accommodationImages.push({
-      image_url: trip.single_room_photo_url,
-      display_order: accommodationImages.length,
     })
   }
   const tripImages = accommodationImages
