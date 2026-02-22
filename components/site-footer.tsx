@@ -22,7 +22,7 @@ export function SiteFooter() {
                 />
               </Link>
             </div>
-            <p className="text-sm leading-relaxed text-white/80 font-medium">
+            <p className="text-[14px] leading-relaxed text-white/80 font-semibold">
               4SGTour is a premier golf travel agency specializing in overseas
               golf tours. We are dedicated to providing exceptional service and
               unforgettable golf experiences around the world.
