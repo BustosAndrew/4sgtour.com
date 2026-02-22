@@ -12,13 +12,15 @@ export function SiteFooter() {
         <div className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)] md:gap-x-16">
           <div className="md:w-58">
             <div className="mb-6">
-              <Image
-                src="/images/logo.png"
-                alt="4 Seasons Golf Tour"
-                width={250}
-                height={80}
-                className="object-contain"
-              />
+              <Link href="/" className="inline-block">
+                <Image
+                  src="/images/logo.png"
+                  alt="4 Seasons Golf Tour"
+                  width={250}
+                  height={80}
+                  className="object-contain"
+                />
+              </Link>
             </div>
             <p className="text-sm leading-relaxed text-white/80 font-medium">
               4SGTour is a premier golf travel agency specializing in overseas
