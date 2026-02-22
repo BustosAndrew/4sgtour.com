@@ -71,7 +71,7 @@ export function SiteFooter() {
           {/* Link columns grouped tighter together */}
           <div className="grid gap-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-8">
             <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
                 Site Map
               </h2>
               <ul className="text-sm">
@@ -111,7 +111,7 @@ export function SiteFooter() {
             </div>
 
             <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
                 Legal
               </h2>
               <ul className="text-sm">
@@ -135,7 +135,7 @@ export function SiteFooter() {
             </div>
 
             <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
                 Customer Service
               </h2>
               <ul className="text-sm">
@@ -148,7 +148,7 @@ export function SiteFooter() {
                   </a>
                 </li>
               </ul>
-              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
                 Free To Call From South Korea to USA
               </h2>
               <ul className="text-sm">
@@ -161,7 +161,7 @@ export function SiteFooter() {
                   </a>
                 </li>
               </ul>
-              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-semibold">
+              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
                 Email
               </h2>
               <ul className="text-sm">

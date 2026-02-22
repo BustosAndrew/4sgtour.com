@@ -11,16 +11,8 @@ const partners = [
     src: '/images/iagto.png',
     alt: 'IAGTO',
   },
-  {
-    src: '/images/cert-logo.png',
-    alt: '4 Seasons Golf Tour Austria',
-    label: '4 Seasons Golf Tour Austria',
-  },
-  {
-    src: '/images/cert-logo.png',
-    alt: '4 Seasons Golf Tour Germany',
-    label: '4 Seasons Golf Tour Germany',
-  },
+  { src: '/images/los-cabos.png', alt: 'Los Cabos Tourism Board' },
+  { src: '/images/ireland.png', alt: 'Ireland Tourism Board' },
   {
     src: '/images/pebble.png',
     alt: 'Pebble Beach Golf Links',
@@ -33,10 +25,7 @@ const partners = [
 
 export function PartnerLogosCarousel() {
   return (
-    <div
-      className="relative w-full overflow-hidden"
-      aria-label="Partner logos"
-    >
+    <div className="relative w-full overflow-hidden" aria-label="Partner logos">
       {/* Fade masks on left and right edges */}
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#fffff8] to-transparent sm:w-24" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#fffff8] to-transparent sm:w-24" />
@@ -44,9 +33,13 @@ export function PartnerLogosCarousel() {
       {/* Scrolling track: two copies for seamless loop */}
       <div className="flex w-max animate-scroll-logos">
         {[...partners, ...partners].map((partner, i) => {
-          const isTimes = partner.src?.includes('times.png') || partner.alt === 'Global Golf Times'
-          const isPebble = partner.src?.includes('pebble.png') || partner.alt === 'Pebble Beach Golf Links'
-          const isLarger = isTimes || isPebble
+          const isTimes =
+            partner.src?.includes('times.png') ||
+            partner.alt === 'Global Golf Times'
+          const isIreland =
+            partner.src?.includes('ireland.png') ||
+            partner.alt === 'Ireland Tourism Board'
+          const isLarger = isTimes || isIreland
           const containerClass = isLarger
             ? 'relative h-20 w-36 sm:h-24 sm:w-44 md:h-28 md:w-52 lg:h-32 lg:w-60'
             : 'relative h-14 w-28 sm:h-18 sm:w-36 md:h-20 md:w-44 lg:h-24 lg:w-52'
@@ -68,14 +61,14 @@ export function PartnerLogosCarousel() {
                   sizes={sizes}
                 />
               </div>
-              {partner.label && (
+              {/* {partner.label && (
                 <p
                   className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {partner.label}
                 </p>
-              )}
+              )} */}
             </div>
           )
         })}
