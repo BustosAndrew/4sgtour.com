@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { BackToTopButton } from './back-to-top-button'
-import { Logo } from '@/components/logo'
 import { Instagram } from 'lucide-react'
 import Image from 'next/image'
 
