@@ -29,10 +29,10 @@ export function SiteFooter() {
             </p>
             <div className="mt-5 flex justify-center md:justify-start">
               <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
-                <p className="text-xs uppercase tracking-wide text-[#EAE0D6] font-semibold">
+                <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
                   TCRC Registered
                 </p>
-                <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                <p className="text-[14px] text-white/60 mt-1 leading-relaxed">
                   Seller of Travel Reg. No.: CST 2156865-70
                 </p>
               </div>
