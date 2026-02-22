@@ -49,8 +49,7 @@ export default async function TripPage({ params }: TripPageProps) {
       ? tripImages.map((img: any) => img.image_url)
       : []
 
-  const singleRoomImage = trip.single_room_photo_url || null
-  const doubleRoomImage = trip.double_room_photo_url || null
+  const roomImage = trip.room_photo_url || null
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,24 +83,13 @@ export default async function TripPage({ params }: TripPageProps) {
               <TripImageGallery images={additionalImages} title={trip.title} />
             )}
 
-            {/* Room Images */}
-            {(doubleRoomImage || singleRoomImage) && (
-              <div className="space-y-8">
-                {doubleRoomImage && (
-                  <RoomImageSection
-                    imageUrl={doubleRoomImage}
-                    heading="Double Occupancy Room"
-                    title={trip.title}
-                  />
-                )}
-                {singleRoomImage && (
-                  <RoomImageSection
-                    imageUrl={singleRoomImage}
-                    heading="Single Occupancy Room"
-                    title={trip.title}
-                  />
-                )}
-              </div>
+            {/* Accommodation Image */}
+            {roomImage && (
+              <RoomImageSection
+                imageUrl={roomImage}
+                heading="Accommodation"
+                title={trip.title}
+              />
             )}
           </div>
 

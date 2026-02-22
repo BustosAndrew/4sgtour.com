@@ -41,8 +41,7 @@ export interface Trip {
   overview_content: string | null
   continent: string | null
   courses_photo_url: string | null
-  single_room_photo_url: string | null
-  double_room_photo_url: string | null
+  room_photo_url: string | null
   created_at: string
   updated_at: string
 }

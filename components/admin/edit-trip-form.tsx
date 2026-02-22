@@ -41,8 +41,7 @@ interface EditTripFormProps {
     min_days?: number | null
     min_days_advance?: number | null
     courses_photo_url: string | null
-    single_room_photo_url: string | null
-    double_room_photo_url: string | null
+    room_photo_url: string | null
     highlights?: string[]
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
@@ -118,8 +117,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   })
 
   const [photos, setPhotos] = useState({
-    singleRoom: trip.single_room_photo_url || "",
-    doubleRoom: trip.double_room_photo_url || "",
+    room: trip.room_photo_url || "",
   })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -203,7 +201,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    photoType: "courses" | "singleRoom" | "doubleRoom",
+    photoType: "courses" | "room",
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -255,7 +253,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   }
 
   const handleRemovePhoto = (
-    photoType: "courses" | "singleRoom" | "doubleRoom",
+    photoType: "courses" | "room",
   ) => {
     if (photoType === "courses") {
       setCoursePhotos([])
@@ -516,8 +514,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           // is_all_inclusive: formData.is_all_inclusive, // REMOVED is_all_inclusive
           courses_photo_url: coursePhotos[0] || null,
           course_images: coursePhotos,
-          single_room_photo_url: photos.singleRoom || null,
-          double_room_photo_url: photos.doubleRoom || null,
+          room_photo_url: photos.room || null,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages,
           golf_courses: golfCourses.map((course) => ({
@@ -946,16 +943,16 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               )}
             </div>
 
-            {/* Upload Photos for Single Occupancy Room */}
+            {/* Upload Photo for Accommodation */}
             <div className="space-y-3">
               <Label className="text-base text-foreground">
-                Upload Photos for Single Occupancy Room
+                Upload Accommodation Photo
               </Label>
-              {photos.singleRoom ? (
+              {photos.room ? (
                 <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
                   <Image
-                    src={photos.singleRoom || "/placeholder.svg"}
-                    alt="Single occupancy room"
+                    src={photos.room || "/placeholder.svg"}
+                    alt="Accommodation"
                     fill
                     className="object-cover"
                   />
@@ -964,7 +961,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     size="icon"
                     variant="destructive"
                     className="absolute right-2 top-2"
-                    onClick={() => handleRemovePhoto("singleRoom")}
+                    onClick={() => handleRemovePhoto("room")}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -986,55 +983,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, "singleRoom")}
-                    disabled={uploadingPhoto === "singleRoom"}
-                  />
-                </label>
-              )}
-            </div>
-
-            {/* Upload Photos for Double Occupancy Room */}
-            <div className="space-y-3">
-              <Label className="text-base text-foreground">
-                Upload Photos for Double Occupancy Room
-              </Label>
-              {photos.doubleRoom ? (
-                <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border-2 border-dashed border-border">
-                  <Image
-                    src={photos.doubleRoom || "/placeholder.svg"}
-                    alt="Double occupancy room"
-                    fill
-                    className="object-cover"
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    className="absolute right-2 top-2"
-                    onClick={() => handleRemovePhoto("doubleRoom")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <label className="flex aspect-[3/1] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:bg-muted/40">
-                  <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm">
-                    <span className="text-primary">Click to upload</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      or drag and drop
-                    </span>
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    JPG, JPEG, PNG less than 1MB
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, "doubleRoom")}
-                    disabled={uploadingPhoto === "doubleRoom"}
+                    onChange={(e) => handlePhotoUpload(e, "room")}
+                    disabled={uploadingPhoto === "room"}
                   />
                 </label>
               )}
@@ -1778,32 +1728,19 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                       </div>
                     )}
-                    {/* {photos.singleRoom && (
+                    {photos.room && (
                       <div>
-                        <p className="mb-1 font-medium">Single Room Photo</p>
+                        <p className="mb-1 font-medium">Accommodation Photo</p>
                         <div className="relative h-20 w-32 overflow-hidden rounded border">
                           <Image
-                            src={photos.singleRoom || "/placeholder.svg"}
-                            alt="Single Room"
+                            src={photos.room || "/placeholder.svg"}
+                            alt="Accommodation"
                             fill
                             className="object-cover"
                           />
                         </div>
                       </div>
                     )}
-                    {photos.doubleRoom && (
-                      <div>
-                        <p className="mb-1 font-medium">Double Room Photo</p>
-                        <div className="relative h-20 w-32 overflow-hidden rounded border">
-                          <Image
-                            src={photos.doubleRoom || "/placeholder.svg"}
-                            alt="Double Room"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                    )} */}
                   </div>
                 </div>
               </div>

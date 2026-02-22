@@ -22,17 +22,17 @@ export function SiteFooter() {
                 />
               </Link>
             </div>
-            <p className="text-sm leading-relaxed text-white/80 font-medium">
+            <p className="text-[14px] leading-relaxed text-white/80 font-semibold">
               4SGTour is a premier golf travel agency specializing in overseas
               golf tours. We are dedicated to providing exceptional service and
               unforgettable golf experiences around the world.
             </p>
             <div className="mt-5 flex justify-center md:justify-start">
               <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
-                <p className="text-xs uppercase tracking-wide text-[#EAE0D6] font-semibold">
+                <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
                   TCRC Registered
                 </p>
-                <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                <p className="text-[14px] text-white/60 mt-1 leading-relaxed">
                   Seller of Travel Reg. No.: CST 2156865-70
                 </p>
               </div>

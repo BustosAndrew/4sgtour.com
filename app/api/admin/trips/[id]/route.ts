@@ -40,8 +40,7 @@ export async function PATCH(
       highlights: body.highlights,
       overview_content: body.overview_content,
       courses_photo_url: body.courses_photo_url,
-      single_room_photo_url: body.single_room_photo_url,
-      double_room_photo_url: body.double_room_photo_url,
+      room_photo_url: body.room_photo_url,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
