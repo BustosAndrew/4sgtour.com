@@ -66,6 +66,54 @@ export function SiteFooter() {
                 <Instagram className="h-6 w-6" />
               </Link>
             </div>
+
+            {/* Branch Sites */}
+            <div className="mt-8 flex justify-center md:justify-start gap-8">
+              <a
+                href="https://4sgtour.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
+              >
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt="4 Seasons Golf Tour Germany"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 5rem, 4rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  4 Seasons Golf Tour Germany
+                </p>
+              </a>
+              <a
+                href="https://4sgtour.at"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
+              >
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt="4 Seasons Golf Tour Austria"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 5rem, 4rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  4 Seasons Golf Tour Austria
+                </p>
+              </a>
+            </div>
           </div>
 
           {/* Link columns grouped tighter together */}
