@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     const {
       title,
       description,
+      refund_policy,
       location,
       continent,
       price_regular,
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
       .insert({
         title,
         description,
+        refund_policy: refund_policy || null,
         location,
         continent,
         slug,

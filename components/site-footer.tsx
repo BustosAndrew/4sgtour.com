@@ -9,8 +9,9 @@ export function SiteFooter() {
   return (
     <footer className="bg-[#22333b] text-white">
       <div className="container py-26">
-        <div className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)] md:gap-x-16">
-          <div className="md:w-58">
+        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-8">
+          {/* Column 1: Logo, Social Icons, Branch Sites */}
+          <div>
             <div className="mb-6">
               <Link href="/" className="inline-block">
                 <Image
@@ -22,20 +23,53 @@ export function SiteFooter() {
                 />
               </Link>
             </div>
-            <p className="text-[16px] leading-relaxed text-white/80 font-semibold">
-              4SGTour is a premier golf travel agency specializing in overseas
-              golf tours. We are dedicated to providing exceptional service and
-              unforgettable golf experiences around the world.
-            </p>
-            <div className="mt-5 flex justify-center md:justify-start">
-              <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
-                <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
-                  TCRC Registered
+
+            {/* Branch Sites */}
+            <div className="mt-6 flex justify-center md:justify-start gap-6">
+              <a
+                href="https://4sgtour.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
+              >
+                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt="4 Seasons Golf Tour Germany"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 4rem, 3.5rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  4 Seasons Golf Tour Germany
                 </p>
-                <p className="text-[16px] text-white/60 mt-1 leading-relaxed">
-                  Seller of Travel Reg. No.: CST 2156865-70
+              </a>
+              <a
+                href="https://4sgtour.at"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
+              >
+                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt="4 Seasons Golf Tour Austria"
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 4rem, 3.5rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  4 Seasons Golf Tour Austria
                 </p>
-              </div>
+              </a>
             </div>
 
             {/* Social Icons */}
@@ -66,163 +100,131 @@ export function SiteFooter() {
                 <Instagram className="h-6 w-6" />
               </Link>
             </div>
+          </div>
 
-            {/* Branch Sites */}
-            <div className="mt-8 flex justify-center md:justify-start gap-8">
-              <a
-                href="https://4sgtour.de"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center transition-opacity hover:opacity-80"
-              >
-                <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Germany"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 640px) 5rem, 4rem"
-                  />
-                </div>
-                <p
-                  className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  4 Seasons Golf Tour Germany
+          {/* Column 2: Description and TCRC */}
+          <div>
+            <p className="text-[16px] leading-relaxed text-white/80 font-semibold">
+              4SGTour is a premier golf travel agency specializing in overseas
+              golf tours. We are dedicated to providing exceptional service and
+              unforgettable golf experiences around the world.
+            </p>
+            <div className="mt-5 flex justify-center md:justify-start">
+              <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
+                <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
+                  TCRC Registered
                 </p>
-              </a>
-              <a
-                href="https://4sgtour.at"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center transition-opacity hover:opacity-80"
-              >
-                <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Austria"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 640px) 5rem, 4rem"
-                  />
-                </div>
-                <p
-                  className="mt-2 text-center text-[10px] font-bold uppercase sm:text-xs"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  4 Seasons Golf Tour Austria
+                <p className="text-[16px] text-white/60 mt-1 leading-relaxed">
+                  Seller of Travel Reg. No.: CST 2156865-70
                 </p>
-              </a>
+              </div>
             </div>
           </div>
 
-          {/* Link columns grouped tighter together */}
-          <div className="grid gap-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-8">
-            <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
-                Site Map
-              </h2>
-              <ul className="text-sm">
-                <li>
-                  <Link
-                    href="/"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Homepage
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/destinations"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Destinations
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/tournaments"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Tournaments
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          {/* Column 3: Legal + Site Map */}
+          <div>
+            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
+              Legal
+            </h2>
+            <ul className="text-sm">
+              <li>
+                <Link
+                  href="/terms"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Terms Of Use
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
 
-            <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
-                Legal
-              </h2>
-              <ul className="text-sm">
-                <li>
-                  <Link
-                    href="/terms"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Terms Of Use
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            <h2 className="mb-2 mt-6 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
+              Site Map
+            </h2>
+            <ul className="text-sm">
+              <li>
+                <Link
+                  href="/"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Homepage
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/destinations"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Destinations
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tournaments"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Tournaments
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
+                >
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            <div>
-              <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
-                Customer Service
-              </h2>
-              <ul className="text-sm">
-                <li>
-                  <a
-                    href="tel:1-714-877-5998"
-                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                  >
-                    1-714-485-5463
-                  </a>
-                </li>
-              </ul>
-              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
-                Free To Call From South Korea to USA
-              </h2>
-              <ul className="text-sm">
-                <li>
-                  <a
-                    href="tel:070-4517-5998"
-                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                  >
-                    070-4517-5998
-                  </a>
-                </li>
-              </ul>
-              <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
-                Email
-              </h2>
-              <ul className="text-sm">
-                <li>
-                  <a
-                    href="mailto:info@4sgtour.com"
-                    className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                  >
-                    info@4sgtour.com
-                  </a>
-                </li>
-              </ul>
-            </div>
+          {/* Column 4: Customer Service */}
+          <div>
+            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
+              Customer Service
+            </h2>
+            <ul className="text-sm">
+              <li>
+                <a
+                  href="tel:1-714-877-5998"
+                  className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
+                >
+                  1-714-485-5463
+                </a>
+              </li>
+            </ul>
+            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
+              Free To Call From South Korea to USA
+            </h2>
+            <ul className="text-sm">
+              <li>
+                <a
+                  href="tel:070-4517-5998"
+                  className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
+                >
+                  070-4517-5998
+                </a>
+              </li>
+            </ul>
+            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
+              Email
+            </h2>
+            <ul className="text-sm">
+              <li>
+                <a
+                  href="mailto:info@4sgtour.com"
+                  className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
+                >
+                  info@4sgtour.com
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
         {/* Divider line and back to top button */}

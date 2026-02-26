@@ -90,6 +90,7 @@ export function CreateTripForm() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    refund_policy: "",
     location: "",
     continent: "",
     max_guests: "20",
@@ -802,6 +803,24 @@ export function CreateTripForm() {
                 }
                 placeholder="Provide a brief overview of the trip for guests..."
                 rows={6}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="refund_policy"
+                className="text-base text-foreground"
+              >
+                Refund Policy (Optional)
+              </Label>
+              <Textarea
+                id="refund_policy"
+                value={formData.refund_policy}
+                onChange={(e) =>
+                  setFormData({ ...formData, refund_policy: e.target.value })
+                }
+                placeholder="Enter the refund policy specific to this trip..."
+                rows={4}
               />
             </div>
 
