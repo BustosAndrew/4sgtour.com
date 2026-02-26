@@ -24,37 +24,8 @@ export function SiteFooter() {
               </Link>
             </div>
 
-            {/* Social Icons */}
-            <div className="mt-6 flex justify-center md:justify-start gap-4">
-              <Link
-                href="https://www.facebook.com/golf4season/?locale=sr_RS"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-white/70 transition-colors"
-                aria-label="Facebook"
-              >
-                <svg
-                  className="h-6 w-6"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M2.5 0A2.5 2.5 0 000 2.5v19A2.5 2.5 0 002.5 24h10.024v-9.293H9.538V11.07h2.986V8.413c0-2.96 1.808-4.573 4.45-4.573 1.265 0 2.353.094 2.67.136v3.093h-1.833c-1.437 0-1.715.683-1.715 1.685v2.316h3.43l-.447 3.637h-2.983V24H21.5a2.5 2.5 0 002.5-2.5v-19A2.5 2.5 0 0021.5 0h-19z" />
-                </svg>
-              </Link>
-              <Link
-                href="https://www.instagram.com/golf4season/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-white/70 transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-6 w-6" />
-              </Link>
-            </div>
-
             {/* Branch Sites */}
-            <div className="mt-8 flex justify-center md:justify-start gap-6">
+            <div className="mt-6 flex justify-center md:justify-start gap-6">
               <a
                 href="https://4sgtour.de"
                 target="_blank"
@@ -100,6 +71,35 @@ export function SiteFooter() {
                 </p>
               </a>
             </div>
+
+            {/* Social Icons */}
+            <div className="mt-6 flex justify-center md:justify-start gap-4">
+              <Link
+                href="https://www.facebook.com/golf4season/?locale=sr_RS"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-white/70 transition-colors"
+                aria-label="Facebook"
+              >
+                <svg
+                  className="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M2.5 0A2.5 2.5 0 000 2.5v19A2.5 2.5 0 002.5 24h10.024v-9.293H9.538V11.07h2.986V8.413c0-2.96 1.808-4.573 4.45-4.573 1.265 0 2.353.094 2.67.136v3.093h-1.833c-1.437 0-1.715.683-1.715 1.685v2.316h3.43l-.447 3.637h-2.983V24H21.5a2.5 2.5 0 002.5-2.5v-19A2.5 2.5 0 0021.5 0h-19z" />
+                </svg>
+              </Link>
+              <Link
+                href="https://www.instagram.com/golf4season/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-white/70 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-6 w-6" />
+              </Link>
+            </div>
           </div>
 
           {/* Column 2: Description and TCRC */}
@@ -123,7 +123,7 @@ export function SiteFooter() {
 
           {/* Column 3: Legal + Site Map */}
           <div>
-            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
+            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               Legal
             </h2>
             <ul className="text-sm">
@@ -145,7 +145,7 @@ export function SiteFooter() {
               </li>
             </ul>
 
-            <h2 className="mb-2 mt-6 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
+            <h2 className="mb-2 mt-6 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               Site Map
             </h2>
             <ul className="text-sm">
@@ -186,7 +186,7 @@ export function SiteFooter() {
 
           {/* Column 4: Customer Service */}
           <div>
-            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
+            <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               Customer Service
             </h2>
             <ul className="text-sm">
@@ -199,7 +199,7 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
+            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               Free To Call From South Korea to USA
             </h2>
             <ul className="text-sm">
@@ -212,7 +212,7 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold">
+            <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               Email
             </h2>
             <ul className="text-sm">
