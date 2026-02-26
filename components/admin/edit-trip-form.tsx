@@ -33,6 +33,7 @@ interface EditTripFormProps {
     id: string
     title: string
     description: string | null
+    refund_policy?: string | null
     location: string // Added location
     continent: string | null
     price_regular: number // Added price_regular
@@ -56,6 +57,7 @@ interface EditTripFormProps {
 interface TripData {
   title: string
   description: string
+  refund_policy: string
   location: string
   continent: string
   price_regular: number
@@ -92,6 +94,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [formData, setFormData] = useState<TripData>({
     title: trip.title || "",
     description: trip.description || "",
+    refund_policy: trip.refund_policy || "",
     location: trip.location || "",
     continent: trip.continent || "",
     price_regular: trip.price_regular || 0,
@@ -503,10 +506,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       const response = await fetch(`/api/admin/trips/${trip.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          location: formData.location, // Added location
+  body: JSON.stringify({
+  title: formData.title,
+  description: formData.description,
+  refund_policy: formData.refund_policy || null,
+  location: formData.location, // Added location
           continent: formData.continent,
           price_regular: Number(formData.price_regular), // Added price_regular
           max_guests: Number(formData.max_guests), // Added max_guests
@@ -690,6 +694,26 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 }
                 placeholder="Provide a brief overview of the trip for guests..."
                 rows={6}
+                className="resize-none"
+              />
+            </div>
+
+            {/* Refund Policy */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="refund_policy"
+                className="text-sm text-foreground sm:text-base"
+              >
+                Refund Policy (Optional)
+              </Label>
+              <Textarea
+                id="refund_policy"
+                value={formData.refund_policy}
+                onChange={(e) =>
+                  setFormData({ ...formData, refund_policy: e.target.value })
+                }
+                placeholder="Enter the refund policy specific to this trip..."
+                rows={4}
                 className="resize-none"
               />
             </div>

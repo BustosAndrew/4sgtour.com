@@ -39,6 +39,7 @@ export interface Trip {
   min_days_advance: number
   highlights: string[] | null
   overview_content: string | null
+  refund_policy: string | null
   continent: string | null
   courses_photo_url: string | null
   room_photo_url: string | null

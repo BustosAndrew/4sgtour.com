@@ -30,6 +30,7 @@ export async function PATCH(
     .update({
       title: body.title,
       description: body.description,
+      refund_policy: body.refund_policy || null,
       continent: body.continent,
       location: body.location,
       price_regular: body.price_regular,
