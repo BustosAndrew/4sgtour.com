@@ -1,34 +1,44 @@
 import { MapPin, Calendar } from 'lucide-react'
 import Link from 'next/link'
-import { TOURNAMENTS } from '@/lib/tournament-data'
 
-interface TournamentDetailViewProps {
+type TournamentEvent = {
+  id: string
+  title: string
   slug: string
-  name: string
-  displayName: string
-  heroImage: string
-  logo: string
-  objectPosition: string
+  location: string
+  date: string
+  image: string | null
+  description: string[] | null
 }
 
-export function TournamentDetailView({
-  slug,
-  displayName,
-  heroImage,
-  objectPosition,
-}: TournamentDetailViewProps) {
-  const tournament = TOURNAMENTS[slug]
-  const events = tournament?.events || []
+type Tournament = {
+  id: string
+  slug: string
+  name: string
+  display_name: string | null
+  logo: string | null
+  hero_image: string | null
+  tournament_events: TournamentEvent[]
+}
+
+interface TournamentDetailViewProps {
+  tournament: Tournament
+}
+
+export function TournamentDetailView({ tournament }: TournamentDetailViewProps) {
+  const events = tournament.tournament_events || []
+  const heroImage = tournament.hero_image || '/placeholder.svg'
+  const displayName = tournament.display_name || tournament.name
 
   return (
     <div>
       {/* Hero Banner */}
       <section className="relative h-[45vh] sm:h-[50vh] md:h-[55vh] w-full">
         <img
-          src={heroImage || '/placeholder.svg'}
+          src={heroImage}
           alt={displayName}
           className="h-full w-full object-cover"
-          style={{ objectPosition }}
+          style={{ objectPosition: '50% 35%' }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
 
@@ -57,7 +67,7 @@ export function TournamentDetailView({
             {events.map((event) => (
               <Link
                 key={event.id}
-                href={`/tournaments/${slug}/${event.slug}`}
+                href={`/tournaments/${tournament.slug}/${event.slug}`}
                 className="group overflow-hidden border border-[#d9d9d9] bg-white shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-col md:flex-row">
@@ -98,10 +108,7 @@ export function TournamentDetailView({
                           {event.date}
                         </span>
                       </div>
-
                     </div>
-
-
 
                     <div className="mt-5 sm:mt-6">
                       <span

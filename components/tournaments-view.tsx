@@ -3,34 +3,19 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
-const TOURNAMENTS = [
-  {
-    name: 'THE OPEN',
-    slug: 'the-open',
-    image: '/images/open.png',
-    objectPosition: '50% 35%',
-  },
-  {
-    name: 'RYDER CUP',
-    slug: 'ryder-cup',
-    image: '/images/ryder.png',
-    objectPosition: '50% 35%',
-  },
-  {
-    name: 'MASTERS',
-    slug: 'masters',
-    image: '/images/masters.png',
-    objectPosition: '50% 35%',
-  },
-  {
-    name: 'US OPEN',
-    slug: 'us-open',
-    image: '/images/us.png',
-    objectPosition: '50% 35%',
-  },
-]
+type Tournament = {
+  id: string
+  name: string
+  slug: string
+  logo: string | null
+  hero_image: string | null
+}
 
-export function TournamentsView() {
+interface TournamentsViewProps {
+  tournaments: Tournament[]
+}
+
+export function TournamentsView({ tournaments }: TournamentsViewProps) {
   const [hoveredTournament, setHoveredTournament] = useState<string | null>(
     null,
   )
@@ -56,7 +41,7 @@ export function TournamentsView() {
 
       {/* Vertical panels container */}
       <div className="flex min-h-screen w-full flex-col pt-6 lg:flex-row lg:pt-20">
-        {TOURNAMENTS.map((tournament) => (
+        {tournaments.map((tournament) => (
           <Link
             key={tournament.slug}
             href={`/tournaments/${tournament.slug}`}
@@ -67,10 +52,10 @@ export function TournamentsView() {
             {/* Background image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src={tournament.image || '/placeholder.svg'}
+                src={tournament.hero_image || '/placeholder.svg'}
                 alt={tournament.name}
                 className="h-full w-full scale-100 object-cover object-top transition-transform duration-700 ease-out group-hover:scale-110 md:object-center"
-                style={{ objectPosition: tournament.objectPosition }}
+                style={{ objectPosition: '50% 35%' }}
               />
               {/* Dark overlay that lightens on hover */}
               <div

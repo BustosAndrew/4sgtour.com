@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   MessageSquare,
+  Trophy,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -262,6 +263,13 @@ export function AdminCourses({
             </svg>
             <span className="font-medium">Courses</span>
           </button>
+
+          <Link href="/admin/tournaments" onClick={() => setMobileMenuOpen(false)}>
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+              <Trophy className="h-5 w-5" />
+              <span className="font-medium">Tournaments</span>
+            </button>
+          </Link>
 
           <button
             onClick={() => {

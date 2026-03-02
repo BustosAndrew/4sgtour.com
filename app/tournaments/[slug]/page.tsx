@@ -1,7 +1,7 @@
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { TournamentDetailView } from '@/components/tournament-detail-view'
-import { TOURNAMENTS } from '@/lib/tournament-data'
+import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
 interface TournamentPageProps {
@@ -10,7 +10,16 @@ interface TournamentPageProps {
 
 export default async function TournamentPage({ params }: TournamentPageProps) {
   const { slug } = await params
-  const tournament = TOURNAMENTS[slug]
+  const supabase = await createClient()
+
+  const { data: tournament } = await supabase
+    .from('tournaments')
+    .select(`
+      *,
+      tournament_events(id, title, slug, location, date, image, description)
+    `)
+    .eq('slug', slug)
+    .single()
 
   if (!tournament) {
     notFound()
@@ -20,14 +29,7 @@ export default async function TournamentPage({ params }: TournamentPageProps) {
     <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <main>
-        <TournamentDetailView
-          slug={slug}
-          name={tournament.name}
-          displayName={tournament.displayName}
-          heroImage={tournament.heroImage}
-          logo={tournament.logo}
-          objectPosition={tournament.objectPosition}
-        />
+        <TournamentDetailView tournament={tournament} />
       </main>
       <SiteFooter />
     </div>

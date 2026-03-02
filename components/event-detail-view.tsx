@@ -2,14 +2,53 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Check, X, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, ChevronRight } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import type { TournamentEvent } from '@/lib/tournament-data'
+
+type ItineraryDay = {
+  id: string
+  display_order: number
+  title: string
+  content: string | null
+}
+
+type GalleryImage = {
+  id: string
+  image_url: string
+  display_order: number
+  gallery_type: string | null
+}
+
+type PricingTier = {
+  id: string
+  name: string
+  price: string | null
+  display_order: number | null
+}
+
+type TournamentEvent = {
+  id: string
+  slug: string
+  title: string
+  location: string
+  date: string
+  duration: string | null
+  description: string[] | null
+  trip_highlights: string[] | null
+  travel_itinerary: string[] | null
+  includes: string[] | null
+  excludes: string[] | null
+  image: string | null
+  hero_image: string | null
+  tournament_event_itinerary_days: ItineraryDay[]
+  tournament_event_gallery_images: GalleryImage[]
+  tournament_event_pricing_tiers: PricingTier[]
+}
 
 interface EventDetailViewProps {
   event: TournamentEvent
@@ -55,6 +94,10 @@ export function EventDetailView({
   tournamentSlug,
   tournamentHeroImage,
 }: EventDetailViewProps) {
+  const itineraryDays = event.tournament_event_itinerary_days || []
+  const galleryImages = event.tournament_event_gallery_images || []
+  const pricingTiers = event.tournament_event_pricing_tiers || []
+
   const [allExpanded, setAllExpanded] = useState(false)
   const [openItems, setOpenItems] = useState<string[]>(['day-0'])
 
@@ -63,15 +106,23 @@ export function EventDetailView({
       setOpenItems([])
       setAllExpanded(false)
     } else {
-      setOpenItems(event.itineraryDays.map((_, i) => `day-${i}`))
+      setOpenItems(itineraryDays.map((_, i) => `day-${i}`))
       setAllExpanded(true)
     }
   }
 
+  // Use the date string directly from database (it's already formatted)
+  const formattedDate = event.date
+
+  // Title casing helper
+  const titleCase = (str: string) =>
+    str
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ')
+
   const sectionIds = {
-    highlights: 'trip-highlights',
     itinerary: 'travel-itinerary',
-    inclusions: 'package-inclusions',
     pricing: 'pricing',
   }
 
@@ -90,16 +141,13 @@ export function EventDetailView({
             className="text-xs uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            {event.date}
+            {formattedDate}
           </p>
           <h1
             className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
-            {event.title
-              .split(' ')
-              .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-              .join(' ')}
+            {titleCase(event.title)}
           </h1>
         </div>
       </section>
@@ -115,9 +163,7 @@ export function EventDetailView({
         <hr className="mt-3 border-[#d5d0c7]" />
         <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
           {[
-            { label: 'Trip Highlights', id: sectionIds.highlights },
             { label: 'Travel Itinerary', id: sectionIds.itinerary },
-            { label: 'Package Inclusions', id: sectionIds.inclusions },
             { label: 'Packages', id: sectionIds.pricing },
           ].map((item) => (
             <a
@@ -159,9 +205,7 @@ export function EventDetailView({
               <hr className="mt-3 border-[#d5d0c7]" />
               <nav className="mt-5 flex flex-col gap-5">
                 {[
-                  { label: 'Trip Highlights', id: sectionIds.highlights },
                   { label: 'Travel Itinerary', id: sectionIds.itinerary },
-                  { label: 'Package Inclusions', id: sectionIds.inclusions },
                   { label: 'Packages', id: sectionIds.pricing },
                 ].map((item) => (
                   <a
@@ -196,240 +240,156 @@ export function EventDetailView({
               className="text-2xl sm:text-3xl md:text-4xl text-[#735c38]"
               style={{ fontFamily: 'var(--font-display-alt)' }}
             >
-              {event.title
-                .split(' ')
-                .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-                .join(' ')}
+              {titleCase(event.title)}
             </h2>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#735c38]">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-[#735c38]" />
                 {event.location}
+                {event.venue && ` - ${event.venue}`}
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-4 w-4 text-[#735c38]" />
-                {event.date}
+                {formattedDate}
               </span>
             </div>
 
             {/* Description */}
-            <div className="mt-6 flex flex-col gap-4">
-              {event.description.map((p, i) => (
+            {event.description && (
+              <div className="mt-6 flex flex-col gap-4">
                 <p
-                  key={i}
                   className="text-sm leading-relaxed text-[#735c38] sm:text-base"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {p}
+                  {event.description}
                 </p>
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Trip Highlights */}
-            <div id={sectionIds.highlights} className="mt-10 scroll-mt-28">
-              <h3
-                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Trip Highlights:
-              </h3>
-              <ul className="mt-4 flex flex-col gap-2">
-                {event.tripHighlights.map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Gallery 1 - Placeholder images */}
-            <div className="mt-10">
-              <ImageCarousel images={event.galleryImages} alt={event.title} />
-            </div>
+            {/* Gallery */}
+            {galleryImages.length > 0 && (
+              <div className="mt-10">
+                <ImageCarousel
+                  images={galleryImages.map((img) => img.image_url)}
+                  alt={event.title}
+                />
+              </div>
+            )}
 
             {/* Travel Itinerary */}
-            <div id={sectionIds.itinerary} className="mt-12 scroll-mt-28">
-              <h3
-                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Travel Itinerary & Features:
-              </h3>
-              <ul className="mt-4 flex flex-col gap-2">
-                {event.travelItinerary.map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 text-sm text-[#735c38] sm:text-base"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Expand All */}
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleExpandAll}
-                  className="text-sm font-medium text-[#735c38] underline underline-offset-2 transition-colors hover:text-[#735c38]/80"
+            {itineraryDays.length > 0 && (
+              <div id={sectionIds.itinerary} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {allExpanded ? 'Collapse all days' : 'Expand all days'}
-                </button>
-              </div>
+                  Travel Itinerary:
+                </h3>
 
-              {/* Day-by-Day Accordion */}
-              <Accordion
-                type="multiple"
-                value={openItems}
-                onValueChange={(val) => {
-                  setOpenItems(val)
-                  setAllExpanded(val.length === event.itineraryDays.length)
-                }}
-                className="mt-2"
-              >
-                {event.itineraryDays.map((day, i) => (
-                  <AccordionItem
-                    key={i}
-                    value={`day-${i}`}
-                    className="border-border"
-                  >
-                    <AccordionTrigger
-                      className="text-sm font-semibold text-[#735c38] sm:text-base"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      {day.title}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <p
-                        className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {day.content}
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-
-            {/* Gallery 2 - Placeholder images */}
-            <div className="mt-12">
-              <ImageCarousel
-                images={event.galleryImages2}
-                alt={`${event.title} accommodation`}
-              />
-            </div>
-
-            {/* Package Inclusions */}
-            <div id={sectionIds.inclusions} className="mt-12 scroll-mt-28">
-              <h3
-                className="text-base font-bold uppercase tracking-wide text-[#22333b] sm:text-lg"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Package Inclusions:
-              </h3>
-              <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                {/* Includes */}
-                <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
-                  <h4
-                    className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                {/* Expand All */}
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleExpandAll}
+                    className="text-sm font-medium text-[#735c38] underline underline-offset-2 transition-colors hover:text-[#735c38]/80"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    Includes:
-                  </h4>
-                  <ul className="mt-4 flex flex-col gap-3">
-                    {event.includes.map((item, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-3 text-sm text-[#22333b]"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#495c48]" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+                    {allExpanded ? 'Collapse all days' : 'Expand all days'}
+                  </button>
                 </div>
 
-                {/* Excludes */}
-                <div className="border border-[#d9d9d9] bg-[#f5f5f5] p-6">
-                  <h4
-                    className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    Excludes:
-                  </h4>
-                  <ul className="mt-4 flex flex-col gap-3">
-                    {event.excludes.map((item, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-3 text-sm text-[#22333b]"
-                        style={{ fontFamily: 'var(--font-body)' }}
+                {/* Day-by-Day Accordion */}
+                <Accordion
+                  type="multiple"
+                  value={openItems}
+                  onValueChange={(val) => {
+                    setOpenItems(val)
+                    setAllExpanded(val.length === itineraryDays.length)
+                  }}
+                  className="mt-2"
+                >
+                  {itineraryDays
+                    .sort((a, b) => a.display_order - b.display_order)
+                    .map((day, i) => (
+                      <AccordionItem
+                        key={day.id}
+                        value={`day-${i}`}
+                        className="border-border"
                       >
-                        <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-                        {item}
-                      </li>
+                        <AccordionTrigger
+                          className="text-sm font-semibold text-[#735c38] sm:text-base"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          Day {i + 1}: {day.title}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p
+                            className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                            style={{ fontFamily: 'var(--font-body)' }}
+                          >
+                            {day.content || 'Details coming soon.'}
+                          </p>
+                        </AccordionContent>
+                      </AccordionItem>
                     ))}
-                  </ul>
-                </div>
+                </Accordion>
               </div>
-            </div>
+            )}
 
             {/* Packages */}
-            <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
-              <h3
-                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Packages
-              </h3>
-              <p
-                className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                {'Spaces for '}
-                {event.title
-                  .split(' ')
-                  .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-                  .join(' ')}
-                {
-                  " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
-                }
-              </p>
+            {pricingTiers.length > 0 && (
+              <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  Packages
+                </h3>
+                <p
+                  className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {'Spaces for '}
+                  {titleCase(event.title)}
+                  {
+                    " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
+                  }
+                </p>
 
-              <div className="mt-6 flex flex-col gap-4">
-                {event.pricingTiers.map((tier, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
-                  >
-                    <div>
-                      <p
-                        className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                <div className="mt-6 flex flex-col gap-4">
+                  {pricingTiers.map((tier) => (
+                    <div
+                      key={tier.id}
+                      className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                    >
+                      <div>
+                        <p
+                          className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          {tier.name}
+                        </p>
+                        {tier.description && (
+                          <p
+                            className="mt-1 text-xs text-[#735c38]/70"
+                            style={{ fontFamily: 'var(--font-body)' }}
+                          >
+                            {tier.description}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                        className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        {tier.name}
-                      </p>
+                        Get Tickets
+                      </Link>
                     </div>
-                    <Link
-                      href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                      className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      Get Tickets
-                    </Link>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
