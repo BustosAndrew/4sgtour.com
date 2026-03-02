@@ -768,36 +768,75 @@ export function EditTournamentEventForm({
           {currentStep === 4 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Review</h2>
+                <h2 className="mb-6 text-lg font-semibold text-gray-900">
+                  Review & Save
+                </h2>
+                <p className="mb-6 text-sm text-gray-600">
+                  Please review your event details below. Click "Save Changes" when ready.
+                </p>
 
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Event Details</h3>
-                    <p className="text-lg font-semibold">{formData.title || "Untitled"}</p>
-                    <p className="text-sm text-gray-600">
-                      {formData.location}
-                    </p>
-                    <p className="text-sm text-gray-600">{formData.date}</p>
-                    {formData.price && (
-                      <p className="text-sm text-gray-600">Price: {formData.price}</p>
-                    )}
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Event Title</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{formData.title || "—"}</p>
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Itinerary</h3>
-                    <p className="text-sm text-gray-600">
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Location</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{formData.location || "—"}</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Date</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{formData.date || "—"}</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Duration</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{formData.duration || "—"}</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Starting Price</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{formData.price || "—"}</p>
+                  </div>
+
+                  {formData.description && (
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <Label className="text-xs uppercase tracking-wide text-gray-500">Description</Label>
+                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.description}</p>
+                    </div>
+                  )}
+
+                  {formData.trip_highlights && (
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <Label className="text-xs uppercase tracking-wide text-gray-500">Trip Highlights</Label>
+                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.trip_highlights}</p>
+                    </div>
+                  )}
+
+                  {formData.includes && (
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <Label className="text-xs uppercase tracking-wide text-gray-500">Package Includes</Label>
+                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.includes}</p>
+                    </div>
+                  )}
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Itinerary</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">
                       {itinerary.filter((d) => d.title.trim()).length} days planned
                     </p>
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Gallery</h3>
-                    <p className="text-sm text-gray-600">{gallery.length} images</p>
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Gallery</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{gallery.length} images</p>
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Pricing Tiers</h3>
-                    <p className="text-sm text-gray-600">
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Pricing Tiers</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">
                       {pricingTiers.filter((t) => t.name.trim()).length} pricing tiers
                     </p>
                     {pricingTiers
