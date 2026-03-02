@@ -121,8 +121,19 @@ export function EventDetailView({
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(' ')
 
+  // Separate gallery images by type
+  const eventGalleryImages = galleryImages.filter(
+    (img) => img.gallery_type === 'event' || !img.gallery_type
+  )
+  const hotelGalleryImages = galleryImages.filter(
+    (img) => img.gallery_type === 'hotel'
+  )
+
   const sectionIds = {
+    highlights: 'trip-highlights',
     itinerary: 'travel-itinerary',
+    includes: 'whats-included',
+    accommodations: 'accommodations',
     pricing: 'pricing',
   }
 
@@ -163,7 +174,12 @@ export function EventDetailView({
         <hr className="mt-3 border-[#d5d0c7]" />
         <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
           {[
+            { label: 'Trip Highlights', id: sectionIds.highlights },
             { label: 'Travel Itinerary', id: sectionIds.itinerary },
+            { label: "What's Included", id: sectionIds.includes },
+            ...(hotelGalleryImages.length > 0
+              ? [{ label: 'Accommodations', id: sectionIds.accommodations }]
+              : []),
             { label: 'Packages', id: sectionIds.pricing },
           ].map((item) => (
             <a
@@ -205,7 +221,12 @@ export function EventDetailView({
               <hr className="mt-3 border-[#d5d0c7]" />
               <nav className="mt-5 flex flex-col gap-5">
                 {[
+                  { label: 'Trip Highlights', id: sectionIds.highlights },
                   { label: 'Travel Itinerary', id: sectionIds.itinerary },
+                  { label: "What's Included", id: sectionIds.includes },
+                  ...(hotelGalleryImages.length > 0
+                    ? [{ label: 'Accommodations', id: sectionIds.accommodations }]
+                    : []),
                   { label: 'Packages', id: sectionIds.pricing },
                 ].map((item) => (
                   <a
@@ -267,12 +288,36 @@ export function EventDetailView({
             )}
 
             {/* Gallery */}
-            {galleryImages.length > 0 && (
+            {eventGalleryImages.length > 0 && (
               <div className="mt-10">
                 <ImageCarousel
-                  images={galleryImages.map((img) => img.image_url)}
+                  images={eventGalleryImages.map((img) => img.image_url)}
                   alt={event.title}
                 />
+              </div>
+            )}
+
+            {/* Trip Highlights */}
+            {event.trip_highlights && event.trip_highlights.length > 0 && (
+              <div id={sectionIds.highlights} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  Trip Highlights:
+                </h3>
+                <ul className="mt-4 space-y-2">
+                  {event.trip_highlights.map((highlight, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#735c38]/60" />
+                      {highlight}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -333,6 +378,75 @@ export function EventDetailView({
                       </AccordionItem>
                     ))}
                 </Accordion>
+              </div>
+            )}
+
+            {/* What's Included / Excluded */}
+            {((event.includes && event.includes.length > 0) ||
+              (event.excludes && event.excludes.length > 0)) && (
+              <div id={sectionIds.includes} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {"What's Included:"}
+                </h3>
+
+                {event.includes && event.includes.length > 0 && (
+                  <ul className="mt-4 space-y-2">
+                    {event.includes.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        <span className="mt-1 text-green-600">&#10003;</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {event.excludes && event.excludes.length > 0 && (
+                  <>
+                    <h3
+                      className="mt-6 text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      Not Included:
+                    </h3>
+                    <ul className="mt-4 space-y-2">
+                      {event.excludes.map((item, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          <span className="mt-1 text-red-600">&#10007;</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Hotel / Accommodations Gallery */}
+            {hotelGalleryImages.length > 0 && (
+              <div id={sectionIds.accommodations} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  Accommodations:
+                </h3>
+                <div className="mt-4">
+                  <ImageCarousel
+                    images={hotelGalleryImages.map((img) => img.image_url)}
+                    alt={`${event.title} accommodations`}
+                  />
+                </div>
               </div>
             )}
 

@@ -82,6 +82,7 @@ export function CreateTournamentEventForm({
   ])
 
   const [gallery, setGallery] = useState<GalleryImage[]>([])
+  const [hotelGallery, setHotelGallery] = useState<GalleryImage[]>([])
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([
     { id: "1", name: "", price: "", display_order: 0, booking_url: "" },
@@ -89,7 +90,7 @@ export function CreateTournamentEventForm({
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "main" | "gallery"
+    type: "main" | "gallery" | "hotel"
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -110,6 +111,16 @@ export function CreateTournamentEventForm({
       const { url } = await response.json()
       if (type === "main") {
         setImageUrl(url)
+      } else if (type === "hotel") {
+        setHotelGallery((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            image_url: url,
+            display_order: prev.length,
+            gallery_type: "hotel",
+          },
+        ])
       } else {
         setGallery((prev) => [
           ...prev,
@@ -117,7 +128,7 @@ export function CreateTournamentEventForm({
             id: Date.now().toString(),
             image_url: url,
             display_order: prev.length,
-            gallery_type: "gallery1",
+            gallery_type: "event",
           },
         ])
       }
@@ -152,6 +163,10 @@ export function CreateTournamentEventForm({
 
   const removeGalleryImage = (id: string) => {
     setGallery((prev) => prev.filter((img) => img.id !== id))
+  }
+
+  const removeHotelGalleryImage = (id: string) => {
+    setHotelGallery((prev) => prev.filter((img) => img.id !== id))
   }
 
   const addPricingTier = () => {
@@ -229,7 +244,7 @@ export function CreateTournamentEventForm({
           price: formData.price || null,
           image: imageUrl || null,
           itinerary: itinerary.filter((d) => d.title.trim()),
-          gallery: gallery,
+          gallery: [...gallery, ...hotelGallery],
           pricing_tiers: pricingTiers.filter((t) => t.name.trim()),
         }),
       })
@@ -584,7 +599,8 @@ export function CreateTournamentEventForm({
           {currentStep === 3 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Gallery</h2>
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">Event Gallery</h2>
+                <p className="mb-4 text-sm text-gray-500">Images of the event and venue</p>
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {gallery.map((img) => (
@@ -616,6 +632,52 @@ export function CreateTournamentEventForm({
                       disabled={uploadingPhoto === "gallery"}
                     />
                     {uploadingPhoto === "gallery" ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+                    ) : (
+                      <div className="text-center">
+                        <Plus className="mx-auto h-6 w-6 text-gray-400" />
+                        <span className="mt-1 block text-xs text-gray-500">Add</span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Hotel / Accommodations Gallery */}
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">Accommodations Gallery</h2>
+                <p className="mb-4 text-sm text-gray-500">Images of hotel rooms and accommodations</p>
+
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {hotelGallery.map((img) => (
+                    <div key={img.id} className="relative">
+                      <div className="relative aspect-video overflow-hidden rounded-lg border">
+                        <Image
+                          src={img.image_url}
+                          alt="Hotel gallery image"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeHotelGalleryImage(img.id)}
+                        className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <label className="flex aspect-video cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, "hotel")}
+                      disabled={uploadingPhoto === "hotel"}
+                    />
+                    {uploadingPhoto === "hotel" ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
                     ) : (
                       <div className="text-center">
