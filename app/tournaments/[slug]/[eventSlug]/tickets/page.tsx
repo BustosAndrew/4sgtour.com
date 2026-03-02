@@ -17,7 +17,7 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
   // Get tournament
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, slug, name, hero_image_url')
+    .select('id, slug, name, hero_image')
     .eq('slug', slug)
     .single()
 
@@ -30,7 +30,7 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
     .from('tournament_events')
     .select(`
       *,
-      tournament_event_pricing_tiers(id, name, price, description, features)
+      tournament_event_pricing_tiers(id, name, price)
     `)
     .eq('tournament_id', tournament.id)
     .eq('slug', eventSlug)
@@ -49,26 +49,18 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
       )
     : null
 
-  // Format date
-  const eventDate = new Date(event.event_date)
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
   return (
     <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <main>
         <TournamentTicketForm
-          eventTitle={event.name}
-          eventDate={formattedDate}
+          eventTitle={event.title}
+          eventDate={event.date}
           eventLocation={event.location}
           tierName={matchedTier?.name ?? null}
           tierPrice={matchedTier?.price ?? null}
           backHref={`/tournaments/${slug}/${eventSlug}`}
-          heroImage={tournament.hero_image_url || '/placeholder.svg'}
+          heroImage={tournament.hero_image || '/placeholder.svg'}
         />
       </main>
       <SiteFooter />

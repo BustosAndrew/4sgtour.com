@@ -15,7 +15,7 @@ export default async function EventPage({ params }: EventPageProps) {
   // Get tournament
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, slug, name, hero_image_url')
+    .select('id, slug, name, hero_image')
     .eq('slug', slug)
     .single()
 
@@ -28,9 +28,9 @@ export default async function EventPage({ params }: EventPageProps) {
     .from('tournament_events')
     .select(`
       *,
-      tournament_event_itinerary_days(id, day_number, title, description),
-      tournament_event_gallery_images(id, image_url, caption, display_order),
-      tournament_event_pricing_tiers(id, name, price, description, features)
+      tournament_event_itinerary_days(id, display_order, title, content),
+      tournament_event_gallery_images(id, image_url, display_order, gallery_type),
+      tournament_event_pricing_tiers(id, name, price, display_order)
     `)
     .eq('tournament_id', tournament.id)
     .eq('slug', eventSlug)
@@ -47,7 +47,7 @@ export default async function EventPage({ params }: EventPageProps) {
         <EventDetailView 
           event={event} 
           tournamentSlug={tournament.slug} 
-          tournamentHeroImage={tournament.hero_image_url || '/placeholder.svg'} 
+          tournamentHeroImage={tournament.hero_image || '/placeholder.svg'} 
         />
       </main>
       <SiteFooter />

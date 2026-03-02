@@ -16,7 +16,7 @@ export default async function TournamentPage({ params }: TournamentPageProps) {
     .from('tournaments')
     .select(`
       *,
-      tournament_events(id, name, slug, location, event_date, image_url, short_description)
+      tournament_events(id, title, slug, location, date, image, description)
     `)
     .eq('slug', slug)
     .single()

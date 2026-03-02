@@ -7,8 +7,8 @@ type Tournament = {
   id: string
   name: string
   slug: string
-  logo_url: string | null
-  hero_image_url: string | null
+  logo: string | null
+  hero_image: string | null
 }
 
 interface TournamentsViewProps {
@@ -52,7 +52,7 @@ export function TournamentsView({ tournaments }: TournamentsViewProps) {
             {/* Background image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src={tournament.hero_image_url || '/placeholder.svg'}
+                src={tournament.hero_image || '/placeholder.svg'}
                 alt={tournament.name}
                 className="h-full w-full scale-100 object-cover object-top transition-transform duration-700 ease-out group-hover:scale-110 md:object-center"
                 style={{ objectPosition: '50% 35%' }}

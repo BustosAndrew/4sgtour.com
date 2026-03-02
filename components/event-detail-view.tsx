@@ -12,37 +12,39 @@ import {
 
 type ItineraryDay = {
   id: string
-  day_number: number
+  display_order: number
   title: string
-  description: string | null
+  content: string | null
 }
 
 type GalleryImage = {
   id: string
   image_url: string
-  caption: string | null
   display_order: number
+  gallery_type: string | null
 }
 
 type PricingTier = {
   id: string
   name: string
-  price: number
-  description: string | null
-  features: string[] | null
+  price: string | null
+  display_order: number | null
 }
 
 type TournamentEvent = {
   id: string
   slug: string
-  name: string
+  title: string
   location: string
-  venue: string | null
-  event_date: string
-  end_date: string | null
-  description: string | null
-  short_description: string | null
-  image_url: string | null
+  date: string
+  duration: string | null
+  description: string[] | null
+  trip_highlights: string[] | null
+  travel_itinerary: string[] | null
+  includes: string[] | null
+  excludes: string[] | null
+  image: string | null
+  hero_image: string | null
   tournament_event_itinerary_days: ItineraryDay[]
   tournament_event_gallery_images: GalleryImage[]
   tournament_event_pricing_tiers: PricingTier[]
@@ -109,13 +111,8 @@ export function EventDetailView({
     }
   }
 
-  // Format dates
-  const eventDate = new Date(event.event_date)
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  // Use the date string directly from database (it's already formatted)
+  const formattedDate = event.date
 
   // Title casing helper
   const titleCase = (str: string) =>
@@ -135,7 +132,7 @@ export function EventDetailView({
       <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
         <img
           src={tournamentHeroImage || '/placeholder.svg'}
-          alt={event.name}
+          alt={event.title}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
@@ -150,7 +147,7 @@ export function EventDetailView({
             className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
-            {titleCase(event.name)}
+            {titleCase(event.title)}
           </h1>
         </div>
       </section>
@@ -243,7 +240,7 @@ export function EventDetailView({
               className="text-2xl sm:text-3xl md:text-4xl text-[#735c38]"
               style={{ fontFamily: 'var(--font-display-alt)' }}
             >
-              {titleCase(event.name)}
+              {titleCase(event.title)}
             </h2>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#735c38]">
               <span className="flex items-center gap-1.5">
@@ -274,7 +271,7 @@ export function EventDetailView({
               <div className="mt-10">
                 <ImageCarousel
                   images={galleryImages.map((img) => img.image_url)}
-                  alt={event.name}
+                  alt={event.title}
                 />
               </div>
             )}
@@ -312,7 +309,7 @@ export function EventDetailView({
                   className="mt-2"
                 >
                   {itineraryDays
-                    .sort((a, b) => a.day_number - b.day_number)
+                    .sort((a, b) => a.display_order - b.display_order)
                     .map((day, i) => (
                       <AccordionItem
                         key={day.id}
@@ -323,14 +320,14 @@ export function EventDetailView({
                           className="text-sm font-semibold text-[#735c38] sm:text-base"
                           style={{ fontFamily: 'var(--font-body)' }}
                         >
-                          Day {day.day_number}: {day.title}
+                          Day {i + 1}: {day.title}
                         </AccordionTrigger>
                         <AccordionContent>
                           <p
                             className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
-                            {day.description || 'Details coming soon.'}
+                            {day.content || 'Details coming soon.'}
                           </p>
                         </AccordionContent>
                       </AccordionItem>
@@ -353,7 +350,7 @@ export function EventDetailView({
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {'Spaces for '}
-                  {titleCase(event.name)}
+                  {titleCase(event.title)}
                   {
                     " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
                   }

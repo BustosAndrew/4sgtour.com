@@ -8,7 +8,7 @@ export default async function TournamentsPage() {
 
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('id, name, slug, logo_url, hero_image_url')
+    .select('id, name, slug, logo, hero_image')
     .order('name', { ascending: true })
 
   return (
