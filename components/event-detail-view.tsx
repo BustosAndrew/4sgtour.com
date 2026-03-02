@@ -340,52 +340,59 @@ export function EventDetailView({
             )}
 
             {/* Packages */}
-            <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
-              <h3
-                className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Packages
-              </h3>
-              <p
-                className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                {'Spaces for '}
-                {event.title
-                  .split(' ')
-                  .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-                  .join(' ')}
-                {
-                  " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
-                }
-              </p>
+            {pricingTiers.length > 0 && (
+              <div id={sectionIds.pricing} className="mt-12 scroll-mt-28">
+                <h3
+                  className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  Packages
+                </h3>
+                <p
+                  className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {'Spaces for '}
+                  {titleCase(event.name)}
+                  {
+                    " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
+                  }
+                </p>
 
-              <div className="mt-6 flex flex-col gap-4">
-                {event.pricingTiers.map((tier, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
-                  >
-                    <div>
-                      <p
-                        className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                <div className="mt-6 flex flex-col gap-4">
+                  {pricingTiers.map((tier) => (
+                    <div
+                      key={tier.id}
+                      className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                    >
+                      <div>
+                        <p
+                          className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          {tier.name}
+                        </p>
+                        {tier.description && (
+                          <p
+                            className="mt-1 text-xs text-[#735c38]/70"
+                            style={{ fontFamily: 'var(--font-body)' }}
+                          >
+                            {tier.description}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                        className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        {tier.name}
-                      </p>
+                        Get Tickets
+                      </Link>
                     </div>
-                    <Link
-                      href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                      className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      Get Tickets
-                    </Link>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
