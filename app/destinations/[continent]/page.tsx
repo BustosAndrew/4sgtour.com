@@ -20,7 +20,7 @@ const CONTINENT_NAMES: Record<string, string> = {
 
 const CONTINENT_IMAGES: Record<string, string> = {
   africa: '/images/world.jpg',
-  asia: '/images/asia_2.jpg',
+  asia: '/images/asia_2.png',
   europe: '/images/europ.png',
   'north-america': '/images/na4.png',
   'south-america': '/images/sa.jpg',

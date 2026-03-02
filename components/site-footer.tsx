@@ -24,52 +24,22 @@ export function SiteFooter() {
               </Link>
             </div>
 
-            {/* Branch Sites */}
-            <div className="mt-6 flex justify-center md:justify-start gap-6">
-              <a
-                href="https://4sgtour.de"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center transition-opacity hover:opacity-80"
-              >
-                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Germany"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 640px) 4rem, 3.5rem"
-                  />
+            <div>
+              <p className="text-[16px] leading-relaxed text-white/80 font-semibold">
+                4SGTour is a premier golf travel agency specializing in overseas
+                golf tours. We are dedicated to providing exceptional service
+                and unforgettable golf experiences around the world.
+              </p>
+              <div className="mt-5 flex justify-center md:justify-start">
+                <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
+                  <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
+                    TCRC Registered
+                  </p>
+                  <p className="text-[16px] text-white/60 mt-1 leading-relaxed">
+                    Seller of Travel Reg. No.: CST 2156865-70
+                  </p>
                 </div>
-                <p
-                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  4 Seasons Golf Tour Germany
-                </p>
-              </a>
-              <a
-                href="https://4sgtour.at"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center transition-opacity hover:opacity-80"
-              >
-                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
-                  <Image
-                    src="/images/cert-logo.png"
-                    alt="4 Seasons Golf Tour Austria"
-                    fill
-                    className="object-contain"
-                    sizes="(min-width: 640px) 4rem, 3.5rem"
-                  />
-                </div>
-                <p
-                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  4 Seasons Golf Tour Austria
-                </p>
-              </a>
+              </div>
             </div>
 
             {/* Social Icons */}
@@ -102,23 +72,52 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Column 2: Description and TCRC */}
-          <div>
-            <p className="text-[16px] leading-relaxed text-white/80 font-semibold">
-              4SGTour is a premier golf travel agency specializing in overseas
-              golf tours. We are dedicated to providing exceptional service and
-              unforgettable golf experiences around the world.
-            </p>
-            <div className="mt-5 flex justify-center md:justify-start">
-              <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
-                <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
-                  TCRC Registered
-                </p>
-                <p className="text-[16px] text-white/60 mt-1 leading-relaxed">
-                  Seller of Travel Reg. No.: CST 2156865-70
-                </p>
+          {/* Branch Sites */}
+          <div className="flex flex-col justify-center md:justify-start gap-6 h-fit">
+            <a
+              href="https://4sgtour.de"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center transition-opacity hover:opacity-80"
+            >
+              <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                <Image
+                  src="/images/cert-logo.png"
+                  alt="4 Seasons Golf Tour Germany"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 640px) 4rem, 3.5rem"
+                />
               </div>
-            </div>
+              <p
+                className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                4 Seasons Golf Tour Germany
+              </p>
+            </a>
+            <a
+              href="https://4sgtour.at"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center transition-opacity hover:opacity-80"
+            >
+              <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                <Image
+                  src="/images/cert-logo.png"
+                  alt="4 Seasons Golf Tour Austria"
+                  fill
+                  className="object-contain"
+                  sizes="(min-width: 640px) 4rem, 3.5rem"
+                />
+              </div>
+              <p
+                className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                4 Seasons Golf Tour Austria
+              </p>
+            </a>
           </div>
 
           {/* Column 3: Legal + Site Map */}
