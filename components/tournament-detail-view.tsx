@@ -45,7 +45,7 @@ export function TournamentDetailView({ tournament }: TournamentDetailViewProps) 
         {/* Hero Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <p
-            className="text-sm uppercase tracking-[0.25em] text-white/90 sm:text-base"
+            className="text-sm font-bold uppercase tracking-[0.25em] text-white/90 sm:text-base"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Upcoming Events
