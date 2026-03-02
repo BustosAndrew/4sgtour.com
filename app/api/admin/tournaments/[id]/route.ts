@@ -73,7 +73,7 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { name, description, logo_url, hero_image_url } = body
+    const { name, display_name, logo, hero_image } = body
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -82,13 +82,17 @@ export async function PATCH(
       )
     }
 
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+
     const { data: tournament, error } = await supabase
       .from("tournaments")
       .update({
         name,
-        description: description || null,
-        logo_url: logo_url || null,
-        hero_image_url: hero_image_url || null,
+        slug,
+        display_name: display_name || null,
+        logo: logo || null,
+        hero_image: hero_image || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

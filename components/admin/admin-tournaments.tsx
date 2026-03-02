@@ -25,10 +25,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type TournamentEvent = {
   id: string
-  name: string
+  title: string
   slug: string
-  event_date: string
-  image_url: string | null
+  date: string
+  image: string | null
   location: string
 }
 
@@ -36,9 +36,9 @@ type Tournament = {
   id: string
   slug: string
   name: string
-  description: string | null
-  logo_url: string | null
-  hero_image_url: string | null
+  display_name: string | null
+  logo: string | null
+  hero_image: string | null
   tournament_events?: TournamentEvent[]
 }
 
@@ -326,9 +326,9 @@ export function AdminTournaments({
                   onClick={() => toggleTournamentExpanded(tournament.id)}
                 >
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-white">
-                    {tournament.logo_url ? (
+                    {tournament.logo ? (
                       <Image
-                        src={tournament.logo_url}
+                        src={tournament.logo}
                         alt={tournament.name}
                         fill
                         className="object-contain p-1"
@@ -404,10 +404,10 @@ export function AdminTournaments({
                             className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
                           >
                             <div className="relative h-12 w-16 flex-shrink-0 overflow-hidden rounded bg-gray-100">
-                              {event.image_url ? (
+                              {event.image ? (
                                 <Image
-                                  src={event.image_url}
-                                  alt={event.name}
+                                  src={event.image}
+                                  alt={event.title}
                                   fill
                                   className="object-cover"
                                 />
@@ -420,15 +420,10 @@ export function AdminTournaments({
 
                             <div className="flex-1 min-w-0">
                               <p className="truncate font-medium text-gray-900">
-                                {event.name}
+                                {event.title}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {event.location} •{" "}
-                                {new Date(event.event_date).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}
+                                {event.location} • {event.date}
                               </p>
                             </div>
 

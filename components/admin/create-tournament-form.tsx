@@ -18,7 +18,7 @@ export function CreateTournamentForm() {
 
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
+    display_name: "",
   })
 
   const [logoUrl, setLogoUrl] = useState("")
@@ -97,9 +97,9 @@ export function CreateTournamentForm() {
         },
         body: JSON.stringify({
           name: formData.name,
-          description: formData.description || null,
-          logo_url: logoUrl || null,
-          hero_image_url: heroImageUrl || null,
+          display_name: formData.display_name || null,
+          logo: logoUrl || null,
+          hero_image: heroImageUrl || null,
         }),
       })
 
@@ -175,19 +175,18 @@ export function CreateTournamentForm() {
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
+                <Label htmlFor="display_name">Display Name</Label>
+                <Input
+                  id="display_name"
+                  value={formData.display_name}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      description: e.target.value,
+                      display_name: e.target.value,
                     }))
                   }
-                  placeholder="Brief description of the tournament series..."
+                  placeholder="e.g., The Open"
                   className="mt-1"
-                  rows={3}
                 />
               </div>
             </div>

@@ -22,24 +22,24 @@ import Link from "next/link"
 
 type ItineraryDay = {
   id: string
-  day_number: number
+  display_order: number
   title: string
-  description: string
+  content: string
 }
 
 type GalleryImage = {
   id: string
   image_url: string
-  caption: string
   display_order: number
+  gallery_type: string
 }
 
 type PricingTier = {
   id: string
   name: string
-  price: number
-  description: string
-  features: string[]
+  price: string
+  display_order: number
+  booking_url: string
 }
 
 const STEPS = [
@@ -62,26 +62,29 @@ export function CreateTournamentEventForm({
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     location: "",
-    venue: "",
-    event_date: "",
-    end_date: "",
+    date: "",
+    duration: "",
     description: "",
-    short_description: "",
+    trip_highlights: "",
+    travel_itinerary: "",
+    includes: "",
+    excludes: "",
+    price: "",
   })
 
   const [imageUrl, setImageUrl] = useState("")
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
 
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([
-    { id: "1", day_number: 1, title: "", description: "" },
+    { id: "1", display_order: 1, title: "", content: "" },
   ])
 
   const [gallery, setGallery] = useState<GalleryImage[]>([])
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([
-    { id: "1", name: "", price: 0, description: "", features: [""] },
+    { id: "1", name: "", price: "", display_order: 0, booking_url: "" },
   ])
 
   const handlePhotoUpload = async (
@@ -113,8 +116,8 @@ export function CreateTournamentEventForm({
           {
             id: Date.now().toString(),
             image_url: url,
-            caption: "",
             display_order: prev.length,
+            gallery_type: "gallery1",
           },
         ])
       }
@@ -127,17 +130,17 @@ export function CreateTournamentEventForm({
   }
 
   const addItineraryDay = () => {
-    const nextDayNumber = itinerary.length + 1
+    const nextOrder = itinerary.length + 1
     setItinerary((prev) => [
       ...prev,
-      { id: Date.now().toString(), day_number: nextDayNumber, title: "", description: "" },
+      { id: Date.now().toString(), display_order: nextOrder, title: "", content: "" },
     ])
   }
 
   const removeItineraryDay = (id: string) => {
     setItinerary((prev) => {
       const filtered = prev.filter((d) => d.id !== id)
-      return filtered.map((d, i) => ({ ...d, day_number: i + 1 }))
+      return filtered.map((d, i) => ({ ...d, display_order: i + 1 }))
     })
   }
 
@@ -151,16 +154,10 @@ export function CreateTournamentEventForm({
     setGallery((prev) => prev.filter((img) => img.id !== id))
   }
 
-  const updateGalleryCaption = (id: string, caption: string) => {
-    setGallery((prev) =>
-      prev.map((img) => (img.id === id ? { ...img, caption } : img))
-    )
-  }
-
   const addPricingTier = () => {
     setPricingTiers((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: "", price: 0, description: "", features: [""] },
+      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, booking_url: "" },
     ])
   }
 
@@ -174,56 +171,20 @@ export function CreateTournamentEventForm({
     )
   }
 
-  const addFeature = (tierId: string) => {
-    setPricingTiers((prev) =>
-      prev.map((t) =>
-        t.id === tierId ? { ...t, features: [...t.features, ""] } : t
-      )
-    )
-  }
-
-  const removeFeature = (tierId: string, featureIndex: number) => {
-    setPricingTiers((prev) =>
-      prev.map((t) =>
-        t.id === tierId
-          ? { ...t, features: t.features.filter((_, i) => i !== featureIndex) }
-          : t
-      )
-    )
-  }
-
-  const updateFeature = (tierId: string, featureIndex: number, value: string) => {
-    setPricingTiers((prev) =>
-      prev.map((t) =>
-        t.id === tierId
-          ? {
-              ...t,
-              features: t.features.map((f, i) => (i === featureIndex ? value : f)),
-            }
-          : t
-      )
-    )
-  }
-
   const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
 
     switch (currentStep) {
       case 1:
-        if (!formData.name.trim()) errors.push("Event name is required")
+        if (!formData.title.trim()) errors.push("Event title is required")
         if (!formData.location.trim()) errors.push("Location is required")
-        if (!formData.event_date) errors.push("Event date is required")
+        if (!formData.date) errors.push("Event date is required")
         break
       case 2:
-        itinerary.forEach((day, i) => {
-          if (!day.title.trim()) errors.push(`Day ${i + 1} title is required`)
-        })
+        // Itinerary is optional
         break
       case 3:
-        pricingTiers.forEach((tier, i) => {
-          if (!tier.name.trim()) errors.push(`Pricing tier ${i + 1} name is required`)
-          if (tier.price <= 0) errors.push(`Pricing tier ${i + 1} must have a valid price`)
-        })
+        // Pricing tiers are optional
         break
     }
 
@@ -256,17 +217,20 @@ export function CreateTournamentEventForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
+          title: formData.title,
           location: formData.location,
-          venue: formData.venue || null,
-          event_date: formData.event_date,
-          end_date: formData.end_date || null,
-          description: formData.description || null,
-          short_description: formData.short_description || null,
-          image_url: imageUrl || null,
+          date: formData.date,
+          duration: formData.duration || null,
+          description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
+          trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
+          travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
+          includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
+          excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
+          price: formData.price || null,
+          image: imageUrl || null,
           itinerary: itinerary.filter((d) => d.title.trim()),
           gallery: gallery,
-          pricing_tiers: pricingTiers.filter((t) => t.name.trim() && t.price > 0),
+          pricing_tiers: pricingTiers.filter((t) => t.name.trim()),
         }),
       })
 
@@ -362,12 +326,12 @@ export function CreateTournamentEventForm({
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Event Name *</Label>
+                    <Label htmlFor="title">Event Title *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
+                      id="title"
+                      value={formData.title}
                       onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, name: e.target.value }))
+                        setFormData((prev) => ({ ...prev, title: e.target.value }))
                       }
                       placeholder="e.g., The Open 2025"
                       className="mt-1"
@@ -388,14 +352,14 @@ export function CreateTournamentEventForm({
                       />
                     </div>
                     <div>
-                      <Label htmlFor="venue">Venue</Label>
+                      <Label htmlFor="date">Date *</Label>
                       <Input
-                        id="venue"
-                        value={formData.venue}
+                        id="date"
+                        value={formData.date}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, venue: e.target.value }))
+                          setFormData((prev) => ({ ...prev, date: e.target.value }))
                         }
-                        placeholder="e.g., Royal Troon Golf Club"
+                        placeholder="e.g., July 17-20, 2025"
                         className="mt-1"
                       />
                     </div>
@@ -403,49 +367,33 @@ export function CreateTournamentEventForm({
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="event_date">Event Start Date *</Label>
+                      <Label htmlFor="duration">Duration</Label>
                       <Input
-                        id="event_date"
-                        type="date"
-                        value={formData.event_date}
+                        id="duration"
+                        value={formData.duration}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, event_date: e.target.value }))
+                          setFormData((prev) => ({ ...prev, duration: e.target.value }))
                         }
+                        placeholder="e.g., 4 days, 3 nights"
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="end_date">Event End Date</Label>
+                      <Label htmlFor="price">Price (displayed)</Label>
                       <Input
-                        id="end_date"
-                        type="date"
-                        value={formData.end_date}
+                        id="price"
+                        value={formData.price}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, end_date: e.target.value }))
+                          setFormData((prev) => ({ ...prev, price: e.target.value }))
                         }
+                        placeholder="e.g., from $5,000"
                         className="mt-1"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="short_description">Short Description</Label>
-                    <Input
-                      id="short_description"
-                      value={formData.short_description}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          short_description: e.target.value,
-                        }))
-                      }
-                      placeholder="Brief one-line description"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="description">Full Description</Label>
+                    <Label htmlFor="description">Description (separate paragraphs with blank lines)</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
@@ -458,6 +406,57 @@ export function CreateTournamentEventForm({
                       placeholder="Detailed event description..."
                       className="mt-1"
                       rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="trip_highlights">Trip Highlights (one per line)</Label>
+                    <Textarea
+                      id="trip_highlights"
+                      value={formData.trip_highlights}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          trip_highlights: e.target.value,
+                        }))
+                      }
+                      placeholder="Premium accommodation&#10;Tournament tickets&#10;Golf rounds"
+                      className="mt-1"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="includes">Package Includes (one per line)</Label>
+                    <Textarea
+                      id="includes"
+                      value={formData.includes}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          includes: e.target.value,
+                        }))
+                      }
+                      placeholder="Airport transfers&#10;Breakfast daily&#10;Tournament tickets"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="excludes">Package Excludes (one per line)</Label>
+                    <Textarea
+                      id="excludes"
+                      value={formData.excludes}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          excludes: e.target.value,
+                        }))
+                      }
+                      placeholder="Flights&#10;Travel insurance"
+                      className="mt-1"
+                      rows={3}
                     />
                   </div>
                 </div>
@@ -533,7 +532,7 @@ export function CreateTournamentEventForm({
                         <div className="flex items-center gap-2">
                           <GripVertical className="h-4 w-4 text-gray-400" />
                           <span className="font-medium text-gray-700">
-                            Day {day.day_number}
+                            Day {day.display_order}
                           </span>
                         </div>
                         {itinerary.length > 1 && (
@@ -562,11 +561,11 @@ export function CreateTournamentEventForm({
                           />
                         </div>
                         <div>
-                          <Label>Description</Label>
+                          <Label>Content</Label>
                           <Textarea
-                            value={day.description}
+                            value={day.content}
                             onChange={(e) =>
-                              updateItineraryDay(day.id, "description", e.target.value)
+                              updateItineraryDay(day.id, "content", e.target.value)
                             }
                             placeholder="Activities for this day..."
                             className="mt-1"
@@ -605,12 +604,6 @@ export function CreateTournamentEventForm({
                       >
                         <X className="h-3 w-3" />
                       </button>
-                      <Input
-                        value={img.caption}
-                        onChange={(e) => updateGalleryCaption(img.id, e.target.value)}
-                        placeholder="Caption"
-                        className="mt-2 text-xs"
-                      />
                     </div>
                   ))}
 
@@ -680,75 +673,28 @@ export function CreateTournamentEventForm({
                             />
                           </div>
                           <div>
-                            <Label>Price (USD) *</Label>
+                            <Label>Price</Label>
                             <Input
-                              type="number"
                               value={tier.price || ""}
                               onChange={(e) =>
-                                updatePricingTier(
-                                  tier.id,
-                                  "price",
-                                  parseFloat(e.target.value) || 0
-                                )
+                                updatePricingTier(tier.id, "price", e.target.value)
                               }
-                              placeholder="0.00"
+                              placeholder="e.g., $5,000"
                               className="mt-1"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <Label>Description</Label>
-                          <Textarea
-                            value={tier.description}
+                          <Label>Booking URL</Label>
+                          <Input
+                            value={tier.booking_url}
                             onChange={(e) =>
-                              updatePricingTier(tier.id, "description", e.target.value)
+                              updatePricingTier(tier.id, "booking_url", e.target.value)
                             }
-                            placeholder="What's included in this tier..."
+                            placeholder="https://..."
                             className="mt-1"
-                            rows={2}
                           />
-                        </div>
-
-                        <div>
-                          <div className="mb-2 flex items-center justify-between">
-                            <Label>Features</Label>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => addFeature(tier.id)}
-                              className="h-6 text-xs"
-                            >
-                              <Plus className="mr-1 h-3 w-3" />
-                              Add
-                            </Button>
-                          </div>
-                          <div className="space-y-2">
-                            {tier.features.map((feature, featureIndex) => (
-                              <div key={featureIndex} className="flex gap-2">
-                                <Input
-                                  value={feature}
-                                  onChange={(e) =>
-                                    updateFeature(tier.id, featureIndex, e.target.value)
-                                  }
-                                  placeholder="Feature description"
-                                  className="flex-1"
-                                />
-                                {tier.features.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeFeature(tier.id, featureIndex)}
-                                    className="h-10 w-10 text-red-500 hover:bg-red-50"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -767,25 +713,14 @@ export function CreateTournamentEventForm({
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Event Details</h3>
-                    <p className="text-lg font-semibold">{formData.name || "Untitled"}</p>
+                    <p className="text-lg font-semibold">{formData.title || "Untitled"}</p>
                     <p className="text-sm text-gray-600">
                       {formData.location}
-                      {formData.venue && ` • ${formData.venue}`}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      {formData.event_date &&
-                        new Date(formData.event_date).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      {formData.end_date &&
-                        ` - ${new Date(formData.end_date).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}`}
-                    </p>
+                    <p className="text-sm text-gray-600">{formData.date}</p>
+                    {formData.price && (
+                      <p className="text-sm text-gray-600">Price: {formData.price}</p>
+                    )}
                   </div>
 
                   <div>
@@ -801,15 +736,15 @@ export function CreateTournamentEventForm({
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Pricing</h3>
+                    <h3 className="text-sm font-medium text-gray-500">Pricing Tiers</h3>
                     <p className="text-sm text-gray-600">
                       {pricingTiers.filter((t) => t.name.trim()).length} pricing tiers
                     </p>
                     {pricingTiers
-                      .filter((t) => t.name.trim() && t.price > 0)
+                      .filter((t) => t.name.trim())
                       .map((tier) => (
                         <p key={tier.id} className="text-sm text-gray-600">
-                          • {tier.name}: ${tier.price.toLocaleString()}
+                          • {tier.name}{tier.price ? `: ${tier.price}` : ""}
                         </p>
                       ))}
                   </div>

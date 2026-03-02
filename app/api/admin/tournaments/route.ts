@@ -24,7 +24,7 @@ export async function GET() {
       .from("tournaments")
       .select(`
         *,
-        tournament_events(id, name, slug, event_date, image_url, location)
+        tournament_events(id, title, slug, date, image, location)
       `)
       .order("name", { ascending: true })
 
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { name, description, logo_url, hero_image_url } = body
+    const { name, display_name, logo, hero_image } = body
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -68,21 +68,19 @@ export async function POST(request: Request) {
       )
     }
 
-    const baseSlug = name
+    const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
-
-    const slug = `${baseSlug}-${Date.now()}`
 
     const { data: tournament, error } = await supabase
       .from("tournaments")
       .insert({
         name,
         slug,
-        description: description || null,
-        logo_url: logo_url || null,
-        hero_image_url: hero_image_url || null,
+        display_name: display_name || null,
+        logo: logo || null,
+        hero_image: hero_image || null,
       })
       .select()
       .single()

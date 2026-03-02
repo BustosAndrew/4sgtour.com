@@ -30,7 +30,7 @@ export default async function AdminTournamentsPage() {
     .from("tournaments")
     .select(`
       *,
-      tournament_events(id, name, slug, event_date, image_url, location)
+      tournament_events(id, title, slug, date, image, location)
     `)
     .order("name", { ascending: true })
 

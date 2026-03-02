@@ -26,31 +26,41 @@ export async function PATCH(
   try {
     const body = await request.json()
     const {
-      name,
+      title,
       location,
-      venue,
-      event_date,
-      end_date,
+      date,
+      duration,
       description,
-      short_description,
-      image_url,
+      trip_highlights,
+      travel_itinerary,
+      includes,
+      excludes,
+      price,
+      image,
       itinerary,
       gallery,
       pricing_tiers,
     } = body
 
+    // Generate slug from title
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+
     // Update the event
     const { data: eventData, error: eventError } = await supabase
       .from("tournament_events")
       .update({
-        name,
+        title,
+        slug,
         location,
-        venue: venue || null,
-        event_date,
-        end_date: end_date || null,
+        date,
+        duration: duration || null,
         description: description || null,
-        short_description: short_description || null,
-        image_url: image_url || null,
+        trip_highlights: trip_highlights || null,
+        travel_itinerary: travel_itinerary || null,
+        includes: includes || null,
+        excludes: excludes || null,
+        price: price || null,
+        image: image || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", eventId)
@@ -67,11 +77,11 @@ export async function PATCH(
       .eq("event_id", eventId)
 
     if (itinerary && itinerary.length > 0) {
-      const itineraryData = itinerary.map((day: any) => ({
+      const itineraryData = itinerary.map((day: any, idx: number) => ({
         event_id: eventId,
-        day_number: day.day_number,
+        display_order: idx + 1,
         title: day.title,
-        description: day.description || null,
+        content: day.content || null,
       }))
 
       const { error: itineraryError } = await supabase
@@ -93,8 +103,8 @@ export async function PATCH(
       const galleryData = gallery.map((img: any, idx: number) => ({
         event_id: eventId,
         image_url: img.image_url,
-        caption: img.caption || null,
         display_order: idx,
+        gallery_type: img.gallery_type || "gallery1",
       }))
 
       const { error: galleryError } = await supabase
@@ -113,12 +123,12 @@ export async function PATCH(
       .eq("event_id", eventId)
 
     if (pricing_tiers && pricing_tiers.length > 0) {
-      const pricingData = pricing_tiers.map((tier: any) => ({
+      const pricingData = pricing_tiers.map((tier: any, idx: number) => ({
         event_id: eventId,
         name: tier.name,
-        price: tier.price,
-        description: tier.description || null,
-        features: tier.features?.filter((f: string) => f.trim()) || [],
+        price: tier.price || null,
+        display_order: idx,
+        booking_url: tier.booking_url || null,
       }))
 
       const { error: pricingError } = await supabase
