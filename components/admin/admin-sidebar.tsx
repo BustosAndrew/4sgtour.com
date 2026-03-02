@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Flag, LogOut, BarChart3, MessageSquare } from 'lucide-react'
+import { Flag, LogOut, BarChart3, MessageSquare, Trophy } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -47,6 +47,16 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
         >
           <Flag className="h-5 w-5" />
           Courses
+        </Link>
+
+        <Link
+          href="/admin/tournaments"
+          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
+            pathname.startsWith('/admin/tournaments') ? 'bg-white/20' : 'hover:bg-white/10'
+          }`}
+        >
+          <Trophy className="h-5 w-5" />
+          Tournaments
         </Link>
 
         <Link
