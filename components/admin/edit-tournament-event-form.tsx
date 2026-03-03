@@ -126,12 +126,25 @@ export function EditTournamentEventForm({
   )
 
   const [gallery, setGallery] = useState<GalleryImage[]>(
-    event.tournament_event_gallery_images?.map((img) => ({
-      id: img.id,
-      image_url: img.image_url,
-      display_order: img.display_order,
-      gallery_type: img.gallery_type || "gallery1",
-    })) || []
+    event.tournament_event_gallery_images
+      ?.filter((img) => img.gallery_type === 'event' || !img.gallery_type)
+      .map((img) => ({
+        id: img.id,
+        image_url: img.image_url,
+        display_order: img.display_order,
+        gallery_type: 'event',
+      })) || []
+  )
+
+  const [hotelGallery, setHotelGallery] = useState<GalleryImage[]>(
+    event.tournament_event_gallery_images
+      ?.filter((img) => img.gallery_type === 'hotel')
+      .map((img) => ({
+        id: img.id,
+        image_url: img.image_url,
+        display_order: img.display_order,
+        gallery_type: 'hotel',
+      })) || []
   )
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(
@@ -148,7 +161,7 @@ export function EditTournamentEventForm({
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "main" | "gallery"
+    type: "main" | "gallery" | "hotel"
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -169,14 +182,24 @@ export function EditTournamentEventForm({
       const { url } = await response.json()
       if (type === "main") {
         setImageUrl(url)
+      } else if (type === "hotel") {
+        setHotelGallery((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            image_url: url,
+            display_order: prev.length,
+            gallery_type: 'hotel',
+          },
+        ])
       } else {
         setGallery((prev) => [
           ...prev,
           {
             id: Date.now().toString(),
             image_url: url,
-            caption: "",
             display_order: prev.length,
+            gallery_type: 'event',
           },
         ])
       }
@@ -211,6 +234,10 @@ export function EditTournamentEventForm({
 
   const removeGalleryImage = (id: string) => {
     setGallery((prev) => prev.filter((img) => img.id !== id))
+  }
+
+  const removeHotelGalleryImage = (id: string) => {
+    setHotelGallery((prev) => prev.filter((img) => img.id !== id))
   }
 
   const addPricingTier = () => {
@@ -290,7 +317,7 @@ export function EditTournamentEventForm({
             price: formData.price || null,
             image: imageUrl || null,
             itinerary: itinerary.filter((d) => d.title.trim()),
-            gallery: gallery,
+            gallery: [...gallery, ...hotelGallery],
             pricing_tiers: pricingTiers.filter((t) => t.name.trim()),
           }),
         }
@@ -644,7 +671,8 @@ export function EditTournamentEventForm({
           {currentStep === 3 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">Gallery</h2>
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">Event Gallery</h2>
+                <p className="mb-4 text-sm text-gray-500">Images of the event and venue</p>
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {gallery.map((img) => (
@@ -676,6 +704,52 @@ export function EditTournamentEventForm({
                       disabled={uploadingPhoto === "gallery"}
                     />
                     {uploadingPhoto === "gallery" ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+                    ) : (
+                      <div className="text-center">
+                        <Plus className="mx-auto h-6 w-6 text-gray-400" />
+                        <span className="mt-1 block text-xs text-gray-500">Add</span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Hotel / Accommodations Gallery */}
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">Accommodations Gallery</h2>
+                <p className="mb-4 text-sm text-gray-500">Images of hotel rooms and accommodations</p>
+
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {hotelGallery.map((img) => (
+                    <div key={img.id} className="relative">
+                      <div className="relative aspect-video overflow-hidden rounded-lg border">
+                        <Image
+                          src={img.image_url}
+                          alt="Hotel gallery image"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeHotelGalleryImage(img.id)}
+                        className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <label className="flex aspect-video cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, "hotel")}
+                      disabled={uploadingPhoto === "hotel"}
+                    />
+                    {uploadingPhoto === "hotel" ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
                     ) : (
                       <div className="text-center">
@@ -830,8 +904,13 @@ export function EditTournamentEventForm({
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
-                    <Label className="text-xs uppercase tracking-wide text-gray-500">Gallery</Label>
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Event Gallery</Label>
                     <p className="mt-1 text-base font-medium text-gray-900">{gallery.length} images</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Accommodations Gallery</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{hotelGallery.length} images</p>
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
