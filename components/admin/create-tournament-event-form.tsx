@@ -832,8 +832,13 @@ export function CreateTournamentEventForm({
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
-                    <Label className="text-xs uppercase tracking-wide text-gray-500">Gallery</Label>
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Event Gallery</Label>
                     <p className="mt-1 text-base font-medium text-gray-900">{gallery.length} images</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 p-4">
+                    <Label className="text-xs uppercase tracking-wide text-gray-500">Accommodations Gallery</Label>
+                    <p className="mt-1 text-base font-medium text-gray-900">{hotelGallery.length} images</p>
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
