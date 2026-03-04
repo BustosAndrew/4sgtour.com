@@ -9,7 +9,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
-import { useTranslations } from "next-intl"
+import { useTranslations } from "@/lib/i18n/provider"
 
 interface TripCardProps {
   trip: Trip & { images?: Array<{ image_url: string }> }

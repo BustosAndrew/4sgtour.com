@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CONTINENTS } from '@/lib/continents'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
 type Destination = {
   id: string

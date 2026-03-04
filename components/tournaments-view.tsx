@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 import { getLocalizedFieldSync } from '@/lib/i18n/get-localized-field'
 
 type Tournament = {

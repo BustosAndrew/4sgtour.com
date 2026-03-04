@@ -10,7 +10,7 @@ import { GlassCard } from "@/components/ui/glass-card"
 import Link from "next/link"
 import { useState } from "react"
 import { ArrowLeft, CheckCircle2 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations } from "@/lib/i18n/provider"
 
 export default function ResetPasswordPage() {
   const t = useTranslations('auth.resetPassword')

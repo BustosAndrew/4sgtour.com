@@ -10,7 +10,7 @@ import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
 export function LoginForm() {
   const t = useTranslations('auth.login')

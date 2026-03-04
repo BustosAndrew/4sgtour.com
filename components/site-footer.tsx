@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { BackToTopButton } from './back-to-top-button'
 import { Instagram } from 'lucide-react'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
 export function SiteFooter() {
   const t = useTranslations('footer')

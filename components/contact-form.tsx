@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
 export function ContactForm() {
   const t = useTranslations('contact')

@@ -25,7 +25,7 @@ import {
 } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
 interface Trip {
   id: string
