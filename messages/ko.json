@@ -29,10 +29,14 @@
     "ourPartners": "파트너사"
   },
   "stats": {
-    "yearsExpertise": ["골프 여행", "전문 경력"],
-    "globalDestinations": ["글로벌 골프", "코스 여행지"],
-    "customJourneys": ["맞춤형 럭셔리", "골프 여정"],
-    "tailoredExperiences": ["맞춤형 고객", "경험"]
+    "yearsExpertiseLine1": "골프 여행",
+    "yearsExpertiseLine2": "전문 경력",
+    "globalDestinationsLine1": "글로벌 골프",
+    "globalDestinationsLine2": "코스 여행지",
+    "customJourneysLine1": "맞춤형 럭셔리",
+    "customJourneysLine2": "골프 여정",
+    "tailoredExperiencesLine1": "맞춤형 고객",
+    "tailoredExperiencesLine2": "경험"
   },
   "footer": {
     "description": "4SGTour는 해외 골프 투어 전문 프리미어 골프 여행사입니다. 전 세계에서 뛰어난 서비스와 잊지 못할 골프 경험을 제공하기 위해 노력하고 있습니다.",

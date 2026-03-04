@@ -29,10 +29,14 @@
     "ourPartners": "Our Partners"
   },
   "stats": {
-    "yearsExpertise": ["YEARS OF GOLF", "TRAVEL EXPERTISE"],
-    "globalDestinations": ["GLOBAL GOLF", "COURSE DESTINATIONS"],
-    "customJourneys": ["CUSTOM LUXURY", "GOLF JOURNEYS"],
-    "tailoredExperiences": ["TAILORED CLIENT", "EXPERIENCES"]
+    "yearsExpertiseLine1": "YEARS OF GOLF",
+    "yearsExpertiseLine2": "TRAVEL EXPERTISE",
+    "globalDestinationsLine1": "GLOBAL GOLF",
+    "globalDestinationsLine2": "COURSE DESTINATIONS",
+    "customJourneysLine1": "CUSTOM LUXURY",
+    "customJourneysLine2": "GOLF JOURNEYS",
+    "tailoredExperiencesLine1": "TAILORED CLIENT",
+    "tailoredExperiencesLine2": "EXPERIENCES"
   },
   "footer": {
     "description": "4SGTour is a premier golf travel agency specializing in overseas golf tours. We are dedicated to providing exceptional service and unforgettable golf experiences around the world.",

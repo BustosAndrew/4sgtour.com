@@ -19,25 +19,29 @@ export default async function HomePage() {
       iconSrc: '/svg/plane.svg',
       iconAlt: 'Plane',
       number: '15+',
-      lines: tStats.raw('yearsExpertise') as string[],
+      line1: tStats('yearsExpertiseLine1'),
+      line2: tStats('yearsExpertiseLine2'),
     },
     {
       iconSrc: '/svg/flag.svg',
       iconAlt: 'Flag',
       number: '3000+',
-      lines: tStats.raw('globalDestinations') as string[],
+      line1: tStats('globalDestinationsLine1'),
+      line2: tStats('globalDestinationsLine2'),
     },
     {
       iconSrc: '/svg/location.svg',
       iconAlt: 'Location',
       number: '2500+',
-      lines: tStats.raw('customJourneys') as string[],
+      line1: tStats('customJourneysLine1'),
+      line2: tStats('customJourneysLine2'),
     },
     {
       iconSrc: '/svg/support.svg',
       iconAlt: 'Support',
       number: '100%',
-      lines: tStats.raw('tailoredExperiences') as string[],
+      line1: tStats('tailoredExperiencesLine1'),
+      line2: tStats('tailoredExperiencesLine2'),
     },
   ]
 
@@ -139,9 +143,9 @@ export default async function HomePage() {
                     className="text-white text-[10px] md:text-xs uppercase tracking-wider leading-tight"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    {stat.lines[0]}
+                    {stat.line1}
                     <br />
-                    {stat.lines[1]}
+                    {stat.line2}
                   </p>
                 </div>
               ))}
