@@ -3,11 +3,11 @@ import { SiteFooter } from '@/components/site-footer'
 import { ContactForm } from '@/components/contact-form'
 import Image from 'next/image'
 import { Mail, Globe, Phone } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { getServerTranslations } from '@/lib/i18n/server'
 
 export default async function ContactPage() {
-  const t = await getTranslations('contact')
-  const tFooter = await getTranslations('footer')
+  const t = await getServerTranslations('contact')
+  const tFooter = await getServerTranslations('footer')
 
   return (
     <div className="min-h-screen bg-[#ffffff]">

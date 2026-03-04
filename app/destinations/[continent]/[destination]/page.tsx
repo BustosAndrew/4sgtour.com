@@ -4,8 +4,7 @@ import { TripCard } from "@/components/trip-card"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
-import { getTranslations } from "next-intl/server"
-import { getServerLocale } from "@/lib/i18n/server"
+import { getServerTranslations, getServerLocale } from "@/lib/i18n/server"
 import { getLocalizedField } from "@/lib/i18n/get-localized-field"
 
 interface DestinationTripsPageProps {
@@ -18,7 +17,7 @@ export default async function DestinationTripsPage({
   const { destination: destinationSlug } = await params
   const supabase = await createClient()
   const locale = await getServerLocale()
-  const t = await getTranslations("destinations")
+  const t = await getServerTranslations("destinations")
 
   const { data: destination } = await supabase
     .from("destinations")

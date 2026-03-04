@@ -8,11 +8,11 @@ import { TigerBooking } from '@/components/tiger-booking'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { getServerTranslations } from '@/lib/i18n/server'
 
 export default async function HomePage() {
-  const t = await getTranslations('home')
-  const tStats = await getTranslations('stats')
+  const t = await getServerTranslations('home')
+  const tStats = await getServerTranslations('stats')
 
   const stats = [
     {

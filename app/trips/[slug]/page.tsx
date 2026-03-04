@@ -10,8 +10,7 @@ import {
   TripImageGallery,
   RoomImageSection,
 } from "@/components/trip-image-gallery"
-import { getTranslations } from "next-intl/server"
-import { getServerLocale } from "@/lib/i18n/server"
+import { getServerTranslations, getServerLocale } from "@/lib/i18n/server"
 import { getLocalizedField } from "@/lib/i18n/get-localized-field"
 import type { Locale } from "@/lib/i18n/config"
 
@@ -22,7 +21,7 @@ interface TripPageProps {
 export default async function TripPage({ params }: TripPageProps) {
   const { slug } = await params
   const supabase = await createClient()
-  const t = await getTranslations("tripDetails")
+  const t = await getServerTranslations("tripDetails")
   const locale = await getServerLocale()
 
   const { data: trip } = await supabase
