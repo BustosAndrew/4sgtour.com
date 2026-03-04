@@ -49,7 +49,20 @@ export function useTranslations(namespace?: string) {
   }
   
   const { messages } = context
-  const namespaceMessages = namespace ? (messages[namespace] as Messages || {}) : messages
+  
+  // Support nested namespace paths like 'auth.login'
+  let namespaceMessages: Messages = messages
+  if (namespace) {
+    const namespaceParts = namespace.split('.')
+    for (const part of namespaceParts) {
+      if (typeof namespaceMessages === 'object' && namespaceMessages !== null && part in namespaceMessages) {
+        namespaceMessages = namespaceMessages[part] as Messages
+      } else {
+        namespaceMessages = {}
+        break
+      }
+    }
+  }
   
   return function t(key: string, values?: Record<string, string | number>): string {
     let translation = getNestedValue(namespaceMessages, key)
