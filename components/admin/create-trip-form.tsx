@@ -15,7 +15,11 @@ import {
   ChevronRight,
   ChevronLeft,
   GripVertical,
+  Languages,
+  Loader2,
+  Sparkles,
 } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
 import {
   Select,
@@ -87,6 +91,10 @@ export function CreateTripForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
+  // Language state
+  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko">("en")
+  const [isTranslating, setIsTranslating] = useState(false)
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -98,7 +106,16 @@ export function CreateTripForm() {
     min_days_advance: "0",
     min_days: "1",
   })
+  
+  // Korean translations state
+  const [koreanData, setKoreanData] = useState({
+    title_ko: "",
+    description_ko: "",
+    refund_policy_ko: "",
+    location_ko: "",
+  })
   const [highlights, setHighlights] = useState<string[]>([])
+  const [highlightsKo, setHighlightsKo] = useState<string[]>([])
   const [coursePhotos, setCoursePhotos] = useState<string[]>([])
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [photos, setPhotos] = useState({
@@ -431,6 +448,12 @@ export function CreateTripForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          // Korean translations
+          title_ko: koreanData.title_ko || null,
+          description_ko: koreanData.description_ko || null,
+          refund_policy_ko: koreanData.refund_policy_ko || null,
+          location_ko: koreanData.location_ko || null,
+          highlights_ko: highlightsKo.filter((h) => h.trim() !== ""),
           // Removed price_regular from submission
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
@@ -631,6 +654,85 @@ export function CreateTripForm() {
 
   const removeHighlight = (index: number) => {
     setHighlights(highlights.filter((_, i) => i !== index))
+    // Also remove corresponding Korean highlight if it exists
+    if (highlightsKo.length > index) {
+      setHighlightsKo(highlightsKo.filter((_, i) => i !== index))
+    }
+  }
+
+  // Auto-translate function
+  const handleAutoTranslate = async () => {
+    if (!formData.title && !formData.description && !formData.location && highlights.length === 0) {
+      alert("Please add some English content first before translating.")
+      return
+    }
+
+    setIsTranslating(true)
+    try {
+      const fieldsToTranslate = []
+      
+      if (formData.title) {
+        fieldsToTranslate.push({ field: "title_ko", text: formData.title, fieldType: "title" })
+      }
+      if (formData.description) {
+        fieldsToTranslate.push({ field: "description_ko", text: formData.description, fieldType: "description" })
+      }
+      if (formData.refund_policy) {
+        fieldsToTranslate.push({ field: "refund_policy_ko", text: formData.refund_policy, fieldType: "description" })
+      }
+      if (formData.location) {
+        fieldsToTranslate.push({ field: "location_ko", text: formData.location, fieldType: "location" })
+      }
+
+      const response = await fetch("/api/translate/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: fieldsToTranslate,
+          targetLanguage: "ko",
+        }),
+      })
+
+      if (!response.ok) throw new Error("Translation failed")
+      const { translations } = await response.json()
+      
+      setKoreanData(prev => ({
+        ...prev,
+        ...translations,
+      }))
+
+      // Translate highlights separately (one by one for better accuracy)
+      if (highlights.length > 0) {
+        const translatedHighlights: string[] = []
+        for (const highlight of highlights) {
+          if (highlight.trim()) {
+            const res = await fetch("/api/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: highlight,
+                targetLanguage: "ko",
+                fieldType: "highlights",
+              }),
+            })
+            if (res.ok) {
+              const { translation } = await res.json()
+              translatedHighlights.push(translation)
+            } else {
+              translatedHighlights.push(highlight) // Keep original if translation fails
+            }
+          }
+        }
+        setHighlightsKo(translatedHighlights)
+      }
+
+      alert("Translation complete! Review and edit the Korean content if needed.")
+    } catch (error) {
+      console.error("Translation error:", error)
+      alert("Translation failed. Please try again or enter translations manually.")
+    } finally {
+      setIsTranslating(false)
+    }
   }
 
   const canProceedToNextStep = () => {
@@ -756,34 +858,85 @@ export function CreateTripForm() {
               </p>
             </div>
 
+            {/* Language Tabs */}
+            <div className="rounded-lg border bg-muted/20 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <Languages className="h-5 w-5 text-muted-foreground" />
+                  <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko")}>
+                    <TabsList className="grid w-[200px] grid-cols-2">
+                      <TabsTrigger value="en" className="text-sm">
+                        English
+                      </TabsTrigger>
+                      <TabsTrigger value="ko" className="text-sm">
+                        Korean
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+                
+                {activeLanguage === "ko" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAutoTranslate}
+                    disabled={isTranslating || (!formData.title && !formData.description)}
+                    className="flex items-center gap-2"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Translating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Auto-Translate from English
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {activeLanguage === "en" 
+                  ? "Editing English content (primary language)" 
+                  : "Editing Korean translation - switch to English tab to edit primary content"}
+              </p>
+            </div>
+
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base text-foreground">
-                  Trip Title *
+                  Trip Title * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
                 </Label>
                 <Input
                   id="title"
-                  value={formData.title}
+                  value={activeLanguage === "en" ? formData.title : koreanData.title_ko}
                   onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
+                    activeLanguage === "en"
+                      ? setFormData({ ...formData, title: e.target.value })
+                      : setKoreanData({ ...koreanData, title_ko: e.target.value })
                   }
-                  placeholder="St. Andrews Golf Experience"
-                  required
+                  placeholder={activeLanguage === "en" ? "St. Andrews Golf Experience" : "세인트 앤드루스 골프 체험"}
+                  required={activeLanguage === "en"}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-base text-foreground">
-                  Location *
+                  Location * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
                 </Label>
                 <Input
                   id="location"
-                  value={formData.location}
+                  value={activeLanguage === "en" ? formData.location : koreanData.location_ko}
                   onChange={(e) =>
-                    setFormData({ ...formData, location: e.target.value })
+                    activeLanguage === "en"
+                      ? setFormData({ ...formData, location: e.target.value })
+                      : setKoreanData({ ...koreanData, location_ko: e.target.value })
                   }
-                  placeholder="St. Andrews, Scotland"
-                  required
+                  placeholder={activeLanguage === "en" ? "St. Andrews, Scotland" : "스코틀랜드, 세인트 앤드루스"}
+                  required={activeLanguage === "en"}
                 />
               </div>
             </div>
@@ -793,15 +946,17 @@ export function CreateTripForm() {
                 htmlFor="description"
                 className="text-base text-foreground"
               >
-                Trip Overview
+                Trip Overview {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
               </Label>
               <Textarea
                 id="description"
-                value={formData.description}
+                value={activeLanguage === "en" ? formData.description : koreanData.description_ko}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  activeLanguage === "en"
+                    ? setFormData({ ...formData, description: e.target.value })
+                    : setKoreanData({ ...koreanData, description_ko: e.target.value })
                 }
-                placeholder="Provide a brief overview of the trip for guests..."
+                placeholder={activeLanguage === "en" ? "Provide a brief overview of the trip for guests..." : "여행에 대한 간략한 개요를 제공하세요..."}
                 rows={6}
               />
             </div>
@@ -811,15 +966,17 @@ export function CreateTripForm() {
                 htmlFor="refund_policy"
                 className="text-base text-foreground"
               >
-                Refund Policy (Optional)
+                Refund Policy (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
               </Label>
               <Textarea
                 id="refund_policy"
-                value={formData.refund_policy}
+                value={activeLanguage === "en" ? formData.refund_policy : koreanData.refund_policy_ko}
                 onChange={(e) =>
-                  setFormData({ ...formData, refund_policy: e.target.value })
+                  activeLanguage === "en"
+                    ? setFormData({ ...formData, refund_policy: e.target.value })
+                    : setKoreanData({ ...koreanData, refund_policy_ko: e.target.value })
                 }
-                placeholder="Enter the refund policy specific to this trip..."
+                placeholder={activeLanguage === "en" ? "Enter the refund policy specific to this trip..." : "이 여행에 대한 환불 정책을 입력하세요..."}
                 rows={4}
               />
             </div>
@@ -827,43 +984,70 @@ export function CreateTripForm() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-base text-foreground">
-                  Highlights (Optional)
+                  Highlights (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
                 </Label>
-                <Button
-                  type="button"
-                  onClick={addHighlight}
-                  size="sm"
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Highlight
-                </Button>
+                {activeLanguage === "en" && (
+                  <Button
+                    type="button"
+                    onClick={addHighlight}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Highlight
+                  </Button>
+                )}
               </div>
-              {highlights.length > 0 ? (
-                <div className="space-y-2">
-                  {highlights.map((highlight, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={highlight}
-                        onChange={(e) => updateHighlight(index, e.target.value)}
-                        placeholder="e.g., Stay at this nice hotel"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeHighlight(index)}
-                        className="flex-shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+              {activeLanguage === "en" ? (
+                highlights.length > 0 ? (
+                  <div className="space-y-2">
+                    {highlights.map((highlight, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={highlight}
+                          onChange={(e) => updateHighlight(index, e.target.value)}
+                          placeholder="e.g., Stay at this nice hotel"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeHighlight(index)}
+                          className="flex-shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No highlights added yet
+                  </p>
+                )
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No highlights added yet
-                </p>
+                // Korean highlights - show same number as English
+                highlights.length > 0 ? (
+                  <div className="space-y-2">
+                    {highlights.map((_, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={highlightsKo[index] || ""}
+                          onChange={(e) => {
+                            const updated = [...highlightsKo]
+                            updated[index] = e.target.value
+                            setHighlightsKo(updated)
+                          }}
+                          placeholder={`Korean translation for: "${highlights[index]}"`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Add highlights in English first, then translate them here
+                  </p>
+                )
               )}
             </div>
 

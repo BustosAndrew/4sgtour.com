@@ -16,7 +16,11 @@ import {
   GripVertical,
   ChevronRight,
   ChevronLeft,
+  Languages,
+  Loader2,
+  Sparkles,
 } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -61,6 +65,10 @@ export function CreateTournamentEventForm({
   const [currentStep, setCurrentStep] = useState(1)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
+  // Language state
+  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko">("en")
+  const [isTranslating, setIsTranslating] = useState(false)
+
   const [formData, setFormData] = useState({
     title: "",
     location: "",
@@ -72,6 +80,17 @@ export function CreateTournamentEventForm({
     includes: "",
     excludes: "",
     price: "",
+  })
+
+  // Korean translations state
+  const [koreanData, setKoreanData] = useState({
+    title_ko: "",
+    location_ko: "",
+    description_ko: "",
+    trip_highlights_ko: "",
+    travel_itinerary_ko: "",
+    includes_ko: "",
+    excludes_ko: "",
   })
 
   const [imageUrl, setImageUrl] = useState("")
@@ -186,6 +205,65 @@ export function CreateTournamentEventForm({
     )
   }
 
+  // Auto-translate function
+  const handleAutoTranslate = async () => {
+    if (!formData.title && !formData.description && !formData.location) {
+      alert("Please add some English content first before translating.")
+      return
+    }
+
+    setIsTranslating(true)
+    try {
+      const fieldsToTranslate = []
+      
+      if (formData.title) {
+        fieldsToTranslate.push({ field: "title_ko", text: formData.title, fieldType: "title" })
+      }
+      if (formData.location) {
+        fieldsToTranslate.push({ field: "location_ko", text: formData.location, fieldType: "location" })
+      }
+      if (formData.description) {
+        fieldsToTranslate.push({ field: "description_ko", text: formData.description, fieldType: "description" })
+      }
+      if (formData.trip_highlights) {
+        fieldsToTranslate.push({ field: "trip_highlights_ko", text: formData.trip_highlights, fieldType: "highlights" })
+      }
+      if (formData.travel_itinerary) {
+        fieldsToTranslate.push({ field: "travel_itinerary_ko", text: formData.travel_itinerary, fieldType: "description" })
+      }
+      if (formData.includes) {
+        fieldsToTranslate.push({ field: "includes_ko", text: formData.includes, fieldType: "highlights" })
+      }
+      if (formData.excludes) {
+        fieldsToTranslate.push({ field: "excludes_ko", text: formData.excludes, fieldType: "highlights" })
+      }
+
+      const response = await fetch("/api/translate/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: fieldsToTranslate,
+          targetLanguage: "ko",
+        }),
+      })
+
+      if (!response.ok) throw new Error("Translation failed")
+      const { translations } = await response.json()
+      
+      setKoreanData(prev => ({
+        ...prev,
+        ...translations,
+      }))
+
+      alert("Translation complete! Review and edit the Korean content if needed.")
+    } catch (error) {
+      console.error("Translation error:", error)
+      alert("Translation failed. Please try again or enter translations manually.")
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
   const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
 
@@ -241,6 +319,14 @@ export function CreateTournamentEventForm({
           travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
           includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
           excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
+          // Korean translations
+          title_ko: koreanData.title_ko || null,
+          location_ko: koreanData.location_ko || null,
+          description_ko: koreanData.description_ko ? koreanData.description_ko.split("\n\n").filter(Boolean) : null,
+          trip_highlights_ko: koreanData.trip_highlights_ko ? koreanData.trip_highlights_ko.split("\n").filter(Boolean) : null,
+          travel_itinerary_ko: koreanData.travel_itinerary_ko ? koreanData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
+          includes_ko: koreanData.includes_ko ? koreanData.includes_ko.split("\n").filter(Boolean) : null,
+          excludes_ko: koreanData.excludes_ko ? koreanData.excludes_ko.split("\n").filter(Boolean) : null,
           price: formData.price || null,
           image: imageUrl || null,
           itinerary: itinerary.filter((d) => d.title.trim()),
@@ -334,35 +420,85 @@ export function CreateTournamentEventForm({
           {/* Step 1: Event Details */}
           {currentStep === 1 && (
             <div className="space-y-6">
+              {/* Language Tabs */}
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <Languages className="h-5 w-5 text-gray-500" />
+                    <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko")}>
+                      <TabsList className="grid w-[200px] grid-cols-2">
+                        <TabsTrigger value="en" className="text-sm">
+                          English
+                        </TabsTrigger>
+                        <TabsTrigger value="ko" className="text-sm">
+                          Korean
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                  
+                  {activeLanguage === "ko" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAutoTranslate}
+                      disabled={isTranslating || (!formData.title && !formData.description)}
+                    >
+                      {isTranslating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Translating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Auto-Translate
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  {activeLanguage === "en" 
+                    ? "Editing English content (primary language)" 
+                    : "Editing Korean translation"}
+                </p>
+              </div>
+
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                  Event Details
+                  Event Details {activeLanguage === "ko" && <span className="text-sm font-normal text-gray-500">(Korean)</span>}
                 </h2>
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Event Title *</Label>
+                    <Label htmlFor="title">Event Title * {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                     <Input
                       id="title"
-                      value={formData.title}
+                      value={activeLanguage === "en" ? formData.title : koreanData.title_ko}
                       onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, title: e.target.value }))
+                        activeLanguage === "en"
+                          ? setFormData((prev) => ({ ...prev, title: e.target.value }))
+                          : setKoreanData((prev) => ({ ...prev, title_ko: e.target.value }))
                       }
-                      placeholder="e.g., The Open 2025"
+                      placeholder={activeLanguage === "en" ? "e.g., The Open 2025" : "예: 디 오픈 2025"}
                       className="mt-1"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="location">Location *</Label>
+                      <Label htmlFor="location">Location * {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                       <Input
                         id="location"
-                        value={formData.location}
+                        value={activeLanguage === "en" ? formData.location : koreanData.location_ko}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, location: e.target.value }))
+                          activeLanguage === "en"
+                            ? setFormData((prev) => ({ ...prev, location: e.target.value }))
+                            : setKoreanData((prev) => ({ ...prev, location_ko: e.target.value }))
                         }
-                        placeholder="e.g., Scotland"
+                        placeholder={activeLanguage === "en" ? "e.g., Scotland" : "예: 스코틀랜드"}
                         className="mt-1"
                       />
                     </div>
@@ -408,68 +544,64 @@ export function CreateTournamentEventForm({
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Description (separate paragraphs with blank lines)</Label>
+                    <Label htmlFor="description">Description {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                     <Textarea
                       id="description"
-                      value={formData.description}
+                      value={activeLanguage === "en" ? formData.description : koreanData.description_ko}
                       onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
+                        activeLanguage === "en"
+                          ? setFormData((prev) => ({ ...prev, description: e.target.value }))
+                          : setKoreanData((prev) => ({ ...prev, description_ko: e.target.value }))
                       }
-                      placeholder="Detailed event description..."
+                      placeholder={activeLanguage === "en" ? "Detailed event description..." : "상세한 이벤트 설명..."}
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="trip_highlights">Trip Highlights (one per line)</Label>
+                    <Label htmlFor="trip_highlights">Trip Highlights {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                     <Textarea
                       id="trip_highlights"
-                      value={formData.trip_highlights}
+                      value={activeLanguage === "en" ? formData.trip_highlights : koreanData.trip_highlights_ko}
                       onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          trip_highlights: e.target.value,
-                        }))
+                        activeLanguage === "en"
+                          ? setFormData((prev) => ({ ...prev, trip_highlights: e.target.value }))
+                          : setKoreanData((prev) => ({ ...prev, trip_highlights_ko: e.target.value }))
                       }
-                      placeholder="Premium accommodation&#10;Tournament tickets&#10;Golf rounds"
+                      placeholder={activeLanguage === "en" ? "Premium accommodation\nTournament tickets\nGolf rounds" : "프리미엄 숙소\n토너먼트 티켓\n골프 라운드"}
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="includes">Package Includes (one per line)</Label>
+                    <Label htmlFor="includes">Package Includes {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                     <Textarea
                       id="includes"
-                      value={formData.includes}
+                      value={activeLanguage === "en" ? formData.includes : koreanData.includes_ko}
                       onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          includes: e.target.value,
-                        }))
+                        activeLanguage === "en"
+                          ? setFormData((prev) => ({ ...prev, includes: e.target.value }))
+                          : setKoreanData((prev) => ({ ...prev, includes_ko: e.target.value }))
                       }
-                      placeholder="Airport transfers&#10;Breakfast daily&#10;Tournament tickets"
+                      placeholder={activeLanguage === "en" ? "Airport transfers\nBreakfast daily\nTournament tickets" : "공항 픽업\n조식 제공\n토너먼트 티켓"}
                       className="mt-1"
                       rows={3}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="excludes">Package Excludes (one per line)</Label>
+                    <Label htmlFor="excludes">Package Excludes {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
                     <Textarea
                       id="excludes"
-                      value={formData.excludes}
+                      value={activeLanguage === "en" ? formData.excludes : koreanData.excludes_ko}
                       onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          excludes: e.target.value,
-                        }))
+                        activeLanguage === "en"
+                          ? setFormData((prev) => ({ ...prev, excludes: e.target.value }))
+                          : setKoreanData((prev) => ({ ...prev, excludes_ko: e.target.value }))
                       }
-                      placeholder="Flights&#10;Travel insurance"
+                      placeholder={activeLanguage === "en" ? "Flights\nTravel insurance" : "항공편\n여행자 보험"}
                       className="mt-1"
                       rows={3}
                     />
