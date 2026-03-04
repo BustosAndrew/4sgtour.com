@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
 import { differenceInCalendarDays, format } from "date-fns"
-import { getLocale } from "next-intl/server"
+import { getServerLocale } from "@/lib/i18n/server"
 import type { Locale } from "@/lib/i18n/config"
 
 export async function SiteHeaderWrapper() {
   const supabase = await createClient()
-  const currentLocale = await getLocale() as Locale
+  const currentLocale = await getServerLocale()
 
   let user = null
   let userType = "regular"

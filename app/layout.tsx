@@ -5,7 +5,7 @@ import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { ErrorHandler } from '@/components/error-handler'
 import { NextIntlClientProvider } from 'next-intl'
-import { getLocale, getMessages } from 'next-intl/server'
+import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -19,8 +19,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const locale = await getLocale()
-  const messages = await getMessages()
+  const locale = await getServerLocale()
+  const messages = await getServerMessages(locale)
 
   return (
     <html lang={locale}>

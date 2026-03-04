@@ -3,7 +3,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { TournamentDetailView } from '@/components/tournament-detail-view'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { getLocale } from 'next-intl/server'
+import { getServerLocale } from '@/lib/i18n/server'
 
 interface TournamentPageProps {
   params: Promise<{ slug: string }>
@@ -12,7 +12,7 @@ interface TournamentPageProps {
 export default async function TournamentPage({ params }: TournamentPageProps) {
   const { slug } = await params
   const supabase = await createClient()
-  const locale = await getLocale()
+  const locale = await getServerLocale()
 
   const { data: tournament } = await supabase
     .from('tournaments')

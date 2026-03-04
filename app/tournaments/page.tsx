@@ -2,11 +2,11 @@ import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { TournamentsView } from '@/components/tournaments-view'
 import { createClient } from '@/lib/supabase/server'
-import { getLocale } from 'next-intl/server'
+import { getServerLocale } from '@/lib/i18n/server'
 
 export default async function TournamentsPage() {
   const supabase = await createClient()
-  const locale = await getLocale()
+  const locale = await getServerLocale()
 
   const { data: tournaments } = await supabase
     .from('tournaments')
