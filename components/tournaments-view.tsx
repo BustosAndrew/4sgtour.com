@@ -3,10 +3,13 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 type Tournament = {
   id: string
   name: string
+  name_ko?: string | null
+  name_de?: string | null
   slug: string
   logo: string | null
   hero_image: string | null
@@ -14,9 +17,10 @@ type Tournament = {
 
 interface TournamentsViewProps {
   tournaments: Tournament[]
+  locale?: string
 }
 
-export function TournamentsView({ tournaments }: TournamentsViewProps) {
+export function TournamentsView({ tournaments, locale = 'en' }: TournamentsViewProps) {
   const t = useTranslations('tournaments')
   const [hoveredTournament, setHoveredTournament] = useState<string | null>(
     null,
@@ -76,7 +80,7 @@ export function TournamentsView({ tournaments }: TournamentsViewProps) {
                 className="whitespace-pre-line text-center text-base font-semibold uppercase tracking-[0.15em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.25em] sm:text-lg sm:tracking-[0.2em] md:text-xl lg:text-2xl lg:group-hover:tracking-[0.3em]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                {tournament.name}
+                {getLocalizedField(tournament, 'name', locale)}
               </h2>
             </div>
           </Link>
