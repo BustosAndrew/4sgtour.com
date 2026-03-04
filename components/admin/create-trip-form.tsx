@@ -114,8 +114,16 @@ export function CreateTripForm() {
     refund_policy_ko: "",
     location_ko: "",
   })
+  // German translations state
+  const [germanData, setGermanData] = useState({
+    title_de: "",
+    description_de: "",
+    refund_policy_de: "",
+    location_de: "",
+  })
   const [highlights, setHighlights] = useState<string[]>([])
   const [highlightsKo, setHighlightsKo] = useState<string[]>([])
+  const [highlightsDe, setHighlightsDe] = useState<string[]>([])
   const [coursePhotos, setCoursePhotos] = useState<string[]>([])
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [photos, setPhotos] = useState({
