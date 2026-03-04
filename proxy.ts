@@ -2,7 +2,19 @@ import { updateSession } from "@/lib/supabase/middleware"
 import type { NextRequest } from "next/server"
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request)
+  // Get the session response from Supabase middleware
+  const response = await updateSession(request)
+
+  // Set default locale cookie if not present
+  if (!request.cookies.has('NEXT_LOCALE')) {
+    response.cookies.set('NEXT_LOCALE', 'en', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      sameSite: 'lax',
+    })
+  }
+
+  return response
 }
 
 export const config = {
