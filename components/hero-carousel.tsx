@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 const heroImages = [
   '/images/main4.png',
@@ -12,6 +13,7 @@ const heroImages = [
 ]
 
 export function HeroCarousel() {
+  const t = useTranslations('hero')
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const goToNext = useCallback(() => {
@@ -58,7 +60,7 @@ export function HeroCarousel() {
             className="uppercase text-white text-sm sm:text-lg md:text-xl lg:text-[24px] font-semibold"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
-            Luxury Golf Travel
+            {t('subtitle')}
           </p>
           {/* Main heading */}
           <p
@@ -68,12 +70,11 @@ export function HeroCarousel() {
               fontWeight: 400,
             }}
           >
-            <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span> Seasons
-            Golf Tour
+            {t('title')}
           </p>
           {/* Tagline */}
           <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white mb-6 sm:mb-8 font-semibold">
-            Customize <em>your</em> golf journey.
+            {t('tagline')}
           </p>
           {/* CTA Button */}
           <Link
@@ -81,7 +82,7 @@ export function HeroCarousel() {
             className="inline-block bg-[#735c38] hover:bg-[#5d4a2d] text-white px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm uppercase tracking-[0.15em] transition-colors"
             style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
           >
-            Start Exploring &gt;
+            {t('cta')} &gt;
           </Link>
         </div>
       </div>

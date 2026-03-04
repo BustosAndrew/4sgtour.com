@@ -4,6 +4,8 @@ import { TripCard } from "@/components/trip-card"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
+import { getTranslations, getLocale } from "next-intl/server"
+import { getLocalizedField } from "@/lib/i18n/get-localized-field"
 
 interface DestinationTripsPageProps {
   params: Promise<{ continent: string; destination: string }>
@@ -14,6 +16,8 @@ export default async function DestinationTripsPage({
 }: DestinationTripsPageProps) {
   const { destination: destinationSlug } = await params
   const supabase = await createClient()
+  const locale = await getLocale()
+  const t = await getTranslations("destinations")
 
   const { data: destination } = await supabase
     .from("destinations")
@@ -42,11 +46,11 @@ export default async function DestinationTripsPage({
       <main className="container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
-            {destination.name}
+            {getLocalizedField(destination, "name", locale)}
           </h1>
-          {destination.description && (
+          {(destination.description || destination.description_ko || destination.description_de) && (
             <p className="mt-2 text-muted-foreground">
-              {destination.description}
+              {getLocalizedField(destination, "description", locale)}
             </p>
           )}
         </div>
@@ -64,7 +68,7 @@ export default async function DestinationTripsPage({
         {(!trips || trips.length === 0) && (
           <div className="py-12 text-center">
             <p className="text-muted-foreground">
-              No trips available for this destination at the moment.
+              {t("noTripsAvailable")}
             </p>
           </div>
         )}

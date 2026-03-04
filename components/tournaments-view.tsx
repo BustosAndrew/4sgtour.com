@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type Tournament = {
   id: string
@@ -16,6 +17,7 @@ interface TournamentsViewProps {
 }
 
 export function TournamentsView({ tournaments }: TournamentsViewProps) {
+  const t = useTranslations('tournaments')
   const [hoveredTournament, setHoveredTournament] = useState<string | null>(
     null,
   )
@@ -28,14 +30,13 @@ export function TournamentsView({ tournaments }: TournamentsViewProps) {
           className="text-2xl text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-6xl"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          Follow the Greatest Tournaments
+          {t('pageTitle')}
         </h1>
         <p
           className="mx-auto mt-3 max-w-2xl px-4 text-sm tracking-wide text-white/80 sm:mt-4 sm:text-base md:text-lg"
           style={{ fontFamily: 'var(--font-body)' }}
         >
-          Journey through golf&apos;s most prestigious events across legendary
-          courses worldwide.
+          {t('pageSubtitle')}
         </p>
       </div>
 

@@ -1,4 +1,10 @@
 {
+  "hero": {
+    "subtitle": "Luxury Golf Travel",
+    "title": "4 Seasons Golf Tour",
+    "tagline": "Customize your golf journey.",
+    "cta": "Start Exploring"
+  },
   "nav": {
     "home": "Home",
     "destinations": "Destinations",
@@ -100,6 +106,8 @@
     "accommodation": "Accommodation"
   },
   "tournaments": {
+    "pageTitle": "Follow the Greatest Tournaments",
+    "pageSubtitle": "Journey through golf's most prestigious events across legendary courses worldwide.",
     "upcomingEvents": "Upcoming Events",
     "viewDetails": "View Details",
     "tripHighlights": "Trip Highlights",
@@ -126,6 +134,27 @@
   "destinations": {
     "title": "Destinations",
     "exploreDestinations": "Explore Golf Destinations",
-    "viewTrips": "View Trips"
+    "viewTrips": "View Trips",
+    "noTripsAvailable": "No trips available for this destination at the moment."
+  },
+  "tripCard": {
+    "from": "From",
+    "inquireNow": "Inquire Now",
+    "premium": "Premium",
+    "upgrade": "Upgrade",
+    "inquire": "Inquire!"
+  },
+  "tigerBooking": {
+    "selectRegion": "Select a region above to view available destinations",
+    "asia": "Asia",
+    "asiaDescription": "Discover premier golf courses across Asia. A unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.",
+    "europe": "Europe",
+    "europeDescription": "Play legendary links across Europe. Home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.",
+    "northAmerica": "North America",
+    "northAmericaDescription": "Experience iconic championship venues with diverse climates and terrain for year-round play.",
+    "latinAmerica": "Latin America",
+    "latinAmericaDescription": "Explore hidden gems across South America. Breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.",
+    "world": "World",
+    "worldDescription": "Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent."
   }
 }

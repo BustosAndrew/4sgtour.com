@@ -1,4 +1,10 @@
 {
+  "hero": {
+    "subtitle": "럭셔리 골프 여행",
+    "title": "4 Seasons Golf Tour",
+    "tagline": "나만의 골프 여정을 만들어보세요.",
+    "cta": "탐색 시작"
+  },
   "nav": {
     "home": "홈",
     "destinations": "여행지",
@@ -100,6 +106,8 @@
     "accommodation": "숙박 시설"
   },
   "tournaments": {
+    "pageTitle": "최고의 토너먼트를 따라가다",
+    "pageSubtitle": "전 세계 전설적인 코스에서 펼쳐지는 골프의 가장 권위 있는 이벤트를 경험하세요.",
     "upcomingEvents": "예정된 이벤트",
     "viewDetails": "자세히 보기",
     "tripHighlights": "여행 하이라이트",
@@ -126,6 +134,27 @@
   "destinations": {
     "title": "여행지",
     "exploreDestinations": "골프 여행지 탐색",
-    "viewTrips": "여행 보기"
+    "viewTrips": "여행 보기",
+    "noTripsAvailable": "현재 이 여행지에서 이용 가능한 여행이 없습니다."
+  },
+  "tripCard": {
+    "from": "부터",
+    "inquireNow": "지금 문의",
+    "premium": "프리미엄",
+    "upgrade": "업그레이드",
+    "inquire": "문의!"
+  },
+  "tigerBooking": {
+    "selectRegion": "위에서 지역을 선택하여 이용 가능한 여행지를 확인하세요",
+    "asia": "아시아",
+    "asiaDescription": "아시아 전역의 프리미어 골프 코스를 발견하세요. 고대 문화, 아름다운 경관, 그리고 뛰어난 가치의 세계적 수준 리조트 경험의 독특한 조화.",
+    "europe": "유럽",
+    "europeDescription": "유럽 전역의 전설적인 링크스 코스에서 플레이하세요. 골프의 발상지로서 극적인 해안선과 구릉지대를 배경으로 수백 년 역사의 코스들이 있습니다.",
+    "northAmerica": "북미",
+    "northAmericaDescription": "연중 플레이가 가능한 다양한 기후와 지형의 아이코닉한 챔피언십 코스를 경험하세요.",
+    "latinAmerica": "라틴 아메리카",
+    "latinAmericaDescription": "남미 전역의 숨겨진 보석들을 탐험하세요. 안데스 산맥과 그 너머에서 잊지 못할 코스를 제공하는 신흥 골프 여행지입니다.",
+    "world": "세계",
+    "worldDescription": "전 세계 골프 여행지를 탐험하세요. 저희의 글로벌 네트워크는 모든 대륙의 특별한 코스와 연결해 드립니다."
   }
 }

@@ -9,6 +9,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
+import { useTranslations } from "next-intl"
 
 interface TripCardProps {
   trip: Trip & { images?: Array<{ image_url: string }> }
@@ -16,6 +17,7 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip, isFavorite = false }: TripCardProps) {
+  const t = useTranslations("tripCard")
   const [favorite, setFavorite] = useState(isFavorite)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -87,17 +89,17 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
             {hasBothPackages ? (
               <>
                 <p className="text-base font-bold text-[#6096BA] sm:text-lg">
-                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
+                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">{t("from")} </span>}
                   ${Number(premiumPackage.price).toFixed(2)}
                 </p>
                 <p className="text-base font-bold text-[#274C77] sm:text-lg">
-                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
+                  {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">{t("from")} </span>}
                   ${Number(upgradePackage.price).toFixed(2)}
                 </p>
               </>
             ) : (
               <p className="text-base font-bold text-foreground sm:text-lg">
-                {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">From </span>}
+                {trip.show_from_price && <span className="text-xs font-medium sm:text-sm">{t("from")} </span>}
                 {trip.packages && trip.packages.length > 0
                   ? `$${Number(trip.packages[0].price).toFixed(2)}`
                   : `$${trip.price_regular?.toFixed(2) || "0.00"}`}
@@ -111,27 +113,27 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
                 <AnimatedButton
                   startColor="#6096BA"
                   endColor="#4a7a9e"
-                  hoverText="Inquire!"
+                  hoverText={t("inquire")}
                   className="flex-1 text-white text-sm sm:text-base py-2"
                   onClick={(e) => handlePackageClick(e, premiumPackage.id)}
                 >
-                  Premium
+                  {t("premium")}
                 </AnimatedButton>
                 <AnimatedButton
                   startColor="#274C77"
                   endColor="#1a3a5c"
-                  hoverText="Inquire!"
+                  hoverText={t("inquire")}
                   className="flex-1 text-white text-sm sm:text-base py-2"
                   onClick={(e) => handlePackageClick(e, upgradePackage.id)}
                 >
-                  Upgrade
+                  {t("upgrade")}
                 </AnimatedButton>
               </>
             ) : (
               <AnimatedButton
                 startColor="#6096BA"
                 endColor="#4a7a9e"
-                hoverText="Inquire!"
+                hoverText={t("inquire")}
                 className="flex-1 text-white text-sm sm:text-base py-2"
                 onClick={(e) => {
                   e.preventDefault()
@@ -139,7 +141,7 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
                   router.push(`/trips/${trip.slug}/book`)
                 }}
               >
-                Inquire Now
+                {t("inquireNow")}
               </AnimatedButton>
             )}
             <Button
