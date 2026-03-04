@@ -28,6 +28,15 @@ type ContinentsViewProps = {
   locale?: string
 }
 
+// Map from slug to translation key
+const CONTINENT_KEYS: Record<string, string> = {
+  'europe': 'europe',
+  'north-america': 'northAmerica',
+  'south-america': 'latinAmerica',
+  'asia': 'asia',
+  'africa': 'world',
+}
+
 export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(
     null,
@@ -68,9 +77,7 @@ export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewPr
             className="mx-auto mt-3 max-w-2xl px-4 text-sm tracking-wide text-white/80 sm:mt-4 sm:text-base md:text-lg"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            {locale === 'ko' 
-              ? '대륙을 선택하여 세계적인 골프 여행지와 잊지 못할 경험을 발견하세요'
-              : 'Choose a continent to discover world-class golf destinations and unforgettable experiences'}
+            {t('exploreSubtitle')}
           </p>
         </div>
 
@@ -111,7 +118,7 @@ export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewPr
                   className="whitespace-pre-line text-center text-base font-semibold uppercase tracking-[0.15em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.25em] sm:text-lg sm:tracking-[0.2em] md:text-xl lg:text-2xl lg:group-hover:tracking-[0.3em]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {continent.name}
+                  {t(`continents.${CONTINENT_KEYS[continent.slug]}`)}
                 </h2>
               </div>
             </Link>
@@ -131,7 +138,7 @@ export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewPr
             className="mb-4 text-[#735c38] hover:bg-[#735c38]/10 hover:text-[#735c38]"
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
-            {locale === 'ko' ? '대륙으로 돌아가기' : 'Back to Continents'}
+            {t('backToContinents')}
           </Button>
 
           <div className="text-center">
@@ -145,9 +152,7 @@ export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewPr
               Seasons Golf Tour - {selectedContinent}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
-              {locale === 'ko' 
-                ? `${selectedContinent}의 멋진 골프 여행지를 발견하세요`
-                : `Discover amazing golf destinations in ${selectedContinent}`}
+              {t('discoverIn')} {selectedContinent}
             </p>
           </div>
         </div>
@@ -194,9 +199,7 @@ export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewPr
         ) : (
           <div className="py-12 text-center">
             <p className="text-[#666666]">
-              {locale === 'ko'
-                ? `아직 ${selectedContinent}에 이용 가능한 여행지가 없습니다.`
-                : `No destinations available in ${selectedContinent} yet.`}
+              {t('noDestinationsYet').replace('{continent}', selectedContinent || '')}
             </p>
           </div>
         )}

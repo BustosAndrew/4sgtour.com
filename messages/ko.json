@@ -240,8 +240,19 @@
   "destinations": {
     "title": "여행지",
     "exploreDestinations": "골프 여행지 탐색",
+    "exploreSubtitle": "대륙을 선택하여 세계적인 골프 여행지와 잊지 못할 경험을 발견하세요",
     "viewTrips": "여행 보기",
-    "noTripsAvailable": "현재 이 여행지에서 이용 가능한 여행이 없습니다."
+    "noTripsAvailable": "현재 이 여행지에서 이용 가능한 여행이 없습니다.",
+    "backToContinents": "대륙으로 돌아가기",
+    "discoverIn": "멋진 골프 여행지를 발견하세요:",
+    "noDestinationsYet": "아직 {continent}에 이용 가능한 여행지가 없습니다.",
+    "continents": {
+      "europe": "유럽",
+      "northAmerica": "북미",
+      "latinAmerica": "라틴\n아메리카",
+      "asia": "아시아",
+      "world": "세계"
+    }
   },
   "tripCard": {
     "from": "부터",

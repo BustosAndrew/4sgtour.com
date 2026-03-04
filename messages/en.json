@@ -240,8 +240,19 @@
   "destinations": {
     "title": "Destinations",
     "exploreDestinations": "Explore Golf Destinations",
+    "exploreSubtitle": "Choose a continent to discover world-class golf destinations and unforgettable experiences",
     "viewTrips": "View Trips",
-    "noTripsAvailable": "No trips available for this destination at the moment."
+    "noTripsAvailable": "No trips available for this destination at the moment.",
+    "backToContinents": "Back to Continents",
+    "discoverIn": "Discover amazing golf destinations in",
+    "noDestinationsYet": "No destinations available in {continent} yet.",
+    "continents": {
+      "europe": "EUROPE",
+      "northAmerica": "NORTH\nAMERICA",
+      "latinAmerica": "LATIN\nAMERICA",
+      "asia": "ASIA",
+      "world": "WORLD"
+    }
   },
   "tripCard": {
     "from": "From",
