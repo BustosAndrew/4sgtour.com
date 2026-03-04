@@ -38,7 +38,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ErrorHandler />
           {children}
         </NextIntlClientProvider>
