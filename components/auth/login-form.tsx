@@ -10,8 +10,10 @@ import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function LoginForm() {
+  const t = useTranslations('auth.login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -95,10 +97,10 @@ export function LoginForm() {
           {/* Heading */}
           <div className="mb-8">
             <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
-              Welcome Back!
+              {t('title')}
             </h1>
             <p className="mt-2 text-base text-[#735c38] font-semibold">
-              Let's get you signed in securely.
+              {t('subtitle')}
             </p>
           </div>
 
@@ -109,7 +111,7 @@ export function LoginForm() {
                 htmlFor="email"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Email
+                {t('email')}
               </Label>
               <Input
                 id="email"
@@ -127,7 +129,7 @@ export function LoginForm() {
                 htmlFor="password"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Password
+                {t('password')}
               </Label>
               <div className="relative">
                 <Input
@@ -162,14 +164,14 @@ export function LoginForm() {
                   className="h-4 w-4 rounded border-[#d9d9d9] accent-[#495c48]"
                 />
                 <span className="text-sm text-[#735c38] font-semibold">
-                  Keep me logged in
+                  {t('keepLoggedIn')}
                 </span>
               </label>
               <Link
                 href="/auth/reset-password"
                 className="text-sm font-semibold text-[#735c38] hover:text-[#22333b] hover:underline"
               >
-                Forgot password?
+                {t('forgotPassword')}
               </Link>
             </div>
 
@@ -185,14 +187,14 @@ export function LoginForm() {
               className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? t('loggingIn') : t('logIn')}
             </Button>
           </form>
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-[#d9d9d9]" />
-            <span className="text-sm text-[#735c38] font-semibold">or</span>
+            <span className="text-sm text-[#735c38] font-semibold">{t('or')}</span>
             <div className="h-px flex-1 bg-[#d9d9d9]" />
           </div>
 
@@ -222,17 +224,17 @@ export function LoginForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {t('continueWithGoogle')}
           </Button>
 
           {/* Create Account */}
           <p className="mt-8 text-center text-sm text-[#735c38] font-semibold">
-            Don't have an account?{' '}
+            {t('noAccount')}{' '}
             <Link
               href="/auth/sign-up"
               className="font-semibold text-blue-600 underline hover:text-blue-800"
             >
-              Create an Account
+              {t('createAccount')}
             </Link>
           </p>
         </div>
