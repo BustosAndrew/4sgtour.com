@@ -84,6 +84,17 @@
     "included": "포함",
     "notIncluded": "미포함"
   },
+  "tripDetails": {
+    "inquireNow": "지금 문의하기",
+    "choosePackage": "완벽한 패키지를 선택하고 골프 모험을 시작하세요",
+    "from": "부터",
+    "letsGo": "출발!",
+    "refundPolicy": "환불 정책",
+    "overview": "개요",
+    "defaultOverview": "이 프리미어 여행지에서 잊지 못할 골프 모험을 경험하세요. 세계적 수준의 시설, 멋진 전망, 뛰어난 서비스를 갖춘 이 코스는 완벽한 골프 여행에 필요한 모든 것을 제공합니다.",
+    "highlights": "하이라이트",
+    "accommodation": "숙박 시설"
+  },
   "tournaments": {
     "upcomingEvents": "예정된 이벤트",
     "viewDetails": "자세히 보기",

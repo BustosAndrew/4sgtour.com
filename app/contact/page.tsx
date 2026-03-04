@@ -3,8 +3,12 @@ import { SiteFooter } from '@/components/site-footer'
 import { ContactForm } from '@/components/contact-form'
 import Image from 'next/image'
 import { Mail, Globe, Phone } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 export default async function ContactPage() {
+  const t = await getTranslations('contact')
+  const tFooter = await getTranslations('footer')
+
   return (
     <div className="min-h-screen bg-[#ffffff]">
       <SiteHeaderWrapper />
@@ -27,12 +31,10 @@ export default async function ContactPage() {
               fontWeight: 400,
             }}
           >
-            Contact Us
+            {t('title')}
           </h1>
           <p className="max-w-xl mx-auto text-[#ffffff] text-sm sm:text-[20px] leading-relaxed">
-            We'd love to hear from you! Whether you have questions, feedback, or
-            need assistance, our team is here to help. Please fill out the form
-            below or reach us through the provided contact details.
+            {t('subtitle')}
           </p>
           <div className="mt-6 w-12 h-[2px] bg-[#ffffff] mx-auto" />
         </div>
@@ -56,13 +58,10 @@ export default async function ContactPage() {
                   fontWeight: 400,
                 }}
               >
-                Get In Touch
+                {t('getInTouch')}
               </h2>
               <p className="text-[#735c38]/70 text-base sm:text-lg lg:text-[20px] leading-relaxed mb-6 sm:mb-8 font-semibold">
-                We are a Korean travel agency specializing in overseas golf
-                travel, offering exceptional service and a variety of
-                destinations, offering the best golf tours. Feel free to contact
-                us. We'd love to hear from you!
+                {t('getInTouchDescription')}
               </p>
 
               <div className="w-10 h-[2px] bg-[#735c38] mb-6 sm:mb-8" />
@@ -78,7 +77,7 @@ export default async function ContactPage() {
                       className="font-semibold uppercase text-[#22333b] text-base sm:text-lg lg:text-[20px] tracking-wide"
                       style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
                     >
-                      Representative Email
+                      {t('representativeEmail')}
                     </h3>
                     <a
                       href="mailto:info@4sgtour.com"
@@ -99,7 +98,7 @@ export default async function ContactPage() {
                       className="font-semibold uppercase text-[#22333b] text-base sm:text-lg lg:text-[20px] tracking-wide"
                       style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
                     >
-                      Website
+                      {t('website')}
                     </h3>
                     <a
                       href="https://www.4sgtour.com"
@@ -122,7 +121,7 @@ export default async function ContactPage() {
                       className="font-semibold uppercase text-[#22333b] text-base sm:text-lg lg:text-[20px] tracking-wide"
                       style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
                     >
-                      Customer Service
+                      {tFooter('customerService')}
                     </h3>
                     <a
                       href="tel:1-714-877-5998"
@@ -139,7 +138,7 @@ export default async function ContactPage() {
                     className="font-semibold uppercase text-[#22333b] text-base sm:text-lg lg:text-[20px] tracking-wide mb-1"
                     style={{ fontFamily: "'sweet-sans-pro', sans-serif" }}
                   >
-                    Free To Call From South Korea to USA
+                    {tFooter('freeToCall')}
                   </h3>
                   <div className="space-y-0.5">
                     <a

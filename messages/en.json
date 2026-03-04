@@ -84,6 +84,17 @@
     "included": "Included",
     "notIncluded": "Not Included"
   },
+  "tripDetails": {
+    "inquireNow": "Inquire Now",
+    "choosePackage": "Choose your perfect package and start your golf adventure today",
+    "from": "From",
+    "letsGo": "Let's Go!",
+    "refundPolicy": "Refund Policy",
+    "overview": "Overview",
+    "defaultOverview": "Experience an unforgettable golf adventure at this premier destination. With world-class facilities, stunning views, and exceptional service, this course offers everything you need for the perfect golf getaway.",
+    "highlights": "Highlights",
+    "accommodation": "Accommodation"
+  },
   "tournaments": {
     "upcomingEvents": "Upcoming Events",
     "viewDetails": "View Details",
