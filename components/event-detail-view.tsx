@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { useTranslations } from '@/lib/i18n/provider'
 
 type ItineraryDay = {
   id: string
@@ -54,6 +55,7 @@ interface EventDetailViewProps {
   event: TournamentEvent
   tournamentSlug: string
   tournamentHeroImage: string
+  locale?: string
 }
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
@@ -93,7 +95,9 @@ export function EventDetailView({
   event,
   tournamentSlug,
   tournamentHeroImage,
+  locale = 'en',
 }: EventDetailViewProps) {
+  const t = useTranslations('tournaments')
   const itineraryDays = event.tournament_event_itinerary_days || []
   const galleryImages = event.tournament_event_gallery_images || []
   const pricingTiers = event.tournament_event_pricing_tiers || []
@@ -128,6 +132,14 @@ export function EventDetailView({
   const hotelGalleryImages = galleryImages.filter(
     (img) => img.gallery_type === 'hotel'
   )
+
+  const sectionLabels = {
+    highlights: t('tripHighlights'),
+    itinerary: t('travelItinerary'),
+    includes: t('whatsIncluded'),
+    accommodations: t('accommodations'),
+    pricing: t('packages'),
+  }
 
   const sectionIds = {
     highlights: 'trip-highlights',
@@ -169,18 +181,18 @@ export function EventDetailView({
           className="text-sm font-bold uppercase tracking-wider text-[#2c2c2c]"
           style={{ fontFamily: 'var(--font-body)' }}
         >
-          On This Page
+          {t('onThisPage')}
         </p>
         <hr className="mt-3 border-[#d5d0c7]" />
         <nav className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
           {[
-            { label: 'Trip Highlights', id: sectionIds.highlights },
-            { label: 'Travel Itinerary', id: sectionIds.itinerary },
-            { label: "What's Included", id: sectionIds.includes },
+            { label: sectionLabels.highlights, id: sectionIds.highlights },
+            { label: sectionLabels.itinerary, id: sectionIds.itinerary },
+            { label: sectionLabels.includes, id: sectionIds.includes },
             ...(hotelGalleryImages.length > 0
-              ? [{ label: 'Accommodations', id: sectionIds.accommodations }]
+              ? [{ label: sectionLabels.accommodations, id: sectionIds.accommodations }]
               : []),
-            { label: 'Packages', id: sectionIds.pricing },
+            { label: sectionLabels.pricing, id: sectionIds.pricing },
           ].map((item) => (
             <a
               key={item.id}
@@ -201,7 +213,7 @@ export function EventDetailView({
             className="inline-block bg-[#495c48] px-8 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Contact Us
+            {t('contactUs')}
           </Link>
         </div>
       </div>
@@ -216,18 +228,18 @@ export function EventDetailView({
                 className="text-sm font-bold uppercase tracking-wider text-[#2c2c2c]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                On This Page
+                {t('onThisPage')}
               </p>
               <hr className="mt-3 border-[#d5d0c7]" />
               <nav className="mt-5 flex flex-col gap-5">
                 {[
-                  { label: 'Trip Highlights', id: sectionIds.highlights },
-                  { label: 'Travel Itinerary', id: sectionIds.itinerary },
-                  { label: "What's Included", id: sectionIds.includes },
+                  { label: sectionLabels.highlights, id: sectionIds.highlights },
+                  { label: sectionLabels.itinerary, id: sectionIds.itinerary },
+                  { label: sectionLabels.includes, id: sectionIds.includes },
                   ...(hotelGalleryImages.length > 0
-                    ? [{ label: 'Accommodations', id: sectionIds.accommodations }]
+                    ? [{ label: sectionLabels.accommodations, id: sectionIds.accommodations }]
                     : []),
-                  { label: 'Packages', id: sectionIds.pricing },
+                  { label: sectionLabels.pricing, id: sectionIds.pricing },
                 ].map((item) => (
                   <a
                     key={item.id}
@@ -248,7 +260,7 @@ export function EventDetailView({
                   className="inline-block w-full bg-[#495c48] px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Contact Us
+                  {t('contactUs')}
                 </Link>
               </div>
             </div>
@@ -304,7 +316,7 @@ export function EventDetailView({
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Trip Highlights:
+                  {t('tripHighlights')}:
                 </h3>
                 <ul className="mt-4 space-y-2">
                   {event.trip_highlights.map((highlight, idx) => (
@@ -328,7 +340,7 @@ export function EventDetailView({
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Travel Itinerary:
+                  {t('travelItinerary')}:
                 </h3>
 
                 {/* Expand All */}
@@ -339,7 +351,7 @@ export function EventDetailView({
                     className="text-sm font-medium text-[#735c38] underline underline-offset-2 transition-colors hover:text-[#735c38]/80"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    {allExpanded ? 'Collapse all days' : 'Expand all days'}
+                    {allExpanded ? t('collapseAllDays') : t('expandAllDays')}
                   </button>
                 </div>
 
@@ -365,14 +377,14 @@ export function EventDetailView({
                           className="text-sm font-semibold text-[#735c38] sm:text-base"
                           style={{ fontFamily: 'var(--font-body)' }}
                         >
-                          Day {i + 1}: {day.title}
+                          {t('day')} {i + 1}: {day.title}
                         </AccordionTrigger>
                         <AccordionContent>
                           <p
                             className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
-                            {day.content || 'Details coming soon.'}
+                            {day.content || t('detailsComingSoon')}
                           </p>
                         </AccordionContent>
                       </AccordionItem>
@@ -389,7 +401,7 @@ export function EventDetailView({
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {"What's Included:"}
+                  {t('whatsIncluded')}:
                 </h3>
 
                 {event.includes && event.includes.length > 0 && (
@@ -413,7 +425,7 @@ export function EventDetailView({
                       className="mt-6 text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      Not Included:
+                      {t('whatsNotIncluded')}:
                     </h3>
                     <ul className="mt-4 space-y-2">
                       {event.excludes.map((item, idx) => (
@@ -439,7 +451,7 @@ export function EventDetailView({
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Accommodations:
+                  {t('accommodations')}:
                 </h3>
                 <div className="mt-4">
                   <ImageCarousel
@@ -457,17 +469,14 @@ export function EventDetailView({
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  Packages
+                  {t('packages')}
                 </h3>
                 <p
                   className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {'Spaces for '}
                   {titleCase(event.title)}
-                  {
-                    " are extremely limited. Reserve your place early to guarantee access to one of golf's most iconic sporting events."
-                  }
+                  {t('packagesDescription')}
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
@@ -497,7 +506,7 @@ export function EventDetailView({
                         className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        Get Tickets
+                        {t('getTickets')}
                       </Link>
                     </div>
                   ))}

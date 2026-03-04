@@ -3,6 +3,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { EventDetailView } from '@/components/event-detail-view'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { getServerLocale } from '@/lib/i18n/server'
 
 interface EventPageProps {
   params: Promise<{ slug: string; eventSlug: string }>
@@ -11,6 +12,7 @@ interface EventPageProps {
 export default async function EventPage({ params }: EventPageProps) {
   const { slug, eventSlug } = await params
   const supabase = await createClient()
+  const locale = await getServerLocale()
 
   // Get tournament
   const { data: tournament } = await supabase
@@ -47,7 +49,8 @@ export default async function EventPage({ params }: EventPageProps) {
         <EventDetailView 
           event={event} 
           tournamentSlug={tournament.slug} 
-          tournamentHeroImage={tournament.hero_image || '/placeholder.svg'} 
+          tournamentHeroImage={tournament.hero_image || '/placeholder.svg'}
+          locale={locale}
         />
       </main>
       <SiteFooter />

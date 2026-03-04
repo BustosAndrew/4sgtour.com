@@ -150,7 +150,7 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
                           className="inline-block bg-[#495c48] px-8 py-3 text-sm font-semibold uppercase tracking-wider text-white transition-colors group-hover:bg-[#3a4a3b] sm:px-10 sm:text-base"
                           style={{ fontFamily: 'var(--font-body)' }}
                         >
-                          {locale === 'ko' ? '티켓 구매' : 'Get Tickets'}
+                          {t('getTickets')}
                         </span>
                       </div>
                     </div>

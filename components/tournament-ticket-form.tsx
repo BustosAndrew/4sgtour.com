@@ -7,6 +7,7 @@ import { ChevronLeft, Ticket, Users, Mail, User, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useTranslations } from '@/lib/i18n/provider'
 
 interface TournamentTicketFormProps {
   eventTitle: string
@@ -27,6 +28,7 @@ export function TournamentTicketForm({
   backHref,
   heroImage,
 }: TournamentTicketFormProps) {
+  const t = useTranslations('tournaments')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [participants, setParticipants] = useState('')
@@ -92,7 +94,7 @@ export function TournamentTicketForm({
             className="text-xs uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Get Tickets
+            {t('getTickets')}
           </p>
           <h1
             className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl text-balance"
@@ -120,7 +122,7 @@ export function TournamentTicketForm({
             style={{ fontFamily: 'var(--font-body)' }}
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to event
+            {t('backToEvent')}
           </Link>
 
           {/* Event + Tier info card */}
@@ -129,7 +131,7 @@ export function TournamentTicketForm({
               className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
               style={{ fontFamily: 'var(--font-body)' }}
             >
-              Selected Event
+              {t('selectedEvent')}
             </p>
             <p
               className="mt-2 text-base font-semibold text-[#735c38] sm:text-lg"
@@ -142,7 +144,7 @@ export function TournamentTicketForm({
                 className="mt-1 text-sm text-[#22333b]/70"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                Package: <span className="font-semibold text-[#22333b]">{tierName}</span>
+                {t('package')}: <span className="font-semibold text-[#22333b]">{tierName}</span>
               </p>
             )}
           </div>
@@ -157,20 +159,20 @@ export function TournamentTicketForm({
                 className="text-xl font-bold text-[#22333b] sm:text-2xl"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Inquiry Sent
+                {t('inquirySent')}
               </h2>
               <p
                 className="mt-3 text-sm text-[#22333b]/70 sm:text-base"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                Thank you for your interest! Our team will review your inquiry and get back to you shortly.
+                {t('thankYouMessage')}
               </p>
               <Link
                 href={backHref}
                 className="mt-6 inline-block bg-[#495c48] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                Back to Event
+                {t('backToEvent')}
               </Link>
             </div>
           ) : (
@@ -179,7 +181,7 @@ export function TournamentTicketForm({
                 className="text-xl font-bold text-[#22333b] sm:text-2xl"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Your Information
+                {t('yourInformation')}
               </h2>
 
               {/* Name */}
@@ -190,7 +192,7 @@ export function TournamentTicketForm({
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   <User className="h-4 w-4" />
-                  Full Name
+                  {t('fullName')}
                 </Label>
                 <Input
                   id="ticket-name"
@@ -211,7 +213,7 @@ export function TournamentTicketForm({
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   <Mail className="h-4 w-4" />
-                  Email Address
+                  {t('emailAddress')}
                 </Label>
                 <Input
                   id="ticket-email"
@@ -232,7 +234,7 @@ export function TournamentTicketForm({
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   <Users className="h-4 w-4" />
-                  Number of Participants
+                  {t('numberOfParticipants')}
                 </Label>
                 <Input
                   id="ticket-participants"
@@ -255,14 +257,14 @@ export function TournamentTicketForm({
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   <FileText className="h-4 w-4" />
-                  Additional Notes
-                  <span className="ml-1 font-normal text-[#22333b]/50">(Optional)</span>
+                  {t('additionalNotes')}
+                  <span className="ml-1 font-normal text-[#22333b]/50">{t('optional')}</span>
                 </Label>
                 <Textarea
                   id="ticket-notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any special requirements, dietary needs, accessibility requests, etc."
+                  placeholder={t('additionalNotesPlaceholder')}
                   className="min-h-[120px] resize-none border-[#d9d9d9] bg-white text-[#22333b] placeholder:text-[#22333b]/40 focus-visible:ring-[#735c38]"
                 />
               </div>
@@ -281,7 +283,7 @@ export function TournamentTicketForm({
                 className="h-12 w-full bg-[#495c48] text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:bg-[#3a4a3b] disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                {isLoading ? 'Sending...' : 'Submit Inquiry'}
+                {isLoading ? t('sending') : t('submitInquiry')}
               </button>
             </form>
           )}

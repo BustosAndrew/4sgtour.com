@@ -5,6 +5,7 @@ import { ScrollIndicator } from '@/components/scroll-indicator'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import type { Trip } from '@/lib/types/database'
+import { getServerTranslations, getServerLocale } from '@/lib/i18n/server'
 
 interface ContinentTripsPageProps {
   params: Promise<{ continent: string }>
@@ -26,6 +27,14 @@ const CONTINENT_IMAGES: Record<string, string> = {
   'south-america': '/images/sa.jpg',
 }
 
+const CONTINENT_KEYS: Record<string, string> = {
+  africa: 'world',
+  asia: 'asia',
+  europe: 'europe',
+  'north-america': 'northAmerica',
+  'south-america': 'latinAmerica',
+}
+
 export default async function ContinentTripsPage({
   params,
 }: ContinentTripsPageProps) {
@@ -37,6 +46,8 @@ export default async function ContinentTripsPage({
   }
 
   const supabase = await createClient()
+  const locale = await getServerLocale()
+  const t = await getServerTranslations('destinations')
 
   const { data: trips } = await supabase
     .from('trips')
@@ -86,7 +97,7 @@ export default async function ContinentTripsPage({
               </span>{' '}
               Seasons Golf Tour
             </p>
-            <p className="mt-2 text-3xl sm:mt-4">Courses in {continentName}</p>
+            <p className="mt-2 text-3xl sm:mt-4">{t('coursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}</p>
           </div>
         </div>
         <ScrollIndicator />
@@ -95,11 +106,10 @@ export default async function ContinentTripsPage({
       <main className="container px-4 py-8 sm:px-6 sm:py-12 md:py-16 lg:py-20">
         <div className="mb-6 text-center sm:mb-8 md:mb-12">
           <h2 className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
-            Courses in {continentName}
+            {t('coursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}
           </h2>
           <p className="mx-auto mt-3 max-w-4xl px-4 text-pretty text-xl sm:mt-4">
-            Discover world-class golf courses and unforgettable experiences
-            across {continentName}.
+            {t('discoverCoursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}.
           </p>
         </div>
 
@@ -112,7 +122,7 @@ export default async function ContinentTripsPage({
         ) : (
           <div className="py-8 text-center sm:py-12">
             <p className="text-sm text-muted-foreground sm:text-base">
-              No courses available in {continentName} at the moment.
+              {t('noCoursesAvailable')}
             </p>
           </div>
         )}
