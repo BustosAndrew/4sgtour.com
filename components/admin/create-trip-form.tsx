@@ -462,6 +462,12 @@ export function CreateTripForm() {
           refund_policy_ko: koreanData.refund_policy_ko || null,
           location_ko: koreanData.location_ko || null,
           highlights_ko: highlightsKo.filter((h) => h.trim() !== ""),
+          // German translations
+          title_de: germanData.title_de || null,
+          description_de: germanData.description_de || null,
+          refund_policy_de: germanData.refund_policy_de || null,
+          location_de: germanData.location_de || null,
+          highlights_de: highlightsDe.filter((h) => h.trim() !== ""),
           // Removed price_regular from submission
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
@@ -668,73 +674,113 @@ export function CreateTripForm() {
     }
   }
 
-  // Auto-translate function
+  // Auto-translate function - translates to both other languages
+  // From English: translates to Korean AND German
+  // From Korean: translates to English AND German
   const handleAutoTranslate = async () => {
-    if (!formData.title && !formData.description && !formData.location && highlights.length === 0) {
-      alert("Please add some English content first before translating.")
+    const isFromEnglish = activeLanguage === "en"
+    const sourceData = isFromEnglish ? formData : koreanData
+    const sourceHighlights = isFromEnglish ? highlights : highlightsKo
+
+    // Get source field values
+    const sourceTitle = isFromEnglish ? formData.title : koreanData.title_ko
+    const sourceDescription = isFromEnglish ? formData.description : koreanData.description_ko
+    const sourceRefundPolicy = isFromEnglish ? formData.refund_policy : koreanData.refund_policy_ko
+    const sourceLocation = isFromEnglish ? formData.location : koreanData.location_ko
+
+    if (!sourceTitle && !sourceDescription && !sourceLocation && sourceHighlights.length === 0) {
+      alert(`Please add some ${isFromEnglish ? 'English' : 'Korean'} content first before translating.`)
       return
     }
 
     setIsTranslating(true)
     try {
-      const fieldsToTranslate = []
-      
-      if (formData.title) {
-        fieldsToTranslate.push({ field: "title_ko", text: formData.title, fieldType: "title" })
-      }
-      if (formData.description) {
-        fieldsToTranslate.push({ field: "description_ko", text: formData.description, fieldType: "description" })
-      }
-      if (formData.refund_policy) {
-        fieldsToTranslate.push({ field: "refund_policy_ko", text: formData.refund_policy, fieldType: "description" })
-      }
-      if (formData.location) {
-        fieldsToTranslate.push({ field: "location_ko", text: formData.location, fieldType: "location" })
-      }
+      // Determine target languages based on source
+      const targetLanguages = isFromEnglish ? ["ko", "de"] : ["en", "de"]
 
-      const response = await fetch("/api/translate/batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fields: fieldsToTranslate,
-          targetLanguage: "ko",
-        }),
-      })
+      for (const targetLang of targetLanguages) {
+        const fieldsToTranslate = []
+        const suffix = targetLang === "en" ? "" : `_${targetLang}`
+        
+        if (sourceTitle) {
+          fieldsToTranslate.push({ field: `title${suffix}`, text: sourceTitle, fieldType: "title" })
+        }
+        if (sourceDescription) {
+          fieldsToTranslate.push({ field: `description${suffix}`, text: sourceDescription, fieldType: "description" })
+        }
+        if (sourceRefundPolicy) {
+          fieldsToTranslate.push({ field: `refund_policy${suffix}`, text: sourceRefundPolicy, fieldType: "description" })
+        }
+        if (sourceLocation) {
+          fieldsToTranslate.push({ field: `location${suffix}`, text: sourceLocation, fieldType: "location" })
+        }
 
-      if (!response.ok) throw new Error("Translation failed")
-      const { translations } = await response.json()
-      
-      setKoreanData(prev => ({
-        ...prev,
-        ...translations,
-      }))
+        if (fieldsToTranslate.length > 0) {
+          const response = await fetch("/api/translate/batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fields: fieldsToTranslate,
+              targetLanguage: targetLang,
+              sourceLanguage: isFromEnglish ? "en" : "ko",
+            }),
+          })
 
-      // Translate highlights separately (one by one for better accuracy)
-      if (highlights.length > 0) {
-        const translatedHighlights: string[] = []
-        for (const highlight of highlights) {
-          if (highlight.trim()) {
-            const res = await fetch("/api/translate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                text: highlight,
-                targetLanguage: "ko",
-                fieldType: "highlights",
-              }),
-            })
-            if (res.ok) {
-              const { translation } = await res.json()
-              translatedHighlights.push(translation)
-            } else {
-              translatedHighlights.push(highlight) // Keep original if translation fails
+          if (response.ok) {
+            const { translations } = await response.json()
+            
+            if (targetLang === "ko") {
+              setKoreanData(prev => ({ ...prev, ...translations }))
+            } else if (targetLang === "de") {
+              setGermanData(prev => ({ ...prev, ...translations }))
+            } else if (targetLang === "en") {
+              // Update English fields
+              setFormData(prev => ({
+                ...prev,
+                title: translations.title || prev.title,
+                description: translations.description || prev.description,
+                refund_policy: translations.refund_policy || prev.refund_policy,
+                location: translations.location || prev.location,
+              }))
             }
           }
         }
-        setHighlightsKo(translatedHighlights)
+
+        // Translate highlights
+        if (sourceHighlights.length > 0) {
+          const translatedHighlights: string[] = []
+          for (const highlight of sourceHighlights) {
+            if (highlight.trim()) {
+              const res = await fetch("/api/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  text: highlight,
+                  targetLanguage: targetLang,
+                  sourceLanguage: isFromEnglish ? "en" : "ko",
+                  fieldType: "highlights",
+                }),
+              })
+              if (res.ok) {
+                const { translation } = await res.json()
+                translatedHighlights.push(translation)
+              } else {
+                translatedHighlights.push(highlight)
+              }
+            }
+          }
+          
+          if (targetLang === "ko") {
+            setHighlightsKo(translatedHighlights)
+          } else if (targetLang === "de") {
+            setHighlightsDe(translatedHighlights)
+          } else if (targetLang === "en") {
+            setHighlights(translatedHighlights)
+          }
+        }
       }
 
-      alert("Translation complete! Review and edit the Korean content if needed.")
+      alert("Translation complete! All languages have been updated.")
     } catch (error) {
       console.error("Translation error:", error)
       alert("Translation failed. Please try again or enter translations manually.")
@@ -883,33 +929,31 @@ export function CreateTripForm() {
                   </Tabs>
                 </div>
                 
-                {activeLanguage === "ko" && (
-                  <Button
+                <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleAutoTranslate}
-                    disabled={isTranslating || (!formData.title && !formData.description)}
+                    disabled={isTranslating || (activeLanguage === "en" ? (!formData.title && !formData.description) : (!koreanData.title_ko && !koreanData.description_ko))}
                     className="flex items-center gap-2"
                   >
                     {isTranslating ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Translating...
+                        Translating to all languages...
                       </>
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4" />
-                        Auto-Translate from English
+                        {activeLanguage === "en" ? "Auto-Translate to Korean & German" : "Auto-Translate to English & German"}
                       </>
                     )}
                   </Button>
-                )}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 {activeLanguage === "en" 
-                  ? "Editing English content (primary language)" 
-                  : "Editing Korean translation - switch to English tab to edit primary content"}
+                  ? "Editing English - Click translate to update Korean and German automatically" 
+                  : "Editing Korean - Click translate to update English and German automatically"}
               </p>
             </div>
 

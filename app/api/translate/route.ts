@@ -2,7 +2,7 @@ import { generateText } from 'ai'
 
 export async function POST(req: Request) {
   try {
-    const { text, targetLanguage, fieldType } = await req.json()
+    const { text, targetLanguage, sourceLanguage = 'en', fieldType } = await req.json()
 
     if (!text || !targetLanguage) {
       return Response.json(
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     }
 
     const targetLang = languageNames[targetLanguage] || targetLanguage
+    const sourceLang = languageNames[sourceLanguage] || sourceLanguage
 
     // Build context-aware prompt based on field type
     let contextHint = ''
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
     const result = await generateText({
       model: 'openai/gpt-4o-mini',
       system: `You are a professional translator specializing in travel and golf tourism content. 
-Translate the following text to ${targetLang}. 
+Translate the following text from ${sourceLang} to ${targetLang}. 
 ${contextHint}
 Only output the translation, nothing else. Do not add quotes or explanations.
 Maintain proper grammar, natural phrasing, and cultural appropriateness for the target language.`,

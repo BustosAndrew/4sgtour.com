@@ -9,9 +9,10 @@ type TranslationField = {
 
 export async function POST(req: Request) {
   try {
-    const { fields, targetLanguage } = await req.json() as {
+    const { fields, targetLanguage, sourceLanguage = 'en' } = await req.json() as {
       fields: TranslationField[]
       targetLanguage: string
+      sourceLanguage?: string
     }
 
     if (!fields || !targetLanguage || !Array.isArray(fields)) {
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
     }
 
     const targetLang = languageNames[targetLanguage] || targetLanguage
+    const sourceLang = languageNames[sourceLanguage] || sourceLanguage
 
     // Build a structured prompt for batch translation
     const fieldsToTranslate = fields
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
     const result = await generateText({
       model: 'openai/gpt-4o-mini',
       system: `You are a professional translator specializing in travel and golf tourism content.
-Translate all the following fields to ${targetLang}.
+Translate all the following fields from ${sourceLang} to ${targetLang}.
 
 IMPORTANT:
 - For each field, output ONLY the translation in the exact format: [index] translation
