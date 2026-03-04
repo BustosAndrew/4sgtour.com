@@ -4,6 +4,8 @@ import Script from 'next/script'
 
 import { Analytics } from '@vercel/analytics/next'
 import { ErrorHandler } from '@/components/error-handler'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -12,13 +14,16 @@ export const metadata: Metadata = {
   generator: 'v0.app',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         <link
           rel="stylesheet"
@@ -33,8 +38,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <ErrorHandler />
-        {children}
+        <NextIntlClientProvider messages={messages}>
+          <ErrorHandler />
+          {children}
+        </NextIntlClientProvider>
         <Script id="chatbase" strategy="afterInteractive">
           {`(function(){var cb=window.chatbase;var isFn=typeof cb==="function";var isInitialized=false;try{isInitialized=isFn&&cb("getState")==="initialized"}catch(e){isInitialized=false}if(!isInitialized){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="f8rhS7VuIfMi7GBCKbwdc";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`}
         </Script>

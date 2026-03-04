@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "home": "Home",
+    "destinations": "Destinations",
+    "tournaments": "Tournaments",
+    "contact": "Contact",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "menu": "Menu",
+    "close": "Close",
+    "language": "Language"
+  },
+  "home": {
+    "settingStandard": "Setting a New Standard",
+    "forOverseas": "for Overseas Golf Travel",
+    "description": "We are a Korean travel agency specializing in overseas golf travel, offering exceptional service and a variety of destinations, offering the best golf tours. We emphasize overseas golf travel and tours, and you can enjoy the various special offers and benefits offered by our tours.",
+    "viewAll": "View All",
+    "fourSeasonsDifference": "The 4 Seasons Difference.",
+    "differenceDescription": "At 4SGTours, we believe your journey should be as extraordinary as the courses you play. With curated luxury, exclusive insider access, seamless planning, and the option of a personal host, we create unforgettable golf experiences tailored to you.",
+    "viewTournaments": "View Golf Tournaments",
+    "tournamentsDescription": "We are a Korean travel agency specializing in overseas golf travel, offering exceptional service and a variety of destinations, offering the best golf tours. We emphasize overseas golf travel and tours, and you can enjoy the various special offers and benefits offered by our tours.",
+    "charmOfGolf": "The Charm of Overseas Golf Travel",
+    "journeyWith": "Journey with 4 Seasons Golf Tour",
+    "worldGolfTeeTime": "World Golf Tee Time",
+    "worldGolfDelivery": "World Golf Club Delivery",
+    "golfClubDeliveryService": "Golf Club Delivery Service",
+    "golfClubDeliveryDescription": "Ship Sticks makes it easier than ever to transport your golf clubs to your destination, allowing you to enjoy a hassle-free travel experience anywhere in the world.",
+    "deliveryRequest": "Delivery Request",
+    "ourPartners": "Our Partners"
+  },
+  "stats": {
+    "yearsExpertise": ["YEARS OF GOLF", "TRAVEL EXPERTISE"],
+    "globalDestinations": ["GLOBAL GOLF", "COURSE DESTINATIONS"],
+    "customJourneys": ["CUSTOM LUXURY", "GOLF JOURNEYS"],
+    "tailoredExperiences": ["TAILORED CLIENT", "EXPERIENCES"]
+  },
+  "footer": {
+    "description": "4SGTour is a premier golf travel agency specializing in overseas golf tours. We are dedicated to providing exceptional service and unforgettable golf experiences around the world.",
+    "tcrcRegistered": "TCRC Registered",
+    "sellerOfTravel": "Seller of Travel Reg. No.: CST 2156865-70",
+    "legal": "Legal",
+    "termsOfUse": "Terms Of Use",
+    "privacyPolicy": "Privacy Policy",
+    "siteMap": "Site Map",
+    "homepage": "Homepage",
+    "contactUs": "Contact Us",
+    "customerService": "Customer Service",
+    "freeToCall": "Free To Call From South Korea to USA",
+    "email": "Email",
+    "germany": "4 Seasons Golf Tour Germany",
+    "austria": "4 Seasons Golf Tour Austria"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We'd love to hear from you! Whether you have questions, feedback, or need assistance, our team is here to help. Please fill out the form below or reach us through the provided contact details.",
+    "yourName": "Your Name",
+    "yourEmail": "Your Email",
+    "subject": "Subject",
+    "yourMessage": "Your Message",
+    "sendMessage": "Send Message",
+    "sending": "Sending...",
+    "successMessage": "Thank you for your message! We'll get back to you soon.",
+    "getInTouch": "Get In Touch",
+    "getInTouchDescription": "We are a Korean travel agency specializing in overseas golf travel, offering exceptional service and a variety of destinations, offering the best golf tours. Feel free to contact us. We'd love to hear from you!",
+    "representativeEmail": "Representative Email",
+    "website": "Website"
+  },
+  "trips": {
+    "overview": "Overview",
+    "highlights": "Highlights",
+    "inquireNow": "Inquire Now",
+    "choosePackage": "Choose your perfect package and start your golf adventure today",
+    "refundPolicy": "Refund Policy",
+    "from": "From",
+    "letsGo": "Let's Go!",
+    "packages": "Packages",
+    "perPerson": "per person",
+    "golfCourses": "Golf Courses",
+    "holes": "holes",
+    "accommodations": "Accommodations",
+    "meals": "Meals",
+    "services": "Services",
+    "transportation": "Transportation",
+    "included": "Included",
+    "notIncluded": "Not Included"
+  },
+  "tournaments": {
+    "upcomingEvents": "Upcoming Events",
+    "viewDetails": "View Details",
+    "tripHighlights": "Trip Highlights",
+    "travelItinerary": "Travel Itinerary",
+    "whatsIncluded": "What's Included",
+    "whatsNotIncluded": "What's Not Included",
+    "pricing": "Pricing",
+    "bookNow": "Book Now",
+    "gallery": "Gallery"
+  },
+  "auth": {
+    "signedInAs": "Signed in as",
+    "myBookings": "My Bookings",
+    "favorites": "Favorites",
+    "adminDashboard": "Admin Dashboard",
+    "logOut": "Log Out"
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "backToHome": "Back to Home"
+  },
+  "destinations": {
+    "title": "Destinations",
+    "exploreDestinations": "Explore Golf Destinations",
+    "viewTrips": "View Trips"
+  }
+}

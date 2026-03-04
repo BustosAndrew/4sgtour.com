@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "home": "홈",
+    "destinations": "여행지",
+    "tournaments": "토너먼트",
+    "contact": "문의하기",
+    "signIn": "로그인",
+    "getStarted": "시작하기",
+    "menu": "메뉴",
+    "close": "닫기",
+    "language": "언어"
+  },
+  "home": {
+    "settingStandard": "해외 골프 여행의",
+    "forOverseas": "새로운 기준을 세우다",
+    "description": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 해외 골프 여행과 투어를 강조하며, 저희 투어가 제공하는 다양한 특별 혜택과 서비스를 즐기실 수 있습니다.",
+    "viewAll": "전체 보기",
+    "fourSeasonsDifference": "4 Seasons의 차별화.",
+    "differenceDescription": "4SGTours에서는 여러분의 여정이 플레이하시는 코스만큼이나 특별해야 한다고 믿습니다. 엄선된 럭셔리, 독점적인 내부자 액세스, 원활한 계획 수립, 그리고 개인 호스트 옵션을 통해 여러분만을 위한 잊지 못할 골프 경험을 만들어 드립니다.",
+    "viewTournaments": "골프 토너먼트 보기",
+    "tournamentsDescription": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 해외 골프 여행과 투어를 강조하며, 저희 투어가 제공하는 다양한 특별 혜택과 서비스를 즐기실 수 있습니다.",
+    "charmOfGolf": "해외 골프 여행의 매력",
+    "journeyWith": "4 Seasons Golf Tour와 함께하는 여정",
+    "worldGolfTeeTime": "월드 골프 티타임",
+    "worldGolfDelivery": "월드 골프 클럽 배송",
+    "golfClubDeliveryService": "골프 클럽 배송 서비스",
+    "golfClubDeliveryDescription": "Ship Sticks는 전 세계 어디든 번거로움 없이 여행을 즐기실 수 있도록 골프 클럽을 목적지까지 그 어느 때보다 쉽게 운송해 드립니다.",
+    "deliveryRequest": "배송 요청",
+    "ourPartners": "파트너사"
+  },
+  "stats": {
+    "yearsExpertise": ["골프 여행", "전문 경력"],
+    "globalDestinations": ["글로벌 골프", "코스 여행지"],
+    "customJourneys": ["맞춤형 럭셔리", "골프 여정"],
+    "tailoredExperiences": ["맞춤형 고객", "경험"]
+  },
+  "footer": {
+    "description": "4SGTour는 해외 골프 투어 전문 프리미어 골프 여행사입니다. 전 세계에서 뛰어난 서비스와 잊지 못할 골프 경험을 제공하기 위해 노력하고 있습니다.",
+    "tcrcRegistered": "TCRC 등록업체",
+    "sellerOfTravel": "여행판매업 등록번호: CST 2156865-70",
+    "legal": "법적 고지",
+    "termsOfUse": "이용약관",
+    "privacyPolicy": "개인정보처리방침",
+    "siteMap": "사이트맵",
+    "homepage": "홈페이지",
+    "contactUs": "문의하기",
+    "customerService": "고객 서비스",
+    "freeToCall": "한국에서 미국으로 무료 통화",
+    "email": "이메일",
+    "germany": "4 Seasons Golf Tour 독일",
+    "austria": "4 Seasons Golf Tour 오스트리아"
+  },
+  "contact": {
+    "title": "문의하기",
+    "subtitle": "궁금한 점이나 피드백, 도움이 필요하시면 언제든 연락주세요! 아래 양식을 작성하시거나 제공된 연락처로 문의해 주세요.",
+    "yourName": "이름",
+    "yourEmail": "이메일",
+    "subject": "제목",
+    "yourMessage": "메시지",
+    "sendMessage": "메시지 보내기",
+    "sending": "전송 중...",
+    "successMessage": "메시지를 보내주셔서 감사합니다! 곧 연락드리겠습니다.",
+    "getInTouch": "연락하기",
+    "getInTouchDescription": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 언제든 연락주세요. 여러분의 연락을 기다리겠습니다!",
+    "representativeEmail": "대표 이메일",
+    "website": "웹사이트"
+  },
+  "trips": {
+    "overview": "개요",
+    "highlights": "하이라이트",
+    "inquireNow": "지금 문의하기",
+    "choosePackage": "완벽한 패키지를 선택하고 골프 모험을 시작하세요",
+    "refundPolicy": "환불 정책",
+    "from": "부터",
+    "letsGo": "출발!",
+    "packages": "패키지",
+    "perPerson": "1인당",
+    "golfCourses": "골프 코스",
+    "holes": "홀",
+    "accommodations": "숙박",
+    "meals": "식사",
+    "services": "서비스",
+    "transportation": "교통",
+    "included": "포함",
+    "notIncluded": "미포함"
+  },
+  "tournaments": {
+    "upcomingEvents": "예정된 이벤트",
+    "viewDetails": "자세히 보기",
+    "tripHighlights": "여행 하이라이트",
+    "travelItinerary": "여행 일정",
+    "whatsIncluded": "포함 사항",
+    "whatsNotIncluded": "미포함 사항",
+    "pricing": "가격",
+    "bookNow": "지금 예약",
+    "gallery": "갤러리"
+  },
+  "auth": {
+    "signedInAs": "로그인 계정",
+    "myBookings": "내 예약",
+    "favorites": "즐겨찾기",
+    "adminDashboard": "관리자 대시보드",
+    "logOut": "로그아웃"
+  },
+  "common": {
+    "language": "언어",
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "backToHome": "홈으로 돌아가기"
+  },
+  "destinations": {
+    "title": "여행지",
+    "exploreDestinations": "골프 여행지 탐색",
+    "viewTrips": "여행 보기"
+  }
+}

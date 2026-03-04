@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 export function ContactForm() {
+  const t = useTranslations('contact')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [subject, setSubject] = useState('')
@@ -40,7 +42,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       {isSuccess && (
         <div className="rounded-md bg-[#495c48]/10 p-4 text-sm text-[#495c48]">
-          Thank you for your message! We&apos;ll get back to you soon.
+          {t('successMessage')}
         </div>
       )}
 
@@ -49,7 +51,7 @@ export function ContactForm() {
           htmlFor="name"
           className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
-          Your Name
+          {t('yourName')}
         </Label>
         <Input
           id="name"
@@ -66,7 +68,7 @@ export function ContactForm() {
           htmlFor="email"
           className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
-          Your Email
+          {t('yourEmail')}
         </Label>
         <Input
           id="email"
@@ -83,7 +85,7 @@ export function ContactForm() {
           htmlFor="subject"
           className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
-          Subject
+          {t('subject')}
         </Label>
         <Input
           id="subject"
@@ -100,7 +102,7 @@ export function ContactForm() {
           htmlFor="message"
           className="text-base sm:text-lg lg:text-[20px] font-semibold text-[#735c38]"
         >
-          Your Message
+          {t('yourMessage')}
         </Label>
         <Textarea
           id="message"
@@ -122,7 +124,7 @@ export function ContactForm() {
         className="h-11 w-fit text-lg rounded-md bg-[#495C48] text-[#ffffff] font-semibold hover:bg-[#3d4d3c]/90"
         disabled={isLoading}
       >
-        {isLoading ? 'Sending...' : 'Send Message'}
+        {isLoading ? t('sending') : t('sendMessage')}
       </Button>
     </form>
   )

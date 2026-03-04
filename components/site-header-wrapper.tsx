@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
 import { differenceInCalendarDays, format } from "date-fns"
+import { getLocale } from "next-intl/server"
+import type { Locale } from "@/lib/i18n/config"
 
 export async function SiteHeaderWrapper() {
   const supabase = await createClient()
+  const currentLocale = await getLocale() as Locale
 
   let user = null
   let userType = "regular"
@@ -66,6 +69,7 @@ export async function SiteHeaderWrapper() {
       userType={userType}
       tripMessage={tripMessage}
       tripDateLabel={tripDateLabel}
+      currentLocale={currentLocale}
     />
   )
 }
