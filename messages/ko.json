@@ -211,7 +211,8 @@
     "language": "언어",
     "loading": "로딩 중...",
     "error": "오류가 발생했습니다",
-    "backToHome": "홈으로 돌아가기"
+    "backToHome": "홈으로 돌아가기",
+    "backToTop": "맨 위로 올라가기"
   },
   "booking": {
     "makeReservation": "예약하기",
@@ -311,7 +312,7 @@
       "korea": "한국",
       "thailand": "태국",
       "china": "중국",
-      "malaysia": "말레이시아",
+      "malaysia": "말��이시아",
       "singapore": "싱가포르",
       "vietnam": "베트남",
       "austria": "오스트리아",

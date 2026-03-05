@@ -211,7 +211,8 @@
     "language": "Language",
     "loading": "Loading...",
     "error": "An error occurred",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "backToTop": "Back To The Top"
   },
   "booking": {
     "makeReservation": "Make A Reservation",
