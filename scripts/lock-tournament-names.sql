@@ -1,14 +1,8 @@
--- Lock tournament names to only allow: Masters, Ryder Cup, The Open, US Open
+-- Lock tournament names to only allow: MASTERS, RYDER CUP, THE OPEN, US OPEN
 -- This migration prevents adding new tournaments or changing existing tournament names
 
--- First, ensure the 4 fixed tournaments exist with correct data
-INSERT INTO tournaments (name, slug, display_name)
-VALUES 
-  ('Masters', 'masters', 'The Masters'),
-  ('Ryder Cup', 'ryder-cup', 'Ryder Cup'),
-  ('The Open', 'the-open', 'The Open Championship'),
-  ('US Open', 'us-open', 'US Open')
-ON CONFLICT (slug) DO NOTHING;
+-- The 4 fixed tournaments already exist in the database with uppercase names:
+-- MASTERS, RYDER CUP, THE OPEN, US OPEN
 
 -- Add a CHECK constraint on the name column to only allow the 4 fixed values
 DO $$
@@ -18,7 +12,7 @@ BEGIN
   ) THEN
     ALTER TABLE tournaments 
     ADD CONSTRAINT tournaments_name_check 
-    CHECK (name IN ('Masters', 'Ryder Cup', 'The Open', 'US Open'));
+    CHECK (name IN ('MASTERS', 'RYDER CUP', 'THE OPEN', 'US OPEN'));
   END IF;
 END $$;
 
