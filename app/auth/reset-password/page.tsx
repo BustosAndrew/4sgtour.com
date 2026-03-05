@@ -10,8 +10,10 @@ import { GlassCard } from "@/components/ui/glass-card"
 import Link from "next/link"
 import { useState } from "react"
 import { ArrowLeft, CheckCircle2 } from "lucide-react"
+import { useTranslations } from "@/lib/i18n/provider"
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('auth.resetPassword')
   const [email, setEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -56,20 +58,19 @@ export default function ResetPasswordPage() {
                 className="mb-2 text-3xl font-bold text-white"
                 style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
               >
-                Check Your Email
+                {t('checkEmail')}
               </h1>
               <p
                 className="mb-6 text-base text-white font-medium"
                 style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
               >
-                We&apos;ve sent you a password reset link. Please check your
-                email and follow the instructions to reset your password.
+                {t('emailSent')}
               </p>
               <Button
                 asChild
                 className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
               >
-                <Link href="/auth/login">Back to Login</Link>
+                <Link href="/auth/login">{t('backToLogin')}</Link>
               </Button>
             </div>
           </GlassCard>
@@ -96,7 +97,7 @@ export default function ResetPasswordPage() {
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Login
+              {t('backToLogin')}
             </Link>
 
             <div className="mb-6">
@@ -104,14 +105,13 @@ export default function ResetPasswordPage() {
                 className="text-3xl font-bold text-white"
                 style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
               >
-                Reset Password
+                {t('title')}
               </h1>
               <p
                 className="mt-2 text-base text-white font-medium"
                 style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
               >
-                Enter your email address and we&apos;ll send you a link to reset
-                your password.
+                {t('subtitle')}
               </p>
             </div>
 
@@ -122,12 +122,12 @@ export default function ResetPasswordPage() {
                   className="text-white font-bold text-base"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                 >
-                  Email
+                  {t('email')}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t('emailPlaceholder')}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
                 className="w-full bg-white text-[#274C77] hover:bg-white/90 text-base font-bold"
                 disabled={isLoading}
               >
-                {isLoading ? "Sending..." : "Send Reset Link"}
+                {isLoading ? t('sending') : t('sendResetLink')}
               </Button>
             </form>
           </div>

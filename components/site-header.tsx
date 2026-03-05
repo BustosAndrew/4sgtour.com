@@ -4,9 +4,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { UserNav } from '@/components/user-nav'
 import { Menu, X, CalendarClock } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useTranslations } from '@/lib/i18n/provider'
+import { setLocale } from '@/app/actions/set-locale'
+import { locales, localeNames, localeFlags, type Locale } from '@/lib/i18n/config'
 import './glass.css'
 import {
   DropdownMenu,
@@ -21,22 +24,8 @@ type SiteHeaderProps = {
   className?: string
   tripMessage?: string | null
   tripDateLabel?: string | null
+  currentLocale?: Locale
 }
-
-const languages = [
-  {
-    code: 'en',
-    name: 'ENG',
-    flag: 'https://flagcdn.com/w40/us.png',
-    alt: 'US',
-  },
-  {
-    code: 'ko',
-    name: '한국어',
-    flag: 'https://flagcdn.com/w40/kr.png',
-    alt: 'Korea',
-  },
-]
 
 export function SiteHeader({
   user,
@@ -44,11 +33,15 @@ export function SiteHeader({
   className,
   tripMessage,
   tripDateLabel,
+  currentLocale = 'en',
 }: SiteHeaderProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const t = useTranslations('nav')
+  const tAuth = useTranslations('auth')
+  const [isPending, startTransition] = useTransition()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [currentLanguage, setCurrentLanguage] = useState(languages[0])
   const [mounted, setMounted] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
@@ -88,6 +81,13 @@ export function SiteHeader({
     return () => window.removeEventListener('scroll', update)
   }, [mounted])
 
+  const handleLanguageChange = (locale: Locale) => {
+    startTransition(async () => {
+      await setLocale(locale)
+      router.refresh()
+    })
+  }
+
   // Force white header on these routes (all screen sizes)
   const forceWhiteHeaderRoutes =
     pathname.startsWith('/destinations') ||
@@ -122,6 +122,9 @@ export function SiteHeader({
   const desktopBgClasses = forceWhiteHeaderRoutes
     ? ''
     : 'lg:bg-transparent lg:shadow-none lg:hover:bg-white lg:hover:shadow-sm'
+
+  const currentFlag = localeFlags[currentLocale]
+  const currentName = localeNames[currentLocale]
 
   const header = (
     <header
@@ -159,25 +162,25 @@ export function SiteHeader({
             href="/"
             className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
-            Home
+            {t('home')}
           </Link>
           <Link
             href="/destinations"
             className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
-            Destinations
+            {t('destinations')}
           </Link>
           <Link
             href="/tournaments"
             className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
-            Tournaments
+            {t('tournaments')}
           </Link>
           <Link
             href="/contact"
             className={`${textClass} ${desktopTextClass} text-base text-[14px] font-semibold ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
           >
-            Contact
+            {t('contact')}
           </Link>
         </nav>
 
@@ -203,18 +206,18 @@ export function SiteHeader({
           {/* Language Dropdown */}
           {mounted && (
             <DropdownMenu modal={false}>
-              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none">
+              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none" disabled={isPending}>
                 <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                   <img
-                    src={currentLanguage.flag || '/placeholder.svg'}
-                    alt={currentLanguage.alt}
+                    src={currentFlag.flag || '/placeholder.svg'}
+                    alt={currentFlag.alt}
                     className="h-full w-full object-cover"
                   />
                 </div>
                 <span
                   className={`${textClass} ${desktopTextClass} text-sm font-semibold`}
                 >
-                  {currentLanguage.name}
+                  {currentName}
                 </span>
                 <svg
                   width="10"
@@ -239,10 +242,10 @@ export function SiteHeader({
                 }
                 sideOffset={5}
               >
-                {languages.map((lang) => (
+                {locales.filter(l => l !== 'de').map((locale) => (
                   <DropdownMenuItem
-                    key={lang.code}
-                    onClick={() => setCurrentLanguage(lang)}
+                    key={locale}
+                    onClick={() => handleLanguageChange(locale)}
                     className={
                       headerIsLight
                         ? 'flex items-center gap-2 cursor-pointer text-[#735C38] hover:bg-black/5 focus:bg-black/5 focus:text-[#735C38]'
@@ -251,12 +254,12 @@ export function SiteHeader({
                   >
                     <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
                       <img
-                        src={lang.flag || '/placeholder.svg'}
-                        alt={lang.alt}
+                        src={localeFlags[locale].flag || '/placeholder.svg'}
+                        alt={localeFlags[locale].alt}
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <span>{lang.name}</span>
+                    <span>{localeNames[locale]}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -272,13 +275,13 @@ export function SiteHeader({
                 href="/auth/login"
                 className={`${textClass} ${desktopTextClass} font-semibold text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
-                Sign In
+                {t('signIn')}
               </Link>
               <Link
                 href="/auth/sign-up"
                 className={`${textClass} ${desktopTextClass} font-semibold text-sm ${textHoverClass} ${desktopTextHoverClass} transition-colors whitespace-nowrap uppercase`}
               >
-                Get Started
+                {t('getStarted')}
               </Link>
             </>
           )}
@@ -288,7 +291,7 @@ export function SiteHeader({
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="lg:hidden -mr-2"
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={mobileMenuOpen ? t('close') : t('menu')}
           aria-expanded={mobileMenuOpen}
         >
           <span
@@ -299,7 +302,7 @@ export function SiteHeader({
             ) : (
               <Menu className="h-4 w-4" />
             )}
-            <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
+            <span>{mobileMenuOpen ? t('close') : t('menu')}</span>
           </span>
         </button>
       </div>
@@ -344,28 +347,28 @@ export function SiteHeader({
                   className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Home
+                  {t('home')}
                 </Link>
                 <Link
                   href="/destinations"
                   className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Destinations
+                  {t('destinations')}
                 </Link>
                 <Link
                   href="/tournaments"
                   className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Tournaments
+                  {t('tournaments')}
                 </Link>
                 <Link
                   href="/contact"
                   className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Contact
+                  {t('contact')}
                 </Link>
 
                 {/* Language Section */}
@@ -373,30 +376,34 @@ export function SiteHeader({
                   <div
                     className="text-[#735C38]/60 text-sm mb-3 uppercase"
                   >
-                    Language
+                    {t('language')}
                   </div>
                   <div className="flex gap-2">
-                    {languages.map((lang) => (
+                    {locales.filter(l => l !== 'de').map((locale) => (
                       <button
-                        key={lang.code}
-                        onClick={() => setCurrentLanguage(lang)}
+                        key={locale}
+                        onClick={() => {
+                          handleLanguageChange(locale)
+                          setMobileMenuOpen(false)
+                        }}
+                        disabled={isPending}
                         className={`flex items-center gap-2 px-4 py-2 flex-1 justify-center ${
-                          currentLanguage.code === lang.code
+                          currentLocale === locale
                             ? 'bg-black/5 border border-black/10'
                             : 'bg-black/0 border border-black/10 hover:bg-black/5'
-                        } transition-colors`}
+                        } transition-colors disabled:opacity-50`}
                       >
                         <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
                           <img
-                            src={lang.flag || '/placeholder.svg'}
-                            alt={lang.alt}
+                            src={localeFlags[locale].flag || '/placeholder.svg'}
+                            alt={localeFlags[locale].alt}
                             className="h-full w-full object-cover"
                           />
                         </div>
                         <span
                           className="text-[#735C38] text-sm"
                         >
-                          {lang.name}
+                          {localeNames[locale]}
                         </span>
                       </button>
                     ))}
@@ -411,7 +418,7 @@ export function SiteHeader({
                         <div
                           className="text-[#735C38]/60 text-xs mb-1"
                         >
-                          Signed in as
+                          {tAuth('signedInAs')}
                         </div>
                         <div
                           className="text-[#735C38] text-sm font-medium truncate uppercase"
@@ -431,14 +438,14 @@ export function SiteHeader({
                         className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        My Bookings
+                        {tAuth('myBookings')}
                       </Link>
                       <Link
                         href="/favorites"
                         className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Favorites
+                        {tAuth('favorites')}
                       </Link>
                       {userType === 'admin' && (
                         <Link
@@ -446,7 +453,7 @@ export function SiteHeader({
                           className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 uppercase"
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          Admin Dashboard
+                          {tAuth('adminDashboard')}
                         </Link>
                       )}
                       <button
@@ -460,7 +467,7 @@ export function SiteHeader({
                         }}
                         className="text-[#735C38] font-medium hover:bg-black/5 py-3 px-4 -mx-4 text-left uppercase"
                       >
-                        Log Out
+                        {tAuth('logOut')}
                       </button>
                     </div>
                   ) : (
@@ -470,14 +477,14 @@ export function SiteHeader({
                         className="flex-1 text-center py-3 bg-[#735C38] text-white font-medium hover:bg-[#735C38]/90 transition-colors uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Get Started
+                        {t('getStarted')}
                       </Link>
                       <Link
                         href="/auth/login"
                         className="flex-1 text-center py-3 border border-black/20 text-[#735C38] font-medium hover:bg-black/5 transition-colors uppercase"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Sign In
+                        {t('signIn')}
                       </Link>
                     </div>
                   )}

@@ -4,8 +4,12 @@ import Link from 'next/link'
 import { BackToTopButton } from './back-to-top-button'
 import { Instagram } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from '@/lib/i18n/provider'
 
 export function SiteFooter() {
+  const t = useTranslations('footer')
+  const tNav = useTranslations('nav')
+
   return (
     <footer className="bg-[#22333b] text-white">
       <div className="container py-26">
@@ -26,17 +30,15 @@ export function SiteFooter() {
 
             <div>
               <p className="text-[16px] leading-relaxed text-white/80 font-semibold">
-                4SGTour is a premier golf travel agency specializing in overseas
-                golf tours. We are dedicated to providing exceptional service
-                and unforgettable golf experiences around the world.
+                {t('description')}
               </p>
               <div className="mt-5 flex justify-center md:justify-start">
                 <div className="border-l-2 border-[#EAE0D6]/40 pl-3">
                   <p className="text-[14px] uppercase tracking-wide text-[#EAE0D6] font-semibold">
-                    TCRC Registered
+                    {t('tcrcRegistered')}
                   </p>
                   <p className="text-[16px] text-white/60 mt-1 leading-relaxed">
-                    Seller of Travel Reg. No.: CST 2156865-70
+                    {t('sellerOfTravel')}
                   </p>
                 </div>
               </div>
@@ -83,7 +85,7 @@ export function SiteFooter() {
               <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                 <Image
                   src="/images/cert-logo.png"
-                  alt="4 Seasons Golf Tour Germany"
+                  alt={t('germany')}
                   fill
                   className="object-contain"
                   sizes="(min-width: 640px) 4rem, 3.5rem"
@@ -93,7 +95,7 @@ export function SiteFooter() {
                 className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                4 Seasons Golf Tour Germany
+                {t('germany')}
               </p>
             </a>
             <a
@@ -105,7 +107,7 @@ export function SiteFooter() {
               <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                 <Image
                   src="/images/cert-logo.png"
-                  alt="4 Seasons Golf Tour Austria"
+                  alt={t('austria')}
                   fill
                   className="object-contain"
                   sizes="(min-width: 640px) 4rem, 3.5rem"
@@ -115,7 +117,7 @@ export function SiteFooter() {
                 className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                4 Seasons Golf Tour Austria
+                {t('austria')}
               </p>
             </a>
           </div>
@@ -123,7 +125,7 @@ export function SiteFooter() {
           {/* Column 3: Legal + Site Map */}
           <div>
             <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
-              Legal
+              {t('legal')}
             </h2>
             <ul className="text-sm">
               <li>
@@ -131,7 +133,7 @@ export function SiteFooter() {
                   href="/terms"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Terms Of Use
+                  {t('termsOfUse')}
                 </Link>
               </li>
               <li>
@@ -139,13 +141,13 @@ export function SiteFooter() {
                   href="/privacy"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Privacy Policy
+                  {t('privacyPolicy')}
                 </Link>
               </li>
             </ul>
 
             <h2 className="mb-2 mt-6 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
-              Site Map
+              {t('siteMap')}
             </h2>
             <ul className="text-sm">
               <li>
@@ -153,7 +155,7 @@ export function SiteFooter() {
                   href="/"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Homepage
+                  {t('homepage')}
                 </Link>
               </li>
               <li>
@@ -161,7 +163,7 @@ export function SiteFooter() {
                   href="/destinations"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Destinations
+                  {tNav('destinations')}
                 </Link>
               </li>
               <li>
@@ -169,7 +171,7 @@ export function SiteFooter() {
                   href="/tournaments"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Tournaments
+                  {tNav('tournaments')}
                 </Link>
               </li>
               <li>
@@ -177,7 +179,7 @@ export function SiteFooter() {
                   href="/contact"
                   className="text-white hover:text-white/80 font-semibold text-[14px] uppercase"
                 >
-                  Contact Us
+                  {t('contactUs')}
                 </Link>
               </li>
             </ul>
@@ -186,7 +188,7 @@ export function SiteFooter() {
           {/* Column 4: Customer Service */}
           <div>
             <h2 className="mb-2 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
-              Customer Service
+              {t('customerService')}
             </h2>
             <ul className="text-sm">
               <li>
@@ -199,7 +201,7 @@ export function SiteFooter() {
               </li>
             </ul>
             <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
-              Free To Call From South Korea to USA
+              {t('freeToCall')}
             </h2>
             <ul className="text-sm">
               <li>
@@ -212,7 +214,7 @@ export function SiteFooter() {
               </li>
             </ul>
             <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
-              Email
+              {t('email')}
             </h2>
             <ul className="text-sm">
               <li>

@@ -25,6 +25,7 @@ import {
 } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { useTranslations } from '@/lib/i18n/provider'
 
 interface Trip {
   id: string
@@ -71,10 +72,12 @@ function PlanCard({
   pkg,
   selected,
   onSelect,
+  t,
 }: {
   pkg: { id: string; name: string; description: string | null; price: number }
   selected: boolean
   onSelect: () => void
+  t: (key: string) => string
 }) {
   const [expanded, setExpanded] = useState(false)
   const [clamped, setClamped] = useState(false)
@@ -116,7 +119,7 @@ function PlanCard({
                   }}
                   className="mt-1 text-xs font-medium text-[#3D5A80] hover:underline"
                 >
-                  {expanded ? 'Show less' : 'Read more'}
+                  {expanded ? t('showLess') : t('readMore')}
                 </button>
               )}
             </div>
@@ -143,6 +146,7 @@ export function BookingForm({
   profile,
   preSelectedPackageId,
 }: BookingFormProps) {
+  const t = useTranslations('booking')
   const supabase = createClient()
 
   const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>(
@@ -656,12 +660,12 @@ export function BookingForm({
         {/* Left Column - Form Sections */}
         <div className="flex-1 space-y-8">
           <h1 className="font-serif text-[40px] font-bold leading-tight text-foreground">
-            Make A Reservation
+            {t('makeReservation')}
           </h1>
 
           {/* Section 1: Select Your Plan */}
           <div className="overflow-hidden">
-            <SectionHeader number={1} title="Select Your Plan" />
+            <SectionHeader number={1} title={t('selectPlan')} />
             <div className="mt-6 space-y-4">
               {packages.map((pkg) => (
                 <PlanCard
@@ -669,6 +673,7 @@ export function BookingForm({
                   pkg={pkg}
                   selected={selectedPlan === pkg.id}
                   onSelect={() => setSelectedPlan(pkg.id)}
+                  t={t}
                 />
               ))}
             </div>
@@ -676,7 +681,7 @@ export function BookingForm({
 
           {/* Section 2: Select Room Type */}
           <div className="overflow-hidden">
-            <SectionHeader number={2} title="Select Room Type" />
+            <SectionHeader number={2} title={t('selectRoomType')} />
             <div className="mt-6 space-y-4">
               <RadioOption
                 selected={roomType === 'double'}
@@ -686,11 +691,10 @@ export function BookingForm({
                   <Users className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
                     <h3 className="font-serif text-xl font-medium">
-                      Double Occupancy
+                      {t('doubleOccupancy')}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Share a room with another guest for a more economical
-                      option
+                      {t('doubleDescription')}
                     </p>
                   </div>
                 </div>
@@ -704,10 +708,10 @@ export function BookingForm({
                   <User className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
                     <h3 className="font-serif text-xl font-medium">
-                      Single Occupancy
+                      {t('singleOccupancy')}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Private room for yourself for maximum comfort and privacy
+                      {t('singleDescription')}
                     </p>
                   </div>
                 </div>
@@ -717,25 +721,24 @@ export function BookingForm({
 
           {/* Section 3: Travel Duration */}
           <div className="overflow-hidden">
-            <SectionHeader number={3} title="Travel Duration" />
+            <SectionHeader number={3} title={t('travelDuration')} />
             <div className="py-6">
               <div className="mb-1">
-                <Label className="text-base font-medium">Select Dates</Label>
+                <Label className="text-base font-medium">{t('selectDates')}</Label>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Choose your travel dates for your golf experience
+                  {t('selectDatesDescription')}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground italic">
-                  Maximum stay: {maxDays} nights
+                  {t('maximumStay').replace('{days}', String(maxDays))}
                 </p>
                 {minDays > 1 && (
                   <p className="mt-1 text-sm text-muted-foreground italic">
-                    Minimum stay: {minDays} nights
+                    {t('minimumStay').replace('{days}', String(minDays))}
                   </p>
                 )}
                 {minAdvanceDays > 0 && (
                   <p className="mt-1 text-sm text-muted-foreground italic">
-                    Must be booked at least {minAdvanceDays} days in advance
-                    (earliest arrival {format(minDate, 'MMM d, yyyy')} ).
+                    {t('advanceBooking').replace('{days}', String(minAdvanceDays)).replace('{date}', format(minDate, 'MMM d, yyyy'))}
                   </p>
                 )}
               </div>
@@ -748,7 +751,7 @@ export function BookingForm({
                   {selectionStep !== 'pick-start' ? <Check className="h-3.5 w-3.5" /> : '1'}
                 </div>
                 <span className={`text-sm ${selectionStep === 'pick-start' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-                  Select check-in date
+                  {t('selectCheckIn')}
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
                 <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
@@ -757,7 +760,7 @@ export function BookingForm({
                   {selectionStep === 'complete' ? <Check className="h-3.5 w-3.5" /> : '2'}
                 </div>
                 <span className={`text-sm ${selectionStep === 'pick-end' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-                  Select check-out date
+                  {t('selectCheckOut')}
                 </span>
               </div>
 
@@ -767,42 +770,42 @@ export function BookingForm({
                 {/* Legend & summary side panel */}
                 <div className="flex flex-col gap-4 lg:w-48 shrink-0">
                   <div className="border border-border bg-white p-4 space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legend</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('legend')}</p>
                     <div className="flex items-center gap-2.5">
                       <div className="h-5 w-5 rounded-sm bg-[#14184E]" />
-                      <span className="text-sm">Check-in / Check-out</span>
+                      <span className="text-sm">{t('checkInOut')}</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="h-5 w-5 rounded-sm bg-[#3D5A80]/20 border border-[#3D5A80]/30" />
-                      <span className="text-sm">Travel Days</span>
+                      <span className="text-sm">{t('travelDays')}</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="relative h-5 w-5 rounded-sm border border-gray-200 flex items-center justify-center">
                         <span className="h-1 w-1 rounded-full bg-[#3D5A80]" />
                       </div>
-                      <span className="text-sm">Today</span>
+                      <span className="text-sm">{t('today')}</span>
                     </div>
                   </div>
 
                   {/* Check-in / Check-out display */}
                   <div className="border border-border bg-white p-4 space-y-2">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Check-in</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('checkIn')}</p>
                       <p className="font-serif text-base font-medium mt-0.5">
                         {travelDateRange.from ? format(travelDateRange.from, 'EEE, MMM d, yyyy') : '—'}
                       </p>
                     </div>
                     <div className="border-t border-border pt-2">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Check-out</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('checkOut')}</p>
                       <p className="font-serif text-base font-medium mt-0.5">
                         {travelDateRange.to ? format(travelDateRange.to, 'EEE, MMM d, yyyy') : '—'}
                       </p>
                     </div>
                     {travelDateRange.from && travelDateRange.to && (
                       <div className="border-t border-border pt-2">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('duration')}</p>
                         <p className="font-serif text-base font-medium mt-0.5">
-                          {differenceInDays(travelDateRange.to, travelDateRange.from)} nights
+                          {differenceInDays(travelDateRange.to, travelDateRange.from)} {t('nights')}
                         </p>
                       </div>
                     )}
@@ -816,7 +819,7 @@ export function BookingForm({
                       className="flex items-center justify-center gap-1.5 border border-gray-200 bg-white px-3 py-2 text-sm text-muted-foreground hover:bg-gray-50 hover:text-foreground transition-colors"
                     >
                       <X className="h-3.5 w-3.5" />
-                      Clear dates
+                      {t('clearDates')}
                     </button>
                   )}
                 </div>
@@ -825,13 +828,13 @@ export function BookingForm({
               {travelDateRange.from && travelDateRange.to && (
                 <div className="mt-4 border-2 border-[#3D5A80]/20 bg-[#3D5A80]/5 px-6 py-3 w-fit">
                   <span className="text-sm">
-                    Reservation for:{' '}
+                    {t('reservationFor')}{' '}
                     <strong className="font-serif">
                       {format(travelDateRange.from, 'MMM d')} –{' '}
                       {format(travelDateRange.to, 'MMM d, yyyy')}
                     </strong>
                     <span className="text-muted-foreground ml-2">
-                      ({differenceInDays(travelDateRange.to, travelDateRange.from)} nights)
+                      ({differenceInDays(travelDateRange.to, travelDateRange.from)} {t('nights')})
                     </span>
                   </span>
                 </div>
@@ -842,14 +845,14 @@ export function BookingForm({
           {/* Section 4: Golf Courses & Rounds */}
           {golfCourses.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={4} title="Golf Courses & Rounds" />
+              <SectionHeader number={4} title={t('golfCoursesRounds')} />
               <div className="py-6">
                 <div className="mb-4">
                   <Label className="text-base font-medium">
-                    Select Courses
+                    {t('selectCourses')}
                   </Label>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Choose the golf courses you'd like to play during your trip
+                    {t('selectCoursesDescription')}
                   </p>
                 </div>
 
@@ -935,10 +938,10 @@ export function BookingForm({
 
                         <div className="mt-2 flex gap-4 text-sm text-muted-foreground">
                           {course.num_holes && (
-                            <span>{course.num_holes} holes</span>
+                            <span>{course.num_holes} {t('holes')}</span>
                           )}
                           {typeof maxRounds === 'number' && maxRounds > 0 && (
-                            <span>Max rounds: {maxRounds}</span>
+                            <span>{t('maxRounds')} {maxRounds}</span>
                           )}
                         </div>
                       </div>
@@ -948,7 +951,7 @@ export function BookingForm({
 
                 <div className="mt-4 border-2 border-gray-200 bg-gray-50 px-6 py-3">
                   <span className="text-sm">
-                    Number of Rounds: {totalRounds}
+                    {t('numberOfRounds')} {totalRounds}
                   </span>
                 </div>
               </div>
@@ -958,7 +961,7 @@ export function BookingForm({
           {/* Section 5: Meals */}
           {mealOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={5} title="Meals" />
+              <SectionHeader number={5} title={t('meals')} />
               <div className="mt-6 space-y-4">
                 {mealOptions.map((meal: any) => (
                   <RadioOption
@@ -975,7 +978,7 @@ export function BookingForm({
                       {meal.is_included && (
                         <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
                           <Check className="h-4 w-4 stroke-[3]" />
-                          Included
+                          {t('included')}
                         </span>
                       )}
                       <span className="font-serif text-lg font-medium">
@@ -991,7 +994,7 @@ export function BookingForm({
           {/* Section 6: Transportation */}
           {transportationOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={6} title="Transportation" />
+              <SectionHeader number={6} title={t('transportation')} />
               <div className="mt-6 space-y-4">
                 {transportationOptions.map((transport: any) => (
                   <RadioOption
@@ -1008,7 +1011,7 @@ export function BookingForm({
                       {transport.is_included && (
                         <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
                           <Check className="h-4 w-4 stroke-[3]" />
-                          Included
+                          {t('included')}
                         </span>
                       )}
                       <span className="font-serif text-lg font-medium">
@@ -1024,12 +1027,8 @@ export function BookingForm({
           {/* Section 7/8: Service Options */}
           {serviceOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={7} title="Service Options" />
+              <SectionHeader number={7} title={t('additionalServices')} />
               <div className="py-6">
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Select any additional services for your trip. Included
-                  services are already selected.
-                </p>
                 <div className="space-y-4">
                   {serviceOptions.map((service: any) => {
                     const id = String(service.id)
@@ -1049,7 +1048,7 @@ export function BookingForm({
                             {isIncluded && (
                               <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1.5 text-sm font-semibold text-emerald-700">
                                 <Check className="h-4 w-4 stroke-[3]" />
-                                Included
+                                {t('included')}
                               </span>
                             )}
                             <span className="font-serif text-lg font-medium">{service.name}</span>
@@ -1072,18 +1071,15 @@ export function BookingForm({
           <div className="overflow-hidden">
             <SectionHeader
               number={additionalRequestsSectionNumber}
-              title="Additional Requests"
+              title={t('additionalRequests')}
             />
             <div className="py-6">
-              <p className="mb-4 text-sm text-muted-foreground">
-                Let us know if you have any special requests or requirements for
-                your trip
-              </p>
+              <Label className="text-base font-medium">{t('additionalRequestsLabel')}</Label>
               <Textarea
                 value={additionalRequests}
                 onChange={(e) => setAdditionalRequests(e.target.value)}
-                placeholder="E.g., dietary restrictions, accessibility needs, early check-in, airport transfers..."
-                className="min-h-[100px] border-2 border-gray-200 bg-gray-50"
+                placeholder={t('additionalRequestsPlaceholder')}
+                className="min-h-[100px] border-2 border-gray-200 bg-gray-50 mt-2"
               />
             </div>
           </div>
@@ -1098,7 +1094,7 @@ export function BookingForm({
                 <div className="absolute left-[-3px] top-0 h-[45px] w-[48px] bg-[#14184E] z-10" />
                 <div className="flex-1 bg-[#3D5A80] px-4 h-[45px] flex items-center pl-[60px]">
                   <h3 className="font-serif text-lg text-white">
-                    Confirmation
+                    {t('bookingSummary')}
                   </h3>
                 </div>
               </div>
@@ -1107,7 +1103,7 @@ export function BookingForm({
                   {travelDateRange.from && travelDateRange.to && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        Reservation for: {format(travelDateRange.from, 'MMM d')}{' '}
+                        {t('reservationFor')} {format(travelDateRange.from, 'MMM d')}{' '}
                         – {format(travelDateRange.to, 'MMM d')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
@@ -1118,8 +1114,8 @@ export function BookingForm({
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
                         {roomType === 'single'
-                          ? 'Single Occupancy'
-                          : 'Double Occupancy'}
+                          ? t('singleOccupancy')
+                          : t('doubleOccupancy')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1144,7 +1140,7 @@ export function BookingForm({
                   {totalRounds > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {totalRounds} Rounds
+                        {totalRounds} {t('rounds')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1193,7 +1189,7 @@ export function BookingForm({
                   disabled={submitting}
                   className="mt-4 w-full text-xl bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
                 >
-                  {submitting ? 'Submitting...' : 'Book Now'}
+                  {submitting ? t('submitting') : t('submitInquiry')}
                 </button>
               </div>
             </div>
@@ -1247,8 +1243,8 @@ export function BookingForm({
                 <div className="mt-4">
                   <p className="text-sm italic text-muted-foreground">
                     {roomType === 'single'
-                      ? 'Single Occupancy Room'
-                      : 'Double Occupancy Room'}
+                      ? t('singleOccupancy')
+                      : t('doubleOccupancy')}
                   </p>
                   <p className="font-serif text-lg font-medium">
                     {trip.location}

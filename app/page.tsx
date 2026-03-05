@@ -8,32 +8,40 @@ import { TigerBooking } from '@/components/tiger-booking'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
+import { getServerTranslations } from '@/lib/i18n/server'
 
 export default async function HomePage() {
+  const t = await getServerTranslations('home')
+  const tStats = await getServerTranslations('stats')
+
   const stats = [
     {
       iconSrc: '/svg/plane.svg',
       iconAlt: 'Plane',
       number: '15+',
-      lines: ['YEARS OF GOLF', 'TRAVEL EXPERTISE'],
+      line1: tStats('yearsExpertiseLine1'),
+      line2: tStats('yearsExpertiseLine2'),
     },
     {
       iconSrc: '/svg/flag.svg',
       iconAlt: 'Flag',
       number: '3000+',
-      lines: ['GLOBAL GOLF', 'COURSE DESTINATIONS'],
+      line1: tStats('globalDestinationsLine1'),
+      line2: tStats('globalDestinationsLine2'),
     },
     {
       iconSrc: '/svg/location.svg',
       iconAlt: 'Location',
       number: '2500+',
-      lines: ['CUSTOM LUXURY', 'GOLF JOURNEYS'],
+      line1: tStats('customJourneysLine1'),
+      line2: tStats('customJourneysLine2'),
     },
     {
       iconSrc: '/svg/support.svg',
       iconAlt: 'Support',
       number: '100%',
-      lines: ['TAILORED CLIENT', 'EXPERIENCES'],
+      line1: tStats('tailoredExperiencesLine1'),
+      line2: tStats('tailoredExperiencesLine2'),
     },
   ]
 
@@ -51,19 +59,15 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Setting a New Standard
+                {t('settingStandard')}
                 <br />
-                for Overseas Golf Travel
+                {t('forOverseas')}
               </h2>
               <p
                 className="text-[#735c38] leading-relaxed mb-8"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                We are a Korean travel agency specializing in overseas golf
-                travel, offering exceptional service and a variety of
-                destinations, offering the best golf tours. We emphasize
-                overseas golf travel and tours, and you can enjoy the various
-                special offers and benefits offered by our tours.
+                {t('description')}
               </p>
               {/* Gold divider line */}
               <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
@@ -72,7 +76,7 @@ export default async function HomePage() {
                 className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-base hover:text-[#5d4a2d] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                View All &gt;
+                {t('viewAll')} &gt;
               </Link>
             </div>
           </div>
@@ -105,17 +109,13 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                The <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span>{' '}
-                Seasons <em className="italic">Difference.</em>
+                {t('fourSeasonsDifference')}
               </h2>
               <p
                 className="text-white leading-relaxed mb-8"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                At 4SGTours, we believe your journey should be as extraordinary
-                as the courses you play. With curated luxury, exclusive insider
-                access, seamless planning, and the option of a personal host, we
-                create unforgettable golf experiences tailored to you.
+                {t('differenceDescription')}
               </p>
               {/* White divider line */}
               <div className="w-12 h-0.5 bg-white mx-auto"></div>
@@ -143,9 +143,9 @@ export default async function HomePage() {
                     className="text-white text-[10px] md:text-xs uppercase tracking-wider leading-tight"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    {stat.lines[0]}
+                    {stat.line1}
                     <br />
-                    {stat.lines[1]}
+                    {stat.line2}
                   </p>
                 </div>
               ))}
@@ -161,17 +161,13 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                View Golf Tournaments
+                {t('viewTournaments')}
               </h2>
               <p
                 className="text-[#735c38] leading-relaxed mb-8 text-sm md:text-base"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                We are a Korean travel agency specializing in overseas golf
-                travel, offering exceptional service and a variety of
-                destinations, offering the best golf tours. We emphasize
-                overseas golf travel and tours, and you can enjoy the various
-                special offers and benefits offered by our tours.
+                {t('tournamentsDescription')}
               </p>
               {/* Gold divider line */}
               <div className="w-12 h-0.5 bg-[#735c38] mx-auto mb-6"></div>
@@ -180,7 +176,7 @@ export default async function HomePage() {
                 className="inline-flex items-center gap-1 text-[#22333b] font-semibold uppercase tracking-wider text-base hover:text-[#735c38] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                View All &gt;
+                {t('viewAll')} &gt;
               </Link>
             </div>
           </div>
@@ -198,7 +194,7 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10 tracking-wide"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                The Charm of Overseas Golf Travel
+                {t('charmOfGolf')}
               </h2>
               <div className="w-1/3 h-0.5 bg-[#735c38] mb-10 hidden lg:block"></div>
             </div>
@@ -221,9 +217,7 @@ export default async function HomePage() {
               className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] text-center"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Journey with{' '}
-              <span style={{ fontVariantNumeric: 'lining-nums' }}>4</span>{' '}
-              Seasons Golf Tour
+              {t('journeyWith')}
             </h2>
 
             {/* Three videos in a row */}
@@ -265,7 +259,7 @@ export default async function HomePage() {
                     className="text-3xl md:text-4xl lg:text-5xl text-[#735c38]"
                     style={{ fontFamily: 'var(--font-display)' }}
                   >
-                    World Golf Tee Time
+                    {t('worldGolfTeeTime')}
                   </h2>
                 </div>
                 {/* Left: Tiger Booking Logo + Region Links */}
@@ -280,7 +274,7 @@ export default async function HomePage() {
                     className="text-3xl md:text-4xl lg:text-5xl text-[#735c38]"
                     style={{ fontFamily: 'var(--font-display)' }}
                   >
-                    World Golf Club Delivery
+                    {t('worldGolfDelivery')}
                   </h2>
                 </div>
                 {/* Right: Ship Sticks Delivery Card */}
@@ -307,15 +301,13 @@ export default async function HomePage() {
                         className="mb-1.5 text-[14px] lg:text-[16px] font-bold uppercase tracking-[0.12em] text-[#22333b]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        Golf Club Delivery Service
+                        {t('golfClubDeliveryService')}
                       </h3>
                       <p
                         className="text-[14px] lg:text-[15px] leading-relaxed text-[#22333b]/80"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
-                        Ship Sticks makes it easier than ever to transport your
-                        golf clubs to your destination, allowing you to enjoy a
-                        hassle-free travel experience anywhere in the world.
+                        {t('golfClubDeliveryDescription')}
                       </p>
                     </div>
                     <Link
@@ -325,7 +317,7 @@ export default async function HomePage() {
                       className="inline-flex items-center justify-center bg-[#64CF69] hover:bg-[#45a049] text-white font-semibold py-2 px-6 uppercase tracking-[0.15em] transition-colors text-[13px] lg:text-[14px]"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      Delivery Request
+                      {t('deliveryRequest')}
                       <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -342,7 +334,7 @@ export default async function HomePage() {
               className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] mb-10"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Our Partners
+              {t('ourPartners')}
             </h2>
           </div>
           <PartnerLogosCarousel />

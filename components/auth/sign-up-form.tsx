@@ -12,8 +12,11 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n/provider'
 
 export function SignUpForm() {
+  const tSignup = useTranslations('auth.signup')
+  const tVerify = useTranslations('auth.verify')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -63,7 +66,7 @@ export function SignUpForm() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(tSignup('passwordsNotMatch'))
       setIsLoading(false)
       return
     }
@@ -74,7 +77,7 @@ export function SignUpForm() {
     const phoneRegex = /^\+[1-9]\d{1,14}$/
 
     if (!phoneRegex.test(fullPhone)) {
-      setError('Please enter a valid phone number')
+      setError(tSignup('invalidPhone'))
       setIsLoading(false)
       return
     }
@@ -161,7 +164,7 @@ export function SignUpForm() {
 
       if (otpError) throw otpError
 
-      setError('Code resent successfully!')
+      setError(tVerify('codeResent'))
       setTimeout(() => setError(null), 3000)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Failed to resend OTP')
@@ -190,10 +193,10 @@ export function SignUpForm() {
           <div className="mx-auto w-full max-w-md flex-1 flex flex-col justify-center">
             <div className="mb-8">
               <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
-                Verify Phone Number
+                {tVerify('title')}
               </h1>
               <p className="mt-2 text-base text-[#735c38]/70">
-                Enter the 6-digit code sent to {country.dialCode}
+                {tVerify('subtitle')} {country.dialCode}
                 {phone}
               </p>
             </div>
@@ -204,7 +207,7 @@ export function SignUpForm() {
                   htmlFor="otp"
                   className="text-sm font-medium text-[#735c38]"
                 >
-                  Verification Code
+                  {tVerify('verificationCode')}
                 </Label>
                 <Input
                   id="otp"
@@ -238,7 +241,7 @@ export function SignUpForm() {
                 className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
                 disabled={isLoading || otp.length !== 6}
               >
-                {isLoading ? 'Verifying...' : 'Verify & Complete Signup'}
+                {isLoading ? tVerify('verifying') : tVerify('verify')}
               </Button>
 
               <div className="flex gap-3">
@@ -249,7 +252,7 @@ export function SignUpForm() {
                   onClick={handleResendOtp}
                   disabled={isLoading}
                 >
-                  Resend Code
+                  {tVerify('resendCode')}
                 </Button>
                 <Button
                   type="button"
@@ -262,7 +265,7 @@ export function SignUpForm() {
                   }}
                   disabled={isLoading}
                 >
-                  Change Number
+                  {tVerify('changeNumber')}
                 </Button>
               </div>
             </form>
@@ -304,10 +307,10 @@ export function SignUpForm() {
           {/* Heading */}
           <div className="mb-8">
             <h1 className="font-serif text-3xl font-bold tracking-tight text-[#735c38] sm:text-4xl">
-              Sign Up
+              {tSignup('title')}
             </h1>
             <p className="mt-2 text-base text-[#735c38] font-semibold">
-              Create your account with phone verification
+              {tSignup('subtitle')}
             </p>
           </div>
 
@@ -318,7 +321,7 @@ export function SignUpForm() {
                 htmlFor="name"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Name
+                {tSignup('name')}
               </Label>
               <Input
                 id="name"
@@ -336,7 +339,7 @@ export function SignUpForm() {
                 htmlFor="email"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Email
+                {tSignup('email')}
               </Label>
               <Input
                 id="email"
@@ -354,7 +357,7 @@ export function SignUpForm() {
                 htmlFor="password"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Password
+                {tSignup('password')}
               </Label>
               <div className="relative">
                 <Input
@@ -386,7 +389,7 @@ export function SignUpForm() {
                 htmlFor="confirmPassword"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Confirm Password
+                {tSignup('confirmPassword')}
               </Label>
               <div className="relative">
                 <Input
@@ -418,7 +421,7 @@ export function SignUpForm() {
                 htmlFor="phone"
                 className="text-sm font-semibold text-[#735c38]"
               >
-                Phone Number
+                {tSignup('phoneNumber')}
               </Label>
               <div className="flex gap-2">
                 <CountryCodeSelector
@@ -449,14 +452,14 @@ export function SignUpForm() {
               className="h-11 w-full rounded-md bg-[#735c38] text-[#ffffff] font-semibold hover:bg-[#735c38]/90"
               disabled={isLoading}
             >
-              {isLoading ? 'Sending code...' : 'Continue'}
+              {isLoading ? tSignup('sendingCode') : tSignup('continue')}
             </Button>
           </form>
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-[#d9d9d9]" />
-            <span className="text-sm text-[#735c38]">or</span>
+            <span className="text-sm text-[#735c38]">{tSignup('or')}</span>
             <div className="h-px flex-1 bg-[#d9d9d9]" />
           </div>
 
@@ -486,17 +489,17 @@ export function SignUpForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Sign Up with Google
+            {tSignup('signUpWithGoogle')}
           </Button>
 
           {/* Sign In Link */}
           <p className="mt-8 text-center text-sm text-[#735c38] font-semibold">
-            Already have an account?{' '}
+            {tSignup('haveAccount')}{' '}
             <Link
               href="/auth/login"
               className="font-semibold text-blue-600 underline hover:text-blue-800"
             >
-              Sign In
+              {tSignup('signIn')}
             </Link>
           </p>
         </div>

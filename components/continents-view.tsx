@@ -5,26 +5,56 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CONTINENTS } from '@/lib/continents'
+import { useTranslations } from '@/lib/i18n/provider'
 
 type Destination = {
   id: string
   name: string
+  name_ko?: string | null
+  name_de?: string | null
   continent: string
   country: string
+  country_ko?: string | null
+  country_de?: string | null
   description: string | null
+  description_ko?: string | null
+  description_de?: string | null
   image_url: string | null
   slug: string
 }
 
 type ContinentsViewProps = {
   destinations: Destination[]
+  locale?: string
 }
 
-export function ContinentsView({ destinations }: ContinentsViewProps) {
+// Map from slug to translation key
+const CONTINENT_KEYS: Record<string, string> = {
+  'europe': 'europe',
+  'north-america': 'northAmerica',
+  'south-america': 'latinAmerica',
+  'asia': 'asia',
+  'africa': 'world',
+}
+
+export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(
     null,
   )
   const [hoveredContinent, setHoveredContinent] = useState<string | null>(null)
+  const t = useTranslations('destinations')
+
+  const getLocalizedField = (dest: Destination, field: 'name' | 'country' | 'description') => {
+    if (locale === 'ko') {
+      const koField = `${field}_ko` as keyof Destination
+      return (dest[koField] as string | null) || dest[field]
+    }
+    if (locale === 'de') {
+      const deField = `${field}_de` as keyof Destination
+      return (dest[deField] as string | null) || dest[field]
+    }
+    return dest[field]
+  }
 
   const filteredDestinations = selectedContinent
     ? destinations.filter(
@@ -41,14 +71,13 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             className="text-2xl text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-6xl"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Explore Golf Destinations
+            {t('exploreDestinations')}
           </h1>
           <p
             className="mx-auto mt-3 max-w-2xl px-4 text-sm tracking-wide text-white/80 sm:mt-4 sm:text-base md:text-lg"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Choose a continent to discover world-class golf destinations and
-            unforgettable experiences
+            {t('exploreSubtitle')}
           </p>
         </div>
 
@@ -89,7 +118,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                   className="whitespace-pre-line text-center text-base font-semibold uppercase tracking-[0.15em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.25em] sm:text-lg sm:tracking-[0.2em] md:text-xl lg:text-2xl lg:group-hover:tracking-[0.3em]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {continent.name}
+                  {t(`continents.${CONTINENT_KEYS[continent.slug]}`)}
                 </h2>
               </div>
             </Link>
@@ -109,7 +138,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
             className="mb-4 text-[#735c38] hover:bg-[#735c38]/10 hover:text-[#735c38]"
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Continents
+            {t('backToContinents')}
           </Button>
 
           <div className="text-center">
@@ -123,7 +152,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
               Seasons Golf Tour - {selectedContinent}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[#666666]">
-              Discover amazing golf destinations in {selectedContinent}
+              {t('discoverIn')} {selectedContinent}
             </p>
           </div>
         </div>
@@ -144,7 +173,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                         destination.name || '/placeholder.svg'
                       }`
                     }
-                    alt={destination.name}
+                    alt={getLocalizedField(destination, 'name') || ''}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
@@ -153,14 +182,14 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
                     className="text-xl font-medium text-[#22333b]"
                     style={{ fontFamily: 'var(--font-display)' }}
                   >
-                    {destination.name}
+                    {getLocalizedField(destination, 'name')}
                   </h3>
                   <p className="mt-1 text-sm text-[#735c38]">
-                    {destination.country}
+                    {getLocalizedField(destination, 'country')}
                   </p>
                   {destination.description && (
                     <p className="mt-3 line-clamp-2 text-sm text-[#666666]">
-                      {destination.description}
+                      {getLocalizedField(destination, 'description')}
                     </p>
                   )}
                 </div>
@@ -170,7 +199,7 @@ export function ContinentsView({ destinations }: ContinentsViewProps) {
         ) : (
           <div className="py-12 text-center">
             <p className="text-[#666666]">
-              No destinations available in {selectedContinent} yet.
+              {t('noDestinationsYet').replace('{continent}', selectedContinent || '')}
             </p>
           </div>
         )}

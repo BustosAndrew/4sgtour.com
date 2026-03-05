@@ -35,6 +35,18 @@ export async function POST(request: Request) {
       course_images,
       room_photo_url,
       highlights,
+      // Korean translations
+      title_ko,
+      description_ko,
+      refund_policy_ko,
+      location_ko,
+      highlights_ko,
+      // German translations
+      title_de,
+      description_de,
+      refund_policy_de,
+      location_de,
+      highlights_de,
       packages,
       golfCourses,
       mealOptions,
@@ -67,6 +79,18 @@ export async function POST(request: Request) {
         courses_photo_url,
         room_photo_url,
         highlights: highlights || [],
+        // Korean translations
+        title_ko: title_ko || null,
+        description_ko: description_ko || null,
+        refund_policy_ko: refund_policy_ko || null,
+        location_ko: location_ko || null,
+        highlights_ko: highlights_ko || [],
+        // German translations
+        title_de: title_de || null,
+        description_de: description_de || null,
+        refund_policy_de: refund_policy_de || null,
+        location_de: location_de || null,
+        highlights_de: highlights_de || [],
         show_from_price: body.show_from_price || false,
         is_payment_link_trip: false,
       })

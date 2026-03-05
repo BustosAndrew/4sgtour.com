@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n/provider'
 
 type CountryLink = {
   name: string
@@ -11,18 +12,17 @@ type CountryLink = {
 }
 
 type Region = {
-  name: string
+  nameKey: string
   slug: string
-  description: string
+  descriptionKey: string
   countries: CountryLink[]
 }
 
 const REGIONS: Region[] = [
   {
-    name: 'Asia',
+    nameKey: 'asia',
     slug: 'asia',
-    description:
-      'Discover premier golf courses across Asia. A unique blend of ancient culture, stunning landscapes, and world-class resort experiences at exceptional value.',
+    descriptionKey: 'asiaDescription',
     countries: [
       { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
       { name: 'Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
@@ -34,10 +34,9 @@ const REGIONS: Region[] = [
     ],
   },
   {
-    name: 'Europe',
+    nameKey: 'europe',
     slug: 'europe',
-    description:
-      'Play legendary links across Europe. Home to the birthplace of golf, with centuries-old courses set against dramatic coastlines and rolling countryside.',
+    descriptionKey: 'europeDescription',
     countries: [
       { name: 'Austria', url: 'https://www.tigerbooking.com/Product/FIT/AT' },
       { name: 'Bulgaria', url: 'https://www.tigerbooking.com/Product/FIT/BG' },
@@ -55,10 +54,9 @@ const REGIONS: Region[] = [
     ],
   },
   {
-    name: 'North America',
+    nameKey: 'northAmerica',
     slug: 'north-america',
-    description:
-      'Experience iconic championship venues with diverse climates and terrain for year-round play.',
+    descriptionKey: 'northAmericaDescription',
     countries: [
       { name: 'Canada', url: 'https://www.tigerbooking.com/Product/FIT/CA' },
       { name: 'Mexico', url: 'https://www.tigerbooking.com/Product/FIT/MX' },
@@ -66,10 +64,9 @@ const REGIONS: Region[] = [
     ],
   },
   {
-    name: 'Latin America',
+    nameKey: 'latinAmerica',
     slug: 'latin-america',
-    description:
-      'Explore hidden gems across South America. Breathtaking natural beauty with emerging golf destinations, offering unforgettable courses amid the Andes and beyond.',
+    descriptionKey: 'latinAmericaDescription',
     countries: [
       { name: 'Argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
       { name: 'Brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
@@ -82,10 +79,9 @@ const REGIONS: Region[] = [
     ],
   },
   {
-    name: 'World',
+    nameKey: 'world',
     slug: 'world',
-    description:
-      'Explore golf destinations across the globe. Our worldwide network connects you with extraordinary courses on every continent.',
+    descriptionKey: 'worldDescription',
     countries: [
       { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
       { name: 'Dubai', url: 'https://www.tigerbooking.com/Product/FIT/AE' },
@@ -98,6 +94,7 @@ const REGIONS: Region[] = [
 ]
 
 export function TigerBooking() {
+  const t = useTranslations('tigerBooking')
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const activeRegion = REGIONS.find((r) => r.slug === selectedRegion)
 
@@ -137,7 +134,7 @@ export function TigerBooking() {
               }`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
-              {region.name}
+              {t(region.nameKey)}
             </button>
           ))}
         </div>
@@ -154,7 +151,7 @@ export function TigerBooking() {
               className="text-[14px] leading-relaxed text-[#22333b] mb-2.5"
               style={{ fontFamily: 'var(--font-body)' }}
             >
-              {activeRegion.description}
+              {t(activeRegion.descriptionKey)}
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {activeRegion.countries.map((country) => (
@@ -176,7 +173,7 @@ export function TigerBooking() {
             className="text-[14px] text-[#22333b]/70"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Select a region above to view available destinations
+            {t('selectRegion')}
           </p>
         )}
       </div>
