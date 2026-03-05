@@ -146,18 +146,19 @@ export async function autoTranslateTrip(
 /**
  * Auto-translate tournament event fields from source language to other languages
  * Called after event create/update
+ * Note: description, trip_highlights, travel_itinerary, includes, excludes are stored as arrays in the DB
  */
 export async function autoTranslateTournamentEvent(
   baseUrl: string,
   eventId: string,
   sourceData: {
     title?: string
-    description?: string
+    description?: string | string[]
     location?: string
-    trip_highlights?: string
-    travel_itinerary?: string
-    includes?: string
-    excludes?: string
+    trip_highlights?: string | string[]
+    travel_itinerary?: string | string[]
+    includes?: string | string[]
+    excludes?: string | string[]
   },
   sourceLanguage: "en" | "ko",
   supabase: any
@@ -168,6 +169,7 @@ export async function autoTranslateTournamentEvent(
     const updates: Record<string, any> = {}
     const suffix = targetLang === "en" ? "" : `_${targetLang}`
 
+    // Handle simple string fields
     const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
 
     if (sourceData.title) {
@@ -175,21 +177,6 @@ export async function autoTranslateTournamentEvent(
     }
     if (sourceData.location) {
       fieldsToTranslate.push({ field: `location${suffix}`, text: sourceData.location, fieldType: "location" })
-    }
-    if (sourceData.description) {
-      fieldsToTranslate.push({ field: `description${suffix}`, text: sourceData.description, fieldType: "description" })
-    }
-    if (sourceData.trip_highlights) {
-      fieldsToTranslate.push({ field: `trip_highlights${suffix}`, text: sourceData.trip_highlights, fieldType: "highlights" })
-    }
-    if (sourceData.travel_itinerary) {
-      fieldsToTranslate.push({ field: `travel_itinerary${suffix}`, text: sourceData.travel_itinerary, fieldType: "description" })
-    }
-    if (sourceData.includes) {
-      fieldsToTranslate.push({ field: `includes${suffix}`, text: sourceData.includes, fieldType: "highlights" })
-    }
-    if (sourceData.excludes) {
-      fieldsToTranslate.push({ field: `excludes${suffix}`, text: sourceData.excludes, fieldType: "highlights" })
     }
 
     if (fieldsToTranslate.length > 0) {
@@ -199,6 +186,39 @@ export async function autoTranslateTournamentEvent(
         sourceLanguage,
       })
       Object.assign(updates, translations)
+    }
+
+    // Handle array fields - translate each item in the array
+    const arrayFields = [
+      { key: 'description', data: sourceData.description, fieldType: 'description' },
+      { key: 'trip_highlights', data: sourceData.trip_highlights, fieldType: 'highlights' },
+      { key: 'travel_itinerary', data: sourceData.travel_itinerary, fieldType: 'description' },
+      { key: 'includes', data: sourceData.includes, fieldType: 'highlights' },
+      { key: 'excludes', data: sourceData.excludes, fieldType: 'highlights' },
+    ]
+
+    for (const { key, data, fieldType } of arrayFields) {
+      if (data) {
+        const items = Array.isArray(data) ? data : [data]
+        if (items.length > 0 && items.some(item => item && item.trim())) {
+          const translatedItems: string[] = []
+          for (const item of items) {
+            if (item && item.trim()) {
+              const translated = await translateSingle(
+                baseUrl,
+                item,
+                targetLang,
+                sourceLanguage,
+                fieldType
+              )
+              translatedItems.push(translated || item)
+            } else {
+              translatedItems.push(item || '')
+            }
+          }
+          updates[`${key}${suffix}`] = translatedItems
+        }
+      }
     }
 
     // Update the event with translations

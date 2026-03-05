@@ -183,6 +183,7 @@ export async function POST(
     }
 
     // Trigger auto-translation in the background (non-blocking)
+    // Always translate from English if available, otherwise from Korean
     const hasEnglishContent = title && title.trim()
     const hasKoreanContent = title_ko && title_ko.trim()
     
@@ -192,13 +193,16 @@ export async function POST(
       const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
       const baseUrl = `${protocol}://${host}`
       
+      // Prioritize English as source - if English content exists, use it
+      const useEnglishAsSource = hasEnglishContent
+      
       autoTranslateTournamentEvent(
         baseUrl,
         eventData.id,
-        hasEnglishContent
+        useEnglishAsSource
           ? { title, description, location, trip_highlights, travel_itinerary, includes, excludes }
           : { title: title_ko, description: description_ko, location: location_ko, trip_highlights: trip_highlights_ko, travel_itinerary: travel_itinerary_ko, includes: includes_ko, excludes: excludes_ko },
-        hasEnglishContent ? "en" : "ko",
+        useEnglishAsSource ? "en" : "ko",
         supabase
       ).catch(err => console.error("[v0] Background translation error:", err))
     }

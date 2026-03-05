@@ -220,7 +220,7 @@ export async function POST(request: Request) {
     }
 
     // Trigger auto-translation in the background (non-blocking)
-    // Determine source language based on which fields have content
+    // Always translate from English if available, otherwise from Korean
     const hasEnglishContent = title && title.trim()
     const hasKoreanContent = title_ko && title_ko.trim()
     
@@ -230,14 +230,17 @@ export async function POST(request: Request) {
       const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
       const baseUrl = `${protocol}://${host}`
       
+      // Prioritize English as source - if English content exists, use it
+      const useEnglishAsSource = hasEnglishContent
+      
       // Don't await - let it run in background
       autoTranslateTrip(
         baseUrl,
         tripData.id,
-        hasEnglishContent
+        useEnglishAsSource
           ? { title, description, location, refund_policy, highlights }
           : { title: title_ko, description: description_ko, location: location_ko, refund_policy: refund_policy_ko, highlights: highlights_ko },
-        hasEnglishContent ? "en" : "ko",
+        useEnglishAsSource ? "en" : "ko",
         supabase
       ).catch(err => console.error("[v0] Background translation error:", err))
     }
