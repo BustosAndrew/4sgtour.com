@@ -43,6 +43,7 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
   const events = tournament.tournament_events || []
   const heroImage = tournament.hero_image || '/placeholder.svg'
   const t = useTranslations('tournaments')
+  const tNames = useTranslations('tournaments.names')
 
   const getLocalizedField = <T extends Record<string, any>>(
     obj: T,
@@ -59,7 +60,10 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
     return obj[field]
   }
 
-  const displayName = (getLocalizedField(tournament, 'display_name') || getLocalizedField(tournament, 'name') || tournament.name) as string
+  // Tournament names are fixed — use i18n translation map keyed by uppercase DB name
+  const rawName = tournament.name // e.g. "MASTERS"
+  const translatedName = tNames(rawName)
+  const displayName = translatedName !== rawName ? translatedName : (tournament.display_name || tournament.name)
 
   return (
     <div>

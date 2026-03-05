@@ -106,6 +106,12 @@
     "accommodation": "Accommodation"
   },
   "tournaments": {
+    "names": {
+      "MASTERS": "Masters",
+      "RYDER CUP": "Ryder Cup",
+      "THE OPEN": "The Open",
+      "US OPEN": "US Open"
+    },
     "pageTitle": "Follow the Greatest Tournaments",
     "pageSubtitle": "Journey through golf's most prestigious events across legendary courses worldwide.",
     "upcomingEvents": "Upcoming Events",

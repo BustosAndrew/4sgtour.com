@@ -106,6 +106,12 @@
     "accommodation": "숙박 시설"
   },
   "tournaments": {
+    "names": {
+      "MASTERS": "마스터스",
+      "RYDER CUP": "라이더 컵",
+      "THE OPEN": "디 오픈",
+      "US OPEN": "US 오픈"
+    },
     "pageTitle": "최고의 토너먼트를 따라가다",
     "pageSubtitle": "전 세계 전설적인 코스에서 펼쳐지는 골프의 가장 권위 있는 이벤트를 경험하세요.",
     "upcomingEvents": "예정된 이벤트",
