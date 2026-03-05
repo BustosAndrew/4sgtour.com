@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/provider'
-import { getLocalizedFieldSync } from '@/lib/i18n/get-localized-field'
 
 type Tournament = {
   id: string
@@ -22,9 +21,16 @@ interface TournamentsViewProps {
 
 export function TournamentsView({ tournaments, locale = 'en' }: TournamentsViewProps) {
   const t = useTranslations('tournaments')
+  const tNames = useTranslations('tournaments.names')
   const [hoveredTournament, setHoveredTournament] = useState<string | null>(
     null,
   )
+
+  const getTournamentName = (name: string) => {
+    const translated = tNames(name)
+    // If translation falls back to the key itself, return the original name
+    return translated !== name ? translated : name
+  }
 
   return (
     <div className="relative min-h-screen bg-[#22333b]">
@@ -80,7 +86,7 @@ export function TournamentsView({ tournaments, locale = 'en' }: TournamentsViewP
                 className="whitespace-pre-line text-center text-base font-semibold uppercase tracking-[0.15em] text-white drop-shadow-lg transition-all duration-300 group-hover:tracking-[0.25em] sm:text-lg sm:tracking-[0.2em] md:text-xl lg:text-2xl lg:group-hover:tracking-[0.3em]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                {getLocalizedFieldSync(tournament, 'name', locale)}
+                {getTournamentName(tournament.name)}
               </h2>
             </div>
           </Link>
