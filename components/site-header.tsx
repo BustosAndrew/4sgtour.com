@@ -242,7 +242,7 @@ export function SiteHeader({
                 }
                 sideOffset={5}
               >
-                {locales.map((locale) => (
+                {locales.filter(l => l !== 'de').map((locale) => (
                   <DropdownMenuItem
                     key={locale}
                     onClick={() => handleLanguageChange(locale)}
@@ -379,7 +379,7 @@ export function SiteHeader({
                     {t('language')}
                   </div>
                   <div className="flex gap-2">
-                    {locales.map((locale) => (
+                    {locales.filter(l => l !== 'de').map((locale) => (
                       <button
                         key={locale}
                         onClick={() => {
