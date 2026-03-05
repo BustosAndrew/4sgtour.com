@@ -241,6 +241,7 @@ export async function PATCH(
   }
 
   // Trigger auto-translation in the background (non-blocking)
+  // Always translate from English if available, otherwise from Korean
   const hasEnglishContent = body.title && body.title.trim()
   const hasKoreanContent = body.title_ko && body.title_ko.trim()
   
@@ -250,13 +251,16 @@ export async function PATCH(
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
     const baseUrl = `${protocol}://${host}`
     
+    // Prioritize English as source - if English content exists, use it
+    const useEnglishAsSource = hasEnglishContent
+    
     autoTranslateTrip(
       baseUrl,
       id,
-      hasEnglishContent
+      useEnglishAsSource
         ? { title: body.title, description: body.description, location: body.location, refund_policy: body.refund_policy, highlights: body.highlights }
         : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, highlights: body.highlights_ko },
-      hasEnglishContent ? "en" : "ko",
+      useEnglishAsSource ? "en" : "ko",
       supabase
     ).catch(err => console.error("[v0] Background translation error:", err))
   }
