@@ -24,18 +24,22 @@ export default async function TripPage({ params }: TripPageProps) {
   const t = await getServerTranslations("tripDetails")
   const locale = await getServerLocale()
 
-  const { data: trip } = await supabase
+  const { data: trip, error } = await supabase
     .from("trips")
     .select(
       `
       *,
-      destination:destinations(name, name_ko, name_de, country, country_ko, country_de),
+      destination:destinations!left(name, name_ko, name_de, country, country_ko, country_de),
       packages(id, name, name_ko, name_de, description, description_ko, description_de, price),
       trip_images(id, image_url, display_order)
     `,
     )
     .eq("slug", slug)
     .single()
+  
+  if (error) {
+    console.error("[v0] Error fetching trip:", error)
+  }
 
   if (!trip) {
     notFound()
