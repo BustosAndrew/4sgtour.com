@@ -295,6 +295,11 @@ export function EditTournamentEventForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Only allow submission on the last step
+    if (currentStep !== STEPS.length) {
+      return
+    }
+
     setLoading(true)
     setValidationErrors([])
 

@@ -346,11 +346,16 @@ export function CreateTournamentEventForm({
     setCurrentStep((prev) => Math.max(prev - 1, 1))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  
+  // Only allow submission on the last step
+  if (currentStep !== STEPS.length) {
+    return
+  }
 
-    setLoading(true)
-    setValidationErrors([])
+  setLoading(true)
+  setValidationErrors([])
 
     try {
       const response = await fetch(`/api/admin/tournaments/${tournamentId}/events`, {
