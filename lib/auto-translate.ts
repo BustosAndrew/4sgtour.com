@@ -78,11 +78,11 @@ export async function autoTranslateTrip(
     overview_content?: string
     highlights?: string[]
   },
-  sourceLanguage: "en" | "ko",
+  sourceLanguage: "en" | "de",
   supabase: any
 ): Promise<void> {
   console.log("[v0] autoTranslateTrip called:", { tripId, sourceLanguage, hasDescription: !!sourceData.description })
-  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+  const targetLanguages = sourceLanguage === "en" ? ["de"] : ["en"]
 
   for (const targetLang of targetLanguages) {
     const updates: Record<string, any> = {}
@@ -159,10 +159,10 @@ export async function autoTranslatePackages(
     name?: string
     description?: string
   }>,
-  sourceLanguage: "en" | "ko",
+  sourceLanguage: "en" | "de",
   supabase: any
 ): Promise<void> {
-  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+  const targetLanguages = sourceLanguage === "en" ? ["de"] : ["en"]
 
   for (const pkg of packages) {
     if (!pkg.id) continue
@@ -223,10 +223,10 @@ export async function autoTranslateTournamentEvent(
     includes?: string | string[]
     excludes?: string | string[]
   },
-  sourceLanguage: "en" | "ko",
+  sourceLanguage: "en" | "de",
   supabase: any
 ): Promise<void> {
-  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+  const targetLanguages = sourceLanguage === "en" ? ["de"] : ["en"]
 
   for (const targetLang of targetLanguages) {
     const updates: Record<string, any> = {}
