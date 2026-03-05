@@ -414,8 +414,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           formData.location &&
           formData.continent &&
           formData.min_days &&
-          Number(formData.max_guests) > 0 &&
-          formData.price_regular !== 0
+          Number(formData.max_guests) > 0
+          // price_regular is optional - removed the !== 0 check that was blocking
         )
       case 2:
         const premiumPackage = packages.find((p) => p.name === "Premium")
