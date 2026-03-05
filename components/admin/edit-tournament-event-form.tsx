@@ -20,11 +20,17 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
+type Lang = "en" | "ko" | "de"
+
 type ItineraryDay = {
   id: string
   display_order: number
   title: string
+  title_ko: string
+  title_de: string
   content: string
+  content_ko: string
+  content_de: string
 }
 
 type GalleryImage = {
@@ -37,6 +43,8 @@ type GalleryImage = {
 type PricingTier = {
   id: string
   name: string
+  name_ko: string
+  name_de: string
   price: string
   display_order: number
   booking_url: string
@@ -97,17 +105,32 @@ export function EditTournamentEventForm({
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [activeLang, setActiveLang] = useState<Lang>("en")
 
   const [formData, setFormData] = useState({
     title: event.title,
+    title_ko: (event as any).title_ko || "",
+    title_de: (event as any).title_de || "",
     location: event.location,
+    location_ko: (event as any).location_ko || "",
+    location_de: (event as any).location_de || "",
     date: event.date || "",
     duration: event.duration || "",
     description: event.description?.join("\n\n") || "",
+    description_ko: ((event as any).description_ko as string[] | null)?.join("\n\n") || "",
+    description_de: ((event as any).description_de as string[] | null)?.join("\n\n") || "",
     trip_highlights: event.trip_highlights?.join("\n") || "",
+    trip_highlights_ko: ((event as any).trip_highlights_ko as string[] | null)?.join("\n") || "",
+    trip_highlights_de: ((event as any).trip_highlights_de as string[] | null)?.join("\n") || "",
     travel_itinerary: event.travel_itinerary?.join("\n") || "",
+    travel_itinerary_ko: ((event as any).travel_itinerary_ko as string[] | null)?.join("\n") || "",
+    travel_itinerary_de: ((event as any).travel_itinerary_de as string[] | null)?.join("\n") || "",
     includes: event.includes?.join("\n") || "",
+    includes_ko: ((event as any).includes_ko as string[] | null)?.join("\n") || "",
+    includes_de: ((event as any).includes_de as string[] | null)?.join("\n") || "",
     excludes: event.excludes?.join("\n") || "",
+    excludes_ko: ((event as any).excludes_ko as string[] | null)?.join("\n") || "",
+    excludes_de: ((event as any).excludes_de as string[] | null)?.join("\n") || "",
     price: event.price || "",
   })
 
@@ -120,9 +143,13 @@ export function EditTournamentEventForm({
           id: d.id,
           display_order: d.display_order,
           title: d.title,
+          title_ko: (d as any).title_ko || "",
+          title_de: (d as any).title_de || "",
           content: d.content || "",
+          content_ko: (d as any).content_ko || "",
+          content_de: (d as any).content_de || "",
         }))
-      : [{ id: "1", display_order: 1, title: "", content: "" }]
+      : [{ id: "1", display_order: 1, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" }]
   )
 
   const [gallery, setGallery] = useState<GalleryImage[]>(
@@ -152,11 +179,13 @@ export function EditTournamentEventForm({
       ? event.tournament_event_pricing_tiers.map((t) => ({
           id: t.id,
           name: t.name,
+          name_ko: (t as any).name_ko || "",
+          name_de: (t as any).name_de || "",
           price: t.price || "",
           display_order: t.display_order || 0,
           booking_url: t.booking_url || "",
         }))
-      : [{ id: "1", name: "", price: "", display_order: 0, booking_url: "" }]
+      : [{ id: "1", name: "", name_ko: "", name_de: "", price: "", display_order: 0, booking_url: "" }]
   )
 
   const handlePhotoUpload = async (
@@ -215,7 +244,7 @@ export function EditTournamentEventForm({
     const nextOrder = itinerary.length + 1
     setItinerary((prev) => [
       ...prev,
-      { id: Date.now().toString(), display_order: nextOrder, title: "", content: "" },
+      { id: Date.now().toString(), display_order: nextOrder, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" },
     ])
   }
 
@@ -243,7 +272,7 @@ export function EditTournamentEventForm({
   const addPricingTier = () => {
     setPricingTiers((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, booking_url: "" },
+      { id: Date.now().toString(), name: "", name_ko: "", name_de: "", price: "", display_order: prev.length, booking_url: "" },
     ])
   }
 
@@ -295,6 +324,11 @@ export function EditTournamentEventForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Only allow submission on the last step
+    if (currentStep !== STEPS.length) {
+      return
+    }
+
     setLoading(true)
     setValidationErrors([])
 
@@ -306,14 +340,28 @@ export function EditTournamentEventForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
+            title_ko: formData.title_ko || null,
+            title_de: formData.title_de || null,
             location: formData.location,
+            location_ko: formData.location_ko || null,
+            location_de: formData.location_de || null,
             date: formData.date,
             duration: formData.duration || null,
             description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
+            description_ko: formData.description_ko ? formData.description_ko.split("\n\n").filter(Boolean) : null,
+            description_de: formData.description_de ? formData.description_de.split("\n\n").filter(Boolean) : null,
             trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
+            trip_highlights_ko: formData.trip_highlights_ko ? formData.trip_highlights_ko.split("\n").filter(Boolean) : null,
+            trip_highlights_de: formData.trip_highlights_de ? formData.trip_highlights_de.split("\n").filter(Boolean) : null,
             travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
+            travel_itinerary_ko: formData.travel_itinerary_ko ? formData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
+            travel_itinerary_de: formData.travel_itinerary_de ? formData.travel_itinerary_de.split("\n").filter(Boolean) : null,
             includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
+            includes_ko: formData.includes_ko ? formData.includes_ko.split("\n").filter(Boolean) : null,
+            includes_de: formData.includes_de ? formData.includes_de.split("\n").filter(Boolean) : null,
             excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
+            excludes_ko: formData.excludes_ko ? formData.excludes_ko.split("\n").filter(Boolean) : null,
+            excludes_de: formData.excludes_de ? formData.excludes_de.split("\n").filter(Boolean) : null,
             price: formData.price || null,
             image: imageUrl || null,
             itinerary: itinerary.filter((d) => d.title.trim()),
@@ -407,34 +455,57 @@ export function EditTournamentEventForm({
           {currentStep === 1 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                  Event Details
-                </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+                  {/* Language Tabs */}
+                  <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
+                    {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setActiveLang(lang)}
+                        className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                          activeLang === lang
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Event Title *</Label>
+                    <Label htmlFor="title">
+                      Event Title {activeLang === "en" ? "*" : ""}
+                      {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()} translation)</span>}
+                    </Label>
                     <Input
                       id="title"
-                      value={formData.title}
+                      value={activeLang === "en" ? formData.title : activeLang === "ko" ? formData.title_ko : formData.title_de}
                       onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, title: e.target.value }))
+                        setFormData((prev) => ({ ...prev, [`title${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value }))
                       }
-                      placeholder="e.g., The Open 2025"
+                      placeholder={activeLang === "en" ? "e.g., The Open 2025" : activeLang === "ko" ? "예: 디 오픈 2025" : "z.B. The Open 2025"}
                       className="mt-1"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="location">Location *</Label>
+                      <Label htmlFor="location">
+                        Location {activeLang === "en" ? "*" : ""}
+                        {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                      </Label>
                       <Input
                         id="location"
-                        value={formData.location}
+                        value={activeLang === "en" ? formData.location : activeLang === "ko" ? formData.location_ko : formData.location_de}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, location: e.target.value }))
+                          setFormData((prev) => ({ ...prev, [`location${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value }))
                         }
-                        placeholder="e.g., Scotland"
+                        placeholder={activeLang === "en" ? "e.g., Scotland" : activeLang === "ko" ? "예: 스코틀랜드" : "z.B. Schottland"}
                         className="mt-1"
                       />
                     </div>
@@ -480,31 +551,37 @@ export function EditTournamentEventForm({
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Description (separate paragraphs with blank lines)</Label>
+                    <Label htmlFor="description">
+                      Description (separate paragraphs with blank lines)
+                      {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="description"
-                      value={formData.description}
+                      value={activeLang === "en" ? formData.description : activeLang === "ko" ? formData.description_ko : formData.description_de}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          description: e.target.value,
+                          [`description${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value,
                         }))
                       }
-                      placeholder="Detailed event description..."
+                      placeholder={activeLang === "en" ? "Detailed event description..." : activeLang === "ko" ? "한국어로 이벤트 설명..." : "Veranstaltungsbeschreibung auf Deutsch..."}
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="trip_highlights">Trip Highlights (one per line)</Label>
+                    <Label htmlFor="trip_highlights">
+                      Trip Highlights (one per line)
+                      {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="trip_highlights"
-                      value={formData.trip_highlights}
+                      value={activeLang === "en" ? formData.trip_highlights : activeLang === "ko" ? formData.trip_highlights_ko : formData.trip_highlights_de}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          trip_highlights: e.target.value,
+                          [`trip_highlights${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value,
                         }))
                       }
                       placeholder="Premium accommodation&#10;Tournament tickets&#10;Golf rounds"
@@ -514,14 +591,17 @@ export function EditTournamentEventForm({
                   </div>
 
                   <div>
-                    <Label htmlFor="includes">Package Includes (one per line)</Label>
+                    <Label htmlFor="includes">
+                      Package Includes (one per line)
+                      {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="includes"
-                      value={formData.includes}
+                      value={activeLang === "en" ? formData.includes : activeLang === "ko" ? formData.includes_ko : formData.includes_de}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          includes: e.target.value,
+                          [`includes${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value,
                         }))
                       }
                       placeholder="Airport transfers&#10;Breakfast daily&#10;Tournament tickets"
@@ -531,14 +611,17 @@ export function EditTournamentEventForm({
                   </div>
 
                   <div>
-                    <Label htmlFor="excludes">Package Excludes (one per line)</Label>
+                    <Label htmlFor="excludes">
+                      Package Excludes (one per line)
+                      {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="excludes"
-                      value={formData.excludes}
+                      value={activeLang === "en" ? formData.excludes : activeLang === "ko" ? formData.excludes_ko : formData.excludes_de}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          excludes: e.target.value,
+                          [`excludes${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value,
                         }))
                       }
                       placeholder="Flights&#10;Travel insurance"
@@ -603,10 +686,29 @@ export function EditTournamentEventForm({
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">Itinerary</h2>
-                  <Button type="button" variant="outline" size="sm" onClick={addItineraryDay}>
-                    <Plus className="mr-1 h-4 w-4" />
-                    Add Day
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {/* Language Tabs */}
+                    <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
+                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => setActiveLang(lang)}
+                          className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                            activeLang === lang
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                        </button>
+                      ))}
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addItineraryDay}>
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add Day
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -637,22 +739,28 @@ export function EditTournamentEventForm({
 
                       <div className="space-y-3">
                         <div>
-                          <Label>Title *</Label>
+                          <Label>
+                            Title {activeLang === "en" ? "*" : ""}
+                            {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                          </Label>
                           <Input
-                            value={day.title}
+                            value={activeLang === "en" ? day.title : activeLang === "ko" ? day.title_ko : day.title_de}
                             onChange={(e) =>
-                              updateItineraryDay(day.id, "title", e.target.value)
+                              updateItineraryDay(day.id, activeLang === "en" ? "title" : activeLang === "ko" ? "title_ko" : "title_de", e.target.value)
                             }
-                            placeholder="e.g., Arrival & Welcome"
+                            placeholder={activeLang === "en" ? "e.g., Arrival & Welcome" : activeLang === "ko" ? "예: 도착 및 환영" : "z.B. Ankunft & Willkommen"}
                             className="mt-1"
                           />
                         </div>
                         <div>
-                          <Label>Content</Label>
+                          <Label>
+                            Content
+                            {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                          </Label>
                           <Textarea
-                            value={day.content}
+                            value={activeLang === "en" ? day.content : activeLang === "ko" ? day.content_ko : day.content_de}
                             onChange={(e) =>
-                              updateItineraryDay(day.id, "content", e.target.value)
+                              updateItineraryDay(day.id, activeLang === "en" ? "content" : activeLang === "ko" ? "content_ko" : "content_de", e.target.value)
                             }
                             placeholder="Activities for this day..."
                             className="mt-1"
@@ -764,10 +872,29 @@ export function EditTournamentEventForm({
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">Pricing Tiers</h2>
-                  <Button type="button" variant="outline" size="sm" onClick={addPricingTier}>
-                    <Plus className="mr-1 h-4 w-4" />
-                    Add Tier
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {/* Language Tabs */}
+                    <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
+                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => setActiveLang(lang)}
+                          className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                            activeLang === lang
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                        </button>
+                      ))}
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addPricingTier}>
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add Tier
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -796,13 +923,16 @@ export function EditTournamentEventForm({
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <Label>Tier Name *</Label>
+                            <Label>
+                              Tier Name {activeLang === "en" ? "*" : ""}
+                              {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                            </Label>
                             <Input
-                              value={tier.name}
+                              value={activeLang === "en" ? tier.name : activeLang === "ko" ? tier.name_ko : tier.name_de}
                               onChange={(e) =>
-                                updatePricingTier(tier.id, "name", e.target.value)
+                                updatePricingTier(tier.id, activeLang === "en" ? "name" : activeLang === "ko" ? "name_ko" : "name_de", e.target.value)
                               }
-                              placeholder="e.g., Premium Package"
+                              placeholder={activeLang === "en" ? "e.g., Premium Package" : activeLang === "ko" ? "예: 프리미엄 패키지" : "z.B. Premium-Paket"}
                               className="mt-1"
                             />
                           </div>
