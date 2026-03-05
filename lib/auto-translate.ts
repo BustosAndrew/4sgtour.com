@@ -75,11 +75,13 @@ export async function autoTranslateTrip(
     description?: string
     location?: string
     refund_policy?: string
+    overview_content?: string
     highlights?: string[]
   },
   sourceLanguage: "en" | "ko",
   supabase: any
 ): Promise<void> {
+  console.log("[v0] autoTranslateTrip called:", { tripId, sourceLanguage, hasDescription: !!sourceData.description })
   const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
 
   for (const targetLang of targetLanguages) {
@@ -100,6 +102,9 @@ export async function autoTranslateTrip(
     }
     if (sourceData.refund_policy) {
       fieldsToTranslate.push({ field: `refund_policy${suffix}`, text: sourceData.refund_policy, fieldType: "description" })
+    }
+    if (sourceData.overview_content) {
+      fieldsToTranslate.push({ field: `overview_content${suffix}`, text: sourceData.overview_content, fieldType: "description" })
     }
 
     if (fieldsToTranslate.length > 0) {
@@ -138,6 +143,64 @@ export async function autoTranslateTrip(
 
       if (error) {
         console.error(`[auto-translate] Error updating trip ${targetLang}:`, error)
+      }
+    }
+  }
+}
+
+/**
+ * Auto-translate packages for a trip
+ * Called after trip create/update when packages have translatable content
+ */
+export async function autoTranslatePackages(
+  baseUrl: string,
+  packages: Array<{
+    id: string
+    name?: string
+    description?: string
+  }>,
+  sourceLanguage: "en" | "ko",
+  supabase: any
+): Promise<void> {
+  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+
+  for (const pkg of packages) {
+    if (!pkg.id) continue
+
+    for (const targetLang of targetLanguages) {
+      const updates: Record<string, any> = {}
+      const suffix = targetLang === "en" ? "" : `_${targetLang}`
+
+      const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
+
+      if (pkg.name) {
+        fieldsToTranslate.push({ field: `name${suffix}`, text: pkg.name, fieldType: "title" })
+      }
+      if (pkg.description) {
+        fieldsToTranslate.push({ field: `description${suffix}`, text: pkg.description, fieldType: "description" })
+      }
+
+    console.log("[v0] Fields to translate for", targetLang, ":", fieldsToTranslate.map(f => f.field))
+    
+    if (fieldsToTranslate.length > 0) {
+      const translations = await translateBatch(baseUrl, {
+        fields: fieldsToTranslate,
+        targetLanguage: targetLang,
+        sourceLanguage,
+      })
+      console.log("[v0] Translations received:", Object.keys(translations))
+      Object.assign(updates, translations)
+    }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from("packages")
+          .update(updates)
+          .eq("id", pkg.id)
+
+        if (error) {
+          console.error(`[auto-translate] Error updating package ${pkg.id} ${targetLang}:`, error)
+        }
       }
     }
   }
