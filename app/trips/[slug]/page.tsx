@@ -29,7 +29,7 @@ export default async function TripPage({ params }: TripPageProps) {
     .select(
       `
       *,
-      destination:destinations!left(name, name_ko, name_de, country, country_ko, country_de),
+      destination:destinations!left(name, name_ko, name_de, country),
       packages(id, name, name_ko, name_de, description, description_ko, description_de, price),
       trip_images(id, image_url, display_order)
     `,
@@ -37,10 +37,6 @@ export default async function TripPage({ params }: TripPageProps) {
     .eq("slug", slug)
     .single()
   
-  if (error) {
-    console.error("[v0] Error fetching trip:", error)
-  }
-
   if (!trip) {
     notFound()
   }
