@@ -9,8 +9,9 @@ import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Golf Trip Booking',
-  description: 'Book your perfect golf vacation',
+  title: '4 Seasons Golf Tour',
+  description:
+    'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations, exclusive packages, and personalized service for an unforgettable golfing experience.',
   generator: 'v0.app',
 }
 
