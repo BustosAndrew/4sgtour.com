@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
+import { autoTranslateTournamentEvent } from "@/lib/auto-translate"
+import { headers } from "next/headers"
 
 export async function POST(
   request: Request,
@@ -178,6 +180,27 @@ export async function POST(
       if (pricingError) {
         console.error("Error creating pricing tiers:", pricingError)
       }
+    }
+
+    // Trigger auto-translation in the background (non-blocking)
+    const hasEnglishContent = title && title.trim()
+    const hasKoreanContent = title_ko && title_ko.trim()
+    
+    if (hasEnglishContent || hasKoreanContent) {
+      const headersList = await headers()
+      const host = headersList.get("host") || "localhost:3000"
+      const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
+      const baseUrl = `${protocol}://${host}`
+      
+      autoTranslateTournamentEvent(
+        baseUrl,
+        eventData.id,
+        hasEnglishContent
+          ? { title, description, location, trip_highlights, travel_itinerary, includes, excludes }
+          : { title: title_ko, description: description_ko, location: location_ko, trip_highlights: trip_highlights_ko, travel_itinerary: travel_itinerary_ko, includes: includes_ko, excludes: excludes_ko },
+        hasEnglishContent ? "en" : "ko",
+        supabase
+      ).catch(err => console.error("[v0] Background translation error:", err))
     }
 
     return NextResponse.json(eventData, { status: 201 })

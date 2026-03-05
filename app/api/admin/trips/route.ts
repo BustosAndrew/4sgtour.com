@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
+import { autoTranslateTrip } from "@/lib/auto-translate"
+import { headers } from "next/headers"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -215,6 +217,29 @@ export async function POST(request: Request) {
       if (serviceError) {
         console.error("[v0] Error creating service options:", serviceError)
       }
+    }
+
+    // Trigger auto-translation in the background (non-blocking)
+    // Determine source language based on which fields have content
+    const hasEnglishContent = title && title.trim()
+    const hasKoreanContent = title_ko && title_ko.trim()
+    
+    if (hasEnglishContent || hasKoreanContent) {
+      const headersList = await headers()
+      const host = headersList.get("host") || "localhost:3000"
+      const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
+      const baseUrl = `${protocol}://${host}`
+      
+      // Don't await - let it run in background
+      autoTranslateTrip(
+        baseUrl,
+        tripData.id,
+        hasEnglishContent
+          ? { title, description, location, refund_policy, highlights }
+          : { title: title_ko, description: description_ko, location: location_ko, refund_policy: refund_policy_ko, highlights: highlights_ko },
+        hasEnglishContent ? "en" : "ko",
+        supabase
+      ).catch(err => console.error("[v0] Background translation error:", err))
     }
 
     return NextResponse.json(tripData, { status: 201 })
