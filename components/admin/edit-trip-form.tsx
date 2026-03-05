@@ -32,19 +32,29 @@ interface EditTripFormProps {
   trip: {
     id: string
     title: string
+    title_ko?: string | null
+    title_de?: string | null
     description: string | null
+    description_ko?: string | null
+    description_de?: string | null
     refund_policy?: string | null
-    location: string // Added location
+    refund_policy_ko?: string | null
+    refund_policy_de?: string | null
+    location: string
+    location_ko?: string | null
+    location_de?: string | null
+    highlights?: string[]
+    highlights_ko?: string[] | null
+    highlights_de?: string[] | null
     continent: string | null
-    price_regular: number // Added price_regular
-    max_guests: number // Added max_guests
+    price_regular: number
+    max_guests: number
     max_days?: number | null
     min_days?: number | null
     min_days_advance?: number | null
     courses_photo_url: string | null
     room_photo_url: string | null
     show_from_price?: boolean
-    highlights?: string[]
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
     golf_courses?: any[]
@@ -56,9 +66,17 @@ interface EditTripFormProps {
 
 interface TripData {
   title: string
+  title_ko: string
+  title_de: string
   description: string
+  description_ko: string
+  description_de: string
   refund_policy: string
+  refund_policy_ko: string
+  refund_policy_de: string
   location: string
+  location_ko: string
+  location_de: string
   continent: string
   price_regular: number
   max_guests: string
@@ -66,6 +84,8 @@ interface TripData {
   min_days_advance: string
   min_days: string
 }
+
+type Lang = "en" | "ko" | "de"
 
 const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
@@ -90,12 +110,21 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  const [activeLang, setActiveLang] = useState<Lang>("en")
 
   const [formData, setFormData] = useState<TripData>({
     title: trip.title || "",
+    title_ko: trip.title_ko || "",
+    title_de: trip.title_de || "",
     description: trip.description || "",
+    description_ko: trip.description_ko || "",
+    description_de: trip.description_de || "",
     refund_policy: trip.refund_policy || "",
+    refund_policy_ko: trip.refund_policy_ko || "",
+    refund_policy_de: trip.refund_policy_de || "",
     location: trip.location || "",
+    location_ko: trip.location_ko || "",
+    location_de: trip.location_de || "",
     continent: trip.continent || "",
     price_regular: trip.price_regular || 0,
     max_guests: trip.max_guests?.toString() || "20",
@@ -104,6 +133,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     min_days: trip.min_days?.toString() || "1",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
+  const [highlights_ko, setHighlights_ko] = useState<string[]>(trip.highlights_ko || [])
+  const [highlights_de, setHighlights_de] = useState<string[]>(trip.highlights_de || [])
   const [coursePhotos, setCoursePhotos] = useState<string[]>(() => {
     const existing: string[] = []
     if (trip.courses_photo_url) existing.push(trip.courses_photo_url)
@@ -507,22 +538,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-  title: formData.title,
-  description: formData.description,
-  refund_policy: formData.refund_policy || null,
-  location: formData.location, // Added location
+          title: formData.title,
+          title_ko: formData.title_ko || null,
+          title_de: formData.title_de || null,
+          description: formData.description,
+          description_ko: formData.description_ko || null,
+          description_de: formData.description_de || null,
+          refund_policy: formData.refund_policy || null,
+          refund_policy_ko: formData.refund_policy_ko || null,
+          refund_policy_de: formData.refund_policy_de || null,
+          location: formData.location,
+          location_ko: formData.location_ko || null,
+          location_de: formData.location_de || null,
           continent: formData.continent,
-          price_regular: Number(formData.price_regular), // Added price_regular
-          max_guests: Number(formData.max_guests), // Added max_guests
+          price_regular: Number(formData.price_regular),
+          max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
-          min_days: Number(formData.min_days), // Added min_days
-          min_days_advance: Number(formData.min_days_advance), // Removed .toString()
-          // is_all_inclusive: formData.is_all_inclusive, // REMOVED is_all_inclusive
+          min_days: Number(formData.min_days),
+          min_days_advance: Number(formData.min_days_advance),
           courses_photo_url: coursePhotos[0] || null,
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           highlights: highlights.filter((h) => h.trim() !== ""),
+          highlights_ko: highlights_ko.filter((h) => h.trim() !== ""),
+          highlights_de: highlights_de.filter((h) => h.trim() !== ""),
           packages,
           golf_courses: golfCourses.map((course) => ({
             ...course,
@@ -658,41 +698,51 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               </p>
             </div>
 
-            {/* Trip Name */}
+            {/* Language Tabs */}
+            <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
+              {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setActiveLang(lang)}
+                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                    activeLang === lang
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                </button>
+              ))}
+            </div>
+
+            {/* Title */}
             <div className="space-y-2">
-              <Label
-                htmlFor="title"
-                className="text-sm text-foreground sm:text-base"
-              >
-                Title of place *
+              <Label htmlFor="title" className="text-sm text-foreground sm:text-base">
+                Title of place {activeLang === "en" && "*"}
+                {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
               </Label>
               <Input
                 id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="Title of place"
-                required
+                value={activeLang === "en" ? formData.title : activeLang === "ko" ? formData.title_ko : formData.title_de}
+                onChange={(e) => setFormData({ ...formData, [`title${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value })}
+                placeholder={activeLang === "en" ? "Title of place" : activeLang === "ko" ? "장소 이름" : "Ortsname"}
+                required={activeLang === "en"}
                 className="h-10 sm:h-12"
               />
             </div>
 
             {/* Trip Overview */}
             <div className="space-y-2">
-              <Label
-                htmlFor="description"
-                className="text-sm text-foreground sm:text-base"
-              >
+              <Label htmlFor="description" className="text-sm text-foreground sm:text-base">
                 Trip Overview
+                {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
               </Label>
               <Textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Provide a brief overview of the trip for guests..."
+                value={activeLang === "en" ? formData.description : activeLang === "ko" ? formData.description_ko : formData.description_de}
+                onChange={(e) => setFormData({ ...formData, [`description${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value })}
+                placeholder={activeLang === "en" ? "Provide a brief overview of the trip for guests..." : activeLang === "ko" ? "한국어로 여행 개요를 입력하세요..." : "Reisebeschreibung auf Deutsch..."}
                 rows={6}
                 className="resize-none"
               />
@@ -700,19 +750,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Refund Policy */}
             <div className="space-y-2">
-              <Label
-                htmlFor="refund_policy"
-                className="text-sm text-foreground sm:text-base"
-              >
+              <Label htmlFor="refund_policy" className="text-sm text-foreground sm:text-base">
                 Refund Policy (Optional)
+                {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
               </Label>
               <Textarea
                 id="refund_policy"
-                value={formData.refund_policy}
-                onChange={(e) =>
-                  setFormData({ ...formData, refund_policy: e.target.value })
-                }
-                placeholder="Enter the refund policy specific to this trip..."
+                value={activeLang === "en" ? formData.refund_policy : activeLang === "ko" ? formData.refund_policy_ko : formData.refund_policy_de}
+                onChange={(e) => setFormData({ ...formData, [`refund_policy${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value })}
+                placeholder={activeLang === "en" ? "Enter the refund policy specific to this trip..." : activeLang === "ko" ? "한국어로 환불 정책을 입력하세요..." : "Rückerstattungsrichtlinie auf Deutsch..."}
                 rows={4}
                 className="resize-none"
               />
@@ -721,16 +767,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             {/* Location */}
             <div className="space-y-2">
               <Label htmlFor="location" className="text-base text-foreground">
-                Location *
+                Location {activeLang === "en" && "*"}
+                {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
               </Label>
               <Input
                 id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                placeholder="e.g., Pebble Beach, California"
-                required
+                value={activeLang === "en" ? formData.location : activeLang === "ko" ? formData.location_ko : formData.location_de}
+                onChange={(e) => setFormData({ ...formData, [`location${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value })}
+                placeholder={activeLang === "en" ? "e.g., Pebble Beach, California" : activeLang === "ko" ? "예: 페블 비치, 캘리포니아" : "z.B. Pebble Beach, Kalifornien"}
+                required={activeLang === "en"}
                 className="h-12"
               />
             </div>
@@ -740,10 +785,15 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <div className="flex items-center justify-between">
                 <Label className="text-base text-foreground">
                   Highlights (Optional)
+                  {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
                 </Label>
                 <Button
                   type="button"
-                  onClick={addHighlight}
+                  onClick={() => {
+                    if (activeLang === "en") setHighlights([...highlights, ""])
+                    else if (activeLang === "ko") setHighlights_ko([...highlights_ko, ""])
+                    else setHighlights_de([...highlights_de, ""])
+                  }}
                   size="sm"
                   variant="outline"
                 >
@@ -751,32 +801,40 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   Add Highlight
                 </Button>
               </div>
-              {highlights.length > 0 ? (
-                <div className="space-y-2">
-                  {highlights.map((highlight, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={highlight}
-                        onChange={(e) => updateHighlight(index, e.target.value)}
-                        placeholder="e.g., Stay at this nice hotel"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeHighlight(index)}
-                        className="flex-shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No highlights added yet
-                </p>
-              )}
+              {(() => {
+                const activeHighlights = activeLang === "en" ? highlights : activeLang === "ko" ? highlights_ko : highlights_de
+                const setActive = activeLang === "en" ? setHighlights : activeLang === "ko" ? setHighlights_ko : setHighlights_de
+                return activeHighlights.length > 0 ? (
+                  <div className="space-y-2">
+                    {activeHighlights.map((highlight, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={highlight}
+                          onChange={(e) => {
+                            const updated = [...activeHighlights]
+                            updated[index] = e.target.value
+                            setActive(updated)
+                          }}
+                          placeholder={activeLang === "ko" ? "예: 멋진 호텔 숙박" : activeLang === "de" ? "z.B. Übernachtung im Hotel" : "e.g., Stay at this nice hotel"}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActive(activeHighlights.filter((_, i) => i !== index))}
+                          className="flex-shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No highlights added yet
+                  </p>
+                )
+              })()}
             </div>
 
             {/* Choose Continent */}
