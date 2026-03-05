@@ -3,9 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import { Upload, X, ArrowLeft, Trophy } from "lucide-react"
 import Image from "next/image"
@@ -25,10 +23,8 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
-  const [formData, setFormData] = useState({
-    name: tournament.name,
-    display_name: tournament.display_name || "",
-  })
+  // Tournament names are fixed (Masters, Ryder Cup, The Open, US Open)
+  // Only images can be edited
 
   const [logoUrl, setLogoUrl] = useState(tournament.logo || "")
   const [heroImageUrl, setHeroImageUrl] = useState(tournament.hero_image || "")
@@ -79,11 +75,8 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
   }
 
   const validateForm = (): { valid: boolean; errors: string[] } => {
-    const errors: string[] = []
-
-    if (!formData.name.trim()) errors.push("Tournament name is required")
-
-    return { valid: errors.length === 0, errors }
+    // No validation needed - only images can be edited
+    return { valid: true, errors: [] }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,8 +98,7 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: formData.name,
-          display_name: formData.display_name || null,
+          // Only images can be updated - name is fixed
           logo: logoUrl || null,
           hero_image: heroImageUrl || null,
         }),
@@ -140,10 +132,10 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
           </Link>
           <div>
             <h1 className="text-lg font-semibold text-gray-900 sm:text-2xl">
-              Edit Tournament
+              Edit {tournament.name} Images
             </h1>
             <p className="text-xs text-gray-600 sm:text-sm">
-              Update tournament details
+              Update tournament logo and hero image
             </p>
           </div>
         </div>
@@ -165,44 +157,10 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Tournament Details
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Tournament Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="e.g., The Open Championship"
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="display_name">Display Name</Label>
-                <Input
-                  id="display_name"
-                  value={formData.display_name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      display_name: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g., The Open"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Images</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Tournament Images</h2>
+            <p className="mb-4 text-sm text-gray-500">
+              Tournament name: <span className="font-semibold text-gray-900">{tournament.name}</span>
+            </p>
 
             <div className="space-y-4">
               <div>

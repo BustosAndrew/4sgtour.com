@@ -56,7 +56,6 @@ export function AdminTournaments({
   userPhotoUrl: string | null
 }) {
   const [showAccountSettings, setShowAccountSettings] = useState(false)
-  const [deletingTournaments, setDeletingTournaments] = useState<Set<string>>(new Set())
   const [deletingEvents, setDeletingEvents] = useState<Set<string>>(new Set())
   const [localTournaments, setLocalTournaments] = useState<Tournament[]>(tournaments)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -82,49 +81,7 @@ export function AdminTournaments({
     })
   }
 
-  const handleDeleteTournament = async (tournament: Tournament, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const tournamentId = tournament.id
-    if (!tournamentId || tournamentId === "undefined") {
-      alert("This tournament is missing a valid ID and cannot be deleted.")
-      return
-    }
-
-    if (
-      !confirm(
-        "Are you sure you want to delete this tournament and all its events? This action cannot be undone."
-      )
-    ) {
-      return
-    }
-
-    setDeletingTournaments((prev) => new Set(prev).add(tournamentId))
-
-    try {
-      const response = await fetch(`/api/admin/tournaments/${tournamentId}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to delete tournament")
-      }
-
-      setLocalTournaments((prev) => prev.filter((t) => t.id !== tournamentId))
-      router.refresh()
-    } catch (error) {
-      console.error("Error deleting tournament:", error)
-      alert(error instanceof Error ? error.message : "Failed to delete tournament")
-    } finally {
-      setDeletingTournaments((prev) => {
-        const next = new Set(prev)
-        next.delete(tournamentId)
-        return next
-      })
-    }
-  }
+  // Tournament deletion is disabled - tournaments are fixed (Masters, Ryder Cup, The Open, US Open)
 
   const handleDeleteEvent = async (tournamentId: string, eventId: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -304,13 +261,8 @@ export function AdminTournaments({
           <div className="mb-4 flex flex-col gap-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-gray-600">
-                {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""}
+                {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} (Masters, Ryder Cup, The Open, US Open)
               </p>
-              <Link href="/admin/tournaments/new" className="w-full sm:w-auto">
-                <Button className="w-full bg-[#274C77] text-white hover:bg-[#274C77]/90 sm:w-auto">
-                  + Add Tournament
-                </Button>
-              </Link>
             </div>
           </div>
 
@@ -354,23 +306,11 @@ export function AdminTournaments({
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-white hover:bg-white/10"
+                        title="Edit images"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
-                      onClick={(e) => handleDeleteTournament(tournament, e)}
-                      disabled={deletingTournaments.has(tournament.id)}
-                    >
-                      <Trash2
-                        className={`h-4 w-4 ${
-                          deletingTournaments.has(tournament.id) ? "animate-pulse" : ""
-                        }`}
-                      />
-                    </Button>
                     {expandedTournaments.has(tournament.id) ? (
                       <ChevronDown className="h-5 w-5" />
                     ) : (
