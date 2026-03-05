@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CONTINENTS } from '@/lib/continents'
+import { useTranslations } from '@/lib/i18n/provider'
 
 type Destination = {
   id?: string
@@ -24,38 +25,28 @@ export function DestinationsCarousel({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [slidesPerView, setSlidesPerView] = useState(3)
   const containerRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations('destinations.continents')
 
   // Prepare carousel items.
   // If no destinations are provided, use the same continent tiles as the Destinations page comp.
   const carouselItems = useMemo(() => {
-    const source = destinations.length
-      ? destinations
-      : CONTINENTS.map((c) => ({
-          name: c.displayName || c.name.replace('\n', ' '),
-          slug: c.slug,
-          image_url: c.image,
-        }))
-
-    const items: Array<{
-      name: string
-      slug: string
-      image: string
-      href: string
-    }> = []
-
-    // Add destination items
-    source.forEach((dest) => {
-      items.push({
+    if (destinations.length) {
+      return destinations.map((dest) => ({
         name: dest.name.toUpperCase(),
+        nameKey: null as string | null,
         slug: dest.slug,
-        image:
-          dest.image_url ||
-          '/placeholder.svg?height=400&width=600&query=golf+destination',
+        image: dest.image_url || '/placeholder.svg?height=400&width=600&query=golf+destination',
         href: `/destinations/${dest.slug}`,
-      })
-    })
+      }))
+    }
 
-    return items
+    return CONTINENTS.map((c) => ({
+      name: c.displayName || c.name.replace('\n', ' '),
+      nameKey: c.nameKey,
+      slug: c.slug,
+      image: c.image,
+      href: `/destinations/${c.slug}`,
+    }))
   }, [destinations])
 
   // Show a maximum of 3 slides, responsive down to 2/1.
@@ -142,7 +133,7 @@ export function DestinationsCarousel({
                     className="text-xs sm:text-sm md:text-base font-semibold text-[#22333b] tracking-wider text-center uppercase"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
-                    {item.name}
+                    {item.nameKey ? t(item.nameKey) : item.name}
                   </p>
                 </div>
               </div>
