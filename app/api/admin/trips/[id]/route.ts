@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
+import { autoTranslateTrip } from "@/lib/auto-translate"
+import { headers } from "next/headers"
 
 export async function PATCH(
   request: NextRequest,
@@ -236,6 +238,27 @@ export async function PATCH(
         console.error("Error updating course photos:", photosError)
       }
     }
+  }
+
+  // Trigger auto-translation in the background (non-blocking)
+  const hasEnglishContent = body.title && body.title.trim()
+  const hasKoreanContent = body.title_ko && body.title_ko.trim()
+  
+  if (hasEnglishContent || hasKoreanContent) {
+    const headersList = await headers()
+    const host = headersList.get("host") || "localhost:3000"
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
+    const baseUrl = `${protocol}://${host}`
+    
+    autoTranslateTrip(
+      baseUrl,
+      id,
+      hasEnglishContent
+        ? { title: body.title, description: body.description, location: body.location, refund_policy: body.refund_policy, highlights: body.highlights }
+        : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, highlights: body.highlights_ko },
+      hasEnglishContent ? "en" : "ko",
+      supabase
+    ).catch(err => console.error("[v0] Background translation error:", err))
   }
 
   return NextResponse.json({ success: true })

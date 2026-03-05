@@ -442,12 +442,6 @@ export function CreateTripForm() {
     setLoading(true)
 
     try {
-      console.log("[v0] Submitting trip with data:", {
-        ...formData,
-        packagesCount: packages.length,
-        golfCoursesCount: golfCourses.length,
-      })
-
       const response = await fetch("/api/admin/trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
