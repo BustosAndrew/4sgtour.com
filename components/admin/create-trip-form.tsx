@@ -90,7 +90,7 @@ export function CreateTripForm() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   // Language state
-  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko">("en")
+  const [activeLanguage, setActiveLanguage] = useState<"en" | "de">("en")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -104,13 +104,6 @@ export function CreateTripForm() {
     min_days: "1",
   })
   
-  // Korean translations state
-  const [koreanData, setKoreanData] = useState({
-    title_ko: "",
-    description_ko: "",
-    refund_policy_ko: "",
-    location_ko: "",
-  })
   // German translations state
   const [germanData, setGermanData] = useState({
     title_de: "",
@@ -119,7 +112,6 @@ export function CreateTripForm() {
     location_de: "",
   })
   const [highlights, setHighlights] = useState<string[]>([])
-  const [highlightsKo, setHighlightsKo] = useState<string[]>([])
   const [highlightsDe, setHighlightsDe] = useState<string[]>([])
   const [coursePhotos, setCoursePhotos] = useState<string[]>([])
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -447,12 +439,6 @@ export function CreateTripForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          // Korean translations
-          title_ko: koreanData.title_ko || null,
-          description_ko: koreanData.description_ko || null,
-          refund_policy_ko: koreanData.refund_policy_ko || null,
-          location_ko: koreanData.location_ko || null,
-          highlights_ko: highlightsKo.filter((h) => h.trim() !== ""),
           // German translations
           title_de: germanData.title_de || null,
           description_de: germanData.description_de || null,
@@ -659,9 +645,9 @@ export function CreateTripForm() {
 
   const removeHighlight = (index: number) => {
     setHighlights(highlights.filter((_, i) => i !== index))
-    // Also remove corresponding Korean highlight if it exists
-    if (highlightsKo.length > index) {
-      setHighlightsKo(highlightsKo.filter((_, i) => i !== index))
+    // Also remove corresponding German highlight if it exists
+    if (highlightsDe.length > index) {
+      setHighlightsDe(highlightsDe.filter((_, i) => i !== index))
     }
   }
 
@@ -791,52 +777,52 @@ export function CreateTripForm() {
             {/* Language Tabs */}
             <div className="flex items-center gap-3">
               <Languages className="h-5 w-5 text-muted-foreground" />
-              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko")}>
+              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "de")}>
                 <TabsList className="grid w-[200px] grid-cols-2">
                   <TabsTrigger value="en" className="text-sm">
                     English
                   </TabsTrigger>
-                  <TabsTrigger value="ko" className="text-sm">
-                    Korean
+                  <TabsTrigger value="de" className="text-sm">
+                    German
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
               <p className="text-xs text-muted-foreground">
-                {activeLanguage === "en" ? "Editing English content" : "Editing Korean translation"}
+                {activeLanguage === "en" ? "Editing English content" : "Editing German translation"}
               </p>
             </div>
 
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base text-foreground">
-                  Trip Title * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Trip Title * {activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
                 <Input
                   id="title"
-                  value={activeLanguage === "en" ? formData.title : koreanData.title_ko}
+                  value={activeLanguage === "en" ? formData.title : germanData.title_de}
                   onChange={(e) =>
                     activeLanguage === "en"
                       ? setFormData({ ...formData, title: e.target.value })
-                      : setKoreanData({ ...koreanData, title_ko: e.target.value })
+                      : setGermanData({ ...germanData, title_de: e.target.value })
                   }
-                  placeholder={activeLanguage === "en" ? "St. Andrews Golf Experience" : "세인트 앤드루스 골프 체험"}
+                  placeholder={activeLanguage === "en" ? "St. Andrews Golf Experience" : "St. Andrews Golf-Erlebnis"}
                   required={activeLanguage === "en"}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-base text-foreground">
-                  Location * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Location * {activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
                 <Input
                   id="location"
-                  value={activeLanguage === "en" ? formData.location : koreanData.location_ko}
+                  value={activeLanguage === "en" ? formData.location : germanData.location_de}
                   onChange={(e) =>
                     activeLanguage === "en"
                       ? setFormData({ ...formData, location: e.target.value })
-                      : setKoreanData({ ...koreanData, location_ko: e.target.value })
+                      : setGermanData({ ...germanData, location_de: e.target.value })
                   }
-                  placeholder={activeLanguage === "en" ? "St. Andrews, Scotland" : "스코틀랜드, 세인트 앤드루스"}
+                  placeholder={activeLanguage === "en" ? "St. Andrews, Scotland" : "St. Andrews, Schottland"}
                   required={activeLanguage === "en"}
                 />
               </div>
@@ -847,17 +833,17 @@ export function CreateTripForm() {
                 htmlFor="description"
                 className="text-base text-foreground"
               >
-                Trip Overview {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                Trip Overview {activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
               </Label>
               <Textarea
                 id="description"
-                value={activeLanguage === "en" ? formData.description : koreanData.description_ko}
+                value={activeLanguage === "en" ? formData.description : germanData.description_de}
                 onChange={(e) =>
                   activeLanguage === "en"
                     ? setFormData({ ...formData, description: e.target.value })
-                    : setKoreanData({ ...koreanData, description_ko: e.target.value })
+                    : setGermanData({ ...germanData, description_de: e.target.value })
                 }
-                placeholder={activeLanguage === "en" ? "Provide a brief overview of the trip for guests..." : "여행에 대한 간략한 개요를 제공하세요..."}
+                placeholder={activeLanguage === "en" ? "Provide a brief overview of the trip for guests..." : "Kurze Übersicht der Reise für Gäste..."}
                 rows={6}
               />
             </div>
@@ -867,17 +853,17 @@ export function CreateTripForm() {
                 htmlFor="refund_policy"
                 className="text-base text-foreground"
               >
-                Refund Policy (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                Refund Policy (Optional) {activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
               </Label>
               <Textarea
                 id="refund_policy"
-                value={activeLanguage === "en" ? formData.refund_policy : koreanData.refund_policy_ko}
+                value={activeLanguage === "en" ? formData.refund_policy : germanData.refund_policy_de}
                 onChange={(e) =>
                   activeLanguage === "en"
                     ? setFormData({ ...formData, refund_policy: e.target.value })
-                    : setKoreanData({ ...koreanData, refund_policy_ko: e.target.value })
+                    : setGermanData({ ...germanData, refund_policy_de: e.target.value })
                 }
-                placeholder={activeLanguage === "en" ? "Enter the refund policy specific to this trip..." : "이 여행에 대한 환불 정책을 입력하세요..."}
+                placeholder={activeLanguage === "en" ? "Enter the refund policy specific to this trip..." : "Stornierungsrichtlinie für diese Reise eingeben..."}
                 rows={4}
               />
             </div>
@@ -885,7 +871,7 @@ export function CreateTripForm() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-base text-foreground">
-                  Highlights (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Highlights (Optional) {activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
                 {activeLanguage === "en" && (
                   <Button
@@ -927,19 +913,19 @@ export function CreateTripForm() {
                   </p>
                 )
               ) : (
-                // Korean highlights - show same number as English
+                // German highlights - show same number as English
                 highlights.length > 0 ? (
                   <div className="space-y-2">
                     {highlights.map((_, index) => (
                       <div key={index} className="flex gap-2">
                         <Input
-                          value={highlightsKo[index] || ""}
+                          value={highlightsDe[index] || ""}
                           onChange={(e) => {
-                            const updated = [...highlightsKo]
+                            const updated = [...highlightsDe]
                             updated[index] = e.target.value
-                            setHighlightsKo(updated)
+                            setHighlightsDe(updated)
                           }}
-                          placeholder={`Korean translation for: "${highlights[index]}"`}
+                          placeholder={`German translation for: "${highlights[index]}"`}
                         />
                       </div>
                     ))}
