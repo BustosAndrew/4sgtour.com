@@ -7,7 +7,7 @@ import { ChevronRight } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n/provider'
 
 type CountryLink = {
-  name: string
+  nameKey: string
   url: string
 }
 
@@ -24,13 +24,13 @@ const REGIONS: Region[] = [
     slug: 'asia',
     descriptionKey: 'asiaDescription',
     countries: [
-      { name: 'Japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
-      { name: 'Korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
-      { name: 'Thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
-      { name: 'China', url: 'https://www.tigerbooking.com/Product/FIT/CN' },
-      { name: 'Malaysia', url: 'https://www.tigerbooking.com/Product/FIT/MY' },
-      { name: 'Singapore', url: 'https://www.tigerbooking.com/Product/FIT/SG' },
-      { name: 'Vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
+      { nameKey: 'japan', url: 'https://www.tigerbooking.com/Product/FIT/JP' },
+      { nameKey: 'korea', url: 'https://www.tigerbooking.com/Product/FIT/KR' },
+      { nameKey: 'thailand', url: 'https://www.tigerbooking.com/Product/FIT/TH' },
+      { nameKey: 'china', url: 'https://www.tigerbooking.com/Product/FIT/CN' },
+      { nameKey: 'malaysia', url: 'https://www.tigerbooking.com/Product/FIT/MY' },
+      { nameKey: 'singapore', url: 'https://www.tigerbooking.com/Product/FIT/SG' },
+      { nameKey: 'vietnam', url: 'https://www.tigerbooking.com/Product/FIT/VN' },
     ],
   },
   {
@@ -38,19 +38,19 @@ const REGIONS: Region[] = [
     slug: 'europe',
     descriptionKey: 'europeDescription',
     countries: [
-      { name: 'Austria', url: 'https://www.tigerbooking.com/Product/FIT/AT' },
-      { name: 'Bulgaria', url: 'https://www.tigerbooking.com/Product/FIT/BG' },
-      { name: 'Czech', url: 'https://www.tigerbooking.com/Product/FIT/CZ' },
-      { name: 'Denmark', url: 'https://www.tigerbooking.com/Product/FIT/DK' },
-      { name: 'Germany', url: 'https://www.tigerbooking.com/Product/FIT/DE' },
-      { name: 'Italy', url: 'https://www.tigerbooking.com/Product/FIT/IT' },
-      { name: 'Ireland', url: 'https://www.tigerbooking.com/Product/EVT/IE' },
-      { name: 'Poland', url: 'https://www.tigerbooking.com/Product/FIT/PL' },
-      { name: 'Portugal', url: 'https://www.tigerbooking.com/Product/FIT/PT' },
-      { name: 'Spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
-      { name: 'Sweden', url: 'https://www.tigerbooking.com/Product/FIT/SE' },
-      { name: 'Turkey', url: 'https://www.tigerbooking.com/Product/FIT/TR' },
-      { name: 'UK', url: 'https://www.tigerbooking.com/Product/EVT/GB' },
+      { nameKey: 'austria', url: 'https://www.tigerbooking.com/Product/FIT/AT' },
+      { nameKey: 'bulgaria', url: 'https://www.tigerbooking.com/Product/FIT/BG' },
+      { nameKey: 'czech', url: 'https://www.tigerbooking.com/Product/FIT/CZ' },
+      { nameKey: 'denmark', url: 'https://www.tigerbooking.com/Product/FIT/DK' },
+      { nameKey: 'germany', url: 'https://www.tigerbooking.com/Product/FIT/DE' },
+      { nameKey: 'italy', url: 'https://www.tigerbooking.com/Product/FIT/IT' },
+      { nameKey: 'ireland', url: 'https://www.tigerbooking.com/Product/EVT/IE' },
+      { nameKey: 'poland', url: 'https://www.tigerbooking.com/Product/FIT/PL' },
+      { nameKey: 'portugal', url: 'https://www.tigerbooking.com/Product/FIT/PT' },
+      { nameKey: 'spain', url: 'https://www.tigerbooking.com/Product/FIT/ES' },
+      { nameKey: 'sweden', url: 'https://www.tigerbooking.com/Product/FIT/SE' },
+      { nameKey: 'turkey', url: 'https://www.tigerbooking.com/Product/FIT/TR' },
+      { nameKey: 'uk', url: 'https://www.tigerbooking.com/Product/EVT/GB' },
     ],
   },
   {
@@ -58,9 +58,9 @@ const REGIONS: Region[] = [
     slug: 'north-america',
     descriptionKey: 'northAmericaDescription',
     countries: [
-      { name: 'Canada', url: 'https://www.tigerbooking.com/Product/FIT/CA' },
-      { name: 'Mexico', url: 'https://www.tigerbooking.com/Product/FIT/MX' },
-      { name: 'USA', url: 'https://www.tigerbooking.com/Product/FIT/US' },
+      { nameKey: 'canada', url: 'https://www.tigerbooking.com/Product/FIT/CA' },
+      { nameKey: 'mexico', url: 'https://www.tigerbooking.com/Product/FIT/MX' },
+      { nameKey: 'usa', url: 'https://www.tigerbooking.com/Product/FIT/US' },
     ],
   },
   {
@@ -68,14 +68,14 @@ const REGIONS: Region[] = [
     slug: 'latin-america',
     descriptionKey: 'latinAmericaDescription',
     countries: [
-      { name: 'Argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
-      { name: 'Brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
-      { name: 'Chile', url: 'https://www.tigerbooking.com/Product/FIT/CL' },
-      { name: 'Colombia', url: 'https://www.tigerbooking.com/Product/FIT/CO' },
-      { name: 'Costa Rica', url: 'https://www.tigerbooking.com/Product/FIT/CR' },
-      { name: 'Los Cabos', url: 'https://www.tigerbooking.com/Product/EVT/MX' },
-      { name: 'Dominica', url: 'https://www.tigerbooking.com/Product/FIT/DO' },
-      { name: 'Panama', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
+      { nameKey: 'argentina', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
+      { nameKey: 'brazil', url: 'https://www.tigerbooking.com/Product/FIT/BR' },
+      { nameKey: 'chile', url: 'https://www.tigerbooking.com/Product/FIT/CL' },
+      { nameKey: 'colombia', url: 'https://www.tigerbooking.com/Product/FIT/CO' },
+      { nameKey: 'costaRica', url: 'https://www.tigerbooking.com/Product/FIT/CR' },
+      { nameKey: 'losCabos', url: 'https://www.tigerbooking.com/Product/EVT/MX' },
+      { nameKey: 'dominica', url: 'https://www.tigerbooking.com/Product/FIT/DO' },
+      { nameKey: 'panama', url: 'https://www.tigerbooking.com/Product/FIT/AR' },
     ],
   },
   {
@@ -83,12 +83,12 @@ const REGIONS: Region[] = [
     slug: 'world',
     descriptionKey: 'worldDescription',
     countries: [
-      { name: 'Australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
-      { name: 'Dubai', url: 'https://www.tigerbooking.com/Product/FIT/AE' },
-      { name: 'Morocco', url: 'https://www.tigerbooking.com/Product/FIT/MA' },
-      { name: 'Mauritius', url: 'https://www.tigerbooking.com/Product/FIT/MU' },
-      { name: 'New Zealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
-      { name: 'South Africa', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
+      { nameKey: 'australia', url: 'https://www.tigerbooking.com/Product/FIT/AU' },
+      { nameKey: 'dubai', url: 'https://www.tigerbooking.com/Product/FIT/AE' },
+      { nameKey: 'morocco', url: 'https://www.tigerbooking.com/Product/FIT/MA' },
+      { nameKey: 'mauritius', url: 'https://www.tigerbooking.com/Product/FIT/MU' },
+      { nameKey: 'newZealand', url: 'https://www.tigerbooking.com/Product/FIT/NZ' },
+      { nameKey: 'southAfrica', url: 'https://www.tigerbooking.com/Product/FIT/ZA' },
     ],
   },
 ]
@@ -156,14 +156,14 @@ export function TigerBooking() {
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {activeRegion.countries.map((country) => (
                 <a
-                  key={country.name}
+                  key={country.nameKey}
                   href={country.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[14px] font-semibold text-[#22333b] underline decoration-[#735c38]/30 underline-offset-2 transition-colors hover:text-[#735c38] hover:decoration-[#735c38]/60"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {country.name}
+                  {t(`countries.${country.nameKey}`)}
                 </a>
               ))}
             </div>
