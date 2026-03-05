@@ -25,7 +25,8 @@ import {
 } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
-import { useTranslations } from '@/lib/i18n/provider'
+import { useTranslations, useLocale } from '@/lib/i18n/provider'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 interface Trip {
   id: string
@@ -45,7 +46,11 @@ interface Trip {
   packages?: Array<{
     id: string
     name: string
+    name_ko?: string | null
+    name_de?: string | null
     description: string | null
+    description_ko?: string | null
+    description_de?: string | null
     price: number
   }>
   add_ons?: Array<{
@@ -73,22 +78,27 @@ function PlanCard({
   selected,
   onSelect,
   t,
+  locale,
 }: {
-  pkg: { id: string; name: string; description: string | null; price: number }
+  pkg: { id: string; name: string; name_ko?: string | null; name_de?: string | null; description: string | null; description_ko?: string | null; description_de?: string | null; price: number }
   selected: boolean
   onSelect: () => void
   t: (key: string) => string
+  locale: string
 }) {
   const [expanded, setExpanded] = useState(false)
   const [clamped, setClamped] = useState(false)
   const descRef = useRef<HTMLParagraphElement>(null)
+  
+  const pkgName = getLocalizedField(pkg, 'name', locale as any)
+  const pkgDescription = getLocalizedField(pkg, 'description', locale as any)
 
   useEffect(() => {
     const el = descRef.current
     if (el) {
       setClamped(el.scrollHeight > el.clientHeight)
     }
-  }, [pkg.description])
+  }, [pkgDescription])
 
   return (
     <div
@@ -99,8 +109,8 @@ function PlanCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <h3 className="font-serif text-xl font-medium">{pkg.name}</h3>
-          {pkg.description && (
+          <h3 className="font-serif text-xl font-medium">{pkgName}</h3>
+          {pkgDescription && (
             <div className="mt-1">
               <p
                 ref={descRef}
@@ -108,7 +118,7 @@ function PlanCard({
                   !expanded ? 'line-clamp-3' : ''
                 }`}
               >
-                {pkg.description}
+                {pkgDescription}
               </p>
               {clamped && (
                 <button
@@ -147,6 +157,7 @@ export function BookingForm({
   preSelectedPackageId,
 }: BookingFormProps) {
   const t = useTranslations('booking')
+  const locale = useLocale()
   const supabase = createClient()
 
   const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>(
@@ -674,6 +685,7 @@ export function BookingForm({
                   selected={selectedPlan === pkg.id}
                   onSelect={() => setSelectedPlan(pkg.id)}
                   t={t}
+                  locale={locale}
                 />
               ))}
             </div>

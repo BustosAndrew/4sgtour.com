@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { autoTranslateTrip } from "@/lib/auto-translate"
+import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
 import { headers } from "next/headers"
 
 export async function POST(request: Request) {
@@ -243,6 +243,21 @@ export async function POST(request: Request) {
         useEnglishAsSource ? "en" : "ko",
         supabase
       ).catch(err => console.error("[v0] Background translation error:", err))
+      
+      // Also translate packages if they were created
+      const { data: insertedPackages } = await supabase
+        .from("packages")
+        .select("id, name, description")
+        .eq("trip_id", tripData.id)
+      
+      if (insertedPackages && insertedPackages.length > 0) {
+        autoTranslatePackages(
+          baseUrl,
+          insertedPackages,
+          useEnglishAsSource ? "en" : "ko",
+          supabase
+        ).catch(err => console.error("[v0] Background package translation error:", err))
+      }
     }
 
     return NextResponse.json(tripData, { status: 201 })

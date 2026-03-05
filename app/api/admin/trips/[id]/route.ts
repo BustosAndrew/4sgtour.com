@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
-import { autoTranslateTrip } from "@/lib/auto-translate"
+import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
 import { headers } from "next/headers"
 
 export async function PATCH(
@@ -245,6 +245,8 @@ export async function PATCH(
   const hasEnglishContent = body.title && body.title.trim()
   const hasKoreanContent = body.title_ko && body.title_ko.trim()
   
+  console.log("[v0] Auto-translate check:", { hasEnglishContent, hasKoreanContent, title: body.title, description: body.description?.substring(0, 50) })
+  
   if (hasEnglishContent || hasKoreanContent) {
     const headersList = await headers()
     const host = headersList.get("host") || "localhost:3000"
@@ -254,15 +256,35 @@ export async function PATCH(
     // Prioritize English as source - if English content exists, use it
     const useEnglishAsSource = hasEnglishContent
     
+    console.log("[v0] Starting auto-translate for trip:", id, "useEnglishAsSource:", useEnglishAsSource, "baseUrl:", baseUrl)
+    
     autoTranslateTrip(
       baseUrl,
       id,
       useEnglishAsSource
-        ? { title: body.title, description: body.description, location: body.location, refund_policy: body.refund_policy, highlights: body.highlights }
-        : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, highlights: body.highlights_ko },
+        ? { title: body.title, description: body.description, location: body.location, refund_policy: body.refund_policy, overview_content: body.overview_content, highlights: body.highlights }
+        : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, overview_content: body.overview_content_ko, highlights: body.highlights_ko },
       useEnglishAsSource ? "en" : "ko",
       supabase
     ).catch(err => console.error("[v0] Background translation error:", err))
+    
+    // Also translate packages if they exist
+    if (body.packages && body.packages.length > 0) {
+      // Need to fetch the newly inserted package IDs
+      const { data: insertedPackages } = await supabase
+        .from("packages")
+        .select("id, name, description")
+        .eq("trip_id", id)
+      
+      if (insertedPackages && insertedPackages.length > 0) {
+        autoTranslatePackages(
+          baseUrl,
+          insertedPackages,
+          useEnglishAsSource ? "en" : "ko",
+          supabase
+        ).catch(err => console.error("[v0] Background package translation error:", err))
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
