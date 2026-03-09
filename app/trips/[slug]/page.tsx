@@ -163,22 +163,7 @@ export default async function TripPage({ params }: TripPageProps) {
               )}
             </div>
 
-            {/* Refund Policy Section - Desktop Only */}
-            {tripRefundPolicy && (
-              <div className="hidden lg:block">
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  {t("refundPolicy")}
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
-                  {tripRefundPolicy}
-                </p>
-              </div>
-            )}
-
-            {additionalImages.length > 0 && (
+{additionalImages.length > 0 && (
               <TripImageGallery images={additionalImages} title={tripTitle} />
             )}
 
@@ -208,6 +193,21 @@ export default async function TripPage({ params }: TripPageProps) {
                   t("defaultOverview")}
               </p>
             </div>
+
+            {/* Refund Policy Section */}
+            {tripRefundPolicy && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+                  {t("refundPolicy")}
+                </h2>
+                <div className="mt-2 mb-4">
+                  <AnimatedHr />
+                </div>
+                <p className="max-h-[7.5rem] overflow-y-auto text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
+                  {tripRefundPolicy}
+                </p>
+              </div>
+            )}
 
             {/* Highlights Section */}
             {tripHighlights && tripHighlights.length > 0 && (
@@ -303,20 +303,6 @@ export default async function TripPage({ params }: TripPageProps) {
               )}
             </div>
 
-            {/* Refund Policy Section - Mobile Only */}
-            {tripRefundPolicy && (
-              <div className="lg:hidden">
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  {t("refundPolicy")}
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
-                  {tripRefundPolicy}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </section>
