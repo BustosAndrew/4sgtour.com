@@ -25,14 +25,14 @@ export default async function EventPage({ params }: EventPageProps) {
     notFound()
   }
 
-  // Get event with all related data
+  // Get event with all related data including translations
   const { data: event } = await supabase
     .from('tournament_events')
     .select(`
       *,
-      tournament_event_itinerary_days(id, display_order, title, content),
+      tournament_event_itinerary_days(id, display_order, title, title_ko, title_de, content, content_ko, content_de),
       tournament_event_gallery_images(id, image_url, display_order, gallery_type),
-      tournament_event_pricing_tiers(id, name, price, display_order)
+      tournament_event_pricing_tiers(id, name, name_ko, name_de, price, display_order, booking_url)
     `)
     .eq('tournament_id', tournament.id)
     .eq('slug', eventSlug)
