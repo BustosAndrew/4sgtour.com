@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       title,
       description,
       refund_policy,
+      overview_content,
       location,
       continent,
       price_regular,
@@ -41,12 +42,14 @@ export async function POST(request: Request) {
       title_ko,
       description_ko,
       refund_policy_ko,
+      overview_content_ko,
       location_ko,
       highlights_ko,
       // German translations
       title_de,
       description_de,
       refund_policy_de,
+      overview_content_de,
       location_de,
       highlights_de,
       packages,
@@ -70,6 +73,7 @@ export async function POST(request: Request) {
         title,
         description,
         refund_policy: refund_policy || null,
+        overview_content: overview_content || null,
         location,
         continent,
         slug,
@@ -85,12 +89,14 @@ export async function POST(request: Request) {
         title_ko: title_ko || null,
         description_ko: description_ko || null,
         refund_policy_ko: refund_policy_ko || null,
+        overview_content_ko: overview_content_ko || null,
         location_ko: location_ko || null,
         highlights_ko: highlights_ko || [],
         // German translations
         title_de: title_de || null,
         description_de: description_de || null,
         refund_policy_de: refund_policy_de || null,
+        overview_content_de: overview_content_de || null,
         location_de: location_de || null,
         highlights_de: highlights_de || [],
         show_from_price: body.show_from_price || false,
@@ -238,8 +244,8 @@ export async function POST(request: Request) {
         baseUrl,
         tripData.id,
         useEnglishAsSource
-          ? { title, description, location, refund_policy, highlights }
-          : { title: title_ko, description: description_ko, location: location_ko, refund_policy: refund_policy_ko, highlights: highlights_ko },
+          ? { title, description, location, refund_policy, overview_content, highlights }
+          : { title: title_ko, description: description_ko, location: location_ko, refund_policy: refund_policy_ko, overview_content: overview_content_ko, highlights: highlights_ko },
         useEnglishAsSource ? "en" : "ko",
         supabase
       ).catch(err => console.error("[v0] Background translation error:", err))

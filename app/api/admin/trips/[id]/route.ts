@@ -52,6 +52,8 @@ export async function PATCH(
       highlights_ko: body.highlights_ko ?? null,
       highlights_de: body.highlights_de ?? null,
       overview_content: body.overview_content,
+      overview_content_ko: body.overview_content_ko ?? null,
+      overview_content_de: body.overview_content_de ?? null,
       courses_photo_url: body.courses_photo_url,
       room_photo_url: body.room_photo_url,
       show_from_price: body.show_from_price ?? false,
