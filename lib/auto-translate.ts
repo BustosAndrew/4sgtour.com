@@ -207,6 +207,106 @@ export async function autoTranslatePackages(
 }
 
 /**
+ * Auto-translate tournament event itinerary days
+ * Called after event create/update when itinerary days are created
+ */
+export async function autoTranslateItineraryDays(
+  baseUrl: string,
+  itineraryDays: Array<{
+    id: string
+    title?: string
+    content?: string
+  }>,
+  sourceLanguage: "en" | "ko",
+  supabase: any
+): Promise<void> {
+  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+
+  for (const day of itineraryDays) {
+    if (!day.id) continue
+
+    for (const targetLang of targetLanguages) {
+      const updates: Record<string, any> = {}
+      const suffix = targetLang === "en" ? "" : `_${targetLang}`
+
+      const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
+
+      if (day.title) {
+        fieldsToTranslate.push({ field: `title${suffix}`, text: day.title, fieldType: "title" })
+      }
+      if (day.content) {
+        fieldsToTranslate.push({ field: `content${suffix}`, text: day.content, fieldType: "description" })
+      }
+
+      if (fieldsToTranslate.length > 0) {
+        const translations = await translateBatch(baseUrl, {
+          fields: fieldsToTranslate,
+          targetLanguage: targetLang,
+          sourceLanguage,
+        })
+        Object.assign(updates, translations)
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from("tournament_event_itinerary_days")
+          .update(updates)
+          .eq("id", day.id)
+
+        if (error) {
+          console.error(`[auto-translate] Error updating itinerary day ${day.id} ${targetLang}:`, error)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Auto-translate tournament event pricing tiers
+ * Called after event create/update when pricing tiers are created
+ */
+export async function autoTranslatePricingTiers(
+  baseUrl: string,
+  pricingTiers: Array<{
+    id: string
+    name?: string
+  }>,
+  sourceLanguage: "en" | "ko",
+  supabase: any
+): Promise<void> {
+  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+
+  for (const tier of pricingTiers) {
+    if (!tier.id) continue
+
+    for (const targetLang of targetLanguages) {
+      const updates: Record<string, any> = {}
+      const suffix = targetLang === "en" ? "" : `_${targetLang}`
+
+      if (tier.name) {
+        const translations = await translateBatch(baseUrl, {
+          fields: [{ field: `name${suffix}`, text: tier.name, fieldType: "title" }],
+          targetLanguage: targetLang,
+          sourceLanguage,
+        })
+        Object.assign(updates, translations)
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from("tournament_event_pricing_tiers")
+          .update(updates)
+          .eq("id", tier.id)
+
+        if (error) {
+          console.error(`[auto-translate] Error updating pricing tier ${tier.id} ${targetLang}:`, error)
+        }
+      }
+    }
+  }
+}
+
+/**
  * Auto-translate tournament event fields from source language to other languages
  * Called after event create/update
  * Note: description, trip_highlights, travel_itinerary, includes, excludes are stored as arrays in the DB

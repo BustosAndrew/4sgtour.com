@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { autoTranslateTournamentEvent } from "@/lib/auto-translate"
+import { autoTranslateTournamentEvent, autoTranslateItineraryDays, autoTranslatePricingTiers } from "@/lib/auto-translate"
 import { headers } from "next/headers"
 
 export async function POST(
@@ -205,6 +205,35 @@ export async function POST(
         useEnglishAsSource ? "en" : "ko",
         supabase
       ).catch(err => console.error("[v0] Background translation error:", err))
+
+      // Also translate itinerary days and pricing tiers
+      const { data: insertedItinerary } = await supabase
+        .from("tournament_event_itinerary_days")
+        .select("id, title, content")
+        .eq("event_id", eventData.id)
+
+      if (insertedItinerary && insertedItinerary.length > 0) {
+        autoTranslateItineraryDays(
+          baseUrl,
+          insertedItinerary,
+          useEnglishAsSource ? "en" : "ko",
+          supabase
+        ).catch(err => console.error("[v0] Background itinerary translation error:", err))
+      }
+
+      const { data: insertedPricingTiers } = await supabase
+        .from("tournament_event_pricing_tiers")
+        .select("id, name")
+        .eq("event_id", eventData.id)
+
+      if (insertedPricingTiers && insertedPricingTiers.length > 0) {
+        autoTranslatePricingTiers(
+          baseUrl,
+          insertedPricingTiers,
+          useEnglishAsSource ? "en" : "ko",
+          supabase
+        ).catch(err => console.error("[v0] Background pricing tier translation error:", err))
+      }
     }
 
     return NextResponse.json(eventData, { status: 201 })

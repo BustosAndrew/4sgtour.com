@@ -10,12 +10,17 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { useTranslations } from '@/lib/i18n/provider'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 type ItineraryDay = {
   id: string
   display_order: number
   title: string
+  title_ko?: string | null
+  title_de?: string | null
   content: string | null
+  content_ko?: string | null
+  content_de?: string | null
 }
 
 type GalleryImage = {
@@ -28,27 +33,45 @@ type GalleryImage = {
 type PricingTier = {
   id: string
   name: string
+  name_ko?: string | null
+  name_de?: string | null
   price: string | null
   display_order: number | null
+  description?: string | null
 }
 
 type TournamentEvent = {
   id: string
   slug: string
   title: string
+  title_ko?: string | null
+  title_de?: string | null
   location: string
+  location_ko?: string | null
+  location_de?: string | null
   date: string
   duration: string | null
   description: string[] | null
+  description_ko?: string[] | null
+  description_de?: string[] | null
   trip_highlights: string[] | null
+  trip_highlights_ko?: string[] | null
+  trip_highlights_de?: string[] | null
   travel_itinerary: string[] | null
+  travel_itinerary_ko?: string[] | null
+  travel_itinerary_de?: string[] | null
   includes: string[] | null
+  includes_ko?: string[] | null
+  includes_de?: string[] | null
   excludes: string[] | null
+  excludes_ko?: string[] | null
+  excludes_de?: string[] | null
   image: string | null
   hero_image: string | null
   tournament_event_itinerary_days: ItineraryDay[]
   tournament_event_gallery_images: GalleryImage[]
   tournament_event_pricing_tiers: PricingTier[]
+  venue?: string | null
 }
 
 interface EventDetailViewProps {
@@ -101,6 +124,14 @@ export function EventDetailView({
   const itineraryDays = event.tournament_event_itinerary_days || []
   const galleryImages = event.tournament_event_gallery_images || []
   const pricingTiers = event.tournament_event_pricing_tiers || []
+
+  // Get localized fields for the event
+  const eventTitle = getLocalizedField(event as any, 'title', locale) as string
+  const eventLocation = getLocalizedField(event as any, 'location', locale) as string
+  const eventDescription = getLocalizedField(event as any, 'description', locale, true) as string[] | null
+  const eventHighlights = getLocalizedField(event as any, 'trip_highlights', locale, true) as string[] | null
+  const eventIncludes = getLocalizedField(event as any, 'includes', locale, true) as string[] | null
+  const eventExcludes = getLocalizedField(event as any, 'excludes', locale, true) as string[] | null
 
   const [allExpanded, setAllExpanded] = useState(false)
   const [openItems, setOpenItems] = useState<string[]>(['day-0'])
@@ -155,7 +186,7 @@ export function EventDetailView({
       <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
         <img
           src={tournamentHeroImage || '/placeholder.svg'}
-          alt={event.title}
+          alt={eventTitle}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
@@ -170,7 +201,7 @@ export function EventDetailView({
             className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
-            {titleCase(event.title)}
+            {titleCase(eventTitle)}
           </h1>
         </div>
       </section>
@@ -273,12 +304,12 @@ export function EventDetailView({
               className="text-2xl sm:text-3xl md:text-4xl text-[#735c38]"
               style={{ fontFamily: 'var(--font-display-alt)' }}
             >
-              {titleCase(event.title)}
+              {titleCase(eventTitle)}
             </h2>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#735c38]">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-[#735c38]" />
-                {event.location}
+                {eventLocation}
                 {event.venue && ` - ${event.venue}`}
               </span>
               <span className="flex items-center gap-1.5">
@@ -288,14 +319,17 @@ export function EventDetailView({
             </div>
 
             {/* Description */}
-            {event.description && (
+            {eventDescription && eventDescription.length > 0 && (
               <div className="mt-6 flex flex-col gap-4">
-                <p
-                  className="text-sm leading-relaxed text-[#735c38] sm:text-base"
-                  style={{ fontFamily: 'var(--font-body)' }}
-                >
-                  {event.description}
-                </p>
+                {eventDescription.map((desc, idx) => (
+                  <p
+                    key={idx}
+                    className="text-sm leading-relaxed text-[#735c38] sm:text-base"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    {desc}
+                  </p>
+                ))}
               </div>
             )}
 
@@ -304,13 +338,13 @@ export function EventDetailView({
               <div className="mt-10">
                 <ImageCarousel
                   images={eventGalleryImages.map((img) => img.image_url)}
-                  alt={event.title}
+                  alt={eventTitle}
                 />
               </div>
             )}
 
             {/* Trip Highlights */}
-            {event.trip_highlights && event.trip_highlights.length > 0 && (
+            {eventHighlights && eventHighlights.length > 0 && (
               <div id={sectionIds.highlights} className="mt-12 scroll-mt-28">
                 <h3
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
@@ -319,7 +353,7 @@ export function EventDetailView({
                   {t('tripHighlights')}:
                 </h3>
                 <ul className="mt-4 space-y-2">
-                  {event.trip_highlights.map((highlight, idx) => (
+                  {eventHighlights.map((highlight, idx) => (
                     <li
                       key={idx}
                       className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
@@ -367,35 +401,39 @@ export function EventDetailView({
                 >
                   {itineraryDays
                     .sort((a, b) => a.display_order - b.display_order)
-                    .map((day, i) => (
-                      <AccordionItem
-                        key={day.id}
-                        value={`day-${i}`}
-                        className="border-border"
-                      >
-                        <AccordionTrigger
-                          className="text-sm font-semibold text-[#735c38] sm:text-base"
-                          style={{ fontFamily: 'var(--font-body)' }}
+                    .map((day, i) => {
+                      const dayTitle = getLocalizedField(day as any, 'title', locale) as string
+                      const dayContent = getLocalizedField(day as any, 'content', locale) as string
+                      return (
+                        <AccordionItem
+                          key={day.id}
+                          value={`day-${i}`}
+                          className="border-border"
                         >
-                          {t('day')} {i + 1}: {day.title}
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <p
-                            className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                          <AccordionTrigger
+                            className="text-sm font-semibold text-[#735c38] sm:text-base"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
-                            {day.content || t('detailsComingSoon')}
-                          </p>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
+                            {t('day')} {i + 1}: {dayTitle}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <p
+                              className="text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
+                              style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                              {dayContent || t('detailsComingSoon')}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
                 </Accordion>
               </div>
             )}
 
             {/* What's Included / Excluded */}
-            {((event.includes && event.includes.length > 0) ||
-              (event.excludes && event.excludes.length > 0)) && (
+            {((eventIncludes && eventIncludes.length > 0) ||
+              (eventExcludes && eventExcludes.length > 0)) && (
               <div id={sectionIds.includes} className="mt-12 scroll-mt-28">
                 <h3
                   className="text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
@@ -404,9 +442,9 @@ export function EventDetailView({
                   {t('whatsIncluded')}:
                 </h3>
 
-                {event.includes && event.includes.length > 0 && (
+                {eventIncludes && eventIncludes.length > 0 && (
                   <ul className="mt-4 space-y-2">
-                    {event.includes.map((item, idx) => (
+                    {eventIncludes.map((item, idx) => (
                       <li
                         key={idx}
                         className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
@@ -419,7 +457,7 @@ export function EventDetailView({
                   </ul>
                 )}
 
-                {event.excludes && event.excludes.length > 0 && (
+                {eventExcludes && eventExcludes.length > 0 && (
                   <>
                     <h3
                       className="mt-6 text-base font-bold uppercase tracking-wide text-[#735c38] sm:text-lg"
@@ -428,7 +466,7 @@ export function EventDetailView({
                       {t('whatsNotIncluded')}:
                     </h3>
                     <ul className="mt-4 space-y-2">
-                      {event.excludes.map((item, idx) => (
+                      {eventExcludes.map((item, idx) => (
                         <li
                           key={idx}
                           className="flex items-start gap-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
@@ -456,7 +494,7 @@ export function EventDetailView({
                 <div className="mt-4">
                   <ImageCarousel
                     images={hotelGalleryImages.map((img) => img.image_url)}
-                    alt={`${event.title} accommodations`}
+                    alt={`${eventTitle} accommodations`}
                   />
                 </div>
               </div>
@@ -475,41 +513,44 @@ export function EventDetailView({
                   className="mt-3 text-sm leading-relaxed text-[#735c38]/80 sm:text-base"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
-                  {titleCase(event.title)}
+                  {titleCase(eventTitle)}
                   {t('packagesDescription')}
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
-                  {pricingTiers.map((tier) => (
-                    <div
-                      key={tier.id}
-                      className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
-                    >
-                      <div>
-                        <p
-                          className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {tier.name}
-                        </p>
-                        {tier.description && (
+                  {pricingTiers.map((tier) => {
+                    const tierName = getLocalizedField(tier as any, 'name', locale) as string
+                    return (
+                      <div
+                        key={tier.id}
+                        className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                      >
+                        <div>
                           <p
-                            className="mt-1 text-xs text-[#735c38]/70"
+                            className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
-                            {tier.description}
+                            {tierName}
                           </p>
-                        )}
+                          {tier.description && (
+                            <p
+                              className="mt-1 text-xs text-[#735c38]/70"
+                              style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                              {tier.description}
+                            </p>
+                          )}
+                        </div>
+                        <Link
+                          href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                          className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          {t('getTickets')}
+                        </Link>
                       </div>
-                      <Link
-                        href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                        className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {t('getTickets')}
-                      </Link>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}

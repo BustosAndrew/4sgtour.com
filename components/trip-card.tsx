@@ -9,7 +9,8 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import type { Trip } from "@/lib/types/database"
-import { useTranslations } from "@/lib/i18n/provider"
+import { useTranslations, useLocale } from "@/lib/i18n/provider"
+import { getLocalizedField } from "@/lib/i18n/get-localized-field"
 
 interface TripCardProps {
   trip: Trip & { images?: Array<{ image_url: string }> }
@@ -18,6 +19,7 @@ interface TripCardProps {
 
 export function TripCard({ trip, isFavorite = false }: TripCardProps) {
   const t = useTranslations("tripCard")
+  const locale = useLocale()
   const [favorite, setFavorite] = useState(isFavorite)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -69,7 +71,11 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
     router.push(`/trips/${trip.slug}/book?package=${packageId}`)
   }
 
-  const imageUrl = trip.courses_photo_url || `/placeholder.svg?height=300&width=400&query=golf course ${trip.location}`
+  // Get localized title and location
+  const tripTitle = getLocalizedField(trip as any, 'title', locale) as string
+  const tripLocation = getLocalizedField(trip as any, 'location', locale) as string
+
+  const imageUrl = trip.courses_photo_url || `/placeholder.svg?height=300&width=400&query=golf course ${tripLocation}`
 
   return (
     <div onClick={handleCardClick} className="group block cursor-pointer">
@@ -77,13 +83,13 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={imageUrl || "/placeholder.svg"}
-            alt={trip.title}
+            alt={tripTitle}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         </div>
         <div className="p-3 sm:p-4">
-          <p className="text-xs text-muted-foreground sm:text-sm">{trip.location}</p>
-          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{trip.title}</h3>
+          <p className="text-xs text-muted-foreground sm:text-sm">{tripLocation}</p>
+          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{tripTitle}</h3>
 
           <div className="mt-2 flex items-center gap-3">
             {hasBothPackages ? (
