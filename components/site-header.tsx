@@ -314,7 +314,7 @@ export function SiteHeader({
     mounted && mobileMenuOpen
       ? createPortal(
           <div
-            className="lg:hidden fixed left-0 right-0 top-[82px] bottom-0 border-t border-black/10"
+            className="lg:hidden fixed left-0 right-0 top-[100px] bottom-0 border-t border-black/10"
             style={{
               backgroundColor: '#ffffff',
               zIndex: 99999,
