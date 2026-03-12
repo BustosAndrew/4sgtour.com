@@ -518,36 +518,49 @@ export function EventDetailView({
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
-                  {pricingTiers.map((tier) => {
+                  {pricingTiers
+                    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+                    .map((tier) => {
                     const tierName = getLocalizedField(tier as any, 'name', locale) as string
                     return (
                       <div
                         key={tier.id}
-                        className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#e5e5e5] bg-white px-6 py-5"
                       >
-                        <div>
+                        <div className="flex-1">
                           <p
-                            className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                            className="text-sm font-bold uppercase tracking-wider text-[#735c38]"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
                             {tierName}
                           </p>
                           {tier.description && (
                             <p
-                              className="mt-1 text-xs text-[#735c38]/70"
+                              className="mt-1 text-sm text-[#735c38]/70"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
                               {tier.description}
                             </p>
                           )}
                         </div>
-                        <Link
-                          href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                          className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {t('getTickets')}
-                        </Link>
+                        <div className="flex items-center gap-6">
+                          {tier.price && (
+                            <p
+                              className="text-base sm:text-lg"
+                              style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                              <span className="text-[#6b7280]">{t('from')} </span>
+                              <span className="font-semibold text-[#495c48]">{tier.price}</span>
+                            </p>
+                          )}
+                          <Link
+                            href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                            className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b] whitespace-nowrap"
+                            style={{ fontFamily: 'var(--font-body)' }}
+                          >
+                            {t('getTickets')}
+                          </Link>
+                        </div>
                       </div>
                     )
                   })}
