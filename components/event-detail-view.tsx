@@ -182,15 +182,15 @@ export function EventDetailView({
 
   return (
     <div>
-      {/* Hero Banner - always use the tournament-level hero image */}
-      <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
+      {/* Hero Banner - always use the tournament-level hero image, includes 100px top padding for fixed header */}
+      <section className="relative h-[55vh] sm:h-[50vh] md:h-[55vh] w-full pt-[100px]">
         <img
           src={tournamentHeroImage || '/placeholder.svg'}
           alt={eventTitle}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pt-[100px]">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
           <p
             className="text-xs font-bold uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
