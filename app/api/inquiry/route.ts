@@ -89,10 +89,11 @@ Inquiry ID: ${inquiry?.id || "N/A"}
     `.trim()
 
     // Send email
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
+    const adminEmail = process.env.ADMIN_EMAIL || "info@4sgtour.com"
 
     await resend.emails.send({
-      from: "Golf Trips <noreply@yourdomain.com>",
+      from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+      replyTo: customerEmail,
       to: adminEmail,
       subject: `New Inquiry: ${tripTitle}`,
       text: emailContent,
