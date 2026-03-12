@@ -79,8 +79,8 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
 
-        {/* Hero Content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+        {/* Hero Content — offset top by fixed header height so content isn't hidden behind it */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pt-[100px]">
           <p
             className="text-xs font-bold uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}

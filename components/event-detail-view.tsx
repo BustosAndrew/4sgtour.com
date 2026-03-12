@@ -190,7 +190,7 @@ export function EventDetailView({
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pt-[100px]">
           <p
             className="text-xs font-bold uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
