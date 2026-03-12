@@ -518,14 +518,16 @@ export function EventDetailView({
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
-                  {pricingTiers.map((tier) => {
+                  {pricingTiers
+                    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+                    .map((tier) => {
                     const tierName = getLocalizedField(tier as any, 'name', locale) as string
                     return (
                       <div
                         key={tier.id}
-                        className="flex items-center justify-between border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
                       >
-                        <div>
+                        <div className="flex-1">
                           <p
                             className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
                             style={{ fontFamily: 'var(--font-body)' }}
@@ -541,13 +543,23 @@ export function EventDetailView({
                             </p>
                           )}
                         </div>
-                        <Link
-                          href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                          className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b]"
-                          style={{ fontFamily: 'var(--font-body)' }}
-                        >
-                          {t('getTickets')}
-                        </Link>
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          {tier.price && (
+                            <p
+                              className="text-lg font-bold text-[#22333b] sm:text-xl"
+                              style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                              {tier.price}
+                            </p>
+                          )}
+                          <Link
+                            href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
+                            className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b] whitespace-nowrap"
+                            style={{ fontFamily: 'var(--font-body)' }}
+                          >
+                            {t('getTickets')}
+                          </Link>
+                        </div>
                       </div>
                     )
                   })}
