@@ -191,7 +191,7 @@ export function TournamentsCarousel({ events }: { events: TournamentItem[] }) {
                       className="mt-4 text-sm text-[#735C38] font-semibold"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
-                      from <span className="text-lg font-bold">{item.price}</span>
+                      <span className="text-lg font-bold">{item.price}</span>
                     </p>
                   )}
                 </div>
