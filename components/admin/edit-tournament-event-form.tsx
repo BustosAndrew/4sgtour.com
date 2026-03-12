@@ -306,7 +306,8 @@ export function EditTournamentEventForm({
     return { valid: errors.length === 0, errors }
   }
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault()
     const { valid, errors } = validateCurrentStep()
     if (!valid) {
       setValidationErrors(errors)
