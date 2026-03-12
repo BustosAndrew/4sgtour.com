@@ -8,11 +8,49 @@ import { TigerBooking } from '@/components/tiger-booking'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
-import { getServerTranslations } from '@/lib/i18n/server'
+import { getServerTranslations, getServerLocale } from '@/lib/i18n/server'
+import { createClient } from '@/lib/supabase/server'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 export default async function HomePage() {
   const t = await getServerTranslations('home')
   const tStats = await getServerTranslations('stats')
+  const locale = await getServerLocale()
+  const supabase = await createClient()
+
+  // Fetch tournament events with their tournament info
+  const { data: eventsData } = await supabase
+    .from('tournament_events')
+    .select(`
+      id,
+      slug,
+      title,
+      title_ko,
+      title_de,
+      location,
+      location_ko,
+      location_de,
+      date,
+      duration,
+      price,
+      image,
+      tournament_id,
+      tournaments!inner(slug)
+    `)
+    .order('date', { ascending: true })
+    .limit(8)
+
+  // Transform events for the carousel
+  const tournamentEvents = (eventsData || []).map((event: any) => ({
+    id: event.id,
+    title: getLocalizedField(event, 'title', locale) as string,
+    location: getLocalizedField(event, 'location', locale) as string,
+    date: event.date,
+    duration: event.duration,
+    price: event.price,
+    image: event.image,
+    href: `/tournaments/${event.tournaments.slug}/${event.slug}`,
+  }))
 
   const stats = [
     {
@@ -182,7 +220,7 @@ export default async function HomePage() {
           </div>
 
           {/* Tournament Carousel - bleeding to the right */}
-          <TournamentsCarousel />
+          <TournamentsCarousel events={tournamentEvents} />
         </section>
 
         {/* The Charm of Overseas Golf Travel Section */}

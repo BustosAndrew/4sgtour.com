@@ -166,7 +166,7 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: "Golf Trips <onboarding@resend.dev>",
+            from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
             replyTo: supportEmail,
             to: inquiryContext.customer_email,
             subject: `New Message: ${inquiryContext.trip_title}`,
@@ -229,7 +229,7 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: "Golf Trips <onboarding@resend.dev>",
+            from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
             replyTo: inquiryContext.customer_email,
             to: adminEmail,
             subject: `New Customer Message: ${inquiryContext.trip_title}`,

@@ -7,53 +7,20 @@ import {
   ChevronRight,
   MapPin,
   Calendar,
-  Clock,
 } from 'lucide-react'
 
-const tournamentItems = [
-  {
-    id: '1',
-    title: 'THE 154TH OPEN AT ROYAL BIRKDALE',
-    location: 'Southport, England',
-    date: 'September, 2027',
-    duration: '3 Nights & 3 Rounds',
-    price: '$615',
-    image: '/images/1.png',
-    href: '/tournaments/the-open',
-  },
-  {
-    id: '2',
-    title: 'THE 2027 RYDER CUP',
-    location: 'Limerick, Ireland',
-    date: 'September, 2027',
-    duration: '3 Nights & 3 Rounds',
-    price: '$615',
-    image: '/images/2.png',
-    href: '/tournaments/ryder-cup',
-  },
-  {
-    id: '3',
-    title: 'THE MASTERS 2026',
-    location: 'Augusta, Georgia',
-    date: 'April, 2026',
-    duration: '4 Nights & 3 Rounds',
-    price: '$1,250',
-    image: '/images/3.png',
-    href: '/tournaments/masters',
-  },
-  {
-    id: '4',
-    title: 'US OPEN 2026',
-    location: 'Shinnecock Hills, New York',
-    date: 'June, 2026',
-    duration: '3 Nights & 3 Rounds',
-    price: '$950',
-    image: '/images/4.png',
-    href: '/tournaments/us-open',
-  },
-]
+type TournamentItem = {
+  id: string
+  title: string
+  location: string
+  date: string
+  duration: string | null
+  price: string | null
+  image: string | null
+  href: string
+}
 
-export function TournamentsCarousel() {
+export function TournamentsCarousel({ events }: { events: TournamentItem[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [containerWidth, setContainerWidth] = useState(0)
   const [cardWidth, setCardWidth] = useState(420)
@@ -107,7 +74,7 @@ export function TournamentsCarousel() {
 
   const maxIndex = Math.max(
     0,
-    Math.ceil(tournamentItems.length - visibleSlides),
+    Math.ceil(events.length - visibleSlides),
   )
 
   const goToPrev = () => {
@@ -125,8 +92,8 @@ export function TournamentsCarousel() {
     }
     // Total content width (cards + gaps + left/right padding)
     const totalContentWidth =
-      tournamentItems.length * cardWidth +
-      (tournamentItems.length - 1) * gap +
+      events.length * cardWidth +
+      (events.length - 1) * gap +
       padding * 2
     // Maximum we can scroll before last card hits right edge
     const maxScroll = Math.max(0, totalContentWidth - containerWidth)
@@ -174,7 +141,7 @@ export function TournamentsCarousel() {
             paddingRight: `${padding}px`,
           }}
         >
-          {tournamentItems.map((item) => (
+          {events.map((item) => (
             <Link
               key={item.id}
               href={item.href}
@@ -185,7 +152,7 @@ export function TournamentsCarousel() {
                 {/* Image */}
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={item.image}
+                    src={item.image || '/placeholder.svg'}
                     alt={item.title}
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     draggable={false}
@@ -218,22 +185,15 @@ export function TournamentsCarousel() {
                         {item.date}
                       </span>
                     </div>
-                    {/* <div className="flex items-center justify-center gap-2 text-[#22333b]">
-                      <Clock className="h-4 w-4 flex-shrink-0" />
-                      <span
-                        className="text-sm font-semibold"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        {item.duration}
-                      </span>
-                    </div> */}
                   </div>
-                  {/* <p
-                    className="mt-4 text-sm text-[#735C38] font-semibold"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    from <span className="text-lg font-bold">{item.price}</span>
-                  </p> */}
+                  {item.price && (
+                    <p
+                      className="mt-4 text-sm text-[#735C38] font-semibold"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      <span className="text-lg font-bold">{item.price}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             </Link>

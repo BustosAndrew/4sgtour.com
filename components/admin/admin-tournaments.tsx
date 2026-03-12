@@ -15,6 +15,8 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  MessageSquare,
+  BarChart3,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -201,6 +203,20 @@ export function AdminTournaments({
             <Trophy className="h-5 w-5" />
             <span className="font-medium">Tournaments</span>
           </button>
+
+          <Link href="/admin/inbox" onClick={() => setMobileMenuOpen(false)}>
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+              <MessageSquare className="h-5 w-5" />
+              <span className="font-medium">Inbox</span>
+            </button>
+          </Link>
+
+          <Link href="/admin/analytics" onClick={() => setMobileMenuOpen(false)}>
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+              <BarChart3 className="h-5 w-5" />
+              <span className="font-medium">Analytics</span>
+            </button>
+          </Link>
 
           <button
             onClick={handleSignOut}

@@ -98,7 +98,7 @@ This inquiry was submitted through the tournament tickets form.
     `.trim()
 
     await resend.emails.send({
-      from: "4 Seasons Golf <onboarding@resend.dev>",
+      from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
       replyTo: email,
       to: "info@4sgtour.com",
       subject: `Tournament Ticket Inquiry: ${eventTitle}`,

@@ -182,15 +182,15 @@ export function EventDetailView({
 
   return (
     <div>
-      {/* Hero Banner - always use the tournament-level hero image */}
-      <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
+      {/* Hero Banner - always use the tournament-level hero image, includes 100px top padding for fixed header */}
+      <section className="relative h-[55vh] sm:h-[50vh] md:h-[55vh] w-full pt-[100px]">
         <img
           src={tournamentHeroImage || '/placeholder.svg'}
           alt={eventTitle}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
           <p
             className="text-xs font-bold uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
@@ -203,6 +203,8 @@ export function EventDetailView({
           >
             {titleCase(eventTitle)}
           </h1>
+          {/* White divider under title */}
+          <div className="mx-auto mt-4 h-[3px] w-[50px] bg-white" />
         </div>
       </section>
 
@@ -525,37 +527,37 @@ export function EventDetailView({
                     return (
                       <div
                         key={tier.id}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#e5e5e5] bg-white px-6 py-5"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#e5e5e5] border-l-4 border-l-[#495c48] bg-white px-6 py-6 sm:px-8 sm:py-7"
                       >
                         <div className="flex-1">
                           <p
-                            className="text-sm font-bold uppercase tracking-wider text-[#735c38]"
+                            className="text-lg font-bold uppercase tracking-wide text-[#735c38] sm:text-xl"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
                             {tierName}
                           </p>
+                          {tier.price && (
+                            <p
+                              className="mt-2 text-base sm:text-lg"
+                              style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                              <span className="font-bold text-[#735c38]">{tier.price}</span>
+                              <span className="text-[#735c38]/70">/golfer</span>
+                            </p>
+                          )}
                           {tier.description && (
                             <p
-                              className="mt-1 text-sm text-[#735c38]/70"
+                              className="mt-2 text-sm text-[#735c38]/70"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
                               {tier.description}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-6">
-                          {tier.price && (
-                            <p
-                              className="text-base sm:text-lg"
-                              style={{ fontFamily: 'var(--font-body)' }}
-                            >
-                              <span className="text-[#6b7280]">{t('from')} </span>
-                              <span className="font-semibold text-[#495c48]">{tier.price}</span>
-                            </p>
-                          )}
+                        <div className="flex items-center">
                           <Link
                             href={`/tournaments/${tournamentSlug}/${event.slug}/tickets?tier=${encodeURIComponent(tier.name)}`}
-                            className="inline-block bg-[#495c48] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b] whitespace-nowrap"
+                            className="inline-block bg-[#495c48] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#3a4a3b] whitespace-nowrap sm:px-10 sm:py-3.5 sm:text-base"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
                             {t('getTickets')}
