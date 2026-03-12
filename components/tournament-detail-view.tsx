@@ -18,6 +18,8 @@ type TournamentEvent = {
   description: string[] | null
   description_ko?: string[] | null
   description_de?: string[] | null
+  price: string | null
+  duration: string | null
 }
 
 type Tournament = {
@@ -148,6 +150,15 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
                           </span>
                         </div>
                       </div>
+
+                      {event.price && (
+                        <p
+                          className="mt-4 text-sm text-[#735c38] font-semibold"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          from <span className="text-lg font-bold">{event.price}</span>
+                        </p>
+                      )}
 
                       <div className="mt-5 sm:mt-6">
                         <span
