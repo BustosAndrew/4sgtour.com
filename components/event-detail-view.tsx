@@ -539,7 +539,6 @@ export function EventDetailView({
                               className="mt-2 text-base sm:text-lg"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
-                              <span className="text-[#735c38]/70">{t('from')} </span>
                               <span className="font-bold text-[#735c38]">{tier.price}</span>
                               <span className="text-[#735c38]/70">/golfer</span>
                             </p>

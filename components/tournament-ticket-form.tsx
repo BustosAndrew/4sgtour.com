@@ -81,17 +81,17 @@ export function TournamentTicketForm({
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative h-[40vh] sm:h-[45vh] md:h-[50vh] w-full">
+      {/* Hero — includes 100px top padding for fixed header */}
+      <section className="relative h-[55vh] sm:h-[50vh] md:h-[55vh] w-full pt-[100px]">
         <img
           src={heroImage || '/placeholder.svg?height=600&width=1200'}
           alt={formattedTitle}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
           <p
-            className="text-xs uppercase tracking-[0.25em] text-white/90 sm:text-sm"
+            className="text-xs font-bold uppercase tracking-[0.25em] text-white/90 sm:text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             {t('getTickets')}
@@ -102,13 +102,15 @@ export function TournamentTicketForm({
           >
             {formattedTitle}
           </h1>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-white/70">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-white/80">
             <span>{eventLocation}</span>
             <span className="hidden sm:inline" aria-hidden="true">
               {'|'}
             </span>
             <span>{eventDate}</span>
           </div>
+          {/* White divider */}
+          <div className="mx-auto mt-4 h-[3px] w-[50px] bg-white" />
         </div>
       </section>
 

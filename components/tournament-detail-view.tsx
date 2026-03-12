@@ -94,6 +94,8 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
           >
             {displayName}
           </h1>
+          {/* White divider under title */}
+          <div className="mx-auto mt-4 h-[3px] w-[50px] bg-white" />
         </div>
       </section>
 
