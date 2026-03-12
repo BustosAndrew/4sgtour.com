@@ -95,6 +95,7 @@ export function CreateTripForm() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    overview_content: "",
     refund_policy: "",
     location: "",
     continent: "",
@@ -108,6 +109,7 @@ export function CreateTripForm() {
   const [koreanData, setKoreanData] = useState({
     title_ko: "",
     description_ko: "",
+    overview_content_ko: "",
     refund_policy_ko: "",
     location_ko: "",
   })
@@ -115,6 +117,7 @@ export function CreateTripForm() {
   const [germanData, setGermanData] = useState({
     title_de: "",
     description_de: "",
+    overview_content_de: "",
     refund_policy_de: "",
     location_de: "",
   })
@@ -450,12 +453,14 @@ export function CreateTripForm() {
           // Korean translations
           title_ko: koreanData.title_ko || null,
           description_ko: koreanData.description_ko || null,
+          overview_content_ko: koreanData.overview_content_ko || null,
           refund_policy_ko: koreanData.refund_policy_ko || null,
           location_ko: koreanData.location_ko || null,
           highlights_ko: highlightsKo.filter((h) => h.trim() !== ""),
           // German translations
           title_de: germanData.title_de || null,
           description_de: germanData.description_de || null,
+          overview_content_de: germanData.overview_content_de || null,
           refund_policy_de: germanData.refund_policy_de || null,
           location_de: germanData.location_de || null,
           highlights_de: highlightsDe.filter((h) => h.trim() !== ""),
@@ -860,6 +865,29 @@ export function CreateTripForm() {
                 placeholder={activeLanguage === "en" ? "Provide a brief overview of the trip for guests..." : "여행에 대한 간략한 개요를 제공하세요..."}
                 rows={6}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="overview_content"
+                className="text-base text-foreground"
+              >
+                Detailed Overview (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+              </Label>
+              <Textarea
+                id="overview_content"
+                value={activeLanguage === "en" ? formData.overview_content : koreanData.overview_content_ko}
+                onChange={(e) =>
+                  activeLanguage === "en"
+                    ? setFormData({ ...formData, overview_content: e.target.value })
+                    : setKoreanData({ ...koreanData, overview_content_ko: e.target.value })
+                }
+                placeholder={activeLanguage === "en" ? "Provide a detailed overview shown on the trip detail page..." : "여행 상세 페이지에 표시될 자세한 개요를 제공하세요..."}
+                rows={8}
+              />
+              <p className="text-xs text-muted-foreground">
+                This detailed overview will be displayed on the trip detail page. If empty, the Trip Overview above will be used.
+              </p>
             </div>
 
             <div className="space-y-2">

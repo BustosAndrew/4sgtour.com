@@ -37,6 +37,9 @@ interface EditTripFormProps {
     description: string | null
     description_ko?: string | null
     description_de?: string | null
+    overview_content?: string | null
+    overview_content_ko?: string | null
+    overview_content_de?: string | null
     refund_policy?: string | null
     refund_policy_ko?: string | null
     refund_policy_de?: string | null
@@ -71,6 +74,9 @@ interface TripData {
   description: string
   description_ko: string
   description_de: string
+  overview_content: string
+  overview_content_ko: string
+  overview_content_de: string
   refund_policy: string
   refund_policy_ko: string
   refund_policy_de: string
@@ -119,6 +125,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     description: trip.description || "",
     description_ko: trip.description_ko || "",
     description_de: trip.description_de || "",
+    overview_content: trip.overview_content || "",
+    overview_content_ko: trip.overview_content_ko || "",
+    overview_content_de: trip.overview_content_de || "",
     refund_policy: trip.refund_policy || "",
     refund_policy_ko: trip.refund_policy_ko || "",
     refund_policy_de: trip.refund_policy_de || "",
@@ -544,6 +553,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           description: formData.description,
           description_ko: formData.description_ko || null,
           description_de: formData.description_de || null,
+          overview_content: formData.overview_content || null,
+          overview_content_ko: formData.overview_content_ko || null,
+          overview_content_de: formData.overview_content_de || null,
           refund_policy: formData.refund_policy || null,
           refund_policy_ko: formData.refund_policy_ko || null,
           refund_policy_de: formData.refund_policy_de || null,
@@ -746,6 +758,25 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 rows={6}
                 className="resize-none"
               />
+            </div>
+
+            {/* Overview Content - Detailed overview shown on trip detail page */}
+            <div className="space-y-2">
+              <Label htmlFor="overview_content" className="text-sm text-foreground sm:text-base">
+                Detailed Overview (Optional)
+                {activeLang !== "en" && <span className="ml-1 text-xs text-muted-foreground">({activeLang.toUpperCase()} translation)</span>}
+              </Label>
+              <Textarea
+                id="overview_content"
+                value={activeLang === "en" ? formData.overview_content : activeLang === "ko" ? formData.overview_content_ko : formData.overview_content_de}
+                onChange={(e) => setFormData({ ...formData, [`overview_content${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value })}
+                placeholder={activeLang === "en" ? "Provide a detailed overview shown on the trip detail page..." : activeLang === "ko" ? "한국어로 상세한 여행 개요를 입력하세요..." : "Detaillierte Reisebeschreibung auf Deutsch..."}
+                rows={8}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                This detailed overview will be displayed on the trip detail page. If empty, the Trip Overview above will be used.
+              </p>
             </div>
 
             {/* Refund Policy */}
