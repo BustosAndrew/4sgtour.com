@@ -525,31 +525,32 @@ export function EventDetailView({
                     return (
                       <div
                         key={tier.id}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#d9d9d9] bg-[#f5f5f5] px-6 py-5"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-[#e5e5e5] bg-white px-6 py-5"
                       >
                         <div className="flex-1">
                           <p
-                            className="text-sm font-bold uppercase tracking-wider text-[#22333b]"
+                            className="text-sm font-bold uppercase tracking-wider text-[#735c38]"
                             style={{ fontFamily: 'var(--font-body)' }}
                           >
                             {tierName}
                           </p>
                           {tier.description && (
                             <p
-                              className="mt-1 text-xs text-[#735c38]/70"
+                              className="mt-1 text-sm text-[#735c38]/70"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
                               {tier.description}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 sm:gap-6">
+                        <div className="flex items-center gap-6">
                           {tier.price && (
                             <p
-                              className="text-lg font-bold text-[#22333b] sm:text-xl"
+                              className="text-base sm:text-lg"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
-                              {tier.price}
+                              <span className="text-[#6b7280]">{t('from')} </span>
+                              <span className="font-semibold text-[#495c48]">{tier.price}</span>
                             </p>
                           )}
                           <Link
