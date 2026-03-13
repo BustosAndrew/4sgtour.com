@@ -122,8 +122,23 @@ export function AdminCourses({
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Translation failed")
+        const contentType = response.headers.get("content-type")
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Translation failed")
+        } else {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        }
+      }
+
+      // Check if response is SSE or JSON (for "already translated" case)
+      const contentType = response.headers.get("content-type")
+      if (contentType?.includes("application/json")) {
+        const data = await response.json()
+        if (data.type === "complete") {
+          setTranslateResult(data.message)
+        }
+        return
       }
 
       const reader = response.body?.getReader()
@@ -179,8 +194,23 @@ export function AdminCourses({
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Translation failed")
+        const contentType = response.headers.get("content-type")
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Translation failed")
+        } else {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        }
+      }
+
+      // Check if response is SSE or JSON (for "already translated" case)
+      const contentType = response.headers.get("content-type")
+      if (contentType?.includes("application/json")) {
+        const data = await response.json()
+        if (data.type === "complete") {
+          setTranslateTournamentsResult(data.message)
+        }
+        return
       }
 
       const reader = response.body?.getReader()
