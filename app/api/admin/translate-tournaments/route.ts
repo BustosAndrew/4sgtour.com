@@ -29,15 +29,18 @@ interface EventToTranslate {
   excludes_de: string[] | null
 }
 
-function needsTranslation(event: EventToTranslate): boolean {
-  // Check if any translatable field is missing Korean or German translation
-  if (event.title && (!event.title_ko || !event.title_de)) return true
-  if (event.location && (!event.location_ko || !event.location_de)) return true
-  if (event.description?.length && (!event.description_ko?.length || !event.description_de?.length)) return true
-  if (event.trip_highlights?.length && (!event.trip_highlights_ko?.length || !event.trip_highlights_de?.length)) return true
-  if (event.travel_itinerary?.length && (!event.travel_itinerary_ko?.length || !event.travel_itinerary_de?.length)) return true
-  if (event.includes?.length && (!event.includes_ko?.length || !event.includes_de?.length)) return true
-  if (event.excludes?.length && (!event.excludes_ko?.length || !event.excludes_de?.length)) return true
+function needsTranslation(event: EventToTranslate, languages: string[]): boolean {
+  const needsKo = languages.includes("ko")
+  const needsDe = languages.includes("de")
+  
+  // Check if any translatable field is missing requested language translations
+  if (event.title && ((needsKo && !event.title_ko) || (needsDe && !event.title_de))) return true
+  if (event.location && ((needsKo && !event.location_ko) || (needsDe && !event.location_de))) return true
+  if (event.description?.length && ((needsKo && !event.description_ko?.length) || (needsDe && !event.description_de?.length))) return true
+  if (event.trip_highlights?.length && ((needsKo && !event.trip_highlights_ko?.length) || (needsDe && !event.trip_highlights_de?.length))) return true
+  if (event.travel_itinerary?.length && ((needsKo && !event.travel_itinerary_ko?.length) || (needsDe && !event.travel_itinerary_de?.length))) return true
+  if (event.includes?.length && ((needsKo && !event.includes_ko?.length) || (needsDe && !event.includes_de?.length))) return true
+  if (event.excludes?.length && ((needsKo && !event.excludes_ko?.length) || (needsDe && !event.excludes_de?.length))) return true
   return false
 }
 
@@ -71,26 +74,29 @@ async function translateArrayField(
 async function translateEvent(
   baseUrl: string,
   event: EventToTranslate,
-  supabase: any
+  supabase: any,
+  languages: string[]
 ): Promise<boolean> {
   const updates: Record<string, any> = {}
+  const translateKo = languages.includes("ko")
+  const translateDe = languages.includes("de")
 
-  // Only translate fields that are missing
+  // Only translate fields that are missing for requested languages
   const fieldsToTranslateKo: { field: string; text: string; fieldType: string }[] = []
   const fieldsToTranslateDe: { field: string; text: string; fieldType: string }[] = []
 
   if (event.title) {
-    if (!event.title_ko) fieldsToTranslateKo.push({ field: "title_ko", text: event.title, fieldType: "title" })
-    if (!event.title_de) fieldsToTranslateDe.push({ field: "title_de", text: event.title, fieldType: "title" })
+    if (translateKo && !event.title_ko) fieldsToTranslateKo.push({ field: "title_ko", text: event.title, fieldType: "title" })
+    if (translateDe && !event.title_de) fieldsToTranslateDe.push({ field: "title_de", text: event.title, fieldType: "title" })
   }
   if (event.location) {
-    if (!event.location_ko) fieldsToTranslateKo.push({ field: "location_ko", text: event.location, fieldType: "location" })
-    if (!event.location_de) fieldsToTranslateDe.push({ field: "location_de", text: event.location, fieldType: "location" })
+    if (translateKo && !event.location_ko) fieldsToTranslateKo.push({ field: "location_ko", text: event.location, fieldType: "location" })
+    if (translateDe && !event.location_de) fieldsToTranslateDe.push({ field: "location_de", text: event.location, fieldType: "location" })
   }
 
-  // Batch translate simple string fields in parallel
+  // Batch translate simple string fields in parallel (only for requested languages)
   const [koResult, deResult] = await Promise.all([
-    fieldsToTranslateKo.length > 0 
+    translateKo && fieldsToTranslateKo.length > 0 
       ? fetch(`${baseUrl}/api/translate/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,7 +107,7 @@ async function translateEvent(
           }),
         }).then(r => r.ok ? r.json() : null).catch(() => null)
       : null,
-    fieldsToTranslateDe.length > 0
+    translateDe && fieldsToTranslateDe.length > 0
       ? fetch(`${baseUrl}/api/translate/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -130,13 +136,13 @@ async function translateEvent(
 
   for (const { key, data, ko, de, fieldType } of arrayFields) {
     if (data?.length) {
-      if (!ko?.length) {
+      if (translateKo && !ko?.length) {
         arrayFieldPromises.push(
           translateArrayField(baseUrl, data, "ko", fieldType)
             .then(translated => { updates[`${key}_ko`] = translated })
         )
       }
-      if (!de?.length) {
+      if (translateDe && !de?.length) {
         arrayFieldPromises.push(
           translateArrayField(baseUrl, data, "de", fieldType)
             .then(translated => { updates[`${key}_de`] = translated })
@@ -159,7 +165,7 @@ async function translateEvent(
   return true
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient()
     const userType = await getUserType()
@@ -169,6 +175,17 @@ export async function POST() {
         status: 401,
         headers: { "Content-Type": "application/json" }
       })
+    }
+
+    // Parse languages from request body
+    let languages: string[] = ["ko", "de"] // Default to both
+    try {
+      const body = await request.json()
+      if (body.languages && Array.isArray(body.languages) && body.languages.length > 0) {
+        languages = body.languages.filter((l: string) => ["ko", "de"].includes(l))
+      }
+    } catch {
+      // Use default languages if no body
     }
 
     const headersList = await headers()
@@ -190,8 +207,8 @@ export async function POST() {
       `)
       .not("title", "is", null)
 
-    // Filter to only events that actually need translation
-    const events = (allEvents || []).filter(needsTranslation)
+    // Filter to only events that actually need translation for selected languages
+    const events = (allEvents || []).filter(e => needsTranslation(e, languages))
     const totalEvents = events.length
     const skipped = (allEvents?.length || 0) - totalEvents
 
@@ -214,19 +231,20 @@ export async function POST() {
         }
 
         const results = { total: totalEvents, translated: 0, errors: 0 }
+        const langNames = languages.map(l => l === "ko" ? "Korean" : "German").join(" & ")
 
         sendProgress({
           type: "progress",
           completed: 0,
           total: totalEvents,
-          message: `Translating ${totalEvents} events (${skipped} already complete)...`
+          message: `Translating ${totalEvents} events to ${langNames} (${skipped} already complete)...`
         })
 
         // Process in batches for speed
         for (let i = 0; i < events.length; i += BATCH_SIZE) {
           const batch = events.slice(i, i + BATCH_SIZE)
           const batchResults = await Promise.all(
-            batch.map(event => translateEvent(baseUrl, event, supabase))
+            batch.map(event => translateEvent(baseUrl, event, supabase, languages))
           )
           
           for (const success of batchResults) {
@@ -246,7 +264,7 @@ export async function POST() {
         sendProgress({
           type: "complete",
           success: true,
-          message: `Translated ${results.translated} events (${skipped} were already complete)`,
+          message: `Translated ${results.translated} events to ${langNames} (${skipped} were already complete)`,
           results
         })
 

@@ -27,6 +27,7 @@ import { InquiriesList } from "@/components/admin/inquiries-list"
 import { InboxList } from "@/components/admin/inbox-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { TranslateDialog } from "@/components/admin/translate-dialog"
 
 type Trip = {
   id: string
@@ -109,16 +110,30 @@ export function AdminCourses({
   const [isTranslatingTournaments, setIsTranslatingTournaments] = useState(false)
   const [translateTournamentsResult, setTranslateTournamentsResult] = useState<string | null>(null)
   const [translateTournamentsProgress, setTranslateTournamentsProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
+  const [translateLanguages, setTranslateLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
+  const [translateTournamentsLanguages, setTranslateTournamentsLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
+  const [translateDialogItem, setTranslateDialogItem] = useState<{
+    type: "trip" | "event"
+    id: string
+    name: string
+  } | null>(null)
   const router = useRouter()
 
   const handleTranslateAll = async () => {
     if (isTranslating) return
+    if (!translateLanguages.ko && !translateLanguages.de) {
+      setTranslateResult("Please select at least one language to translate")
+      return
+    }
+    const languages = [translateLanguages.ko && "ko", translateLanguages.de && "de"].filter(Boolean) as string[]
     setIsTranslating(true)
     setTranslateResult(null)
     setTranslateProgress(null)
     try {
       const response = await fetch("/api/admin/translate-trips", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ languages }),
       })
       
       if (!response.ok) {
@@ -185,12 +200,19 @@ export function AdminCourses({
 
   const handleTranslateTournaments = async () => {
     if (isTranslatingTournaments) return
+    if (!translateTournamentsLanguages.ko && !translateTournamentsLanguages.de) {
+      setTranslateTournamentsResult("Please select at least one language to translate")
+      return
+    }
+    const languages = [translateTournamentsLanguages.ko && "ko", translateTournamentsLanguages.de && "de"].filter(Boolean) as string[]
     setIsTranslatingTournaments(true)
     setTranslateTournamentsResult(null)
     setTranslateTournamentsProgress(null)
     try {
       const response = await fetch("/api/admin/translate-tournaments", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ languages }),
       })
       
       if (!response.ok) {
@@ -631,10 +653,30 @@ export function AdminCourses({
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:self-end">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:self-end">
+                  <div className="flex items-center gap-3 text-sm">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={translateLanguages.ko}
+                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, ko: e.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <span>Korean</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={translateLanguages.de}
+                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, de: e.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <span>German</span>
+                    </label>
+                  </div>
                   <Button
                     onClick={handleTranslateAll}
-                    disabled={isTranslating}
+                    disabled={isTranslating || (!translateLanguages.ko && !translateLanguages.de)}
                     variant="outline"
                     className="w-full sm:w-auto"
                   >
@@ -701,37 +743,50 @@ export function AdminCourses({
                       <h3 className="mb-2 font-semibold text-white">
                         {trip.title}
                       </h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">
-                          ${getTripDisplayPrice(trip).toFixed(2)}
-                        </span>
-                        <div className="flex gap-2">
-                          <Link href={`/admin/trips/${trip.id}`}>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-white hover:bg-white/10"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
-                            onClick={(e) => handleDeleteTrip(trip, e)}
-                            disabled={deletingTrips.has(trip.id)}
-                          >
-                            <Trash2
-                              className={`h-4 w-4 ${
-                                deletingTrips.has(trip.id)
-                                  ? "animate-pulse"
-                                  : ""
-                              }`}
-                            />
-                          </Button>
-                        </div>
-                      </div>
+<div className="flex items-center justify-between">
+                                        <span className="text-lg font-bold">
+                                          ${getTripDisplayPrice(trip).toFixed(2)}
+                                        </span>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-white hover:bg-white/10"
+                                            onClick={(e) => {
+                                              e.preventDefault()
+                                              e.stopPropagation()
+                                              setTranslateDialogItem({ type: "trip", id: trip.id, name: trip.title })
+                                            }}
+                                            title="Translate"
+                                          >
+                                            <Languages className="h-4 w-4" />
+                                          </Button>
+                                          <Link href={`/admin/trips/${trip.id}`}>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-8 w-8 text-white hover:bg-white/10"
+                                            >
+                                              <Pencil className="h-4 w-4" />
+                                            </Button>
+                                          </Link>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
+                                            onClick={(e) => handleDeleteTrip(trip, e)}
+                                            disabled={deletingTrips.has(trip.id)}
+                                          >
+                                            <Trash2
+                                              className={`h-4 w-4 ${
+                                                deletingTrips.has(trip.id)
+                                                  ? "animate-pulse"
+                                                  : ""
+                                              }`}
+                                            />
+                                          </Button>
+                                        </div>
+                                      </div>
                     </div>
                   </div>
                 ))}
@@ -767,15 +822,37 @@ export function AdminCourses({
                     {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} with{" "}
                     {localTournaments.reduce((acc, t) => acc + t.tournament_events.length, 0)} total events
                   </p>
-                  <Button
-                    onClick={handleTranslateTournaments}
-                    disabled={isTranslatingTournaments}
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                  >
-                    <Languages className="mr-2 h-4 w-4" />
-                    {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
-                  </Button>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-3 text-sm">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={translateTournamentsLanguages.ko}
+                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, ko: e.target.checked }))}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <span>Korean</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={translateTournamentsLanguages.de}
+                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, de: e.target.checked }))}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <span>German</span>
+                      </label>
+                    </div>
+                    <Button
+                      onClick={handleTranslateTournaments}
+                      disabled={isTranslatingTournaments || (!translateTournamentsLanguages.ko && !translateTournamentsLanguages.de)}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      <Languages className="mr-2 h-4 w-4" />
+                      {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
+                    </Button>
+                  </div>
                 </div>
                 {translateTournamentsProgress && (
                   <div className="w-full space-y-2">
@@ -861,7 +938,20 @@ export function AdminCourses({
                                     </p>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-[#274C77] hover:text-[#274C77]/80"
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setTranslateDialogItem({ type: "event", id: event.id, name: event.title })
+                                    }}
+                                    title="Translate"
+                                  >
+                                    <Languages className="h-4 w-4" />
+                                  </Button>
                                   <Link href={`/admin/tournaments/${tournament.id}/events/${event.id}`}>
                                     <Button size="icon" variant="ghost" className="h-8 w-8">
                                       <Pencil className="h-4 w-4" />
@@ -934,6 +1024,23 @@ export function AdminCourses({
         userPhone={userPhone}
         userPhotoUrl={userPhotoUrl}
       />
+
+      {/* Translate Dialog */}
+      {translateDialogItem && (
+        <TranslateDialog
+          open={!!translateDialogItem}
+          onOpenChange={(open) => {
+            if (!open) setTranslateDialogItem(null)
+          }}
+          itemType={translateDialogItem.type}
+          itemId={translateDialogItem.id}
+          itemName={translateDialogItem.name}
+          availableSourceLanguages={["en", "ko", "de"]}
+          onSuccess={() => {
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }
