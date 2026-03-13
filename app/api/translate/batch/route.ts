@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     let result
     try {
       result = await generateText({
-        model: 'openai/gpt-4o-mini',
+        model: 'openai/gpt-5-mini',
         system: `You are a professional translator specializing in travel and golf tourism content.
 Translate all the following fields from ${sourceLang} to ${targetLang}.
 
@@ -131,9 +131,10 @@ IMPORTANT:
 
     return Response.json({ translations })
   } catch (error) {
-    console.error('Batch translation error:', error)
+    console.error('[v0] Batch translation error:', error)
+    console.error('[v0] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
     return Response.json(
-      { error: 'Translation failed' },
+      { error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, code: 'TRANSLATION_ERROR' },
       { status: 500 }
     )
   }
