@@ -32,12 +32,12 @@ export async function POST(request: Request) {
     events: { total: 0, translated: 0, errors: 0 },
   }
 
-  // Get all trips missing Korean translations
+  // Get all trips missing Korean OR German translations
   const { data: trips } = await supabase
     .from("trips")
-    .select("id, title, description, location, refund_policy, overview_content, highlights, title_ko")
-    .is("title_ko", null)
+    .select("id, title, description, location, refund_policy, overview_content, highlights, title_ko, title_de")
     .not("title", "is", null)
+    .or("title_ko.is.null,title_de.is.null")
 
   if (trips && trips.length > 0) {
     results.trips.total = trips.length
@@ -68,12 +68,12 @@ export async function POST(request: Request) {
     }
   }
 
-  // Get all tournament events missing Korean translations
+  // Get all tournament events missing Korean OR German translations
   const { data: events } = await supabase
     .from("tournament_events")
-    .select("id, title, location, description, trip_highlights, travel_itinerary, includes, excludes, title_ko")
-    .is("title_ko", null)
+    .select("id, title, location, description, trip_highlights, travel_itinerary, includes, excludes, title_ko, title_de")
     .not("title", "is", null)
+    .or("title_ko.is.null,title_de.is.null")
 
   if (events && events.length > 0) {
     results.events.total = events.length
