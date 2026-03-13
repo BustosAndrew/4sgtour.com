@@ -323,6 +323,57 @@ export function EditTournamentEventForm({
       
       if (response.ok) {
         setTranslateResult({ success: true, message: data.message })
+        // Re-fetch the event to populate translated fields in the form
+        const eventRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}`)
+        if (eventRes.ok) {
+          const updatedEvent = await eventRes.json()
+          setFormData((prev) => ({
+            ...prev,
+            title_ko: updatedEvent.title_ko || "",
+            title_de: updatedEvent.title_de || "",
+            location_ko: updatedEvent.location_ko || "",
+            location_de: updatedEvent.location_de || "",
+            description_ko: (updatedEvent.description_ko as string[] | null)?.join("\n\n") || "",
+            description_de: (updatedEvent.description_de as string[] | null)?.join("\n\n") || "",
+            trip_highlights_ko: (updatedEvent.trip_highlights_ko as string[] | null)?.join("\n") || "",
+            trip_highlights_de: (updatedEvent.trip_highlights_de as string[] | null)?.join("\n") || "",
+            travel_itinerary_ko: (updatedEvent.travel_itinerary_ko as string[] | null)?.join("\n") || "",
+            travel_itinerary_de: (updatedEvent.travel_itinerary_de as string[] | null)?.join("\n") || "",
+            includes_ko: (updatedEvent.includes_ko as string[] | null)?.join("\n") || "",
+            includes_de: (updatedEvent.includes_de as string[] | null)?.join("\n") || "",
+            excludes_ko: (updatedEvent.excludes_ko as string[] | null)?.join("\n") || "",
+            excludes_de: (updatedEvent.excludes_de as string[] | null)?.join("\n") || "",
+          }))
+          // Re-fetch itinerary days with translated fields
+          const itineraryRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/itinerary`)
+          if (itineraryRes.ok) {
+            const updatedItinerary = await itineraryRes.json()
+            setItinerary(updatedItinerary.map((d: any) => ({
+              id: d.id,
+              display_order: d.display_order,
+              title: d.title,
+              title_ko: d.title_ko || "",
+              title_de: d.title_de || "",
+              content: d.content || "",
+              content_ko: d.content_ko || "",
+              content_de: d.content_de || "",
+            })))
+          }
+          // Re-fetch pricing tiers with translated fields
+          const tiersRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/pricing-tiers`)
+          if (tiersRes.ok) {
+            const updatedTiers = await tiersRes.json()
+            setPricingTiers(updatedTiers.map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              name_ko: t.name_ko || "",
+              name_de: t.name_de || "",
+              price: t.price || "",
+              display_order: t.display_order || 0,
+              booking_url: t.booking_url || "",
+            })))
+          }
+        }
         router.refresh()
       } else {
         let errorMessage = data.error || "Translation failed"
@@ -399,22 +450,28 @@ export function EditTournamentEventForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
-            // Only send Korean if user explicitly entered it
-            ...(formData.title_ko?.trim() && { title_ko: formData.title_ko }),
+            title_ko: formData.title_ko || null,
+            title_de: formData.title_de || null,
             location: formData.location,
-            ...(formData.location_ko?.trim() && { location_ko: formData.location_ko }),
+            location_ko: formData.location_ko || null,
+            location_de: formData.location_de || null,
             date: formData.date,
             duration: formData.duration || null,
             description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
-            ...(formData.description_ko?.trim() && { description_ko: formData.description_ko.split("\n\n").filter(Boolean) }),
+            description_ko: formData.description_ko ? formData.description_ko.split("\n\n").filter(Boolean) : null,
+            description_de: formData.description_de ? formData.description_de.split("\n\n").filter(Boolean) : null,
             trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
-            ...(formData.trip_highlights_ko?.trim() && { trip_highlights_ko: formData.trip_highlights_ko.split("\n").filter(Boolean) }),
+            trip_highlights_ko: formData.trip_highlights_ko ? formData.trip_highlights_ko.split("\n").filter(Boolean) : null,
+            trip_highlights_de: formData.trip_highlights_de ? formData.trip_highlights_de.split("\n").filter(Boolean) : null,
             travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
-            ...(formData.travel_itinerary_ko?.trim() && { travel_itinerary_ko: formData.travel_itinerary_ko.split("\n").filter(Boolean) }),
+            travel_itinerary_ko: formData.travel_itinerary_ko ? formData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
+            travel_itinerary_de: formData.travel_itinerary_de ? formData.travel_itinerary_de.split("\n").filter(Boolean) : null,
             includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
-            ...(formData.includes_ko?.trim() && { includes_ko: formData.includes_ko.split("\n").filter(Boolean) }),
+            includes_ko: formData.includes_ko ? formData.includes_ko.split("\n").filter(Boolean) : null,
+            includes_de: formData.includes_de ? formData.includes_de.split("\n").filter(Boolean) : null,
             excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
-            ...(formData.excludes_ko?.trim() && { excludes_ko: formData.excludes_ko.split("\n").filter(Boolean) }),
+            excludes_ko: formData.excludes_ko ? formData.excludes_ko.split("\n").filter(Boolean) : null,
+            excludes_de: formData.excludes_de ? formData.excludes_de.split("\n").filter(Boolean) : null,
             price: formData.price || null,
             image: imageUrl || null,
             itinerary: itinerary.filter((d) => d.title.trim()),

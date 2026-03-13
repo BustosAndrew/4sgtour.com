@@ -4,6 +4,29 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 import { autoTranslateTournamentEvent, autoTranslateItineraryDays, autoTranslatePricingTiers } from "@/lib/auto-translate"
 import { headers } from "next/headers"
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string; eventId: string }> }
+) {
+  const { id: tournamentId, eventId } = await params
+  const supabase = await createClient()
+  const userType = await getUserType()
+
+  if (userType !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { data, error } = await supabase
+    .from("tournament_events")
+    .select("*")
+    .eq("id", eventId)
+    .eq("tournament_id", tournamentId)
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string; eventId: string }> }
@@ -79,16 +102,21 @@ export async function PATCH(
       updated_at: new Date().toISOString(),
     }
 
-    // Only update Korean fields if they were explicitly provided
-    if ('title_ko' in body) updateData.title_ko = title_ko
-    if ('location_ko' in body) updateData.location_ko = location_ko
-    if ('description_ko' in body) updateData.description_ko = description_ko
-    if ('trip_highlights_ko' in body) updateData.trip_highlights_ko = trip_highlights_ko
-    if ('travel_itinerary_ko' in body) updateData.travel_itinerary_ko = travel_itinerary_ko
-    if ('includes_ko' in body) updateData.includes_ko = includes_ko
-    if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko
-
-    // German is always auto-translated, never manually set from the form
+    // Update all localized fields if explicitly provided
+    if ('title_ko' in body) updateData.title_ko = title_ko ?? null
+    if ('title_de' in body) updateData.title_de = title_de ?? null
+    if ('location_ko' in body) updateData.location_ko = location_ko ?? null
+    if ('location_de' in body) updateData.location_de = location_de ?? null
+    if ('description_ko' in body) updateData.description_ko = description_ko ?? null
+    if ('description_de' in body) updateData.description_de = description_de ?? null
+    if ('trip_highlights_ko' in body) updateData.trip_highlights_ko = trip_highlights_ko ?? null
+    if ('trip_highlights_de' in body) updateData.trip_highlights_de = trip_highlights_de ?? null
+    if ('travel_itinerary_ko' in body) updateData.travel_itinerary_ko = travel_itinerary_ko ?? null
+    if ('travel_itinerary_de' in body) updateData.travel_itinerary_de = travel_itinerary_de ?? null
+    if ('includes_ko' in body) updateData.includes_ko = includes_ko ?? null
+    if ('includes_de' in body) updateData.includes_de = includes_de ?? null
+    if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko ?? null
+    if ('excludes_de' in body) updateData.excludes_de = excludes_de ?? null
 
     // Update the event
     const { data: eventData, error: eventError } = await supabase
