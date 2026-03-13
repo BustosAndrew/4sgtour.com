@@ -629,13 +629,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       
       if (response.ok) {
         setTranslateResult({ success: true, message: data.message })
-        // Refresh form data after translation
         router.refresh()
       } else {
-        setTranslateResult({ success: false, message: data.error || "Translation failed" })
+        let errorMessage = data.error || "Translation failed"
+        
+        if (data.code === "CREDITS_EXHAUSTED" || response.status === 402) {
+          errorMessage = "AI Gateway credits exhausted. Please refill your AI Gateway credits in the Vercel dashboard to continue translating."
+        } else if (data.code === "RATE_LIMIT" || response.status === 429) {
+          errorMessage = "Rate limit exceeded. Please wait a moment and try again."
+        } else if (data.code === "AUTH_ERROR" || response.status === 401) {
+          errorMessage = "AI Gateway authentication failed. Please check your API configuration."
+        }
+        
+        setTranslateResult({ success: false, message: errorMessage })
       }
     } catch (error) {
-      setTranslateResult({ success: false, message: "Failed to connect to translation service" })
+      setTranslateResult({ success: false, message: "Failed to connect to translation service. Please check your network connection." })
     } finally {
       setIsTranslating(false)
     }

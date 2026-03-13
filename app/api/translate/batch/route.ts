@@ -15,10 +15,7 @@ export async function POST(req: Request) {
       sourceLanguage?: string
     }
 
-    console.log("[v0] batch translate: received", fields?.length, "fields, source:", sourceLanguage, "target:", targetLanguage)
-
     if (!fields || !targetLanguage || !Array.isArray(fields)) {
-      console.log("[v0] batch translate: missing required fields")
       return Response.json(
         { error: 'Missing required fields: fields (array) and targetLanguage' },
         { status: 400 }
@@ -49,9 +46,11 @@ export async function POST(req: Request) {
       return Response.json({ translations: {} })
     }
 
-    const result = await generateText({
-      model: 'openai/gpt-4o-mini',
-      system: `You are a professional translator specializing in travel and golf tourism content.
+    let result
+    try {
+      result = await generateText({
+        model: 'openai/gpt-4o-mini',
+        system: `You are a professional translator specializing in travel and golf tourism content.
 Translate all the following fields from ${sourceLang} to ${targetLang}.
 
 IMPORTANT:
@@ -62,8 +61,46 @@ IMPORTANT:
 - Keep descriptions marketing-friendly
 - Transliterate location names appropriately
 - Do not add explanations or extra text`,
-      prompt: fieldsToTranslate,
-    })
+        prompt: fieldsToTranslate,
+      })
+    } catch (aiError: any) {
+      console.error("[v0] batch translate: AI error:", aiError?.message, aiError?.cause)
+      
+      // Check for specific error types
+      const errorMessage = aiError?.message || ''
+      const errorCause = aiError?.cause?.message || ''
+      
+      if (errorMessage.includes('rate limit') || errorMessage.includes('quota') || 
+          errorCause.includes('rate limit') || errorCause.includes('quota') ||
+          errorMessage.includes('429') || errorCause.includes('429')) {
+        return Response.json(
+          { error: 'AI Gateway rate limit exceeded. Please wait a moment and try again.', code: 'RATE_LIMIT' },
+          { status: 429 }
+        )
+      }
+      
+      if (errorMessage.includes('credit') || errorMessage.includes('billing') ||
+          errorCause.includes('credit') || errorCause.includes('billing') ||
+          errorMessage.includes('insufficient') || errorCause.includes('insufficient')) {
+        return Response.json(
+          { error: 'AI Gateway credits exhausted. Please refill your AI Gateway credits to continue translating.', code: 'CREDITS_EXHAUSTED' },
+          { status: 402 }
+        )
+      }
+      
+      if (errorMessage.includes('401') || errorMessage.includes('unauthorized') ||
+          errorCause.includes('401') || errorCause.includes('unauthorized')) {
+        return Response.json(
+          { error: 'AI Gateway authentication failed. Please check your API key configuration.', code: 'AUTH_ERROR' },
+          { status: 401 }
+        )
+      }
+      
+      return Response.json(
+        { error: `Translation AI error: ${errorMessage || 'Unknown error'}`, code: 'AI_ERROR' },
+        { status: 500 }
+      )
+    }
 
     // Parse the response
     const translations: Record<string, string | string[]> = {}

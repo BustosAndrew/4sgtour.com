@@ -81,10 +81,21 @@ export function TranslateDialog({
         setResult({ success: true, message: data.message })
         onSuccess?.()
       } else {
-        setResult({ success: false, message: data.error || "Translation failed" })
+        // Handle specific error codes
+        let errorMessage = data.error || "Translation failed"
+        
+        if (data.code === "CREDITS_EXHAUSTED" || response.status === 402) {
+          errorMessage = "AI Gateway credits exhausted. Please refill your AI Gateway credits in the Vercel dashboard to continue translating."
+        } else if (data.code === "RATE_LIMIT" || response.status === 429) {
+          errorMessage = "Rate limit exceeded. Please wait a moment and try again."
+        } else if (data.code === "AUTH_ERROR" || response.status === 401) {
+          errorMessage = "AI Gateway authentication failed. Please check your API configuration."
+        }
+        
+        setResult({ success: false, message: errorMessage })
       }
     } catch (error) {
-      setResult({ success: false, message: "Failed to connect to translation service" })
+      setResult({ success: false, message: "Failed to connect to translation service. Please check your network connection." })
     } finally {
       setIsTranslating(false)
     }
