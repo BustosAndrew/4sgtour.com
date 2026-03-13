@@ -91,7 +91,7 @@ interface TripData {
   min_days: string
 }
 
-type Lang = "en" | "ko" | "de"
+type Lang = "en" | "ko"
 
 const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
@@ -712,7 +712,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Language Tabs */}
             <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
-              {(["en", "ko", "de"] as Lang[]).map((lang) => (
+              {(["en", "ko"] as Lang[]).map((lang) => (
                 <button
                   key={lang}
                   type="button"
@@ -846,7 +846,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                             updated[index] = e.target.value
                             setActive(updated)
                           }}
-                          placeholder={activeLang === "ko" ? "예: 멋진 호텔 숙박" : activeLang === "de" ? "z.B. Übernachtung im Hotel" : "e.g., Stay at this nice hotel"}
+                          placeholder={activeLang === "ko" ? "예: 멋진 호텔 숙박" : "e.g., Stay at this nice hotel"}
                         />
                         <Button
                           type="button"

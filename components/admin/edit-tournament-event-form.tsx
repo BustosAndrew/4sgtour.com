@@ -20,7 +20,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
-type Lang = "en" | "ko" | "de"
+type Lang = "en" | "ko"
 
 type ItineraryDay = {
   id: string
@@ -460,7 +460,7 @@ export function EditTournamentEventForm({
                   <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
                   {/* Language Tabs */}
                   <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                    {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                    {(["en", "ko"] as Lang[]).map((lang) => (
                       <button
                         key={lang}
                         type="button"
@@ -690,7 +690,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      {(["en", "ko"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
@@ -876,7 +876,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      {(["en", "ko"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
