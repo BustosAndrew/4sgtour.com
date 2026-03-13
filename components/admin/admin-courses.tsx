@@ -79,26 +79,63 @@ export function AdminCourses({
   )
   const [isTranslating, setIsTranslating] = useState(false)
   const [translateResult, setTranslateResult] = useState<string | null>(null)
+  const [translateProgress, setTranslateProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
   const router = useRouter()
 
   const handleTranslateAll = async () => {
     if (isTranslating) return
     setIsTranslating(true)
     setTranslateResult(null)
+    setTranslateProgress(null)
     try {
       const response = await fetch("/api/admin/translate-all", {
         method: "POST",
       })
-      const data = await response.json()
-      if (data.success) {
-        setTranslateResult(`Translated ${data.results.trips.translated} trips and ${data.results.events.translated} events to Korean & German`)
-      } else {
-        setTranslateResult(`Error: ${data.error || "Translation failed"}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Translation failed")
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (!reader) {
+        throw new Error("No response body")
+      }
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split("\n")
+        
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.type === "progress") {
+                setTranslateProgress({
+                  completed: data.completed,
+                  total: data.total,
+                  message: data.message
+                })
+              } else if (data.type === "complete") {
+                setTranslateResult(data.message)
+                setTranslateProgress(null)
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
       }
     } catch (error) {
-      setTranslateResult("Error: Failed to connect to translation service")
+      setTranslateResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to translation service"}`)
     } finally {
       setIsTranslating(false)
+      setTranslateProgress(null)
     }
   }
 
@@ -437,7 +474,21 @@ export function AdminCourses({
                     </Button>
                   </Link>
                 </div>
-                {translateResult && (
+                {translateProgress && (
+                  <div className="w-full space-y-2">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>{translateProgress.message}</span>
+                      <span>{translateProgress.completed}/{translateProgress.total}</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div 
+                        className="h-full bg-[#274C77] transition-all duration-300"
+                        style={{ width: `${(translateProgress.completed / translateProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {translateResult && !translateProgress && (
                   <p className={`text-sm ${translateResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
                     {translateResult}
                   </p>
