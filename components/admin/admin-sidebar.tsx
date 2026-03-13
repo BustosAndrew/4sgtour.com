@@ -1,16 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { Flag, LogOut, MessageSquare, Trophy, Home, FileText } from 'lucide-react'
+import { Flag, LogOut, MessageSquare, Trophy, Home, FileText, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 interface AdminSidebarProps {
   userName: string
+  mobileMenuOpen?: boolean
+  onMobileMenuClose?: () => void
 }
 
-export function AdminSidebar({ userName }: AdminSidebarProps) {
+export function AdminSidebar({ userName, mobileMenuOpen, onMobileMenuClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -21,10 +23,35 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
     router.refresh()
   }
 
+  const handleLinkClick = () => {
+    onMobileMenuClose?.()
+  }
+
+  // If mobileMenuOpen prop is provided, use mobile-friendly positioning
+  const isMobileControlled = typeof mobileMenuOpen === 'boolean'
+
   return (
-    <aside className="flex w-[230px] flex-col bg-[#274C77] text-white">
+    <aside
+      className={
+        isMobileControlled
+          ? `fixed inset-y-0 left-0 z-50 w-[230px] transform bg-[#274C77] p-6 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${
+              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`
+          : 'flex w-[230px] flex-col bg-[#274C77] p-6 text-white'
+      }
+    >
+      {/* Close button for mobile */}
+      {isMobileControlled && (
+        <button
+          onClick={onMobileMenuClose}
+          className="absolute right-4 top-4 text-white lg:hidden"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      )}
+
       {/* Header */}
-      <div className="p-6 pb-8">
+      <div className="pb-8">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#3d6091]">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,9 +67,10 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-4">
+      <nav className="flex-1 space-y-1">
         <Link
           href="/"
+          onClick={handleLinkClick}
           className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/10"
         >
           <Home className="h-5 w-5" />
@@ -51,6 +79,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
 
         <Link
           href="/admin"
+          onClick={handleLinkClick}
           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
             pathname === '/admin' ? 'bg-white/20' : 'hover:bg-white/10'
           }`}
@@ -61,6 +90,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
 
         <Link
           href="/admin/tournaments"
+          onClick={handleLinkClick}
           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
             pathname.startsWith('/admin/tournaments') ? 'bg-white/20' : 'hover:bg-white/10'
           }`}
@@ -71,6 +101,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
 
         <Link
           href="/admin/inbox"
+          onClick={handleLinkClick}
           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
             pathname === '/admin/inbox' || pathname.startsWith('/admin/inbox') ? 'bg-white/20' : 'hover:bg-white/10'
           }`}
@@ -81,6 +112,7 @@ export function AdminSidebar({ userName }: AdminSidebarProps) {
 
         <Link
           href="/admin/inbox"
+          onClick={handleLinkClick}
           className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/10"
         >
           <MessageSquare className="h-5 w-5" />
