@@ -93,7 +93,7 @@ interface TripData {
   min_days: string
 }
 
-type Lang = "en" | "ko"
+type Lang = "en" | "ko" | "de"
 
 const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
@@ -757,7 +757,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
             {/* Language Tabs */}
             <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
-              {(["en", "ko"] as Lang[]).map((lang) => (
+              {(["en", "ko", "de"] as Lang[]).map((lang) => (
                 <button
                   key={lang}
                   type="button"
@@ -1807,11 +1807,30 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
         {currentStep === 4 && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold">Review & Submit</h2>
-              <p className="text-sm text-muted-foreground">
-                Review all changes before saving
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold">Review & Submit</h2>
+                <p className="text-sm text-muted-foreground">
+                  Review all changes before saving
+                </p>
+              </div>
+              {/* Language Tabs for Preview */}
+              <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+                {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setActiveLang(lang)}
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      activeLang === lang
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -1821,11 +1840,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 <div className="grid gap-4 text-sm">
                   <div>
                     <span className="font-medium">Title:</span>{" "}
-                    {formData.title || "Not set"}
+                    {activeLang === "en" ? (formData.title || "Not set") : activeLang === "ko" ? (formData.title_ko || <span className="text-muted-foreground italic">No Korean translation</span>) : (formData.title_de || <span className="text-muted-foreground italic">No German translation</span>)}
                   </div>
                   <div>
                     <span className="font-medium">Location:</span>{" "}
-                    {formData.location || "Not set"}
+                    {activeLang === "en" ? (formData.location || "Not set") : activeLang === "ko" ? (formData.location_ko || <span className="text-muted-foreground italic">No Korean translation</span>) : (formData.location_de || <span className="text-muted-foreground italic">No German translation</span>)}
                   </div>
                   <div>
                     <span className="font-medium">Continent:</span>{" "}
@@ -1841,26 +1860,37 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   </div>
                   <div>
                     <span className="font-medium">Description:</span>{" "}
-                    {formData.description ? (
-                      <span className="text-muted-foreground">
-                        {formData.description}
-                      </span>
-                    ) : (
-                      "Not set"
-                    )}
+                    {(() => {
+                      const desc = activeLang === "en" ? formData.description : activeLang === "ko" ? formData.description_ko : formData.description_de
+                      return desc ? (
+                        <span className="text-muted-foreground">{desc}</span>
+                      ) : activeLang === "en" ? (
+                        "Not set"
+                      ) : (
+                        <span className="text-muted-foreground italic">No {activeLang === "ko" ? "Korean" : "German"} translation</span>
+                      )
+                    })()}
                   </div>
-                  {highlights.length > 0 && (
-                    <div>
-                      <span className="font-medium">Highlights:</span>
-                      <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
-                        {highlights
-                          .filter((h) => h.trim())
-                          .map((highlight, idx) => (
-                            <li key={idx}>{highlight}</li>
-                          ))}
-                      </ul>
-                    </div>
-                  )}
+                  {(() => {
+                    const activeHighlights = activeLang === "en" ? highlights : activeLang === "ko" ? highlights_ko : highlights_de
+                    return activeHighlights.length > 0 ? (
+                      <div>
+                        <span className="font-medium">Highlights:</span>
+                        <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
+                          {activeHighlights
+                            .filter((h) => h.trim())
+                            .map((highlight, idx) => (
+                              <li key={idx}>{highlight}</li>
+                            ))}
+                        </ul>
+                      </div>
+                    ) : activeLang !== "en" && highlights.length > 0 ? (
+                      <div>
+                        <span className="font-medium">Highlights:</span>{" "}
+                        <span className="text-muted-foreground italic">No {activeLang === "ko" ? "Korean" : "German"} translation</span>
+                      </div>
+                    ) : null
+                  })()}
                   {formData.max_days && (
                     <div>
                       <span className="font-medium">Max Days:</span>{" "}

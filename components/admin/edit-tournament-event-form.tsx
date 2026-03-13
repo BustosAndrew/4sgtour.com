@@ -22,7 +22,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
-type Lang = "en" | "ko"
+type Lang = "en" | "ko" | "de"
 
 type ItineraryDay = {
   id: string
@@ -502,7 +502,7 @@ export function EditTournamentEventForm({
                   <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
                   {/* Language Tabs */}
                   <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                    {(["en", "ko"] as Lang[]).map((lang) => (
+                    {(["en", "ko", "de"] as Lang[]).map((lang) => (
                       <button
                         key={lang}
                         type="button"
@@ -732,7 +732,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko"] as Lang[]).map((lang) => (
+                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
@@ -918,7 +918,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko"] as Lang[]).map((lang) => (
+                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
@@ -1015,22 +1015,47 @@ export function EditTournamentEventForm({
           {currentStep === 4 && (
             <div className="space-y-6">
               <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-6 text-lg font-semibold text-gray-900">
-                  Review & Save
-                </h2>
-                <p className="mb-6 text-sm text-gray-600">
-                  Please review your event details below. Click "Save Changes" when ready.
-                </p>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Review & Save
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Please review your event details below. Click "Save Changes" when ready.
+                    </p>
+                  </div>
+                  {/* Language Tabs for Preview */}
+                  <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
+                    {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setActiveLang(lang)}
+                        className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                          activeLang === lang
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <div className="rounded-lg border border-gray-200 p-4">
                     <Label className="text-xs uppercase tracking-wide text-gray-500">Event Title</Label>
-                    <p className="mt-1 text-base font-medium text-gray-900">{formData.title || "—"}</p>
+                    <p className="mt-1 text-base font-medium text-gray-900">
+                      {activeLang === "en" ? (formData.title || "—") : activeLang === "ko" ? (formData.title_ko || <span className="text-gray-400 italic">No Korean translation</span>) : (formData.title_de || <span className="text-gray-400 italic">No German translation</span>)}
+                    </p>
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
                     <Label className="text-xs uppercase tracking-wide text-gray-500">Location</Label>
-                    <p className="mt-1 text-base font-medium text-gray-900">{formData.location || "—"}</p>
+                    <p className="mt-1 text-base font-medium text-gray-900">
+                      {activeLang === "en" ? (formData.location || "—") : activeLang === "ko" ? (formData.location_ko || <span className="text-gray-400 italic">No Korean translation</span>) : (formData.location_de || <span className="text-gray-400 italic">No German translation</span>)}
+                    </p>
                   </div>
 
                   <div className="rounded-lg border border-gray-200 p-4">
@@ -1048,26 +1073,41 @@ export function EditTournamentEventForm({
                     <p className="mt-1 text-base font-medium text-gray-900">{formData.price || "—"}</p>
                   </div>
 
-                  {formData.description && (
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <Label className="text-xs uppercase tracking-wide text-gray-500">Description</Label>
-                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.description}</p>
-                    </div>
-                  )}
+                  {(() => {
+                    const desc = activeLang === "en" ? formData.description : activeLang === "ko" ? formData.description_ko : formData.description_de
+                    return formData.description || desc ? (
+                      <div className="rounded-lg border border-gray-200 p-4">
+                        <Label className="text-xs uppercase tracking-wide text-gray-500">Description</Label>
+                        <p className="mt-1 text-sm text-gray-700 line-clamp-3">
+                          {desc || <span className="text-gray-400 italic">No {activeLang === "ko" ? "Korean" : activeLang === "de" ? "German" : ""} translation</span>}
+                        </p>
+                      </div>
+                    ) : null
+                  })()}
 
-                  {formData.trip_highlights && (
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <Label className="text-xs uppercase tracking-wide text-gray-500">Trip Highlights</Label>
-                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.trip_highlights}</p>
-                    </div>
-                  )}
+                  {(() => {
+                    const highlights = activeLang === "en" ? formData.trip_highlights : activeLang === "ko" ? formData.trip_highlights_ko : formData.trip_highlights_de
+                    return formData.trip_highlights || highlights ? (
+                      <div className="rounded-lg border border-gray-200 p-4">
+                        <Label className="text-xs uppercase tracking-wide text-gray-500">Trip Highlights</Label>
+                        <p className="mt-1 text-sm text-gray-700 line-clamp-3">
+                          {highlights || <span className="text-gray-400 italic">No {activeLang === "ko" ? "Korean" : activeLang === "de" ? "German" : ""} translation</span>}
+                        </p>
+                      </div>
+                    ) : null
+                  })()}
 
-                  {formData.includes && (
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <Label className="text-xs uppercase tracking-wide text-gray-500">Package Includes</Label>
-                      <p className="mt-1 text-sm text-gray-700 line-clamp-3">{formData.includes}</p>
-                    </div>
-                  )}
+                  {(() => {
+                    const includes = activeLang === "en" ? formData.includes : activeLang === "ko" ? formData.includes_ko : formData.includes_de
+                    return formData.includes || includes ? (
+                      <div className="rounded-lg border border-gray-200 p-4">
+                        <Label className="text-xs uppercase tracking-wide text-gray-500">Package Includes</Label>
+                        <p className="mt-1 text-sm text-gray-700 line-clamp-3">
+                          {includes || <span className="text-gray-400 italic">No {activeLang === "ko" ? "Korean" : activeLang === "de" ? "German" : ""} translation</span>}
+                        </p>
+                      </div>
+                    ) : null
+                  })()}
 
                   <div className="rounded-lg border border-gray-200 p-4">
                     <Label className="text-xs uppercase tracking-wide text-gray-500">Itinerary</Label>
@@ -1093,11 +1133,17 @@ export function EditTournamentEventForm({
                     </p>
                     {pricingTiers
                       .filter((t) => t.name.trim())
-                      .map((tier) => (
-                        <p key={tier.id} className="text-sm text-gray-600">
-                          • {tier.name}{tier.price ? `: ${tier.price}` : ""}
-                        </p>
-                      ))}
+                      .map((tier) => {
+                        const tierName = activeLang === "en" ? tier.name : activeLang === "ko" ? (tier.name_ko || tier.name) : (tier.name_de || tier.name)
+                        return (
+                          <p key={tier.id} className="text-sm text-gray-600">
+                            • {tierName}{tier.price ? `: ${tier.price}` : ""}
+                            {activeLang !== "en" && !((activeLang === "ko" && tier.name_ko) || (activeLang === "de" && tier.name_de)) && (
+                              <span className="ml-1 text-xs text-gray-400 italic">(no translation)</span>
+                            )}
+                          </p>
+                        )
+                      })}
                   </div>
                 </div>
               </div>
