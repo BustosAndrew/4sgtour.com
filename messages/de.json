@@ -267,7 +267,9 @@
     "submitInquiry": "Anfrage absenden",
     "submitting": "Wird gesendet...",
     "showLess": "Weniger anzeigen",
-    "readMore": "Mehr lesen"
+    "readMore": "Mehr lesen",
+    "includedServices": "Enthaltene Services",
+    "total": "Gesamt"
   },
   "destinations": {
     "title": "Reiseziele",

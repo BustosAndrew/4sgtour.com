@@ -267,7 +267,9 @@
     "submitInquiry": "Submit Inquiry",
     "submitting": "Submitting...",
     "showLess": "Show less",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "includedServices": "Included Services",
+    "total": "Total"
   },
   "destinations": {
     "title": "Destinations",

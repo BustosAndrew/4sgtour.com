@@ -33,6 +33,8 @@ interface Trip {
   title: string
   slug: string
   location: string
+  location_ko?: string | null
+  location_de?: string | null
   price_regular: number
   max_days?: number
   min_days?: number
@@ -1202,7 +1204,7 @@ export function BookingForm({
                   {selectedTransportOption && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {selectedTransportOption.name}
+                        {getLocalizedField(selectedTransportOption, 'name', locale as any)}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1211,7 +1213,7 @@ export function BookingForm({
                   {selectedMealOption && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {selectedMealOption.name}
+                        {getLocalizedField(selectedMealOption, 'name', locale as any)}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1220,9 +1222,9 @@ export function BookingForm({
                   {includedServices.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        Included Services:{' '}
+                        {t('includedServices')}:{' '}
                         {includedServices
-                          .map((service: any) => service.name)
+                          .map((service: any) => getLocalizedField(service, 'name', locale as any))
                           .join(', ')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
@@ -1232,7 +1234,7 @@ export function BookingForm({
 
                 <div className="mt-6 pt-4">
                   <div className="flex items-baseline gap-1 font-serif text-xl">
-                    <span>Total:</span>
+                    <span>{t('total')}:</span>
                     <span>${calculateTotal()}</span>
                   </div>
                 </div>
@@ -1300,7 +1302,7 @@ export function BookingForm({
                       : t('doubleOccupancy')}
                   </p>
                   <p className="font-serif text-lg font-medium">
-                    {trip.location}
+                    {getLocalizedField(trip, 'location', locale as any)}
                   </p>
                 </div>
               </div>
