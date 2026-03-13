@@ -152,13 +152,6 @@ TRANSLATION GUIDELINES:
       }
     }
 
-    // Log translation lengths for debugging
-    console.log("[v0] Batch translate completed. Fields translated:", Object.keys(translations).length)
-    for (const [key, value] of Object.entries(translations)) {
-      const len = typeof value === 'string' ? value.length : (value as string[]).length
-      console.log(`[v0]   - ${key}: ${typeof value === 'string' ? `${len} chars` : `${len} items`}`)
-    }
-    
     return Response.json({ translations })
   } catch (error) {
     console.error('Batch translation error:', error)
