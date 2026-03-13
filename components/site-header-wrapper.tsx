@@ -3,6 +3,11 @@ import { SiteHeader } from "@/components/site-header"
 import { differenceInCalendarDays, format } from "date-fns"
 import { getServerLocale } from "@/lib/i18n/server"
 import type { Locale } from "@/lib/i18n/config"
+import en from "@/messages/en.json"
+import ko from "@/messages/ko.json"
+import de from "@/messages/de.json"
+
+const messages: Record<string, typeof en> = { en, ko, de }
 
 export async function SiteHeaderWrapper() {
   const supabase = await createClient()
@@ -50,10 +55,14 @@ export async function SiteHeaderWrapper() {
               (min, item) => (item.daysUntil < min.daysUntil ? item : min),
               upcoming[0]
             )
-            tripMessage =
-              nearest.daysUntil === 0
-                ? "Trip starts today!"
-                : `Next trip in ${nearest.daysUntil} day${nearest.daysUntil === 1 ? "" : "s"}`
+            const navMessages = (messages[currentLocale] ?? en).nav
+            if (nearest.daysUntil === 0) {
+              tripMessage = navMessages.tripStartsToday
+            } else if (nearest.daysUntil === 1) {
+              tripMessage = navMessages.nextTripInOneDay
+            } else {
+              tripMessage = navMessages.nextTripInDays.replace("{days}", String(nearest.daysUntil))
+            }
             tripDateLabel = format(nearest.start, "MMM d, yyyy")
           }
         }
