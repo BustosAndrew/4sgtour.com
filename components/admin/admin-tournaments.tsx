@@ -7,7 +7,6 @@ import {
   LogOut,
   Pencil,
   Trash2,
-  Home,
   Menu,
   X,
   Trophy,
@@ -158,72 +157,51 @@ export function AdminTournaments({
           <X className="h-6 w-6" />
         </button>
 
-        <div className="mb-12 flex items-center gap-3">
-          <div className="text-white">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M24 4L8 12V24C8 34 15 42 24 44C33 42 40 34 40 24V12L24 4Z"
-                fill="currentColor"
-                opacity="0.3"
-              />
-              <circle cx="24" cy="20" r="4" fill="currentColor" />
-              <path d="M24 26L18 32H30L24 26Z" fill="currentColor" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-base font-semibold">4SG Tour</div>
-            <div className="text-xs">Customize Golf Journey</div>
-          </div>
+        <div className="border-b border-white/10 pb-6 mb-4 flex items-center justify-center">
+          <Image
+            src="/images/logo.png"
+            alt="4 Seasons Golf Tour"
+            width={250}
+            height={80}
+            className="object-contain"
+          />
         </div>
 
-        <nav className="space-y-2">
-          <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
-              <Home className="h-5 w-5" />
-              <span className="font-medium">Home</span>
-            </button>
-          </Link>
-
+        <nav className="flex-1 space-y-1">
           <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
               <Flag className="h-5 w-5" />
-              <span className="font-medium">Courses</span>
+              <span>Courses</span>
             </button>
           </Link>
 
           <button
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 bg-white/20 text-white transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm bg-white/20 text-white transition-colors"
           >
             <Trophy className="h-5 w-5" />
-            <span className="font-medium">Tournaments</span>
+            <span>Tournaments</span>
           </button>
 
           <Link href="/admin/inbox" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
               <MessageSquare className="h-5 w-5" />
-              <span className="font-medium">Inbox</span>
+              <span>Inbox</span>
             </button>
           </Link>
 
           <Link href="/admin/analytics" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
               <BarChart3 className="h-5 w-5" />
-              <span className="font-medium">Analytics</span>
+              <span>Analytics</span>
             </button>
           </Link>
 
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10"
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10"
           >
             <LogOut className="h-5 w-5" />
-            <span className="font-medium">Log Out</span>
+            <span>Log Out</span>
           </button>
         </nav>
       </aside>

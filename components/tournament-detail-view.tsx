@@ -89,7 +89,7 @@ export function TournamentDetailView({ tournament, locale = 'en' }: TournamentDe
           </p>
           <div className="mx-auto my-2 h-[2px] w-6 bg-[#735c38] sm:my-3 sm:w-8" />
           <h1
-            className="text-center text-3xl font-semibold italic text-white sm:text-5xl md:text-6xl lg:text-7xl"
+            className="text-center text-3xl italic text-white sm:text-5xl md:text-6xl lg:text-7xl"
             style={{ fontFamily: 'var(--font-display)' }}
           >
             {displayName}
