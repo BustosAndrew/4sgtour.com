@@ -191,7 +191,16 @@ export function AdminCourses({
         }
       }
     } catch (error) {
-      setTranslateResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to translation service"}`)
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect to translation service"
+      
+      // Check for credit-related errors
+      if (errorMessage.includes("credit") || errorMessage.includes("402")) {
+        setTranslateResult("Error: AI Gateway credits exhausted. Please refill your AI Gateway credits in the Vercel dashboard to continue translating.")
+      } else if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
+        setTranslateResult("Error: Rate limit exceeded. Please wait a moment and try again.")
+      } else {
+        setTranslateResult(`Error: ${errorMessage}`)
+      }
     } finally {
       setIsTranslating(false)
       setTranslateProgress(null)
@@ -270,7 +279,16 @@ export function AdminCourses({
         }
       }
     } catch (error) {
-      setTranslateTournamentsResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to translation service"}`)
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect to translation service"
+      
+      // Check for credit-related errors
+      if (errorMessage.includes("credit") || errorMessage.includes("402")) {
+        setTranslateTournamentsResult("Error: AI Gateway credits exhausted. Please refill your AI Gateway credits in the Vercel dashboard to continue translating.")
+      } else if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
+        setTranslateTournamentsResult("Error: Rate limit exceeded. Please wait a moment and try again.")
+      } else {
+        setTranslateTournamentsResult(`Error: ${errorMessage}`)
+      }
     } finally {
       setIsTranslatingTournaments(false)
       setTranslateTournamentsProgress(null)

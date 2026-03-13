@@ -119,6 +119,23 @@ export async function POST(
                 updates[field] = translation
               }
             }
+          } else {
+            // Propagate error from batch API
+            try {
+              const errorData = await response.json()
+              return new Response(JSON.stringify({ 
+                error: errorData.error || "Translation failed", 
+                code: errorData.code 
+              }), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" }
+              })
+            } catch {
+              return new Response(JSON.stringify({ error: "Translation service error" }), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" }
+              })
+            }
           }
         } catch (e) {
           console.error(`Error translating to ${targetLang}:`, e)
