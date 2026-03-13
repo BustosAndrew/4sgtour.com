@@ -24,47 +24,53 @@ interface TripToTranslate {
   highlights_de: string[] | null
 }
 
-function needsTranslation(trip: TripToTranslate): boolean {
-  // Check if any translatable field is missing Korean or German translation
-  if (trip.title && (!trip.title_ko || !trip.title_de)) return true
-  if (trip.description && (!trip.description_ko || !trip.description_de)) return true
-  if (trip.refund_policy && (!trip.refund_policy_ko || !trip.refund_policy_de)) return true
-  if (trip.overview_content && (!trip.overview_content_ko || !trip.overview_content_de)) return true
-  if (trip.highlights?.length && (!trip.highlights_ko?.length || !trip.highlights_de?.length)) return true
+function needsTranslation(trip: TripToTranslate, languages: string[]): boolean {
+  const needsKo = languages.includes("ko")
+  const needsDe = languages.includes("de")
+  
+  // Check if any translatable field is missing requested language translations
+  if (trip.title && ((needsKo && !trip.title_ko) || (needsDe && !trip.title_de))) return true
+  if (trip.description && ((needsKo && !trip.description_ko) || (needsDe && !trip.description_de))) return true
+  if (trip.refund_policy && ((needsKo && !trip.refund_policy_ko) || (needsDe && !trip.refund_policy_de))) return true
+  if (trip.overview_content && ((needsKo && !trip.overview_content_ko) || (needsDe && !trip.overview_content_de))) return true
+  if (trip.highlights?.length && ((needsKo && !trip.highlights_ko?.length) || (needsDe && !trip.highlights_de?.length))) return true
   return false
 }
 
 async function translateTrip(
   baseUrl: string,
   trip: TripToTranslate,
-  supabase: any
+  supabase: any,
+  languages: string[]
 ): Promise<boolean> {
   const updates: Record<string, any> = {}
+  const translateKo = languages.includes("ko")
+  const translateDe = languages.includes("de")
 
-  // Only translate fields that are missing
+  // Only translate fields that are missing for requested languages
   const fieldsToTranslateKo: { field: string; text: string; fieldType: string }[] = []
   const fieldsToTranslateDe: { field: string; text: string; fieldType: string }[] = []
 
   if (trip.title) {
-    if (!trip.title_ko) fieldsToTranslateKo.push({ field: "title_ko", text: trip.title, fieldType: "title" })
-    if (!trip.title_de) fieldsToTranslateDe.push({ field: "title_de", text: trip.title, fieldType: "title" })
+    if (translateKo && !trip.title_ko) fieldsToTranslateKo.push({ field: "title_ko", text: trip.title, fieldType: "title" })
+    if (translateDe && !trip.title_de) fieldsToTranslateDe.push({ field: "title_de", text: trip.title, fieldType: "title" })
   }
   if (trip.description) {
-    if (!trip.description_ko) fieldsToTranslateKo.push({ field: "description_ko", text: trip.description, fieldType: "description" })
-    if (!trip.description_de) fieldsToTranslateDe.push({ field: "description_de", text: trip.description, fieldType: "description" })
+    if (translateKo && !trip.description_ko) fieldsToTranslateKo.push({ field: "description_ko", text: trip.description, fieldType: "description" })
+    if (translateDe && !trip.description_de) fieldsToTranslateDe.push({ field: "description_de", text: trip.description, fieldType: "description" })
   }
   if (trip.refund_policy) {
-    if (!trip.refund_policy_ko) fieldsToTranslateKo.push({ field: "refund_policy_ko", text: trip.refund_policy, fieldType: "description" })
-    if (!trip.refund_policy_de) fieldsToTranslateDe.push({ field: "refund_policy_de", text: trip.refund_policy, fieldType: "description" })
+    if (translateKo && !trip.refund_policy_ko) fieldsToTranslateKo.push({ field: "refund_policy_ko", text: trip.refund_policy, fieldType: "description" })
+    if (translateDe && !trip.refund_policy_de) fieldsToTranslateDe.push({ field: "refund_policy_de", text: trip.refund_policy, fieldType: "description" })
   }
   if (trip.overview_content) {
-    if (!trip.overview_content_ko) fieldsToTranslateKo.push({ field: "overview_content_ko", text: trip.overview_content, fieldType: "description" })
-    if (!trip.overview_content_de) fieldsToTranslateDe.push({ field: "overview_content_de", text: trip.overview_content, fieldType: "description" })
+    if (translateKo && !trip.overview_content_ko) fieldsToTranslateKo.push({ field: "overview_content_ko", text: trip.overview_content, fieldType: "description" })
+    if (translateDe && !trip.overview_content_de) fieldsToTranslateDe.push({ field: "overview_content_de", text: trip.overview_content, fieldType: "description" })
   }
 
-  // Batch translate Korean and German fields in parallel
+  // Batch translate Korean and German fields in parallel (only for requested languages)
   const [koResult, deResult] = await Promise.all([
-    fieldsToTranslateKo.length > 0 
+    translateKo && fieldsToTranslateKo.length > 0 
       ? fetch(`${baseUrl}/api/translate/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -75,7 +81,7 @@ async function translateTrip(
           }),
         }).then(r => r.ok ? r.json() : null).catch(() => null)
       : null,
-    fieldsToTranslateDe.length > 0
+    translateDe && fieldsToTranslateDe.length > 0
       ? fetch(`${baseUrl}/api/translate/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -91,10 +97,10 @@ async function translateTrip(
   if (koResult?.translations) Object.assign(updates, koResult.translations)
   if (deResult?.translations) Object.assign(updates, deResult.translations)
 
-  // Translate highlights arrays if needed (in parallel)
+  // Translate highlights arrays if needed (in parallel, only for requested languages)
   if (trip.highlights?.length) {
-    const needsKo = !trip.highlights_ko?.length
-    const needsDe = !trip.highlights_de?.length
+    const needsKo = translateKo && !trip.highlights_ko?.length
+    const needsDe = translateDe && !trip.highlights_de?.length
 
     if (needsKo || needsDe) {
       const highlightPromises = trip.highlights.filter(h => h.trim()).map(async (h) => {
@@ -142,7 +148,7 @@ async function translateTrip(
   return true
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient()
     const userType = await getUserType()
@@ -152,6 +158,17 @@ export async function POST() {
         status: 401,
         headers: { "Content-Type": "application/json" }
       })
+    }
+
+    // Parse languages from request body
+    let languages: string[] = ["ko", "de"] // Default to both
+    try {
+      const body = await request.json()
+      if (body.languages && Array.isArray(body.languages) && body.languages.length > 0) {
+        languages = body.languages.filter((l: string) => ["ko", "de"].includes(l))
+      }
+    } catch {
+      // Use default languages if no body
     }
 
     const headersList = await headers()
@@ -165,8 +182,8 @@ export async function POST() {
       .select("id, title, description, location, refund_policy, overview_content, highlights, title_ko, title_de, description_ko, description_de, refund_policy_ko, refund_policy_de, overview_content_ko, overview_content_de, highlights_ko, highlights_de")
       .not("title", "is", null)
 
-    // Filter to only trips that actually need translation
-    const trips = (allTrips || []).filter(needsTranslation)
+    // Filter to only trips that actually need translation for selected languages
+    const trips = (allTrips || []).filter(t => needsTranslation(t, languages))
     const totalTrips = trips.length
     const skipped = (allTrips?.length || 0) - totalTrips
 
@@ -190,18 +207,19 @@ export async function POST() {
 
         const results = { total: totalTrips, translated: 0, errors: 0 }
 
+        const langNames = languages.map(l => l === "ko" ? "Korean" : "German").join(" & ")
         sendProgress({
           type: "progress",
           completed: 0,
           total: totalTrips,
-          message: `Translating ${totalTrips} trips (${skipped} already complete)...`
+          message: `Translating ${totalTrips} trips to ${langNames} (${skipped} already complete)...`
         })
 
         // Process in batches for speed
         for (let i = 0; i < trips.length; i += BATCH_SIZE) {
           const batch = trips.slice(i, i + BATCH_SIZE)
           const batchResults = await Promise.all(
-            batch.map(trip => translateTrip(baseUrl, trip, supabase))
+            batch.map(trip => translateTrip(baseUrl, trip, supabase, languages))
           )
           
           for (const success of batchResults) {
@@ -221,7 +239,7 @@ export async function POST() {
         sendProgress({
           type: "complete",
           success: true,
-          message: `Translated ${results.translated} trips (${skipped} were already complete)`,
+          message: `Translated ${results.translated} trips to ${langNames} (${skipped} were already complete)`,
           results
         })
 

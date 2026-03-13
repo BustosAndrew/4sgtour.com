@@ -109,16 +109,25 @@ export function AdminCourses({
   const [isTranslatingTournaments, setIsTranslatingTournaments] = useState(false)
   const [translateTournamentsResult, setTranslateTournamentsResult] = useState<string | null>(null)
   const [translateTournamentsProgress, setTranslateTournamentsProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
+  const [translateLanguages, setTranslateLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
+  const [translateTournamentsLanguages, setTranslateTournamentsLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
   const router = useRouter()
 
   const handleTranslateAll = async () => {
     if (isTranslating) return
+    if (!translateLanguages.ko && !translateLanguages.de) {
+      setTranslateResult("Please select at least one language to translate")
+      return
+    }
+    const languages = [translateLanguages.ko && "ko", translateLanguages.de && "de"].filter(Boolean) as string[]
     setIsTranslating(true)
     setTranslateResult(null)
     setTranslateProgress(null)
     try {
       const response = await fetch("/api/admin/translate-trips", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ languages }),
       })
       
       if (!response.ok) {
@@ -185,12 +194,19 @@ export function AdminCourses({
 
   const handleTranslateTournaments = async () => {
     if (isTranslatingTournaments) return
+    if (!translateTournamentsLanguages.ko && !translateTournamentsLanguages.de) {
+      setTranslateTournamentsResult("Please select at least one language to translate")
+      return
+    }
+    const languages = [translateTournamentsLanguages.ko && "ko", translateTournamentsLanguages.de && "de"].filter(Boolean) as string[]
     setIsTranslatingTournaments(true)
     setTranslateTournamentsResult(null)
     setTranslateTournamentsProgress(null)
     try {
       const response = await fetch("/api/admin/translate-tournaments", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ languages }),
       })
       
       if (!response.ok) {
@@ -631,10 +647,30 @@ export function AdminCourses({
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:self-end">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:self-end">
+                  <div className="flex items-center gap-3 text-sm">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={translateLanguages.ko}
+                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, ko: e.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <span>Korean</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={translateLanguages.de}
+                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, de: e.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <span>German</span>
+                    </label>
+                  </div>
                   <Button
                     onClick={handleTranslateAll}
-                    disabled={isTranslating}
+                    disabled={isTranslating || (!translateLanguages.ko && !translateLanguages.de)}
                     variant="outline"
                     className="w-full sm:w-auto"
                   >
@@ -767,15 +803,37 @@ export function AdminCourses({
                     {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} with{" "}
                     {localTournaments.reduce((acc, t) => acc + t.tournament_events.length, 0)} total events
                   </p>
-                  <Button
-                    onClick={handleTranslateTournaments}
-                    disabled={isTranslatingTournaments}
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                  >
-                    <Languages className="mr-2 h-4 w-4" />
-                    {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
-                  </Button>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-3 text-sm">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={translateTournamentsLanguages.ko}
+                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, ko: e.target.checked }))}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <span>Korean</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={translateTournamentsLanguages.de}
+                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, de: e.target.checked }))}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <span>German</span>
+                      </label>
+                    </div>
+                    <Button
+                      onClick={handleTranslateTournaments}
+                      disabled={isTranslatingTournaments || (!translateTournamentsLanguages.ko && !translateTournamentsLanguages.de)}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      <Languages className="mr-2 h-4 w-4" />
+                      {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
+                    </Button>
+                  </div>
                 </div>
                 {translateTournamentsProgress && (
                   <div className="w-full space-y-2">
