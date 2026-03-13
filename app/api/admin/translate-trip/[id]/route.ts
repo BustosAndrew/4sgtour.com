@@ -95,10 +95,14 @@ export async function POST(
         const targetField = `${fieldBase}${targetSuffix}`
         const sourceValue = trip[sourceField]
 
+        console.log(`[v0] translate-trip: fieldBase=${fieldBase}, sourceField=${sourceField}, targetField=${targetField}, hasValue=${!!sourceValue}`)
+
         if (sourceValue) {
           fieldsToTranslate.push({ field: targetField, text: sourceValue, fieldType: type })
         }
       }
+      
+      console.log(`[v0] translate-trip: translating ${fieldsToTranslate.length} fields to ${targetLang}:`, fieldsToTranslate.map(f => f.field))
 
       if (fieldsToTranslate.length > 0) {
         try {
