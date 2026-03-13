@@ -6,7 +6,7 @@ import { AdminCourses } from "@/components/admin/admin-courses"
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ inquiryId?: string }>
+  searchParams: Promise<{ inquiryId?: string; tab?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -42,14 +42,24 @@ export default async function AdminDashboardPage({
     .order("continent", { ascending: true, nullsFirst: false })
     .order("title", { ascending: true })
 
+  const { data: tournaments } = await supabase
+    .from("tournaments")
+    .select(`
+      *,
+      tournament_events(id, title, slug, date, image, location)
+    `)
+    .order("name", { ascending: true })
+
   return (
     <AdminCourses
       userName={profile?.display_name || profile?.email || "Admin"}
       trips={trips || []}
+      tournaments={tournaments || []}
       userEmail={profile?.email || user.email || ""}
       userPhone={profile?.phone || null}
       userPhotoUrl={profile?.photo_url || null}
       initialInquiryId={params.inquiryId}
+      initialTab={params.tab as "courses" | "tournaments" | "inquiries" | "inbox" | undefined}
     />
   )
 }

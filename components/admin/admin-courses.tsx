@@ -15,6 +15,9 @@ import {
   MessageSquare,
   Trophy,
   Languages,
+  ChevronDown,
+  ChevronRight,
+  Plus,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -41,6 +44,22 @@ type Trip = {
   }>
 }
 
+type TournamentEvent = {
+  id: string
+  title: string
+  slug: string
+  date: string
+  image: string | null
+  location: string | null
+}
+
+type Tournament = {
+  id: string
+  name: string
+  slug: string
+  tournament_events: TournamentEvent[]
+}
+
 const CONTINENTS = [
   "World",
   "Latin America",
@@ -52,25 +71,32 @@ const CONTINENTS = [
 export function AdminCourses({
   userName,
   trips,
+  tournaments,
   userEmail,
   userPhone,
   userPhotoUrl,
   initialInquiryId,
+  initialTab,
 }: {
   userName: string
   trips: Trip[]
+  tournaments: Tournament[]
   userEmail: string
   userPhone: string | null
   userPhotoUrl: string | null
   initialInquiryId?: string
+  initialTab?: "courses" | "tournaments" | "inquiries" | "inbox"
 }) {
-  const [activeTab, setActiveTab] = useState<"courses" | "inquiries" | "inbox">(
-    "courses",
+  const [activeTab, setActiveTab] = useState<"courses" | "tournaments" | "inquiries" | "inbox">(
+    initialTab || "courses",
   )
   const [selectedContinent, setSelectedContinent] = useState<string>("All")
   const [showAccountSettings, setShowAccountSettings] = useState(false)
   const [deletingTrips, setDeletingTrips] = useState<Set<string>>(new Set())
+  const [deletingEvents, setDeletingEvents] = useState<Set<string>>(new Set())
   const [localTrips, setLocalTrips] = useState<Trip[]>(trips)
+  const [localTournaments, setLocalTournaments] = useState<Tournament[]>(tournaments)
+  const [expandedTournaments, setExpandedTournaments] = useState<Set<string>>(new Set())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [inquiries, setInquiries] = useState<any[]>([])
   const [loadingInquiries, setLoadingInquiries] = useState(false)
@@ -80,6 +106,9 @@ export function AdminCourses({
   const [isTranslating, setIsTranslating] = useState(false)
   const [translateResult, setTranslateResult] = useState<string | null>(null)
   const [translateProgress, setTranslateProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
+  const [isTranslatingTournaments, setIsTranslatingTournaments] = useState(false)
+  const [translateTournamentsResult, setTranslateTournamentsResult] = useState<string | null>(null)
+  const [translateTournamentsProgress, setTranslateTournamentsProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
   const router = useRouter()
 
   const handleTranslateAll = async () => {
@@ -88,7 +117,7 @@ export function AdminCourses({
     setTranslateResult(null)
     setTranslateProgress(null)
     try {
-      const response = await fetch("/api/admin/translate-all", {
+      const response = await fetch("/api/admin/translate-trips", {
         method: "POST",
       })
       
@@ -136,6 +165,115 @@ export function AdminCourses({
     } finally {
       setIsTranslating(false)
       setTranslateProgress(null)
+    }
+  }
+
+  const handleTranslateTournaments = async () => {
+    if (isTranslatingTournaments) return
+    setIsTranslatingTournaments(true)
+    setTranslateTournamentsResult(null)
+    setTranslateTournamentsProgress(null)
+    try {
+      const response = await fetch("/api/admin/translate-tournaments", {
+        method: "POST",
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Translation failed")
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (!reader) {
+        throw new Error("No response body")
+      }
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split("\n")
+        
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.type === "progress") {
+                setTranslateTournamentsProgress({
+                  completed: data.completed,
+                  total: data.total,
+                  message: data.message
+                })
+              } else if (data.type === "complete") {
+                setTranslateTournamentsResult(data.message)
+                setTranslateTournamentsProgress(null)
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+    } catch (error) {
+      setTranslateTournamentsResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to translation service"}`)
+    } finally {
+      setIsTranslatingTournaments(false)
+      setTranslateTournamentsProgress(null)
+    }
+  }
+
+  const toggleTournamentExpand = (tournamentId: string) => {
+    setExpandedTournaments(prev => {
+      const next = new Set(prev)
+      if (next.has(tournamentId)) {
+        next.delete(tournamentId)
+      } else {
+        next.add(tournamentId)
+      }
+      return next
+    })
+  }
+
+  const handleDeleteEvent = async (eventId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+      return
+    }
+
+    setDeletingEvents(prev => new Set(prev).add(eventId))
+
+    try {
+      const response = await fetch(`/api/admin/tournaments/events/${eventId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete event")
+      }
+
+      // Remove from local state
+      setLocalTournaments(prev => 
+        prev.map(t => ({
+          ...t,
+          tournament_events: t.tournament_events.filter(e => e.id !== eventId)
+        }))
+      )
+      router.refresh()
+    } catch (error) {
+      console.error("Error deleting event:", error)
+      alert(error instanceof Error ? error.message : "Failed to delete event")
+    } finally {
+      setDeletingEvents(prev => {
+        const next = new Set(prev)
+        next.delete(eventId)
+        return next
+      })
     }
   }
 
@@ -325,12 +463,20 @@ export function AdminCourses({
             <span className="font-medium">Courses</span>
           </button>
 
-          <Link href="/admin/tournaments" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
-              <Trophy className="h-5 w-5" />
-              <span className="font-medium">Tournaments</span>
-            </button>
-          </Link>
+          <button
+            onClick={() => {
+              setActiveTab("tournaments")
+              setMobileMenuOpen(false)
+            }}
+            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+              activeTab === "tournaments"
+                ? "bg-white/20 text-white"
+                : "text-white hover:bg-white/10"
+            }`}
+          >
+            <Trophy className="h-5 w-5" />
+            <span className="font-medium">Tournaments</span>
+          </button>
 
           <button
             onClick={() => {
@@ -572,6 +718,143 @@ export function AdminCourses({
                     </p>
                   </div>
                 )}
+              </div>
+            </>
+          ) : activeTab === "tournaments" ? (
+            <>
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                  Tournaments
+                </h2>
+                <p className="text-xs text-gray-600 sm:text-sm">
+                  Manage tournament events (Masters, Ryder Cup, The Open, US Open)
+                </p>
+              </div>
+
+              <div className="mb-4 flex flex-col gap-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-gray-600">
+                    {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} with{" "}
+                    {localTournaments.reduce((acc, t) => acc + t.tournament_events.length, 0)} total events
+                  </p>
+                  <Button
+                    onClick={handleTranslateTournaments}
+                    disabled={isTranslatingTournaments}
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
+                    <Languages className="mr-2 h-4 w-4" />
+                    {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
+                  </Button>
+                </div>
+                {translateTournamentsProgress && (
+                  <div className="w-full space-y-2">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>{translateTournamentsProgress.message}</span>
+                      <span>{translateTournamentsProgress.completed}/{translateTournamentsProgress.total}</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div 
+                        className="h-full bg-[#274C77] transition-all duration-300"
+                        style={{ width: `${(translateTournamentsProgress.completed / translateTournamentsProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {translateTournamentsResult && !translateTournamentsProgress && (
+                  <p className={`text-sm ${translateTournamentsResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
+                    {translateTournamentsResult}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                {localTournaments.map((tournament) => (
+                  <div key={tournament.id} className="rounded-lg bg-white shadow-sm">
+                    <button
+                      onClick={() => toggleTournamentExpand(tournament.id)}
+                      className="flex w-full items-center justify-between p-4 text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Trophy className="h-5 w-5 text-[#274C77]" />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{tournament.name}</h3>
+                          <p className="text-sm text-gray-500">
+                            {tournament.tournament_events.length} event{tournament.tournament_events.length !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
+                      {expandedTournaments.has(tournament.id) ? (
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+
+                    {expandedTournaments.has(tournament.id) && (
+                      <div className="border-t border-gray-100 p-4">
+                        <div className="mb-4 flex justify-end">
+                          <Link href={`/admin/tournaments/${tournament.id}/events/new`}>
+                            <Button size="sm" className="bg-[#274C77] text-white hover:bg-[#274C77]/90">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add Event
+                            </Button>
+                          </Link>
+                        </div>
+
+                        {tournament.tournament_events.length === 0 ? (
+                          <p className="text-center text-sm text-gray-500 py-4">
+                            No events yet. Click "Add Event" to create one.
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {tournament.tournament_events.map((event) => (
+                              <div
+                                key={event.id}
+                                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {event.image && (
+                                    <Image
+                                      src={event.image}
+                                      alt={event.title}
+                                      width={48}
+                                      height={48}
+                                      className="rounded object-cover"
+                                    />
+                                  )}
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">{event.title}</h4>
+                                    <p className="text-sm text-gray-500">
+                                      {event.date ? new Date(event.date).toLocaleDateString() : "No date"} 
+                                      {event.location && ` • ${event.location}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Link href={`/admin/tournaments/${tournament.id}/events/${event.id}`}>
+                                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </Link>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-red-500 hover:text-red-600"
+                                    onClick={(e) => handleDeleteEvent(event.id, e)}
+                                    disabled={deletingEvents.has(event.id)}
+                                  >
+                                    <Trash2 className={`h-4 w-4 ${deletingEvents.has(event.id) ? "animate-pulse" : ""}`} />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </>
           ) : activeTab === "inquiries" ? (
