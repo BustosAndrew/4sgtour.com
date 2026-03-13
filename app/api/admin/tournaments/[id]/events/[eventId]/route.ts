@@ -61,38 +61,39 @@ export async function PATCH(
     // Generate slug from title
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
 
+    // Build update object - only include localized fields if explicitly sent
+    // This allows auto-translate to fill in missing translations without being overwritten
+    const updateData: Record<string, any> = {
+      title,
+      slug,
+      location,
+      date,
+      duration: duration || null,
+      description: description || null,
+      trip_highlights: trip_highlights || null,
+      travel_itinerary: travel_itinerary || null,
+      includes: includes || null,
+      excludes: excludes || null,
+      price: price || null,
+      image: image || null,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Only update Korean fields if they were explicitly provided
+    if ('title_ko' in body) updateData.title_ko = title_ko
+    if ('location_ko' in body) updateData.location_ko = location_ko
+    if ('description_ko' in body) updateData.description_ko = description_ko
+    if ('trip_highlights_ko' in body) updateData.trip_highlights_ko = trip_highlights_ko
+    if ('travel_itinerary_ko' in body) updateData.travel_itinerary_ko = travel_itinerary_ko
+    if ('includes_ko' in body) updateData.includes_ko = includes_ko
+    if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko
+
+    // German is always auto-translated, never manually set from the form
+
     // Update the event
     const { data: eventData, error: eventError } = await supabase
       .from("tournament_events")
-      .update({
-        title,
-        title_ko: title_ko ?? null,
-        title_de: title_de ?? null,
-        slug,
-        location,
-        location_ko: location_ko ?? null,
-        location_de: location_de ?? null,
-        date,
-        duration: duration || null,
-        description: description || null,
-        description_ko: description_ko ?? null,
-        description_de: description_de ?? null,
-        trip_highlights: trip_highlights || null,
-        trip_highlights_ko: trip_highlights_ko ?? null,
-        trip_highlights_de: trip_highlights_de ?? null,
-        travel_itinerary: travel_itinerary || null,
-        travel_itinerary_ko: travel_itinerary_ko ?? null,
-        travel_itinerary_de: travel_itinerary_de ?? null,
-        includes: includes || null,
-        includes_ko: includes_ko ?? null,
-        includes_de: includes_de ?? null,
-        excludes: excludes || null,
-        excludes_ko: excludes_ko ?? null,
-        excludes_de: excludes_de ?? null,
-        price: price || null,
-        image: image || null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", eventId)
       .eq("tournament_id", tournamentId)
       .select()

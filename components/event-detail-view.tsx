@@ -197,14 +197,14 @@ export function EventDetailView({
           >
             {formattedDate}
           </p>
+          {/* White divider under date */}
+          <div className="mx-auto mt-3 h-[3px] w-[50px] bg-white" />
           <h1
-            className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
+            className="mt-4 text-center text-3xl italic text-white sm:text-4xl md:text-5xl lg:text-6xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
             {titleCase(eventTitle)}
           </h1>
-          {/* White divider under title */}
-          <div className="mx-auto mt-4 h-[3px] w-[50px] bg-white" />
         </div>
       </section>
 
@@ -542,7 +542,6 @@ export function EventDetailView({
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
                               <span className="font-bold text-[#735c38]">{tier.price}</span>
-                              <span className="text-[#735c38]/70">/golfer</span>
                             </p>
                           )}
                           {tier.description && (

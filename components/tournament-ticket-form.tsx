@@ -102,7 +102,7 @@ export function TournamentTicketForm({
           >
             {formattedTitle}
           </h1>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-white/80">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-semibold text-white/90">
             <span>{eventLocation}</span>
             <span className="hidden sm:inline" aria-hidden="true">
               {'|'}

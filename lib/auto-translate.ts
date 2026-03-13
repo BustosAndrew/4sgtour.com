@@ -81,7 +81,7 @@ export async function autoTranslateTrip(
   sourceLanguage: "en" | "ko",
   supabase: any
 ): Promise<void> {
-  console.log("[v0] autoTranslateTrip called:", { tripId, sourceLanguage, hasDescription: !!sourceData.description })
+
   const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
 
   for (const targetLang of targetLanguages) {
@@ -180,15 +180,12 @@ export async function autoTranslatePackages(
         fieldsToTranslate.push({ field: `description${suffix}`, text: pkg.description, fieldType: "description" })
       }
 
-    console.log("[v0] Fields to translate for", targetLang, ":", fieldsToTranslate.map(f => f.field))
-    
     if (fieldsToTranslate.length > 0) {
       const translations = await translateBatch(baseUrl, {
         fields: fieldsToTranslate,
         targetLanguage: targetLang,
         sourceLanguage,
       })
-      console.log("[v0] Translations received:", Object.keys(translations))
       Object.assign(updates, translations)
     }
 

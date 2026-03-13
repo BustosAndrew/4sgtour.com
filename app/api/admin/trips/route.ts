@@ -67,41 +67,41 @@ export async function POST(request: Request) {
     // Add timestamp to ensure uniqueness
     const slug = `${baseSlug}-${Date.now()}`
 
+    // Build insert data - only include Korean fields if explicitly provided
+    // German fields are auto-translated and should not be set manually
+    const insertData: Record<string, any> = {
+      title,
+      description,
+      refund_policy: refund_policy || null,
+      overview_content: overview_content || null,
+      location,
+      continent,
+      slug,
+      price_regular: price_regular || 0,
+      max_guests: max_guests || 20,
+      max_days: max_days || null,
+      min_days: body.min_days || 1,
+      min_days_advance: min_days_advance || 0,
+      courses_photo_url,
+      room_photo_url,
+      highlights: highlights || [],
+      show_from_price: body.show_from_price || false,
+      is_payment_link_trip: false,
+    }
+
+    // Only include Korean fields if they were explicitly provided
+    if (title_ko) insertData.title_ko = title_ko
+    if (description_ko) insertData.description_ko = description_ko
+    if (refund_policy_ko) insertData.refund_policy_ko = refund_policy_ko
+    if (overview_content_ko) insertData.overview_content_ko = overview_content_ko
+    if (location_ko) insertData.location_ko = location_ko
+    if (highlights_ko && highlights_ko.length > 0) insertData.highlights_ko = highlights_ko
+
+    // German is always auto-translated, don't set from form
+
     const { data: tripData, error: tripError } = await supabase
       .from("trips")
-      .insert({
-        title,
-        description,
-        refund_policy: refund_policy || null,
-        overview_content: overview_content || null,
-        location,
-        continent,
-        slug,
-        price_regular: price_regular || 0,
-        max_guests: max_guests || 20,
-        max_days: max_days || null,
-        min_days: body.min_days || 1,
-        min_days_advance: min_days_advance || 0,
-        courses_photo_url,
-        room_photo_url,
-        highlights: highlights || [],
-        // Korean translations
-        title_ko: title_ko || null,
-        description_ko: description_ko || null,
-        refund_policy_ko: refund_policy_ko || null,
-        overview_content_ko: overview_content_ko || null,
-        location_ko: location_ko || null,
-        highlights_ko: highlights_ko || [],
-        // German translations
-        title_de: title_de || null,
-        description_de: description_de || null,
-        refund_policy_de: refund_policy_de || null,
-        overview_content_de: overview_content_de || null,
-        location_de: location_de || null,
-        highlights_de: highlights_de || [],
-        show_from_price: body.show_from_price || false,
-        is_payment_link_trip: false,
-      })
+      .insert(insertData)
       .select()
       .single()
 

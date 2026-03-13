@@ -20,7 +20,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
-type Lang = "en" | "ko" | "de"
+type Lang = "en" | "ko"
 
 type ItineraryDay = {
   id: string
@@ -341,28 +341,22 @@ export function EditTournamentEventForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
-            title_ko: formData.title_ko || null,
-            title_de: formData.title_de || null,
+            // Only send Korean if user explicitly entered it
+            ...(formData.title_ko?.trim() && { title_ko: formData.title_ko }),
             location: formData.location,
-            location_ko: formData.location_ko || null,
-            location_de: formData.location_de || null,
+            ...(formData.location_ko?.trim() && { location_ko: formData.location_ko }),
             date: formData.date,
             duration: formData.duration || null,
             description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
-            description_ko: formData.description_ko ? formData.description_ko.split("\n\n").filter(Boolean) : null,
-            description_de: formData.description_de ? formData.description_de.split("\n\n").filter(Boolean) : null,
+            ...(formData.description_ko?.trim() && { description_ko: formData.description_ko.split("\n\n").filter(Boolean) }),
             trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
-            trip_highlights_ko: formData.trip_highlights_ko ? formData.trip_highlights_ko.split("\n").filter(Boolean) : null,
-            trip_highlights_de: formData.trip_highlights_de ? formData.trip_highlights_de.split("\n").filter(Boolean) : null,
+            ...(formData.trip_highlights_ko?.trim() && { trip_highlights_ko: formData.trip_highlights_ko.split("\n").filter(Boolean) }),
             travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
-            travel_itinerary_ko: formData.travel_itinerary_ko ? formData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
-            travel_itinerary_de: formData.travel_itinerary_de ? formData.travel_itinerary_de.split("\n").filter(Boolean) : null,
+            ...(formData.travel_itinerary_ko?.trim() && { travel_itinerary_ko: formData.travel_itinerary_ko.split("\n").filter(Boolean) }),
             includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
-            includes_ko: formData.includes_ko ? formData.includes_ko.split("\n").filter(Boolean) : null,
-            includes_de: formData.includes_de ? formData.includes_de.split("\n").filter(Boolean) : null,
+            ...(formData.includes_ko?.trim() && { includes_ko: formData.includes_ko.split("\n").filter(Boolean) }),
             excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
-            excludes_ko: formData.excludes_ko ? formData.excludes_ko.split("\n").filter(Boolean) : null,
-            excludes_de: formData.excludes_de ? formData.excludes_de.split("\n").filter(Boolean) : null,
+            ...(formData.excludes_ko?.trim() && { excludes_ko: formData.excludes_ko.split("\n").filter(Boolean) }),
             price: formData.price || null,
             image: imageUrl || null,
             itinerary: itinerary.filter((d) => d.title.trim()),
@@ -460,7 +454,7 @@ export function EditTournamentEventForm({
                   <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
                   {/* Language Tabs */}
                   <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                    {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                    {(["en", "ko"] as Lang[]).map((lang) => (
                       <button
                         key={lang}
                         type="button"
@@ -690,7 +684,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      {(["en", "ko"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
@@ -876,7 +870,7 @@ export function EditTournamentEventForm({
                   <div className="flex items-center gap-2">
                     {/* Language Tabs */}
                     <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
-                      {(["en", "ko", "de"] as Lang[]).map((lang) => (
+                      {(["en", "ko"] as Lang[]).map((lang) => (
                         <button
                           key={lang}
                           type="button"
