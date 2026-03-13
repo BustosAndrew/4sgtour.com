@@ -298,7 +298,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         throw new Error(data.error || "Failed to create event")
       }
 
-      router.push("/admin/tournaments")
+      router.push("/admin?tab=tournaments")
       router.refresh()
     } catch (error) {
       console.error("Error creating event:", error)
@@ -314,7 +314,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="min-h-screen bg-[#f4f3ee]">
       <header className="border-b border-gray-300 bg-white px-4 py-4 sm:px-8 sm:py-6">
         <div className="flex items-center gap-4">
-          <Link href="/admin/tournaments">
+          <Link href="/admin?tab=tournaments">
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>

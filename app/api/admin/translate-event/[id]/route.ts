@@ -161,6 +161,111 @@ export async function POST(
       }
     }
 
+    // Translate itinerary days
+    const { data: itineraryDays } = await supabase
+      .from("tournament_event_itinerary_days")
+      .select("*")
+      .eq("event_id", id)
+      .order("display_order")
+
+    if (itineraryDays?.length) {
+      for (const day of itineraryDays) {
+        for (const targetLang of targetLanguages) {
+          if (targetLang === sourceLanguage) continue
+          
+          const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+          const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
+          
+          const dayFieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
+          
+          const sourceTitle = day[`title${sourceSuffix}`]
+          if (sourceTitle) {
+            dayFieldsToTranslate.push({ field: `title${targetSuffix}`, text: sourceTitle, fieldType: "title" })
+          }
+          
+          const sourceContent = day[`content${sourceSuffix}`]
+          if (sourceContent) {
+            dayFieldsToTranslate.push({ field: `content${targetSuffix}`, text: sourceContent, fieldType: "description" })
+          }
+          
+          if (dayFieldsToTranslate.length > 0) {
+            const response = await fetch(`${baseUrl}/api/translate/batch`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                fields: dayFieldsToTranslate,
+                targetLanguage: targetLang,
+                sourceLanguage: sourceLanguage,
+              }),
+            })
+            
+            if (response.ok) {
+              const result = await response.json()
+              if (result.translations) {
+                const dayUpdates: Record<string, string> = {}
+                for (const [field, translation] of Object.entries(result.translations)) {
+                  dayUpdates[field] = translation as string
+                }
+                if (Object.keys(dayUpdates).length > 0) {
+                  await supabase
+                    .from("tournament_event_itinerary_days")
+                    .update(dayUpdates)
+                    .eq("id", day.id)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Translate pricing tiers
+    const { data: pricingTiers } = await supabase
+      .from("tournament_event_pricing_tiers")
+      .select("*")
+      .eq("event_id", id)
+      .order("display_order")
+
+    if (pricingTiers?.length) {
+      for (const tier of pricingTiers) {
+        for (const targetLang of targetLanguages) {
+          if (targetLang === sourceLanguage) continue
+          
+          const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+          const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
+          
+          const sourceName = tier[`name${sourceSuffix}`]
+          if (sourceName) {
+            const response = await fetch(`${baseUrl}/api/translate/batch`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                fields: [{ field: `name${targetSuffix}`, text: sourceName, fieldType: "title" }],
+                targetLanguage: targetLang,
+                sourceLanguage: sourceLanguage,
+              }),
+            })
+            
+            if (response.ok) {
+              const result = await response.json()
+              if (result.translations) {
+                const tierUpdates: Record<string, string> = {}
+                for (const [field, translation] of Object.entries(result.translations)) {
+                  tierUpdates[field] = translation as string
+                }
+                if (Object.keys(tierUpdates).length > 0) {
+                  await supabase
+                    .from("tournament_event_pricing_tiers")
+                    .update(tierUpdates)
+                    .eq("id", tier.id)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Update the event if there are translations
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase

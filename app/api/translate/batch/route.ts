@@ -64,7 +64,7 @@ IMPORTANT:
         prompt: fieldsToTranslate,
       })
     } catch (aiError: any) {
-      console.error("[v0] batch translate: AI error:", aiError?.message, aiError?.cause)
+      console.error("Batch translate AI error:", aiError?.message, aiError?.cause)
       
       // Check for specific error types
       const errorMessage = aiError?.message || ''
@@ -131,8 +131,7 @@ IMPORTANT:
 
     return Response.json({ translations })
   } catch (error) {
-    console.error('[v0] Batch translation error:', error)
-    console.error('[v0] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    console.error('Batch translation error:', error)
     return Response.json(
       { error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, code: 'TRANSLATION_ERROR' },
       { status: 500 }
