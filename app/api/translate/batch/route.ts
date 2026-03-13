@@ -32,14 +32,16 @@ export async function POST(req: Request) {
     const sourceLang = languageNames[sourceLanguage] || sourceLanguage
 
     // Build a structured prompt for batch translation
+    // Use the ORIGINAL index from the fields array so the parser can map back correctly
     const fieldsToTranslate = fields
-      .filter(f => f.text && f.text.trim())
       .map((f, i) => {
+        if (!f.text || !f.text.trim()) return null
         if (f.isArray && Array.isArray(f.text)) {
-          return `[${i}] ${f.field} (${f.fieldType || 'general'}, array):\n${f.text.map((item, j) => `  ${j}. ${item}`).join('\n')}`
+          return `[${i}] ${f.field} (${f.fieldType || 'general'}, array):\n${f.text.map((item: string, j: number) => `  ${j}. ${item}`).join('\n')}`
         }
         return `[${i}] ${f.field} (${f.fieldType || 'general'}): ${f.text}`
       })
+      .filter(Boolean)
       .join('\n\n')
 
     if (!fieldsToTranslate) {
