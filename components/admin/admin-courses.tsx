@@ -14,6 +14,7 @@ import {
   X,
   MessageSquare,
   Trophy,
+  Languages,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -76,7 +77,30 @@ export function AdminCourses({
   const [focusedInquiryId, setFocusedInquiryId] = useState<string | undefined>(
     initialInquiryId,
   )
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translateResult, setTranslateResult] = useState<string | null>(null)
   const router = useRouter()
+
+  const handleTranslateAll = async () => {
+    if (isTranslating) return
+    setIsTranslating(true)
+    setTranslateResult(null)
+    try {
+      const response = await fetch("/api/admin/translate-all", {
+        method: "POST",
+      })
+      const data = await response.json()
+      if (data.success) {
+        setTranslateResult(`Translated ${data.results.trips.translated} trips and ${data.results.events.translated} events to Korean & German`)
+      } else {
+        setTranslateResult(`Error: ${data.error || "Translation failed"}`)
+      }
+    } catch (error) {
+      setTranslateResult("Error: Failed to connect to translation service")
+    } finally {
+      setIsTranslating(false)
+    }
+  }
 
   const getTripDisplayPrice = (trip: Trip) => {
     const packages = trip.packages || []
@@ -394,14 +418,30 @@ export function AdminCourses({
                     </button>
                   ))}
                 </div>
-                <Link
-                  href="/admin/trips/new"
-                  className="w-full sm:w-auto sm:self-end"
-                >
-                  <Button className="w-full bg-[#274C77] text-white hover:bg-[#274C77]/90 sm:w-auto">
-                    + Add Course
+                <div className="flex flex-col gap-2 sm:flex-row sm:self-end">
+                  <Button
+                    onClick={handleTranslateAll}
+                    disabled={isTranslating}
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
+                    <Languages className="mr-2 h-4 w-4" />
+                    {isTranslating ? "Translating..." : "Translate All"}
                   </Button>
-                </Link>
+                  <Link
+                    href="/admin/trips/new"
+                    className="w-full sm:w-auto"
+                  >
+                    <Button className="w-full bg-[#274C77] text-white hover:bg-[#274C77]/90 sm:w-auto">
+                      + Add Course
+                    </Button>
+                  </Link>
+                </div>
+                {translateResult && (
+                  <p className={`text-sm ${translateResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
+                    {translateResult}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
