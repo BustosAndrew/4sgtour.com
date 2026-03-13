@@ -14,7 +14,10 @@
     "getStarted": "Get Started",
     "menu": "Menu",
     "close": "Close",
-    "language": "Language"
+    "language": "Language",
+    "tripStartsToday": "Trip starts today!",
+    "nextTripInOneDay": "Next trip in 1 day",
+    "nextTripInDays": "Next trip in {days} days"
   },
   "home": {
     "settingStandard": "Setting a New Standard",

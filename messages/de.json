@@ -14,7 +14,10 @@
     "getStarted": "Loslegen",
     "menu": "Menü",
     "close": "Schließen",
-    "language": "Sprache"
+    "language": "Sprache",
+    "tripStartsToday": "Reise beginnt heute!",
+    "nextTripInOneDay": "Nächste Reise in 1 Tag",
+    "nextTripInDays": "Nächste Reise in {days} Tagen"
   },
   "home": {
     "settingStandard": "Neue Maßstäbe setzen",

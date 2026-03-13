@@ -14,7 +14,10 @@
     "getStarted": "시작하기",
     "menu": "메뉴",
     "close": "닫기",
-    "language": "언어"
+    "language": "언어",
+    "tripStartsToday": "오늘 여행 출발!",
+    "nextTripInOneDay": "다음 여행까지 1일",
+    "nextTripInDays": "다음 여행까지 {days}일"
   },
   "home": {
     "settingStandard": "해외 골프 여행의",
