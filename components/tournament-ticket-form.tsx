@@ -97,7 +97,7 @@ export function TournamentTicketForm({
             {t('getTickets')}
           </p>
           <h1
-            className="mt-3 text-center text-3xl italic text-white sm:text-4xl md:text-5xl text-balance"
+            className="mt-3 text-center text-3xl font-semibold italic text-white sm:text-4xl md:text-5xl text-balance"
             style={{ fontFamily: 'var(--font-display-alt)' }}
           >
             {formattedTitle}
