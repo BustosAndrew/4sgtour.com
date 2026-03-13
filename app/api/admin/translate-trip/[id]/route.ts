@@ -101,6 +101,9 @@ export async function POST(
 
       if (fieldsToTranslate.length > 0) {
         try {
+          console.log("[v0] translate-trip: calling batch API with", fieldsToTranslate.length, "fields to", targetLang)
+          console.log("[v0] translate-trip: baseUrl is", baseUrl)
+          
           const response = await fetch(`${baseUrl}/api/translate/batch`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -110,6 +113,8 @@ export async function POST(
               sourceLanguage: sourceLanguage,
             }),
           })
+
+          console.log("[v0] translate-trip: batch API response status", response.status)
 
           if (response.ok) {
             const result = await response.json()
@@ -210,8 +215,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error("Error in translate-trip:", error)
-    return new Response(JSON.stringify({ error: "Translation failed" }), {
+    console.error("[v0] Error in translate-trip:", error)
+    console.error("[v0] Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    return new Response(JSON.stringify({ error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, code: 'TRANSLATION_ERROR' }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     })

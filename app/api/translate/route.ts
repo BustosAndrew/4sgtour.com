@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     const result = await generateText({
-      model: 'openai/gpt-4o-mini',
+      model: 'openai/gpt-5-mini',
       system: `You are a professional translator specializing in travel and golf tourism content. 
 Translate the following text from ${sourceLang} to ${targetLang}. 
 ${contextHint}
