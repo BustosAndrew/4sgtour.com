@@ -185,6 +185,68 @@ export async function POST(
       }
     }
 
+    // Translate packages
+    const { data: packages } = await supabase
+      .from("packages")
+      .select("*")
+      .eq("trip_id", id)
+
+    if (packages?.length) {
+      for (const targetLang of validTargets) {
+        const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+
+        // Batch all package fields for this language in one call
+        const packageFields: { field: string; text: string; fieldType: string; pkgId: string }[] = []
+
+        for (const pkg of packages) {
+          const sourceName = pkg[`name${sourceSuffix}`]
+          const sourceDescription = pkg[`description${sourceSuffix}`]
+
+          if (sourceName) {
+            packageFields.push({ field: `name${targetSuffix}`, text: sourceName, fieldType: "title", pkgId: pkg.id })
+          }
+          if (sourceDescription) {
+            packageFields.push({ field: `description${targetSuffix}`, text: sourceDescription, fieldType: "description", pkgId: pkg.id })
+          }
+        }
+
+        if (packageFields.length > 0) {
+          // Group fields by package, translate per package to keep context clear
+          const pkgMap: Map<string, typeof packageFields> = new Map()
+          for (const f of packageFields) {
+            if (!pkgMap.has(f.pkgId)) pkgMap.set(f.pkgId, [])
+            pkgMap.get(f.pkgId)!.push(f)
+          }
+
+          for (const [pkgId, fields] of pkgMap) {
+            try {
+              const response = await fetch(`${baseUrl}/api/translate/batch`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fields: fields.map(({ field, text, fieldType }) => ({ field, text, fieldType })),
+                  targetLanguage: targetLang,
+                  sourceLanguage: sourceLanguage,
+                }),
+              })
+
+              if (response.ok) {
+                const result = await response.json()
+                if (result.translations) {
+                  await supabase
+                    .from("packages")
+                    .update(result.translations)
+                    .eq("id", pkgId)
+                }
+              }
+            } catch (e) {
+              console.error(`Error translating package ${pkgId}:`, e)
+            }
+          }
+        }
+      }
+    }
+
     // Update the trip with translations
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase
