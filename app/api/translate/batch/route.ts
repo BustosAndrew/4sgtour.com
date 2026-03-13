@@ -15,7 +15,10 @@ export async function POST(req: Request) {
       sourceLanguage?: string
     }
 
+    console.log("[v0] batch translate: received", fields?.length, "fields, source:", sourceLanguage, "target:", targetLanguage)
+
     if (!fields || !targetLanguage || !Array.isArray(fields)) {
+      console.log("[v0] batch translate: missing required fields")
       return Response.json(
         { error: 'Missing required fields: fields (array) and targetLanguage' },
         { status: 400 }

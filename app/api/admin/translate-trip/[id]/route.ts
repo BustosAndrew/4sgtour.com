@@ -67,12 +67,17 @@ export async function POST(
       .eq("id", id)
       .single()
 
+    console.log("[v0] translate-trip: fetched trip", id, "error:", error)
+    console.log("[v0] translate-trip: sourceLanguage:", sourceLanguage, "targetLanguages:", validTargets)
+
     if (error || !trip) {
       return new Response(JSON.stringify({ error: "Trip not found" }), {
         status: 404,
         headers: { "Content-Type": "application/json" }
       })
     }
+    
+    console.log("[v0] translate-trip: trip title:", trip.title, "title_ko:", trip.title_ko, "title_de:", trip.title_de)
 
     const headersList = await headers()
     const host = headersList.get("host") || "localhost:3000"
@@ -99,8 +104,11 @@ export async function POST(
         }
       }
 
+      console.log("[v0] translate-trip: fieldsToTranslate for", targetLang, ":", fieldsToTranslate.length, "fields")
+      
       if (fieldsToTranslate.length > 0) {
         try {
+          console.log("[v0] translate-trip: calling batch translate API with fields:", fieldsToTranslate.map(f => ({ field: f.field, text: f.text?.substring(0, 50) })))
           const response = await fetch(`${baseUrl}/api/translate/batch`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -111,14 +119,20 @@ export async function POST(
             }),
           })
 
+          console.log("[v0] translate-trip: batch response status:", response.status)
+          
           if (response.ok) {
             const result = await response.json()
+            console.log("[v0] translate-trip: batch result:", JSON.stringify(result).substring(0, 500))
             // result.translations is { fieldName: translatedText }
             if (result.translations) {
               for (const [field, translation] of Object.entries(result.translations)) {
                 updates[field] = translation
               }
             }
+          } else {
+            const errorText = await response.text()
+            console.error("[v0] translate-trip: batch error response:", errorText)
           }
         } catch (e) {
           console.error(`Error translating to ${targetLang}:`, e)
@@ -168,18 +182,25 @@ export async function POST(
     }
 
     // Update the trip with translations
+    console.log("[v0] translate-trip: total updates:", Object.keys(updates).length, Object.keys(updates))
+    
     if (Object.keys(updates).length > 0) {
+      console.log("[v0] translate-trip: saving updates to database...")
       const { error: updateError } = await supabase
         .from("trips")
         .update(updates)
         .eq("id", id)
 
       if (updateError) {
+        console.error("[v0] translate-trip: update error:", updateError)
         return new Response(JSON.stringify({ error: "Failed to save translations" }), {
           status: 500,
           headers: { "Content-Type": "application/json" }
         })
       }
+      console.log("[v0] translate-trip: updates saved successfully")
+    } else {
+      console.log("[v0] translate-trip: no updates to save")
     }
 
     const targetNames = validTargets.map((l: string) => LANGUAGE_MAP[l].name).join(" & ")
