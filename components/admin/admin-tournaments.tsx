@@ -4,24 +4,21 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
-  LogOut,
   Pencil,
   Trash2,
   Menu,
-  X,
   Trophy,
   Flag,
   ChevronDown,
   ChevronRight,
   Plus,
-  MessageSquare,
-  BarChart3,
 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type TournamentEvent = {
@@ -63,13 +60,6 @@ export function AdminTournaments({
   const [expandedTournaments, setExpandedTournaments] = useState<Set<string>>(new Set())
   const router = useRouter()
 
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/auth/login")
-    router.refresh()
-  }
-
   const toggleTournamentExpanded = (tournamentId: string) => {
     setExpandedTournaments((prev) => {
       const next = new Set(prev)
@@ -81,8 +71,6 @@ export function AdminTournaments({
       return next
     })
   }
-
-  // Tournament deletion is disabled - tournaments are fixed (Masters, Ryder Cup, The Open, US Open)
 
   const handleDeleteEvent = async (tournamentId: string, eventId: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -143,68 +131,12 @@ export function AdminTournaments({
         />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[230px] transform bg-[#274C77] p-6 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Close button for mobile */}
-        <button
-          onClick={() => setMobileMenuOpen(false)}
-          className="absolute right-4 top-4 text-white lg:hidden"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        <div className="border-b border-white/10 pb-6 mb-4 flex items-center justify-center">
-          <Image
-            src="/images/logo.png"
-            alt="4 Seasons Golf Tour"
-            width={250}
-            height={80}
-            className="object-contain"
-          />
-        </div>
-
-        <nav className="flex-1 space-y-1">
-          <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
-              <Flag className="h-5 w-5" />
-              <span>Courses</span>
-            </button>
-          </Link>
-
-          <button
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm bg-white/20 text-white transition-colors"
-          >
-            <Trophy className="h-5 w-5" />
-            <span>Tournaments</span>
-          </button>
-
-          <Link href="/admin/inbox" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
-              <MessageSquare className="h-5 w-5" />
-              <span>Inbox</span>
-            </button>
-          </Link>
-
-          <Link href="/admin/analytics" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
-              <BarChart3 className="h-5 w-5" />
-              <span>Analytics</span>
-            </button>
-          </Link>
-
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>Log Out</span>
-          </button>
-        </nav>
-      </aside>
+      {/* Sidebar - using shared AdminSidebar component */}
+      <AdminSidebar
+        userName={userName}
+        mobileMenuOpen={mobileMenuOpen}
+        onMobileMenuClose={() => setMobileMenuOpen(false)}
+      />
 
       <main className="flex-1 bg-[#f4f3ee]">
         <header className="border-b border-gray-300 bg-white px-4 py-4 sm:px-8 sm:py-6">
