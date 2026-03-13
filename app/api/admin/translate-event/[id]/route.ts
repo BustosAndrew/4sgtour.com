@@ -55,36 +55,111 @@ export async function POST(
       })
     }
 
+    // Fetch itinerary days and pricing tiers upfront
+    const { data: itineraryDays } = await supabase
+      .from("tournament_event_itinerary_days")
+      .select("*")
+      .eq("event_id", id)
+      .order("display_order")
+
+    const { data: pricingTiers } = await supabase
+      .from("tournament_event_pricing_tiers")
+      .select("*")
+      .eq("event_id", id)
+      .order("display_order")
+
     // Get source field suffix
     const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
     
     // Prepare updates for each target language
     const updates: Record<string, any> = {}
+    const itineraryDayUpdates: Map<string, Record<string, string>> = new Map()
+    const pricingTierUpdates: Map<string, Record<string, string>> = new Map()
 
     for (const targetLang of targetLanguages) {
       if (targetLang === sourceLanguage) continue
       
       const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
 
-      // Translate simple text fields
-      const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
+      // Collect ALL fields to translate in a single batch
+      const allFieldsToTranslate: { field: string; text: string; fieldType: string; meta?: { type: string; id: string } }[] = []
 
+      // Simple text fields
       const sourceTitle = event[`title${sourceSuffix}`]
       if (sourceTitle) {
-        fieldsToTranslate.push({ field: `title${targetSuffix}`, text: sourceTitle, fieldType: "title" })
+        allFieldsToTranslate.push({ field: `title${targetSuffix}`, text: sourceTitle, fieldType: "title" })
       }
 
       const sourceLocation = event[`location${sourceSuffix}`]
       if (sourceLocation) {
-        fieldsToTranslate.push({ field: `location${targetSuffix}`, text: sourceLocation, fieldType: "location" })
+        allFieldsToTranslate.push({ field: `location${targetSuffix}`, text: sourceLocation, fieldType: "location" })
       }
 
-      if (fieldsToTranslate.length > 0) {
+      // Array fields
+      const arrayFields = [
+        { key: "description", fieldType: "description" },
+        { key: "trip_highlights", fieldType: "highlight" },
+        { key: "travel_itinerary", fieldType: "itinerary" },
+        { key: "includes", fieldType: "item" },
+        { key: "excludes", fieldType: "item" },
+      ]
+
+      for (const { key, fieldType } of arrayFields) {
+        const sourceData = event[`${key}${sourceSuffix}`]
+        if (sourceData?.length) {
+          sourceData.forEach((text: string, i: number) => {
+            allFieldsToTranslate.push({ field: `${key}_${i}`, text, fieldType })
+          })
+        }
+      }
+
+      // Itinerary days
+      if (itineraryDays?.length) {
+        for (const day of itineraryDays) {
+          const daySourceTitle = day[`title${sourceSuffix}`]
+          if (daySourceTitle) {
+            allFieldsToTranslate.push({ 
+              field: `day_${day.id}_title${targetSuffix}`, 
+              text: daySourceTitle, 
+              fieldType: "title",
+              meta: { type: "itinerary_day", id: day.id }
+            })
+          }
+          
+          const daySourceContent = day[`content${sourceSuffix}`]
+          if (daySourceContent) {
+            allFieldsToTranslate.push({ 
+              field: `day_${day.id}_content${targetSuffix}`, 
+              text: daySourceContent, 
+              fieldType: "description",
+              meta: { type: "itinerary_day", id: day.id }
+            })
+          }
+        }
+      }
+
+      // Pricing tiers
+      if (pricingTiers?.length) {
+        for (const tier of pricingTiers) {
+          const tierSourceName = tier[`name${sourceSuffix}`]
+          if (tierSourceName) {
+            allFieldsToTranslate.push({ 
+              field: `tier_${tier.id}_name${targetSuffix}`, 
+              text: tierSourceName, 
+              fieldType: "title",
+              meta: { type: "pricing_tier", id: tier.id }
+            })
+          }
+        }
+      }
+
+      // Make a single batch translation call for all fields
+      if (allFieldsToTranslate.length > 0) {
         const response = await fetch(`${baseUrl}/api/translate/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fields: fieldsToTranslate,
+            fields: allFieldsToTranslate.map(({ field, text, fieldType }) => ({ field, text, fieldType })),
             targetLanguage: targetLang,
             sourceLanguage: sourceLanguage,
           }),
@@ -92,14 +167,54 @@ export async function POST(
 
         if (response.ok) {
           const result = await response.json()
-          // result.translations is { fieldName: translatedText }
           if (result.translations) {
-            for (const [field, translation] of Object.entries(result.translations)) {
-              updates[field] = translation
+            // Process translations
+            for (const fieldInfo of allFieldsToTranslate) {
+              const translation = result.translations[fieldInfo.field]
+              if (!translation) continue
+
+              if (fieldInfo.meta?.type === "itinerary_day") {
+                const dayId = fieldInfo.meta.id
+                if (!itineraryDayUpdates.has(dayId)) {
+                  itineraryDayUpdates.set(dayId, {})
+                }
+                // Extract actual field name from the composite key
+                const actualField = fieldInfo.field.replace(`day_${dayId}_`, "")
+                itineraryDayUpdates.get(dayId)![actualField] = translation as string
+              } else if (fieldInfo.meta?.type === "pricing_tier") {
+                const tierId = fieldInfo.meta.id
+                if (!pricingTierUpdates.has(tierId)) {
+                  pricingTierUpdates.set(tierId, {})
+                }
+                const actualField = fieldInfo.field.replace(`tier_${tierId}_`, "")
+                pricingTierUpdates.get(tierId)![actualField] = translation as string
+              } else if (fieldInfo.field.includes("_") && !fieldInfo.field.startsWith("title") && !fieldInfo.field.startsWith("location")) {
+                // Array field - extract array name and index
+                const match = fieldInfo.field.match(/^(.+)_(\d+)$/)
+                if (match) {
+                  const [, arrayName, indexStr] = match
+                  const targetArrayKey = `${arrayName}${targetSuffix}`
+                  if (!updates[targetArrayKey]) {
+                    updates[targetArrayKey] = []
+                  }
+                  const index = parseInt(indexStr)
+                  updates[targetArrayKey][index] = translation
+                }
+              } else {
+                // Simple field
+                updates[fieldInfo.field] = translation
+              }
+            }
+
+            // Clean up array fields (remove empty slots)
+            for (const { key } of arrayFields) {
+              const targetArrayKey = `${key}${targetSuffix}`
+              if (updates[targetArrayKey]) {
+                updates[targetArrayKey] = updates[targetArrayKey].filter((t: string) => t)
+              }
             }
           }
         } else {
-          // Propagate error from batch API
           try {
             const errorData = await response.json()
             return new Response(JSON.stringify({ 
@@ -117,152 +232,25 @@ export async function POST(
           }
         }
       }
+    }
 
-      // Translate array fields
-      const arrayFields = [
-        { key: "description", fieldType: "description" },
-        { key: "trip_highlights", fieldType: "highlight" },
-        { key: "travel_itinerary", fieldType: "itinerary" },
-        { key: "includes", fieldType: "item" },
-        { key: "excludes", fieldType: "item" },
-      ]
-
-      for (const { key, fieldType } of arrayFields) {
-        const sourceData = event[`${key}${sourceSuffix}`]
-        if (sourceData?.length) {
-          const response = await fetch(`${baseUrl}/api/translate/batch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fields: sourceData.map((text: string, i: number) => ({
-                field: `${key}_${i}`,
-                text,
-                fieldType,
-              })),
-              targetLanguage: targetLang,
-              sourceLanguage: sourceLanguage,
-            }),
-          })
-
-          if (response.ok) {
-            const result = await response.json()
-            // result.translations is { fieldName: translatedText }
-            if (result.translations) {
-              const translatedArray = sourceData.map((_: string, i: number) => {
-                const fieldKey = `${key}_${i}`
-                return result.translations[fieldKey] || ""
-              }).filter((t: string) => t)
-              if (translatedArray.length > 0) {
-                updates[`${key}${targetSuffix}`] = translatedArray
-              }
-            }
-          }
-        }
+    // Update itinerary days
+    for (const [dayId, dayUpdates] of itineraryDayUpdates) {
+      if (Object.keys(dayUpdates).length > 0) {
+        await supabase
+          .from("tournament_event_itinerary_days")
+          .update(dayUpdates)
+          .eq("id", dayId)
       }
     }
 
-    // Translate itinerary days
-    const { data: itineraryDays } = await supabase
-      .from("tournament_event_itinerary_days")
-      .select("*")
-      .eq("event_id", id)
-      .order("display_order")
-
-    if (itineraryDays?.length) {
-      for (const day of itineraryDays) {
-        for (const targetLang of targetLanguages) {
-          if (targetLang === sourceLanguage) continue
-          
-          const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
-          const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
-          
-          const dayFieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
-          
-          const sourceTitle = day[`title${sourceSuffix}`]
-          if (sourceTitle) {
-            dayFieldsToTranslate.push({ field: `title${targetSuffix}`, text: sourceTitle, fieldType: "title" })
-          }
-          
-          const sourceContent = day[`content${sourceSuffix}`]
-          if (sourceContent) {
-            dayFieldsToTranslate.push({ field: `content${targetSuffix}`, text: sourceContent, fieldType: "description" })
-          }
-          
-          if (dayFieldsToTranslate.length > 0) {
-            const response = await fetch(`${baseUrl}/api/translate/batch`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                fields: dayFieldsToTranslate,
-                targetLanguage: targetLang,
-                sourceLanguage: sourceLanguage,
-              }),
-            })
-            
-            if (response.ok) {
-              const result = await response.json()
-              if (result.translations) {
-                const dayUpdates: Record<string, string> = {}
-                for (const [field, translation] of Object.entries(result.translations)) {
-                  dayUpdates[field] = translation as string
-                }
-                if (Object.keys(dayUpdates).length > 0) {
-                  await supabase
-                    .from("tournament_event_itinerary_days")
-                    .update(dayUpdates)
-                    .eq("id", day.id)
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Translate pricing tiers
-    const { data: pricingTiers } = await supabase
-      .from("tournament_event_pricing_tiers")
-      .select("*")
-      .eq("event_id", id)
-      .order("display_order")
-
-    if (pricingTiers?.length) {
-      for (const tier of pricingTiers) {
-        for (const targetLang of targetLanguages) {
-          if (targetLang === sourceLanguage) continue
-          
-          const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
-          const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
-          
-          const sourceName = tier[`name${sourceSuffix}`]
-          if (sourceName) {
-            const response = await fetch(`${baseUrl}/api/translate/batch`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                fields: [{ field: `name${targetSuffix}`, text: sourceName, fieldType: "title" }],
-                targetLanguage: targetLang,
-                sourceLanguage: sourceLanguage,
-              }),
-            })
-            
-            if (response.ok) {
-              const result = await response.json()
-              if (result.translations) {
-                const tierUpdates: Record<string, string> = {}
-                for (const [field, translation] of Object.entries(result.translations)) {
-                  tierUpdates[field] = translation as string
-                }
-                if (Object.keys(tierUpdates).length > 0) {
-                  await supabase
-                    .from("tournament_event_pricing_tiers")
-                    .update(tierUpdates)
-                    .eq("id", tier.id)
-                }
-              }
-            }
-          }
-        }
+    // Update pricing tiers
+    for (const [tierId, tierUpdates] of pricingTierUpdates) {
+      if (Object.keys(tierUpdates).length > 0) {
+        await supabase
+          .from("tournament_event_pricing_tiers")
+          .update(tierUpdates)
+          .eq("id", tierId)
       }
     }
 
