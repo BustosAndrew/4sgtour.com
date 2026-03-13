@@ -247,22 +247,18 @@ export async function PATCH(
 
   // Trigger auto-translation in the background (non-blocking)
   // Always translate from English if available, otherwise from Korean
-  const hasEnglishContent = body.title && body.title.trim()
-  const hasKoreanContent = body.title_ko && body.title_ko.trim()
-  
+  const hasEnglishContent = !!(body.title && body.title.trim())
+  const hasKoreanContent = !!('title_ko' in body && body.title_ko && body.title_ko.trim())
 
-  
   if (hasEnglishContent || hasKoreanContent) {
     const headersList = await headers()
     const host = headersList.get("host") || "localhost:3000"
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
     const baseUrl = `${protocol}://${host}`
-    
-    // Prioritize English as source - if English content exists, use it
-    const useEnglishAsSource = hasEnglishContent
-    
 
-    
+    // Prioritize English as source; fall back to Korean if only Korean was provided
+    const useEnglishAsSource = hasEnglishContent
+
     autoTranslateTrip(
       baseUrl,
       id,
@@ -271,7 +267,7 @@ export async function PATCH(
         : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, overview_content: body.overview_content_ko, highlights: body.highlights_ko },
       useEnglishAsSource ? "en" : "ko",
       supabase
-    ).catch(err => console.error("[v0] Background translation error:", err))
+    ).catch(err => console.error("[auto-translate] Background translation error:", err))
     
     // Also translate packages if they exist
     if (body.packages && body.packages.length > 0) {
