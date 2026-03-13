@@ -16,6 +16,8 @@ import {
   ChevronRight,
   ChevronLeft,
   GripVertical,
+  Languages,
+  Loader2,
 } from "lucide-react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
@@ -166,6 +168,21 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  
+  // Translation state
+  const [translateSource, setTranslateSource] = useState<"en" | "ko" | "de">("en")
+  const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translateResult, setTranslateResult] = useState<{ success: boolean; message: string } | null>(null)
+  
+  // Determine which languages have content
+  const getAvailableSourceLanguages = (): ("en" | "ko" | "de")[] => {
+    const langs: ("en" | "ko" | "de")[] = []
+    if (formData.title?.trim()) langs.push("en")
+    if (formData.title_ko?.trim()) langs.push("ko")
+    if (formData.title_de?.trim()) langs.push("de")
+    return langs.length > 0 ? langs : ["en"]
+  }
 
   const initializePackages = () => {
     const existingPackages = trip.packages || []
@@ -589,6 +606,38 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       console.error("Error updating trip:", error)
       alert("Failed to update trip")
       setLoading(false) // Re-enable button on error
+    }
+  }
+
+  const handleTranslate = async () => {
+    if (translateTargets.length === 0 || isTranslating) return
+    
+    setIsTranslating(true)
+    setTranslateResult(null)
+    
+    try {
+      const response = await fetch(`/api/admin/translate-trip/${trip.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceLanguage: translateSource,
+          targetLanguages: translateTargets,
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setTranslateResult({ success: true, message: data.message })
+        // Refresh form data after translation
+        router.refresh()
+      } else {
+        setTranslateResult({ success: false, message: data.error || "Translation failed" })
+      }
+    } catch (error) {
+      setTranslateResult({ success: false, message: "Failed to connect to translation service" })
+    } finally {
+      setIsTranslating(false)
     }
   }
 
@@ -2009,6 +2058,99 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     No transportation options added
                   </p>
                 )}
+              </div>
+
+              {/* Translation Section */}
+              <div className="rounded-lg border border-border p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                  <Languages className="h-5 w-5" />
+                  Translate Content
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Translate this trip&apos;s content to other languages. Select a source language and choose which languages to translate into.
+                </p>
+                
+                <div className="space-y-4">
+                  {/* Source Language */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Source Language</label>
+                    <div className="flex gap-2">
+                      {getAvailableSourceLanguages().map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setTranslateSource(lang)
+                            setTranslateTargets(prev => prev.filter(l => l !== lang))
+                          }}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            translateSource === lang
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:border-primary/50"
+                          }`}
+                        >
+                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Target Languages */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Translate To</label>
+                    <div className="flex gap-2">
+                      {(["en", "ko", "de"] as const).filter(l => l !== translateSource).map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setTranslateTargets(prev => 
+                              prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
+                            )
+                          }}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            translateTargets.includes(lang)
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:border-primary/50"
+                          }`}
+                        >
+                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Translate Button */}
+                  <Button
+                    type="button"
+                    onClick={handleTranslate}
+                    disabled={isTranslating || translateTargets.length === 0}
+                    className="w-full sm:w-auto"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Translating...
+                      </>
+                    ) : (
+                      <>
+                        <Languages className="mr-2 h-4 w-4" />
+                        Translate
+                      </>
+                    )}
+                  </Button>
+                  
+                  {/* Result */}
+                  {translateResult && (
+                    <div className={`rounded-md p-3 text-sm ${
+                      translateResult.success 
+                        ? "bg-green-50 text-green-700 border border-green-200" 
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}>
+                      {translateResult.message}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

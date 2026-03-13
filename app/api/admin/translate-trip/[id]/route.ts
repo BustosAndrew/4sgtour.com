@@ -113,8 +113,9 @@ export async function POST(
 
           if (response.ok) {
             const result = await response.json()
+            // result.translations is { fieldName: translatedText }
             if (result.translations) {
-              for (const { field, translation } of result.translations) {
+              for (const [field, translation] of Object.entries(result.translations)) {
                 updates[field] = translation
               }
             }
@@ -137,7 +138,7 @@ export async function POST(
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 fields: sourceValue.map((text: string, i: number) => ({
-                  field: `${i}`,
+                  field: `${arrayField}_${i}`,
                   text,
                   fieldType: "highlight",
                 })),
@@ -148,10 +149,15 @@ export async function POST(
 
             if (response.ok) {
               const result = await response.json()
+              // result.translations is { fieldName: translatedText }
               if (result.translations) {
-                updates[targetField] = result.translations
-                  .sort((a: any, b: any) => parseInt(a.field) - parseInt(b.field))
-                  .map((t: any) => t.translation)
+                const translatedArray = sourceValue.map((_: string, i: number) => {
+                  const key = `${arrayField}_${i}`
+                  return result.translations[key] || ""
+                }).filter((t: string) => t)
+                if (translatedArray.length > 0) {
+                  updates[targetField] = translatedArray
+                }
               }
             }
           } catch (e) {

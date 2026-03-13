@@ -27,6 +27,7 @@ import { InquiriesList } from "@/components/admin/inquiries-list"
 import { InboxList } from "@/components/admin/inbox-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { TranslateDialog } from "@/components/admin/translate-dialog"
 
 type Trip = {
   id: string
@@ -111,6 +112,11 @@ export function AdminCourses({
   const [translateTournamentsProgress, setTranslateTournamentsProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
   const [translateLanguages, setTranslateLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
   const [translateTournamentsLanguages, setTranslateTournamentsLanguages] = useState<{ ko: boolean; de: boolean }>({ ko: true, de: true })
+  const [translateDialogItem, setTranslateDialogItem] = useState<{
+    type: "trip" | "event"
+    id: string
+    name: string
+  } | null>(null)
   const router = useRouter()
 
   const handleTranslateAll = async () => {
@@ -737,37 +743,50 @@ export function AdminCourses({
                       <h3 className="mb-2 font-semibold text-white">
                         {trip.title}
                       </h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">
-                          ${getTripDisplayPrice(trip).toFixed(2)}
-                        </span>
-                        <div className="flex gap-2">
-                          <Link href={`/admin/trips/${trip.id}`}>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-white hover:bg-white/10"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
-                            onClick={(e) => handleDeleteTrip(trip, e)}
-                            disabled={deletingTrips.has(trip.id)}
-                          >
-                            <Trash2
-                              className={`h-4 w-4 ${
-                                deletingTrips.has(trip.id)
-                                  ? "animate-pulse"
-                                  : ""
-                              }`}
-                            />
-                          </Button>
-                        </div>
-                      </div>
+<div className="flex items-center justify-between">
+                                        <span className="text-lg font-bold">
+                                          ${getTripDisplayPrice(trip).toFixed(2)}
+                                        </span>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-white hover:bg-white/10"
+                                            onClick={(e) => {
+                                              e.preventDefault()
+                                              e.stopPropagation()
+                                              setTranslateDialogItem({ type: "trip", id: trip.id, name: trip.title })
+                                            }}
+                                            title="Translate"
+                                          >
+                                            <Languages className="h-4 w-4" />
+                                          </Button>
+                                          <Link href={`/admin/trips/${trip.id}`}>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-8 w-8 text-white hover:bg-white/10"
+                                            >
+                                              <Pencil className="h-4 w-4" />
+                                            </Button>
+                                          </Link>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-[#ff5f57] hover:bg-white/10"
+                                            onClick={(e) => handleDeleteTrip(trip, e)}
+                                            disabled={deletingTrips.has(trip.id)}
+                                          >
+                                            <Trash2
+                                              className={`h-4 w-4 ${
+                                                deletingTrips.has(trip.id)
+                                                  ? "animate-pulse"
+                                                  : ""
+                                              }`}
+                                            />
+                                          </Button>
+                                        </div>
+                                      </div>
                     </div>
                   </div>
                 ))}
@@ -919,7 +938,20 @@ export function AdminCourses({
                                     </p>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-[#274C77] hover:text-[#274C77]/80"
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setTranslateDialogItem({ type: "event", id: event.id, name: event.title })
+                                    }}
+                                    title="Translate"
+                                  >
+                                    <Languages className="h-4 w-4" />
+                                  </Button>
                                   <Link href={`/admin/tournaments/${tournament.id}/events/${event.id}`}>
                                     <Button size="icon" variant="ghost" className="h-8 w-8">
                                       <Pencil className="h-4 w-4" />
@@ -992,6 +1024,23 @@ export function AdminCourses({
         userPhone={userPhone}
         userPhotoUrl={userPhotoUrl}
       />
+
+      {/* Translate Dialog */}
+      {translateDialogItem && (
+        <TranslateDialog
+          open={!!translateDialogItem}
+          onOpenChange={(open) => {
+            if (!open) setTranslateDialogItem(null)
+          }}
+          itemType={translateDialogItem.type}
+          itemId={translateDialogItem.id}
+          itemName={translateDialogItem.name}
+          availableSourceLanguages={["en", "ko", "de"]}
+          onSuccess={() => {
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }
