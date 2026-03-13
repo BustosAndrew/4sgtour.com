@@ -450,20 +450,14 @@ export function CreateTripForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          // Korean translations
-          title_ko: koreanData.title_ko || null,
-          description_ko: koreanData.description_ko || null,
-          overview_content_ko: koreanData.overview_content_ko || null,
-          refund_policy_ko: koreanData.refund_policy_ko || null,
-          location_ko: koreanData.location_ko || null,
-          highlights_ko: highlightsKo.filter((h) => h.trim() !== ""),
-          // German translations
-          title_de: germanData.title_de || null,
-          description_de: germanData.description_de || null,
-          overview_content_de: germanData.overview_content_de || null,
-          refund_policy_de: germanData.refund_policy_de || null,
-          location_de: germanData.location_de || null,
-          highlights_de: highlightsDe.filter((h) => h.trim() !== ""),
+          // Only send Korean if user explicitly entered it
+          ...(koreanData.title_ko?.trim() && { title_ko: koreanData.title_ko }),
+          ...(koreanData.description_ko?.trim() && { description_ko: koreanData.description_ko }),
+          ...(koreanData.overview_content_ko?.trim() && { overview_content_ko: koreanData.overview_content_ko }),
+          ...(koreanData.refund_policy_ko?.trim() && { refund_policy_ko: koreanData.refund_policy_ko }),
+          ...(koreanData.location_ko?.trim() && { location_ko: koreanData.location_ko }),
+          ...(highlightsKo.some((h) => h.trim()) && { highlights_ko: highlightsKo.filter((h) => h.trim() !== "") }),
+          // German is auto-translated, don't send from form
           // Removed price_regular from submission
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,

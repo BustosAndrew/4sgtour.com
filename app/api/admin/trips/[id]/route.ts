@@ -27,38 +27,41 @@ export async function PATCH(
 
   const body = await request.json()
 
+  // Build update object - only include localized fields if they were explicitly sent
+  // This allows auto-translate to fill in missing translations without being overwritten
+  const updateData: Record<string, any> = {
+    title: body.title,
+    description: body.description,
+    refund_policy: body.refund_policy || null,
+    location: body.location,
+    continent: body.continent,
+    price_regular: body.price_regular,
+    max_guests: body.max_guests,
+    max_days: body.max_days,
+    min_days: body.min_days || 1,
+    min_days_advance: body.min_days_advance,
+    highlights: body.highlights,
+    overview_content: body.overview_content,
+    courses_photo_url: body.courses_photo_url,
+    room_photo_url: body.room_photo_url,
+    show_from_price: body.show_from_price ?? false,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Only update Korean fields if they were explicitly provided in the request
+  if ('title_ko' in body) updateData.title_ko = body.title_ko
+  if ('description_ko' in body) updateData.description_ko = body.description_ko
+  if ('refund_policy_ko' in body) updateData.refund_policy_ko = body.refund_policy_ko
+  if ('location_ko' in body) updateData.location_ko = body.location_ko
+  if ('highlights_ko' in body) updateData.highlights_ko = body.highlights_ko
+  if ('overview_content_ko' in body) updateData.overview_content_ko = body.overview_content_ko
+
+  // German is always auto-translated, never manually set from the form
+  // So we don't include _de fields here - they'll be set by autoTranslateTrip
+
   const { error } = await supabase
     .from("trips")
-    .update({
-      title: body.title,
-      title_ko: body.title_ko ?? null,
-      title_de: body.title_de ?? null,
-      description: body.description,
-      description_ko: body.description_ko ?? null,
-      description_de: body.description_de ?? null,
-      refund_policy: body.refund_policy || null,
-      refund_policy_ko: body.refund_policy_ko ?? null,
-      refund_policy_de: body.refund_policy_de ?? null,
-      location: body.location,
-      location_ko: body.location_ko ?? null,
-      location_de: body.location_de ?? null,
-      continent: body.continent,
-      price_regular: body.price_regular,
-      max_guests: body.max_guests,
-      max_days: body.max_days,
-      min_days: body.min_days || 1,
-      min_days_advance: body.min_days_advance,
-      highlights: body.highlights,
-      highlights_ko: body.highlights_ko ?? null,
-      highlights_de: body.highlights_de ?? null,
-      overview_content: body.overview_content,
-      overview_content_ko: body.overview_content_ko ?? null,
-      overview_content_de: body.overview_content_de ?? null,
-      courses_photo_url: body.courses_photo_url,
-      room_photo_url: body.room_photo_url,
-      show_from_price: body.show_from_price ?? false,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq("id", id)
 
   if (error) {
@@ -247,7 +250,7 @@ export async function PATCH(
   const hasEnglishContent = body.title && body.title.trim()
   const hasKoreanContent = body.title_ko && body.title_ko.trim()
   
-  console.log("[v0] Auto-translate check:", { hasEnglishContent, hasKoreanContent, title: body.title, description: body.description?.substring(0, 50) })
+
   
   if (hasEnglishContent || hasKoreanContent) {
     const headersList = await headers()
@@ -258,7 +261,7 @@ export async function PATCH(
     // Prioritize English as source - if English content exists, use it
     const useEnglishAsSource = hasEnglishContent
     
-    console.log("[v0] Starting auto-translate for trip:", id, "useEnglishAsSource:", useEnglishAsSource, "baseUrl:", baseUrl)
+
     
     autoTranslateTrip(
       baseUrl,

@@ -88,40 +88,39 @@ export async function POST(
 
     const slug = `${baseSlug}-${Date.now()}`
 
+    // Build insert data - only include Korean fields if explicitly provided
+    // German fields are auto-translated and should not be set manually
+    const insertData: Record<string, any> = {
+      tournament_id: tournamentId,
+      title,
+      slug,
+      location,
+      date,
+      duration: duration || null,
+      description: description || null,
+      trip_highlights: trip_highlights || null,
+      travel_itinerary: travel_itinerary || null,
+      includes: includes || null,
+      excludes: excludes || null,
+      price: price || null,
+      image: image || null,
+    }
+
+    // Only include Korean fields if they were explicitly provided
+    if (title_ko) insertData.title_ko = title_ko
+    if (location_ko) insertData.location_ko = location_ko
+    if (description_ko) insertData.description_ko = description_ko
+    if (trip_highlights_ko) insertData.trip_highlights_ko = trip_highlights_ko
+    if (travel_itinerary_ko) insertData.travel_itinerary_ko = travel_itinerary_ko
+    if (includes_ko) insertData.includes_ko = includes_ko
+    if (excludes_ko) insertData.excludes_ko = excludes_ko
+
+    // German is always auto-translated, don't set from form
+
     // Create the event
     const { data: eventData, error: eventError } = await supabase
       .from("tournament_events")
-      .insert({
-        tournament_id: tournamentId,
-        title,
-        slug,
-        location,
-        date,
-        duration: duration || null,
-        description: description || null,
-        trip_highlights: trip_highlights || null,
-        travel_itinerary: travel_itinerary || null,
-        includes: includes || null,
-        excludes: excludes || null,
-        // Korean translations
-        title_ko: title_ko || null,
-        location_ko: location_ko || null,
-        description_ko: description_ko || null,
-        trip_highlights_ko: trip_highlights_ko || null,
-        travel_itinerary_ko: travel_itinerary_ko || null,
-        includes_ko: includes_ko || null,
-        excludes_ko: excludes_ko || null,
-        // German translations
-        title_de: title_de || null,
-        location_de: location_de || null,
-        description_de: description_de || null,
-        trip_highlights_de: trip_highlights_de || null,
-        travel_itinerary_de: travel_itinerary_de || null,
-        includes_de: includes_de || null,
-        excludes_de: excludes_de || null,
-        price: price || null,
-        image: image || null,
-      })
+      .insert(insertData)
       .select()
       .single()
 
