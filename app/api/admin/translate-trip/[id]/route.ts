@@ -247,6 +247,67 @@ export async function POST(
       }
     }
 
+    // Helper: translate a simple table's rows (name + description fields)
+    const translateSimpleTable = async (
+      table: string,
+      rows: any[],
+      nameField: string,
+      descriptionField: string | null,
+    ) => {
+      if (!rows?.length) return
+
+      for (const targetLang of validTargets) {
+        const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+
+        for (const row of rows) {
+          const fields: { field: string; text: string; fieldType: string }[] = []
+
+          const sourceName = row[`${nameField}${sourceSuffix}`]
+          if (sourceName) fields.push({ field: `${nameField}${targetSuffix}`, text: sourceName, fieldType: "title" })
+
+          if (descriptionField) {
+            const sourceDesc = row[`${descriptionField}${sourceSuffix}`]
+            if (sourceDesc) fields.push({ field: `${descriptionField}${targetSuffix}`, text: sourceDesc, fieldType: "description" })
+          }
+
+          if (!fields.length) continue
+
+          try {
+            const response = await fetch(`${baseUrl}/api/translate/batch`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fields, targetLanguage: targetLang, sourceLanguage }),
+            })
+            if (response.ok) {
+              const result = await response.json()
+              if (result.translations) {
+                await supabase.from(table).update(result.translations).eq("id", row.id)
+              }
+            }
+          } catch (e) {
+            console.error(`Error translating ${table} row ${row.id}:`, e)
+          }
+        }
+      }
+    }
+
+    // Fetch and translate all add-on tables
+    const [addOnsResult, golfCoursesResult, mealOptionsResult, transportResult, serviceResult] = await Promise.all([
+      supabase.from("add_ons").select("*").eq("trip_id", id),
+      supabase.from("trip_golf_courses").select("*").eq("trip_id", id),
+      supabase.from("trip_meal_options").select("*").eq("trip_id", id),
+      supabase.from("trip_transportation_options").select("*").eq("trip_id", id),
+      supabase.from("trip_service_options").select("*").eq("trip_id", id),
+    ])
+
+    await Promise.all([
+      translateSimpleTable("add_ons", addOnsResult.data || [], "name", "description"),
+      translateSimpleTable("trip_golf_courses", golfCoursesResult.data || [], "course_name", "description"),
+      translateSimpleTable("trip_meal_options", mealOptionsResult.data || [], "name", "description"),
+      translateSimpleTable("trip_transportation_options", transportResult.data || [], "name", "description"),
+      translateSimpleTable("trip_service_options", serviceResult.data || [], "name", "description"),
+    ])
+
     // Update the trip with translations
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase
