@@ -109,7 +109,7 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
         throw new Error(data.error || "Failed to update tournament")
       }
 
-      router.push("/admin/tournaments")
+      router.push("/admin?tab=tournaments")
       router.refresh()
     } catch (error) {
       console.error("Error updating tournament:", error)
@@ -125,7 +125,7 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
     <div className="min-h-screen bg-[#f4f3ee]">
       <header className="border-b border-gray-300 bg-white px-4 py-4 sm:px-8 sm:py-6">
         <div className="flex items-center gap-4">
-          <Link href="/admin/tournaments">
+          <Link href="/admin?tab=tournaments">
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -258,7 +258,7 @@ export function EditTournamentForm({ tournament }: { tournament: Tournament }) {
           </div>
 
           <div className="flex gap-3">
-            <Link href="/admin/tournaments" className="flex-1">
+            <Link href="/admin?tab=tournaments" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancel
               </Button>

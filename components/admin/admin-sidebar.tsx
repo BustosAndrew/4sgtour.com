@@ -89,10 +89,10 @@ export function AdminSidebar({ userName, mobileMenuOpen, onMobileMenuClose }: Ad
         </Link>
 
         <Link
-          href="/admin/tournaments"
+          href="/admin?tab=tournaments"
           onClick={handleLinkClick}
           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
-            pathname.startsWith('/admin/tournaments') ? 'bg-white/20' : 'hover:bg-white/10'
+            pathname.startsWith('/admin/tournaments') || pathname === '/admin' ? 'bg-white/20' : 'hover:bg-white/10'
           }`}
         >
           <Trophy className="h-5 w-5" />
