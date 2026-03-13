@@ -56,14 +56,55 @@ interface Trip {
   add_ons?: Array<{
     id: string
     name: string
+    name_ko?: string | null
+    name_de?: string | null
     description: string | null
+    description_ko?: string | null
+    description_de?: string | null
     price: number
     price_type: string
   }>
-  golf_courses?: any[]
-  meal_options?: any[]
-  transportation_options?: any[]
-  service_options?: any[]
+  golf_courses?: Array<{
+    id: string
+    course_name: string
+    course_name_ko?: string | null
+    course_name_de?: string | null
+    description?: string | null
+    description_ko?: string | null
+    description_de?: string | null
+    num_holes?: number
+    max_rounds?: number
+  }>
+  meal_options?: Array<{
+    id: string
+    name: string
+    name_ko?: string | null
+    name_de?: string | null
+    description?: string | null
+    description_ko?: string | null
+    description_de?: string | null
+    is_included?: boolean
+  }>
+  transportation_options?: Array<{
+    id: string
+    name: string
+    name_ko?: string | null
+    name_de?: string | null
+    description?: string | null
+    description_ko?: string | null
+    description_de?: string | null
+    is_included?: boolean
+  }>
+  service_options?: Array<{
+    id: string
+    name: string
+    name_ko?: string | null
+    name_de?: string | null
+    description?: string | null
+    description_ko?: string | null
+    description_de?: string | null
+    is_included?: boolean
+  }>
 }
 
 interface BookingFormProps {
@@ -896,7 +937,7 @@ export function BookingForm({
                       >
                         <div className="flex items-center justify-between gap-4">
                           <span className="font-serif text-lg font-medium">
-                            {course.course_name}
+                            {getLocalizedField(course, 'course_name', locale as any)}
                           </span>
 
                           <div className="flex items-center gap-3">
@@ -994,7 +1035,7 @@ export function BookingForm({
                         </span>
                       )}
                       <span className="font-serif text-lg font-medium">
-                        {meal.name}
+                        {getLocalizedField(meal, 'name', locale as any)}
                       </span>
                     </div>
                   </RadioOption>
@@ -1027,7 +1068,7 @@ export function BookingForm({
                         </span>
                       )}
                       <span className="font-serif text-lg font-medium">
-                        {transport.name}
+                        {getLocalizedField(transport, 'name', locale as any)}
                       </span>
                     </div>
                   </RadioOption>
@@ -1063,11 +1104,11 @@ export function BookingForm({
                                 {t('included')}
                               </span>
                             )}
-                            <span className="font-serif text-lg font-medium">{service.name}</span>
+                            <span className="font-serif text-lg font-medium">{getLocalizedField(service, 'name', locale as any)}</span>
                           </div>
                           {service.description && (
                             <p className="mt-1 text-sm text-muted-foreground">
-                              {service.description}
+                              {getLocalizedField(service, 'description', locale as any)}
                             </p>
                           )}
                         </div>
@@ -1142,7 +1183,7 @@ export function BookingForm({
                       return course ? (
                         <div key={courseId} className="flex items-center gap-2">
                           <span className="text-muted-foreground">
-                            {course.course_name}{course.num_holes ? ` (${course.num_holes} holes)` : ''}
+                            {getLocalizedField(course, 'course_name', locale as any)}{course.num_holes ? ` (${course.num_holes} holes)` : ''}
                           </span>
                           <Check className="h-4 w-4 text-muted-foreground" />
                         </div>

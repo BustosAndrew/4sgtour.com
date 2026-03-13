@@ -185,6 +185,129 @@ export async function POST(
       }
     }
 
+    // Translate packages
+    const { data: packages } = await supabase
+      .from("packages")
+      .select("*")
+      .eq("trip_id", id)
+
+    if (packages?.length) {
+      for (const targetLang of validTargets) {
+        const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+
+        // Batch all package fields for this language in one call
+        const packageFields: { field: string; text: string; fieldType: string; pkgId: string }[] = []
+
+        for (const pkg of packages) {
+          const sourceName = pkg[`name${sourceSuffix}`]
+          const sourceDescription = pkg[`description${sourceSuffix}`]
+
+          if (sourceName) {
+            packageFields.push({ field: `name${targetSuffix}`, text: sourceName, fieldType: "title", pkgId: pkg.id })
+          }
+          if (sourceDescription) {
+            packageFields.push({ field: `description${targetSuffix}`, text: sourceDescription, fieldType: "description", pkgId: pkg.id })
+          }
+        }
+
+        if (packageFields.length > 0) {
+          // Group fields by package, translate per package to keep context clear
+          const pkgMap: Map<string, typeof packageFields> = new Map()
+          for (const f of packageFields) {
+            if (!pkgMap.has(f.pkgId)) pkgMap.set(f.pkgId, [])
+            pkgMap.get(f.pkgId)!.push(f)
+          }
+
+          for (const [pkgId, fields] of pkgMap) {
+            try {
+              const response = await fetch(`${baseUrl}/api/translate/batch`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fields: fields.map(({ field, text, fieldType }) => ({ field, text, fieldType })),
+                  targetLanguage: targetLang,
+                  sourceLanguage: sourceLanguage,
+                }),
+              })
+
+              if (response.ok) {
+                const result = await response.json()
+                if (result.translations) {
+                  await supabase
+                    .from("packages")
+                    .update(result.translations)
+                    .eq("id", pkgId)
+                }
+              }
+            } catch (e) {
+              console.error(`Error translating package ${pkgId}:`, e)
+            }
+          }
+        }
+      }
+    }
+
+    // Helper: translate a simple table's rows (name + description fields)
+    const translateSimpleTable = async (
+      table: string,
+      rows: any[],
+      nameField: string,
+      descriptionField: string | null,
+    ) => {
+      if (!rows?.length) return
+
+      for (const targetLang of validTargets) {
+        const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+
+        for (const row of rows) {
+          const fields: { field: string; text: string; fieldType: string }[] = []
+
+          const sourceName = row[`${nameField}${sourceSuffix}`]
+          if (sourceName) fields.push({ field: `${nameField}${targetSuffix}`, text: sourceName, fieldType: "title" })
+
+          if (descriptionField) {
+            const sourceDesc = row[`${descriptionField}${sourceSuffix}`]
+            if (sourceDesc) fields.push({ field: `${descriptionField}${targetSuffix}`, text: sourceDesc, fieldType: "description" })
+          }
+
+          if (!fields.length) continue
+
+          try {
+            const response = await fetch(`${baseUrl}/api/translate/batch`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fields, targetLanguage: targetLang, sourceLanguage }),
+            })
+            if (response.ok) {
+              const result = await response.json()
+              if (result.translations) {
+                await supabase.from(table).update(result.translations).eq("id", row.id)
+              }
+            }
+          } catch (e) {
+            console.error(`Error translating ${table} row ${row.id}:`, e)
+          }
+        }
+      }
+    }
+
+    // Fetch and translate all add-on tables
+    const [addOnsResult, golfCoursesResult, mealOptionsResult, transportResult, serviceResult] = await Promise.all([
+      supabase.from("add_ons").select("*").eq("trip_id", id),
+      supabase.from("trip_golf_courses").select("*").eq("trip_id", id),
+      supabase.from("trip_meal_options").select("*").eq("trip_id", id),
+      supabase.from("trip_transportation_options").select("*").eq("trip_id", id),
+      supabase.from("trip_service_options").select("*").eq("trip_id", id),
+    ])
+
+    await Promise.all([
+      translateSimpleTable("add_ons", addOnsResult.data || [], "name", "description"),
+      translateSimpleTable("trip_golf_courses", golfCoursesResult.data || [], "course_name", "description"),
+      translateSimpleTable("trip_meal_options", mealOptionsResult.data || [], "name", "description"),
+      translateSimpleTable("trip_transportation_options", transportResult.data || [], "name", "description"),
+      translateSimpleTable("trip_service_options", serviceResult.data || [], "name", "description"),
+    ])
+
     // Update the trip with translations
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase
