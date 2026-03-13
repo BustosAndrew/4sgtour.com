@@ -15,12 +15,13 @@ import {
   ChevronRight,
   Plus,
   MessageSquare,
-  BarChart3,
+  Home,
+  FileText,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
+
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -157,17 +158,30 @@ export function AdminTournaments({
           <X className="h-6 w-6" />
         </button>
 
-        <div className="border-b border-white/10 pb-6 mb-4 flex items-center justify-center">
-          <Image
-            src="/images/logo.png"
-            alt="4 Seasons Golf Tour"
-            width={250}
-            height={80}
-            className="object-contain"
-          />
+        {/* Header */}
+        <div className="pb-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#3d6091]">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="4" fill="white"/>
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div className="text-lg font-semibold">4SG Tour</div>
+              <div className="text-sm text-white/70">Customize Golf Journey</div>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
+              <Home className="h-5 w-5" />
+              <span>Home</span>
+            </button>
+          </Link>
+
           <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
             <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
               <Flag className="h-5 w-5" />
@@ -184,15 +198,15 @@ export function AdminTournaments({
 
           <Link href="/admin/inbox" onClick={() => setMobileMenuOpen(false)}>
             <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
-              <MessageSquare className="h-5 w-5" />
-              <span>Inbox</span>
+              <FileText className="h-5 w-5" />
+              <span>Inquiries</span>
             </button>
           </Link>
 
-          <Link href="/admin/analytics" onClick={() => setMobileMenuOpen(false)}>
+          <Link href="/admin/inbox" onClick={() => setMobileMenuOpen(false)}>
             <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white transition-colors hover:bg-white/10">
-              <BarChart3 className="h-5 w-5" />
-              <span>Analytics</span>
+              <MessageSquare className="h-5 w-5" />
+              <span>Inbox</span>
             </button>
           </Link>
 
