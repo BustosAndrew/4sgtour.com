@@ -541,6 +541,9 @@ export function EventDetailView({
                               className="mt-2 text-base sm:text-lg"
                               style={{ fontFamily: 'var(--font-body)' }}
                             >
+                              {(tier as any).show_from_price && (
+                                <span className="mr-1 text-sm font-semibold text-[#735c38]/70">{t('from')}</span>
+                              )}
                               <span className="font-bold text-[#735c38]">{tier.price}</span>
                             </p>
                           )}

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import {
@@ -203,13 +204,14 @@ export function EditTournamentEventForm({
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(
     event.tournament_event_pricing_tiers?.length
       ? event.tournament_event_pricing_tiers.map((t) => ({
-          id: t.id,
-          name: t.name,
-          name_ko: t.name_ko || "",
-          name_de: t.name_de || "",
-          price: t.price || "",
-          display_order: t.display_order || 0,
-          booking_url: t.booking_url || "",
+              id: t.id,
+              display_order: t.display_order || 0,
+              name: t.name,
+              name_ko: t.name_ko || "",
+              name_de: t.name_de || "",
+              price: t.price || "",
+              show_from_price: (t as any).show_from_price ?? false,
+              booking_url: t.booking_url || "",
         }))
       : [{ id: "1", name: "", name_ko: "", name_de: "", price: "", display_order: 0, booking_url: "" }]
   )
@@ -1088,6 +1090,19 @@ export function EditTournamentEventForm({
                               className="mt-1"
                             />
                           </div>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Show &quot;From&quot; prefix</p>
+                            <p className="text-xs text-gray-500">Displays &quot;From&quot; before the price on the public page</p>
+                          </div>
+                          <Switch
+                            checked={tier.show_from_price ?? false}
+                            onCheckedChange={(checked) =>
+                              updatePricingTier(tier.id, "show_from_price", checked)
+                            }
+                          />
                         </div>
 
                         <div>

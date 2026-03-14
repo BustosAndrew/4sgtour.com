@@ -195,6 +195,7 @@ export async function PATCH(
         name_de: tier.name_de || null,
         price: tier.price || null,
         display_order: idx,
+        show_from_price: tier.show_from_price ?? false,
         booking_url: tier.booking_url || null,
       }))
 

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import {
@@ -42,6 +43,7 @@ type PricingTier = {
   name: string
   price: string
   display_order: number
+  show_from_price: boolean
   booking_url: string
 }
 
@@ -129,7 +131,7 @@ export function CreateTournamentEventForm({
   const [hotelGallery, setHotelGallery] = useState<GalleryImage[]>([])
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([
-    { id: "1", name: "", price: "", display_order: 0, booking_url: "" },
+    { id: "1", name: "", price: "", display_order: 0, show_from_price: false, booking_url: "" },
   ])
 
   const handlePhotoUpload = async (
@@ -216,7 +218,7 @@ export function CreateTournamentEventForm({
   const addPricingTier = () => {
     setPricingTiers((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, booking_url: "" },
+      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, show_from_price: false, booking_url: "" },
     ])
   }
 
@@ -944,6 +946,19 @@ const handleSubmit = async (e: React.FormEvent) => {
                               className="mt-1"
                             />
                           </div>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Show &quot;From&quot; prefix</p>
+                            <p className="text-xs text-gray-500">Displays &quot;From&quot; before the price on the public page</p>
+                          </div>
+                          <Switch
+                            checked={tier.show_from_price ?? false}
+                            onCheckedChange={(checked) =>
+                              updatePricingTier(tier.id, "show_from_price", checked)
+                            }
+                          />
                         </div>
 
                         <div>

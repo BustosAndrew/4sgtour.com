@@ -122,7 +122,7 @@ export default async function TripPage({ params }: TripPageProps) {
                           </h3>
                           <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
                             {trip.show_from_price && (
-                              <span className="text-sm font-medium text-muted-foreground">
+                              <span className="text-sm font-semibold text-muted-foreground">
                                 {t("from")}{' '}
                               </span>
                             )}
@@ -262,7 +262,7 @@ export default async function TripPage({ params }: TripPageProps) {
                           </h3>
                           <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
                             {trip.show_from_price && (
-                              <span className="text-sm font-medium text-muted-foreground">
+                              <span className="text-sm font-semibold text-muted-foreground">
                                 {t("from")}{' '}
                               </span>
                             )}
