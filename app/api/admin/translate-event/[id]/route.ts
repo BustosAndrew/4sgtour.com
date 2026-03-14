@@ -85,6 +85,7 @@ export async function POST(
       const simpleFields = [
         { key: "title", fieldType: "title" },
         { key: "location", fieldType: "location" },
+        { key: "duration", fieldType: "description" },
       ]
 
       // Array event-level fields
