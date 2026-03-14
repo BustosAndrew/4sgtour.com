@@ -762,95 +762,6 @@ export function EditTournamentEventForm({
                 </div>
               </div>
 
-              {/* Translate Content */}
-              <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <Languages className="h-5 w-5" />
-                  Translate Content
-                </h2>
-                <p className="mb-4 text-sm text-gray-500">
-                  Auto-translate this event&apos;s content to other languages using AI.
-                </p>
-                <div className="space-y-4">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Source Language</label>
-                    <div className="flex gap-2">
-                      {getAvailableSourceLanguages().map((lang) => (
-                        <button
-                          key={lang}
-                          type="button"
-                          onClick={() => {
-                            setTranslateSource(lang)
-                            setTranslateTargets((prev) => prev.filter((l) => l !== lang))
-                          }}
-                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                            translateSource === lang
-                              ? "border-[#274C77] bg-[#274C77] text-white"
-                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                          }`}
-                        >
-                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Translate To</label>
-                    <div className="flex gap-2">
-                      {(["en", "ko", "de"] as const)
-                        .filter((l) => l !== translateSource)
-                        .map((lang) => (
-                          <button
-                            key={lang}
-                            type="button"
-                            onClick={() =>
-                              setTranslateTargets((prev) =>
-                                prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
-                              )
-                            }
-                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                              translateTargets.includes(lang)
-                                ? "border-[#274C77] bg-[#274C77] text-white"
-                                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                            }`}
-                          >
-                            {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={handleTranslate}
-                    disabled={isTranslating || translateTargets.length === 0}
-                    className="bg-[#274C77] hover:bg-[#274C77]/90"
-                  >
-                    {isTranslating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Translating...
-                      </>
-                    ) : (
-                      <>
-                        <Languages className="mr-2 h-4 w-4" />
-                        Translate
-                      </>
-                    )}
-                  </Button>
-                  {translateResult && (
-                    <div
-                      className={`rounded-md border p-3 text-sm ${
-                        translateResult.success
-                          ? "border-green-200 bg-green-50 text-green-700"
-                          : "border-red-200 bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {translateResult.message}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   Event Image
@@ -1190,6 +1101,95 @@ export function EditTournamentEventForm({
           {/* Step 4: Review */}
           {currentStep === 4 && (
             <div className="space-y-6">
+              {/* Translate Content */}
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Languages className="h-5 w-5" />
+                  Translate Content
+                </h2>
+                <p className="mb-4 text-sm text-gray-500">
+                  Auto-translate this event&apos;s content to other languages using AI.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Source Language</label>
+                    <div className="flex gap-2">
+                      {getAvailableSourceLanguages().map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setTranslateSource(lang)
+                            setTranslateTargets((prev) => prev.filter((l) => l !== lang))
+                          }}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            translateSource === lang
+                              ? "border-[#274C77] bg-[#274C77] text-white"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                          }`}
+                        >
+                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Translate To</label>
+                    <div className="flex gap-2">
+                      {(["en", "ko", "de"] as const)
+                        .filter((l) => l !== translateSource)
+                        .map((lang) => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() =>
+                              setTranslateTargets((prev) =>
+                                prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+                              )
+                            }
+                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                              translateTargets.includes(lang)
+                                ? "border-[#274C77] bg-[#274C77] text-white"
+                                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                            }`}
+                          >
+                            {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleTranslate}
+                    disabled={isTranslating || translateTargets.length === 0}
+                    className="bg-[#274C77] hover:bg-[#274C77]/90"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Translating...
+                      </>
+                    ) : (
+                      <>
+                        <Languages className="mr-2 h-4 w-4" />
+                        Translate
+                      </>
+                    )}
+                  </Button>
+                  {translateResult && (
+                    <div
+                      className={`rounded-md border p-3 text-sm ${
+                        translateResult.success
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-red-200 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {translateResult.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <div className="mb-6 flex items-center justify-between">
                   <div>
