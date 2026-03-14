@@ -16,7 +16,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("tournament_event_pricing_tiers")
-    .select("id, name, name_ko, name_de, price, display_order, booking_url")
+    .select("id, name, name_ko, name_de, price, display_order, show_from_price, booking_url")
     .eq("event_id", eventId)
     .order("display_order")
 

@@ -32,6 +32,8 @@ export async function POST(
       location,
       date,
       duration,
+      duration_ko,
+      duration_de,
       description,
       trip_highlights,
       travel_itinerary,
@@ -97,6 +99,8 @@ export async function POST(
       location,
       date,
       duration: duration || null,
+      duration_ko: duration_ko || null,
+      duration_de: duration_de || null,
       description: description || null,
       trip_highlights: trip_highlights || null,
       travel_itinerary: travel_itinerary || null,
@@ -115,7 +119,14 @@ export async function POST(
     if (includes_ko) insertData.includes_ko = includes_ko
     if (excludes_ko) insertData.excludes_ko = excludes_ko
 
-    // German is always auto-translated, don't set from form
+    // German - include if explicitly provided (from manual entry or translate panel)
+    if (title_de) insertData.title_de = title_de
+    if (location_de) insertData.location_de = location_de
+    if (description_de) insertData.description_de = description_de
+    if (trip_highlights_de) insertData.trip_highlights_de = trip_highlights_de
+    if (travel_itinerary_de) insertData.travel_itinerary_de = travel_itinerary_de
+    if (includes_de) insertData.includes_de = includes_de
+    if (excludes_de) insertData.excludes_de = excludes_de
 
     // Create the event
     const { data: eventData, error: eventError } = await supabase
@@ -169,6 +180,7 @@ export async function POST(
         name: tier.name,
         price: tier.price || null,
         display_order: idx,
+        show_from_price: tier.show_from_price ?? false,
         booking_url: tier.booking_url || null,
       }))
 

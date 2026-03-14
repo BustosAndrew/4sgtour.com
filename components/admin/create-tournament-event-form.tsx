@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import {
@@ -17,6 +18,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Languages,
+  Loader2,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image"
@@ -41,6 +43,7 @@ type PricingTier = {
   name: string
   price: string
   display_order: number
+  show_from_price: boolean
   booking_url: string
 }
 
@@ -64,7 +67,7 @@ export function CreateTournamentEventForm({
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   // Language state
-  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko">("en")
+  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko" | "de">("en")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -83,6 +86,7 @@ export function CreateTournamentEventForm({
   const [koreanData, setKoreanData] = useState({
     title_ko: "",
     location_ko: "",
+    duration_ko: "",
     description_ko: "",
     trip_highlights_ko: "",
     travel_itinerary_ko: "",
@@ -90,16 +94,31 @@ export function CreateTournamentEventForm({
     excludes_ko: "",
   })
 
-  // German translations state (hidden from UI, auto-generated)
+  // German translations state
   const [germanData, setGermanData] = useState({
     title_de: "",
     location_de: "",
+    duration_de: "",
     description_de: "",
     trip_highlights_de: "",
     travel_itinerary_de: "",
     includes_de: "",
     excludes_de: "",
   })
+
+  // Translation state
+  const [translateSource, setTranslateSource] = useState<"en" | "ko" | "de">("en")
+  const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translateResult, setTranslateResult] = useState<{ success: boolean; message: string } | null>(null)
+
+  const getAvailableSourceLanguages = (): ("en" | "ko" | "de")[] => {
+    const langs: ("en" | "ko" | "de")[] = []
+    if (formData.title?.trim()) langs.push("en")
+    if (koreanData.title_ko?.trim()) langs.push("ko")
+    if (germanData.title_de?.trim()) langs.push("de")
+    return langs.length > 0 ? langs : ["en"]
+  }
 
   const [imageUrl, setImageUrl] = useState("")
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
@@ -112,7 +131,7 @@ export function CreateTournamentEventForm({
   const [hotelGallery, setHotelGallery] = useState<GalleryImage[]>([])
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([
-    { id: "1", name: "", price: "", display_order: 0, booking_url: "" },
+    { id: "1", name: "", price: "", display_order: 0, show_from_price: false, booking_url: "" },
   ])
 
   const handlePhotoUpload = async (
@@ -199,7 +218,7 @@ export function CreateTournamentEventForm({
   const addPricingTier = () => {
     setPricingTiers((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, booking_url: "" },
+      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, show_from_price: false, booking_url: "" },
     ])
   }
 
@@ -213,8 +232,94 @@ export function CreateTournamentEventForm({
     )
   }
 
-  // Auto-translate function - translates to both other languages
-  // From English: translates to Korean AND German
+  const handleTranslate = async () => {
+    if (translateTargets.length === 0 || isTranslating) return
+    // Translate panel is shown in step 4 before the event is created,
+    // so we apply translations directly into local state without a server call.
+    // After creation, the translate-event API handles server-side translation.
+    // Here we just copy source content to target language fields as a pre-fill.
+    setIsTranslating(true)
+    setTranslateResult(null)
+
+    const getLangData = (lang: "en" | "ko" | "de") => {
+      if (lang === "en") return {
+        title: formData.title, location: formData.location, duration: formData.duration,
+        description: formData.description, trip_highlights: formData.trip_highlights,
+        travel_itinerary: formData.travel_itinerary, includes: formData.includes, excludes: formData.excludes,
+      }
+      if (lang === "ko") return {
+        title: koreanData.title_ko, location: koreanData.location_ko, duration: koreanData.duration_ko,
+        description: koreanData.description_ko, trip_highlights: koreanData.trip_highlights_ko,
+        travel_itinerary: koreanData.travel_itinerary_ko, includes: koreanData.includes_ko, excludes: koreanData.excludes_ko,
+      }
+      return {
+        title: germanData.title_de, location: germanData.location_de, duration: germanData.duration_de,
+        description: germanData.description_de, trip_highlights: germanData.trip_highlights_de,
+        travel_itinerary: germanData.travel_itinerary_de, includes: germanData.includes_de, excludes: germanData.excludes_de,
+      }
+    }
+
+    try {
+      const srcData = getLangData(translateSource)
+      // Build fields array for batch API
+      const fields: { field: string; text: string; fieldType: string }[] = []
+      const fieldMap: Record<string, string> = {
+        title: "title", location: "location", duration: "description",
+        description: "description", trip_highlights: "highlight",
+        travel_itinerary: "itinerary", includes: "item", excludes: "item",
+      }
+      for (const [key, fieldType] of Object.entries(fieldMap)) {
+        const text = srcData[key as keyof typeof srcData]
+        if (text?.trim()) fields.push({ field: key, text, fieldType })
+      }
+
+      for (const targetLang of translateTargets) {
+        const response = await fetch("/api/translate/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields, targetLanguage: targetLang, sourceLanguage: translateSource }),
+        })
+        if (!response.ok) throw new Error("Translation failed")
+        const result = await response.json()
+        const t = result.translations || {}
+
+        if (targetLang === "en") {
+          setFormData((prev) => ({
+            ...prev,
+            title: t.title || prev.title, location: t.location || prev.location,
+            duration: t.duration || prev.duration, description: t.description || prev.description,
+            trip_highlights: t.trip_highlights || prev.trip_highlights,
+            travel_itinerary: t.travel_itinerary || prev.travel_itinerary,
+            includes: t.includes || prev.includes, excludes: t.excludes || prev.excludes,
+          }))
+        } else if (targetLang === "ko") {
+          setKoreanData((prev) => ({
+            ...prev,
+            title_ko: t.title || prev.title_ko, location_ko: t.location || prev.location_ko,
+            duration_ko: t.duration || prev.duration_ko, description_ko: t.description || prev.description_ko,
+            trip_highlights_ko: t.trip_highlights || prev.trip_highlights_ko,
+            travel_itinerary_ko: t.travel_itinerary || prev.travel_itinerary_ko,
+            includes_ko: t.includes || prev.includes_ko, excludes_ko: t.excludes || prev.excludes_ko,
+          }))
+        } else {
+          setGermanData((prev) => ({
+            ...prev,
+            title_de: t.title || prev.title_de, location_de: t.location || prev.location_de,
+            duration_de: t.duration || prev.duration_de, description_de: t.description || prev.description_de,
+            trip_highlights_de: t.trip_highlights || prev.trip_highlights_de,
+            travel_itinerary_de: t.travel_itinerary || prev.travel_itinerary_de,
+            includes_de: t.includes || prev.includes_de, excludes_de: t.excludes || prev.excludes_de,
+          }))
+        }
+      }
+      setTranslateResult({ success: true, message: "Content translated successfully!" })
+    } catch {
+      setTranslateResult({ success: false, message: "Translation failed. Please try again." })
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
   const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
 
@@ -271,20 +376,27 @@ const handleSubmit = async (e: React.FormEvent) => {
           location: formData.location,
           date: formData.date,
           duration: formData.duration || null,
+          duration_ko: koreanData.duration_ko || null,
+          duration_de: germanData.duration_de || null,
           description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
           trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
           travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
           includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
           excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
-          // Only send Korean if user explicitly entered it
-          ...(koreanData.title_ko?.trim() && { title_ko: koreanData.title_ko }),
-          ...(koreanData.location_ko?.trim() && { location_ko: koreanData.location_ko }),
-          ...(koreanData.description_ko?.trim() && { description_ko: koreanData.description_ko.split("\n\n").filter(Boolean) }),
-          ...(koreanData.trip_highlights_ko?.trim() && { trip_highlights_ko: koreanData.trip_highlights_ko.split("\n").filter(Boolean) }),
-          ...(koreanData.travel_itinerary_ko?.trim() && { travel_itinerary_ko: koreanData.travel_itinerary_ko.split("\n").filter(Boolean) }),
-          ...(koreanData.includes_ko?.trim() && { includes_ko: koreanData.includes_ko.split("\n").filter(Boolean) }),
-          ...(koreanData.excludes_ko?.trim() && { excludes_ko: koreanData.excludes_ko.split("\n").filter(Boolean) }),
-          // German is auto-translated, don't send from form
+          title_ko: koreanData.title_ko || null,
+          location_ko: koreanData.location_ko || null,
+          description_ko: koreanData.description_ko ? koreanData.description_ko.split("\n\n").filter(Boolean) : null,
+          trip_highlights_ko: koreanData.trip_highlights_ko ? koreanData.trip_highlights_ko.split("\n").filter(Boolean) : null,
+          travel_itinerary_ko: koreanData.travel_itinerary_ko ? koreanData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
+          includes_ko: koreanData.includes_ko ? koreanData.includes_ko.split("\n").filter(Boolean) : null,
+          excludes_ko: koreanData.excludes_ko ? koreanData.excludes_ko.split("\n").filter(Boolean) : null,
+          title_de: germanData.title_de || null,
+          location_de: germanData.location_de || null,
+          description_de: germanData.description_de ? germanData.description_de.split("\n\n").filter(Boolean) : null,
+          trip_highlights_de: germanData.trip_highlights_de ? germanData.trip_highlights_de.split("\n").filter(Boolean) : null,
+          travel_itinerary_de: germanData.travel_itinerary_de ? germanData.travel_itinerary_de.split("\n").filter(Boolean) : null,
+          includes_de: germanData.includes_de ? germanData.includes_de.split("\n").filter(Boolean) : null,
+          excludes_de: germanData.excludes_de ? germanData.excludes_de.split("\n").filter(Boolean) : null,
           price: formData.price || null,
           image: imageUrl || null,
           itinerary: itinerary.filter((d) => d.title.trim()),
@@ -381,18 +493,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               {/* Language Tabs */}
               <div className="flex items-center gap-3">
                 <Languages className="h-5 w-5 text-gray-500" />
-                <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko")}>
-                  <TabsList className="grid w-[200px] grid-cols-2">
-                    <TabsTrigger value="en" className="text-sm">
-                      English
-                    </TabsTrigger>
-                    <TabsTrigger value="ko" className="text-sm">
-                      Korean
-                    </TabsTrigger>
+                <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko" | "de")}>
+                  <TabsList className="grid w-[300px] grid-cols-3">
+                    <TabsTrigger value="en" className="text-sm">English</TabsTrigger>
+                    <TabsTrigger value="ko" className="text-sm">Korean</TabsTrigger>
+                    <TabsTrigger value="de" className="text-sm">German</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <p className="text-xs text-gray-500">
-                  {activeLanguage === "en" ? "Editing English content" : "Editing Korean translation"}
+                  {activeLanguage === "en" ? "Editing English content" : activeLanguage === "ko" ? "Editing Korean translation" : "Editing German translation"}
                 </p>
               </div>
 
@@ -403,32 +512,40 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Event Title * {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                    <Label htmlFor="title">
+                      Event Title *{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                    </Label>
                     <Input
                       id="title"
-                      value={activeLanguage === "en" ? formData.title : koreanData.title_ko}
+                      value={activeLanguage === "en" ? formData.title : activeLanguage === "ko" ? koreanData.title_ko : germanData.title_de}
                       onChange={(e) =>
                         activeLanguage === "en"
                           ? setFormData((prev) => ({ ...prev, title: e.target.value }))
-                          : setKoreanData((prev) => ({ ...prev, title_ko: e.target.value }))
+                          : activeLanguage === "ko"
+                          ? setKoreanData((prev) => ({ ...prev, title_ko: e.target.value }))
+                          : setGermanData((prev) => ({ ...prev, title_de: e.target.value }))
                       }
-                      placeholder={activeLanguage === "en" ? "e.g., The Open 2025" : "예: 디 오픈 2025"}
+                      placeholder={activeLanguage === "en" ? "e.g., The Open 2025" : activeLanguage === "ko" ? "예: 디 오픈 2025" : "z.B. The Open 2025"}
                       className="mt-1"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="location">Location * {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                      <Label htmlFor="location">
+                        Location *{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                      </Label>
                       <Input
                         id="location"
-                        value={activeLanguage === "en" ? formData.location : koreanData.location_ko}
+                        value={activeLanguage === "en" ? formData.location : activeLanguage === "ko" ? koreanData.location_ko : germanData.location_de}
                         onChange={(e) =>
                           activeLanguage === "en"
                             ? setFormData((prev) => ({ ...prev, location: e.target.value }))
-                            : setKoreanData((prev) => ({ ...prev, location_ko: e.target.value }))
+                            : activeLanguage === "ko"
+                            ? setKoreanData((prev) => ({ ...prev, location_ko: e.target.value }))
+                            : setGermanData((prev) => ({ ...prev, location_de: e.target.value }))
                         }
-                        placeholder={activeLanguage === "en" ? "e.g., Scotland" : "예: 스코틀랜드"}
+                        placeholder={activeLanguage === "en" ? "e.g., Scotland" : activeLanguage === "ko" ? "예: 스코틀랜드" : "z.B. Schottland"}
                         className="mt-1"
                       />
                     </div>
@@ -448,14 +565,20 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="duration">Duration</Label>
+                      <Label htmlFor="duration">
+                        Duration{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                      </Label>
                       <Input
                         id="duration"
-                        value={formData.duration}
+                        value={activeLanguage === "en" ? formData.duration : activeLanguage === "ko" ? koreanData.duration_ko : germanData.duration_de}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, duration: e.target.value }))
+                          activeLanguage === "en"
+                            ? setFormData((prev) => ({ ...prev, duration: e.target.value }))
+                            : activeLanguage === "ko"
+                            ? setKoreanData((prev) => ({ ...prev, duration_ko: e.target.value }))
+                            : setGermanData((prev) => ({ ...prev, duration_de: e.target.value }))
                         }
-                        placeholder="e.g., 4 days, 3 nights"
+                        placeholder={activeLanguage === "en" ? "e.g., 4 days, 3 nights" : activeLanguage === "ko" ? "예: 4일 3박" : "z.B. 4 Tage, 3 Nächte"}
                         className="mt-1"
                       />
                     </div>
@@ -474,64 +597,80 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Description {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                    <Label htmlFor="description">
+                      Description{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="description"
-                      value={activeLanguage === "en" ? formData.description : koreanData.description_ko}
+                      value={activeLanguage === "en" ? formData.description : activeLanguage === "ko" ? koreanData.description_ko : germanData.description_de}
                       onChange={(e) =>
                         activeLanguage === "en"
                           ? setFormData((prev) => ({ ...prev, description: e.target.value }))
-                          : setKoreanData((prev) => ({ ...prev, description_ko: e.target.value }))
+                          : activeLanguage === "ko"
+                          ? setKoreanData((prev) => ({ ...prev, description_ko: e.target.value }))
+                          : setGermanData((prev) => ({ ...prev, description_de: e.target.value }))
                       }
-                      placeholder={activeLanguage === "en" ? "Detailed event description..." : "상세한 이벤트 설명..."}
+                      placeholder={activeLanguage === "en" ? "Detailed event description..." : activeLanguage === "ko" ? "상세한 이벤트 설명..." : "Detaillierte Eventbeschreibung..."}
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="trip_highlights">Trip Highlights {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                    <Label htmlFor="trip_highlights">
+                      Trip Highlights{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="trip_highlights"
-                      value={activeLanguage === "en" ? formData.trip_highlights : koreanData.trip_highlights_ko}
+                      value={activeLanguage === "en" ? formData.trip_highlights : activeLanguage === "ko" ? koreanData.trip_highlights_ko : germanData.trip_highlights_de}
                       onChange={(e) =>
                         activeLanguage === "en"
                           ? setFormData((prev) => ({ ...prev, trip_highlights: e.target.value }))
-                          : setKoreanData((prev) => ({ ...prev, trip_highlights_ko: e.target.value }))
+                          : activeLanguage === "ko"
+                          ? setKoreanData((prev) => ({ ...prev, trip_highlights_ko: e.target.value }))
+                          : setGermanData((prev) => ({ ...prev, trip_highlights_de: e.target.value }))
                       }
-                      placeholder={activeLanguage === "en" ? "Premium accommodation\nTournament tickets\nGolf rounds" : "프리미엄 숙소\n토너먼트 티켓\n골프 라운드"}
+                      placeholder={activeLanguage === "en" ? "Premium accommodation\nTournament tickets\nGolf rounds" : activeLanguage === "ko" ? "프리미엄 숙소\n토너먼트 티켓\n골프 라운드" : "Premium Unterkunft\nTurnierkarten\nGolfrunden"}
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="includes">Package Includes {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                    <Label htmlFor="includes">
+                      Package Includes{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="includes"
-                      value={activeLanguage === "en" ? formData.includes : koreanData.includes_ko}
+                      value={activeLanguage === "en" ? formData.includes : activeLanguage === "ko" ? koreanData.includes_ko : germanData.includes_de}
                       onChange={(e) =>
                         activeLanguage === "en"
                           ? setFormData((prev) => ({ ...prev, includes: e.target.value }))
-                          : setKoreanData((prev) => ({ ...prev, includes_ko: e.target.value }))
+                          : activeLanguage === "ko"
+                          ? setKoreanData((prev) => ({ ...prev, includes_ko: e.target.value }))
+                          : setGermanData((prev) => ({ ...prev, includes_de: e.target.value }))
                       }
-                      placeholder={activeLanguage === "en" ? "Airport transfers\nBreakfast daily\nTournament tickets" : "공항 픽업\n조식 제공\n토너먼트 티켓"}
+                      placeholder={activeLanguage === "en" ? "Airport transfers\nBreakfast daily\nTournament tickets" : activeLanguage === "ko" ? "공항 픽업\n조식 제공\n토너먼트 티켓" : "Flughafentransfers\nFrühstück täglich\nTurnierkarten"}
                       className="mt-1"
                       rows={3}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="excludes">Package Excludes {activeLanguage === "ko" && <span className="text-xs text-gray-400">(Korean)</span>}</Label>
+                    <Label htmlFor="excludes">
+                      Package Excludes{activeLanguage !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLanguage.toUpperCase()})</span>}
+                    </Label>
                     <Textarea
                       id="excludes"
-                      value={activeLanguage === "en" ? formData.excludes : koreanData.excludes_ko}
+                      value={activeLanguage === "en" ? formData.excludes : activeLanguage === "ko" ? koreanData.excludes_ko : germanData.excludes_de}
                       onChange={(e) =>
                         activeLanguage === "en"
                           ? setFormData((prev) => ({ ...prev, excludes: e.target.value }))
-                          : setKoreanData((prev) => ({ ...prev, excludes_ko: e.target.value }))
+                          : activeLanguage === "ko"
+                          ? setKoreanData((prev) => ({ ...prev, excludes_ko: e.target.value }))
+                          : setGermanData((prev) => ({ ...prev, excludes_de: e.target.value }))
                       }
-                      placeholder={activeLanguage === "en" ? "Flights\nTravel insurance" : "항공편\n여행자 보험"}
+                      placeholder={activeLanguage === "en" ? "Flights\nTravel insurance" : activeLanguage === "ko" ? "항공편\n여행자 보험" : "Flüge\nReiseversicherung"}
                       className="mt-1"
                       rows={3}
                     />
@@ -809,6 +948,19 @@ const handleSubmit = async (e: React.FormEvent) => {
                           </div>
                         </div>
 
+                        <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Show &quot;From&quot; prefix</p>
+                            <p className="text-xs text-gray-500">Displays &quot;From&quot; before the price on the public page</p>
+                          </div>
+                          <Switch
+                            checked={tier.show_from_price ?? false}
+                            onCheckedChange={(checked) =>
+                              updatePricingTier(tier.id, "show_from_price", checked)
+                            }
+                          />
+                        </div>
+
                         <div>
                           <Label>Booking URL</Label>
                           <Input
@@ -831,6 +983,95 @@ const handleSubmit = async (e: React.FormEvent) => {
           {/* Step 4: Review */}
           {currentStep === 4 && (
             <div className="space-y-6">
+              {/* Translate Content */}
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Languages className="h-5 w-5" />
+                  Translate Content
+                </h2>
+                <p className="mb-4 text-sm text-gray-500">
+                  Auto-translate this event&apos;s content to other languages using AI.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Source Language</label>
+                    <div className="flex gap-2">
+                      {getAvailableSourceLanguages().map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setTranslateSource(lang)
+                            setTranslateTargets((prev) => prev.filter((l) => l !== lang))
+                          }}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            translateSource === lang
+                              ? "border-[#274C77] bg-[#274C77] text-white"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                          }`}
+                        >
+                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Translate To</label>
+                    <div className="flex gap-2">
+                      {(["en", "ko", "de"] as const)
+                        .filter((l) => l !== translateSource)
+                        .map((lang) => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() =>
+                              setTranslateTargets((prev) =>
+                                prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+                              )
+                            }
+                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                              translateTargets.includes(lang)
+                                ? "border-[#274C77] bg-[#274C77] text-white"
+                                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                            }`}
+                          >
+                            {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleTranslate}
+                    disabled={isTranslating || translateTargets.length === 0}
+                    className="bg-[#274C77] hover:bg-[#274C77]/90"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Translating...
+                      </>
+                    ) : (
+                      <>
+                        <Languages className="mr-2 h-4 w-4" />
+                        Translate
+                      </>
+                    )}
+                  </Button>
+                  {translateResult && (
+                    <div
+                      className={`rounded-md border p-3 text-sm ${
+                        translateResult.success
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-red-200 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {translateResult.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <h2 className="mb-6 text-lg font-semibold text-gray-900">
                   Review & Create

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import {
@@ -64,6 +65,8 @@ type TournamentEvent = {
   location_de?: string | null
   date: string
   duration: string | null
+  duration_ko?: string | null
+  duration_de?: string | null
   description: string[] | null
   description_ko?: string[] | null
   description_de?: string[] | null
@@ -138,6 +141,8 @@ export function EditTournamentEventForm({
     location_de: event.location_de || "",
     date: event.date || "",
     duration: event.duration || "",
+    duration_ko: event.duration_ko || "",
+    duration_de: event.duration_de || "",
     description: event.description?.join("\n\n") || "",
     description_ko: event.description_ko?.join("\n\n") || "",
     description_de: event.description_de?.join("\n\n") || "",
@@ -199,13 +204,14 @@ export function EditTournamentEventForm({
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(
     event.tournament_event_pricing_tiers?.length
       ? event.tournament_event_pricing_tiers.map((t) => ({
-          id: t.id,
-          name: t.name,
-          name_ko: t.name_ko || "",
-          name_de: t.name_de || "",
-          price: t.price || "",
-          display_order: t.display_order || 0,
-          booking_url: t.booking_url || "",
+              id: t.id,
+              display_order: t.display_order || 0,
+              name: t.name,
+              name_ko: t.name_ko || "",
+              name_de: t.name_de || "",
+              price: t.price || "",
+              show_from_price: (t as any).show_from_price ?? false,
+              booking_url: t.booking_url || "",
         }))
       : [{ id: "1", name: "", name_ko: "", name_de: "", price: "", display_order: 0, booking_url: "" }]
   )
@@ -353,6 +359,8 @@ export function EditTournamentEventForm({
             title_de: updatedEvent.title_de || "",
             location_ko: updatedEvent.location_ko || "",
             location_de: updatedEvent.location_de || "",
+            duration_ko: updatedEvent.duration_ko || "",
+            duration_de: updatedEvent.duration_de || "",
             description_ko: (updatedEvent.description_ko as string[] | null)?.join("\n\n") || "",
             description_de: (updatedEvent.description_de as string[] | null)?.join("\n\n") || "",
             trip_highlights_ko: (updatedEvent.trip_highlights_ko as string[] | null)?.join("\n") || "",
@@ -477,6 +485,8 @@ export function EditTournamentEventForm({
             location_de: formData.location_de || null,
             date: formData.date,
             duration: formData.duration || null,
+            duration_ko: formData.duration_ko || null,
+            duration_de: formData.duration_de || null,
             description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
             description_ko: formData.description_ko ? formData.description_ko.split("\n\n").filter(Boolean) : null,
             description_de: formData.description_de ? formData.description_de.split("\n\n").filter(Boolean) : null,
@@ -655,14 +665,17 @@ export function EditTournamentEventForm({
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="duration">Duration</Label>
+                      <Label htmlFor="duration">
+                        Duration
+                        {activeLang !== "en" && <span className="ml-1 text-xs text-gray-400">({activeLang.toUpperCase()})</span>}
+                      </Label>
                       <Input
                         id="duration"
-                        value={formData.duration}
+                        value={activeLang === "en" ? formData.duration : activeLang === "ko" ? formData.duration_ko : formData.duration_de}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, duration: e.target.value }))
+                          setFormData((prev) => ({ ...prev, [`duration${activeLang === "en" ? "" : `_${activeLang}`}`]: e.target.value }))
                         }
-                        placeholder="e.g., 4 days, 3 nights"
+                        placeholder={activeLang === "en" ? "e.g., 4 days, 3 nights" : activeLang === "ko" ? "예: 4일 3박" : "z.B. 4 Tage, 3 Nächte"}
                         className="mt-1"
                       />
                     </div>
@@ -1077,6 +1090,19 @@ export function EditTournamentEventForm({
                               className="mt-1"
                             />
                           </div>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Show &quot;From&quot; prefix</p>
+                            <p className="text-xs text-gray-500">Displays &quot;From&quot; before the price on the public page</p>
+                          </div>
+                          <Switch
+                            checked={tier.show_from_price ?? false}
+                            onCheckedChange={(checked) =>
+                              updatePricingTier(tier.id, "show_from_price", checked)
+                            }
+                          />
                         </div>
 
                         <div>

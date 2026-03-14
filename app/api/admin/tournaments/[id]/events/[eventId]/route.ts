@@ -57,6 +57,8 @@ export async function PATCH(
       location_de,
       date,
       duration,
+      duration_ko,
+      duration_de,
       description,
       description_ko,
       description_de,
@@ -90,6 +92,8 @@ export async function PATCH(
       location,
       date,
       duration: duration || null,
+      duration_ko: duration_ko || null,
+      duration_de: duration_de || null,
       description: description || null,
       trip_highlights: trip_highlights || null,
       travel_itinerary: travel_itinerary || null,
@@ -191,6 +195,7 @@ export async function PATCH(
         name_de: tier.name_de || null,
         price: tier.price || null,
         display_order: idx,
+        show_from_price: tier.show_from_price ?? false,
         booking_url: tier.booking_url || null,
       }))
 
