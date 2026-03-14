@@ -57,14 +57,28 @@ type TournamentEvent = {
   tournament_id: string
   slug: string
   title: string
+  title_ko?: string | null
+  title_de?: string | null
   location: string
+  location_ko?: string | null
+  location_de?: string | null
   date: string
   duration: string | null
   description: string[] | null
+  description_ko?: string[] | null
+  description_de?: string[] | null
   trip_highlights: string[] | null
+  trip_highlights_ko?: string[] | null
+  trip_highlights_de?: string[] | null
   travel_itinerary: string[] | null
+  travel_itinerary_ko?: string[] | null
+  travel_itinerary_de?: string[] | null
   includes: string[] | null
+  includes_ko?: string[] | null
+  includes_de?: string[] | null
   excludes: string[] | null
+  excludes_ko?: string[] | null
+  excludes_de?: string[] | null
   image: string | null
   hero_image: string | null
   price: string | null
@@ -72,7 +86,11 @@ type TournamentEvent = {
     id: string
     display_order: number
     title: string
+    title_ko?: string | null
+    title_de?: string | null
     content: string | null
+    content_ko?: string | null
+    content_de?: string | null
   }[]
   tournament_event_gallery_images?: {
     id: string
@@ -83,6 +101,8 @@ type TournamentEvent = {
   tournament_event_pricing_tiers?: {
     id: string
     name: string
+    name_ko?: string | null
+    name_de?: string | null
     price: string | null
     display_order: number | null
     booking_url: string | null
@@ -111,28 +131,28 @@ export function EditTournamentEventForm({
 
   const [formData, setFormData] = useState({
     title: event.title,
-    title_ko: (event as any).title_ko || "",
-    title_de: (event as any).title_de || "",
+    title_ko: event.title_ko || "",
+    title_de: event.title_de || "",
     location: event.location,
-    location_ko: (event as any).location_ko || "",
-    location_de: (event as any).location_de || "",
+    location_ko: event.location_ko || "",
+    location_de: event.location_de || "",
     date: event.date || "",
     duration: event.duration || "",
     description: event.description?.join("\n\n") || "",
-    description_ko: ((event as any).description_ko as string[] | null)?.join("\n\n") || "",
-    description_de: ((event as any).description_de as string[] | null)?.join("\n\n") || "",
+    description_ko: event.description_ko?.join("\n\n") || "",
+    description_de: event.description_de?.join("\n\n") || "",
     trip_highlights: event.trip_highlights?.join("\n") || "",
-    trip_highlights_ko: ((event as any).trip_highlights_ko as string[] | null)?.join("\n") || "",
-    trip_highlights_de: ((event as any).trip_highlights_de as string[] | null)?.join("\n") || "",
+    trip_highlights_ko: event.trip_highlights_ko?.join("\n") || "",
+    trip_highlights_de: event.trip_highlights_de?.join("\n") || "",
     travel_itinerary: event.travel_itinerary?.join("\n") || "",
-    travel_itinerary_ko: ((event as any).travel_itinerary_ko as string[] | null)?.join("\n") || "",
-    travel_itinerary_de: ((event as any).travel_itinerary_de as string[] | null)?.join("\n") || "",
+    travel_itinerary_ko: event.travel_itinerary_ko?.join("\n") || "",
+    travel_itinerary_de: event.travel_itinerary_de?.join("\n") || "",
     includes: event.includes?.join("\n") || "",
-    includes_ko: ((event as any).includes_ko as string[] | null)?.join("\n") || "",
-    includes_de: ((event as any).includes_de as string[] | null)?.join("\n") || "",
+    includes_ko: event.includes_ko?.join("\n") || "",
+    includes_de: event.includes_de?.join("\n") || "",
     excludes: event.excludes?.join("\n") || "",
-    excludes_ko: ((event as any).excludes_ko as string[] | null)?.join("\n") || "",
-    excludes_de: ((event as any).excludes_de as string[] | null)?.join("\n") || "",
+    excludes_ko: event.excludes_ko?.join("\n") || "",
+    excludes_de: event.excludes_de?.join("\n") || "",
     price: event.price || "",
   })
 
@@ -145,11 +165,11 @@ export function EditTournamentEventForm({
           id: d.id,
           display_order: d.display_order,
           title: d.title,
-          title_ko: (d as any).title_ko || "",
-          title_de: (d as any).title_de || "",
+          title_ko: d.title_ko || "",
+          title_de: d.title_de || "",
           content: d.content || "",
-          content_ko: (d as any).content_ko || "",
-          content_de: (d as any).content_de || "",
+          content_ko: d.content_ko || "",
+          content_de: d.content_de || "",
         }))
       : [{ id: "1", display_order: 1, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" }]
   )
@@ -181,8 +201,8 @@ export function EditTournamentEventForm({
       ? event.tournament_event_pricing_tiers.map((t) => ({
           id: t.id,
           name: t.name,
-          name_ko: (t as any).name_ko || "",
-          name_de: (t as any).name_de || "",
+          name_ko: t.name_ko || "",
+          name_de: t.name_de || "",
           price: t.price || "",
           display_order: t.display_order || 0,
           booking_url: t.booking_url || "",
