@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  Loader2,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -697,8 +698,12 @@ export function AdminCourses({
                     disabled={isTranslating || (!translateLanguages.ko && !translateLanguages.de)}
                     variant="outline"
                     className="w-full sm:w-auto"
-                  >
-                    <Languages className="mr-2 h-4 w-4" />
+                    >
+                    {isTranslating ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Languages className="mr-2 h-4 w-4" />
+                    )}
                     {isTranslating ? "Translating..." : "Translate All"}
                   </Button>
                   <Link
@@ -867,7 +872,11 @@ export function AdminCourses({
                       variant="outline"
                       className="w-full sm:w-auto"
                     >
-                      <Languages className="mr-2 h-4 w-4" />
+                      {isTranslatingTournaments ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Languages className="mr-2 h-4 w-4" />
+                      )}
                       {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
                     </Button>
                   </div>

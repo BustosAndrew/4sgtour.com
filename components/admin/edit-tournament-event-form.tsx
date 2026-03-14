@@ -57,14 +57,28 @@ type TournamentEvent = {
   tournament_id: string
   slug: string
   title: string
+  title_ko?: string | null
+  title_de?: string | null
   location: string
+  location_ko?: string | null
+  location_de?: string | null
   date: string
   duration: string | null
   description: string[] | null
+  description_ko?: string[] | null
+  description_de?: string[] | null
   trip_highlights: string[] | null
+  trip_highlights_ko?: string[] | null
+  trip_highlights_de?: string[] | null
   travel_itinerary: string[] | null
+  travel_itinerary_ko?: string[] | null
+  travel_itinerary_de?: string[] | null
   includes: string[] | null
+  includes_ko?: string[] | null
+  includes_de?: string[] | null
   excludes: string[] | null
+  excludes_ko?: string[] | null
+  excludes_de?: string[] | null
   image: string | null
   hero_image: string | null
   price: string | null
@@ -72,7 +86,11 @@ type TournamentEvent = {
     id: string
     display_order: number
     title: string
+    title_ko?: string | null
+    title_de?: string | null
     content: string | null
+    content_ko?: string | null
+    content_de?: string | null
   }[]
   tournament_event_gallery_images?: {
     id: string
@@ -83,6 +101,8 @@ type TournamentEvent = {
   tournament_event_pricing_tiers?: {
     id: string
     name: string
+    name_ko?: string | null
+    name_de?: string | null
     price: string | null
     display_order: number | null
     booking_url: string | null
@@ -111,28 +131,28 @@ export function EditTournamentEventForm({
 
   const [formData, setFormData] = useState({
     title: event.title,
-    title_ko: (event as any).title_ko || "",
-    title_de: (event as any).title_de || "",
+    title_ko: event.title_ko || "",
+    title_de: event.title_de || "",
     location: event.location,
-    location_ko: (event as any).location_ko || "",
-    location_de: (event as any).location_de || "",
+    location_ko: event.location_ko || "",
+    location_de: event.location_de || "",
     date: event.date || "",
     duration: event.duration || "",
     description: event.description?.join("\n\n") || "",
-    description_ko: ((event as any).description_ko as string[] | null)?.join("\n\n") || "",
-    description_de: ((event as any).description_de as string[] | null)?.join("\n\n") || "",
+    description_ko: event.description_ko?.join("\n\n") || "",
+    description_de: event.description_de?.join("\n\n") || "",
     trip_highlights: event.trip_highlights?.join("\n") || "",
-    trip_highlights_ko: ((event as any).trip_highlights_ko as string[] | null)?.join("\n") || "",
-    trip_highlights_de: ((event as any).trip_highlights_de as string[] | null)?.join("\n") || "",
+    trip_highlights_ko: event.trip_highlights_ko?.join("\n") || "",
+    trip_highlights_de: event.trip_highlights_de?.join("\n") || "",
     travel_itinerary: event.travel_itinerary?.join("\n") || "",
-    travel_itinerary_ko: ((event as any).travel_itinerary_ko as string[] | null)?.join("\n") || "",
-    travel_itinerary_de: ((event as any).travel_itinerary_de as string[] | null)?.join("\n") || "",
+    travel_itinerary_ko: event.travel_itinerary_ko?.join("\n") || "",
+    travel_itinerary_de: event.travel_itinerary_de?.join("\n") || "",
     includes: event.includes?.join("\n") || "",
-    includes_ko: ((event as any).includes_ko as string[] | null)?.join("\n") || "",
-    includes_de: ((event as any).includes_de as string[] | null)?.join("\n") || "",
+    includes_ko: event.includes_ko?.join("\n") || "",
+    includes_de: event.includes_de?.join("\n") || "",
     excludes: event.excludes?.join("\n") || "",
-    excludes_ko: ((event as any).excludes_ko as string[] | null)?.join("\n") || "",
-    excludes_de: ((event as any).excludes_de as string[] | null)?.join("\n") || "",
+    excludes_ko: event.excludes_ko?.join("\n") || "",
+    excludes_de: event.excludes_de?.join("\n") || "",
     price: event.price || "",
   })
 
@@ -145,11 +165,11 @@ export function EditTournamentEventForm({
           id: d.id,
           display_order: d.display_order,
           title: d.title,
-          title_ko: (d as any).title_ko || "",
-          title_de: (d as any).title_de || "",
+          title_ko: d.title_ko || "",
+          title_de: d.title_de || "",
           content: d.content || "",
-          content_ko: (d as any).content_ko || "",
-          content_de: (d as any).content_de || "",
+          content_ko: d.content_ko || "",
+          content_de: d.content_de || "",
         }))
       : [{ id: "1", display_order: 1, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" }]
   )
@@ -181,8 +201,8 @@ export function EditTournamentEventForm({
       ? event.tournament_event_pricing_tiers.map((t) => ({
           id: t.id,
           name: t.name,
-          name_ko: (t as any).name_ko || "",
-          name_de: (t as any).name_de || "",
+          name_ko: t.name_ko || "",
+          name_de: t.name_de || "",
           price: t.price || "",
           display_order: t.display_order || 0,
           booking_url: t.booking_url || "",
@@ -323,6 +343,57 @@ export function EditTournamentEventForm({
       
       if (response.ok) {
         setTranslateResult({ success: true, message: data.message })
+        // Re-fetch the event to populate translated fields in the form
+        const eventRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}`)
+        if (eventRes.ok) {
+          const updatedEvent = await eventRes.json()
+          setFormData((prev) => ({
+            ...prev,
+            title_ko: updatedEvent.title_ko || "",
+            title_de: updatedEvent.title_de || "",
+            location_ko: updatedEvent.location_ko || "",
+            location_de: updatedEvent.location_de || "",
+            description_ko: (updatedEvent.description_ko as string[] | null)?.join("\n\n") || "",
+            description_de: (updatedEvent.description_de as string[] | null)?.join("\n\n") || "",
+            trip_highlights_ko: (updatedEvent.trip_highlights_ko as string[] | null)?.join("\n") || "",
+            trip_highlights_de: (updatedEvent.trip_highlights_de as string[] | null)?.join("\n") || "",
+            travel_itinerary_ko: (updatedEvent.travel_itinerary_ko as string[] | null)?.join("\n") || "",
+            travel_itinerary_de: (updatedEvent.travel_itinerary_de as string[] | null)?.join("\n") || "",
+            includes_ko: (updatedEvent.includes_ko as string[] | null)?.join("\n") || "",
+            includes_de: (updatedEvent.includes_de as string[] | null)?.join("\n") || "",
+            excludes_ko: (updatedEvent.excludes_ko as string[] | null)?.join("\n") || "",
+            excludes_de: (updatedEvent.excludes_de as string[] | null)?.join("\n") || "",
+          }))
+          // Re-fetch itinerary days with translated fields
+          const itineraryRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/itinerary`)
+          if (itineraryRes.ok) {
+            const updatedItinerary = await itineraryRes.json()
+            setItinerary(updatedItinerary.map((d: any) => ({
+              id: d.id,
+              display_order: d.display_order,
+              title: d.title,
+              title_ko: d.title_ko || "",
+              title_de: d.title_de || "",
+              content: d.content || "",
+              content_ko: d.content_ko || "",
+              content_de: d.content_de || "",
+            })))
+          }
+          // Re-fetch pricing tiers with translated fields
+          const tiersRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/pricing-tiers`)
+          if (tiersRes.ok) {
+            const updatedTiers = await tiersRes.json()
+            setPricingTiers(updatedTiers.map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              name_ko: t.name_ko || "",
+              name_de: t.name_de || "",
+              price: t.price || "",
+              display_order: t.display_order || 0,
+              booking_url: t.booking_url || "",
+            })))
+          }
+        }
         router.refresh()
       } else {
         let errorMessage = data.error || "Translation failed"
@@ -399,22 +470,28 @@ export function EditTournamentEventForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
-            // Only send Korean if user explicitly entered it
-            ...(formData.title_ko?.trim() && { title_ko: formData.title_ko }),
+            title_ko: formData.title_ko || null,
+            title_de: formData.title_de || null,
             location: formData.location,
-            ...(formData.location_ko?.trim() && { location_ko: formData.location_ko }),
+            location_ko: formData.location_ko || null,
+            location_de: formData.location_de || null,
             date: formData.date,
             duration: formData.duration || null,
             description: formData.description ? formData.description.split("\n\n").filter(Boolean) : null,
-            ...(formData.description_ko?.trim() && { description_ko: formData.description_ko.split("\n\n").filter(Boolean) }),
+            description_ko: formData.description_ko ? formData.description_ko.split("\n\n").filter(Boolean) : null,
+            description_de: formData.description_de ? formData.description_de.split("\n\n").filter(Boolean) : null,
             trip_highlights: formData.trip_highlights ? formData.trip_highlights.split("\n").filter(Boolean) : null,
-            ...(formData.trip_highlights_ko?.trim() && { trip_highlights_ko: formData.trip_highlights_ko.split("\n").filter(Boolean) }),
+            trip_highlights_ko: formData.trip_highlights_ko ? formData.trip_highlights_ko.split("\n").filter(Boolean) : null,
+            trip_highlights_de: formData.trip_highlights_de ? formData.trip_highlights_de.split("\n").filter(Boolean) : null,
             travel_itinerary: formData.travel_itinerary ? formData.travel_itinerary.split("\n").filter(Boolean) : null,
-            ...(formData.travel_itinerary_ko?.trim() && { travel_itinerary_ko: formData.travel_itinerary_ko.split("\n").filter(Boolean) }),
+            travel_itinerary_ko: formData.travel_itinerary_ko ? formData.travel_itinerary_ko.split("\n").filter(Boolean) : null,
+            travel_itinerary_de: formData.travel_itinerary_de ? formData.travel_itinerary_de.split("\n").filter(Boolean) : null,
             includes: formData.includes ? formData.includes.split("\n").filter(Boolean) : null,
-            ...(formData.includes_ko?.trim() && { includes_ko: formData.includes_ko.split("\n").filter(Boolean) }),
+            includes_ko: formData.includes_ko ? formData.includes_ko.split("\n").filter(Boolean) : null,
+            includes_de: formData.includes_de ? formData.includes_de.split("\n").filter(Boolean) : null,
             excludes: formData.excludes ? formData.excludes.split("\n").filter(Boolean) : null,
-            ...(formData.excludes_ko?.trim() && { excludes_ko: formData.excludes_ko.split("\n").filter(Boolean) }),
+            excludes_ko: formData.excludes_ko ? formData.excludes_ko.split("\n").filter(Boolean) : null,
+            excludes_de: formData.excludes_de ? formData.excludes_de.split("\n").filter(Boolean) : null,
             price: formData.price || null,
             image: imageUrl || null,
             itinerary: itinerary.filter((d) => d.title.trim()),
@@ -1024,6 +1101,95 @@ export function EditTournamentEventForm({
           {/* Step 4: Review */}
           {currentStep === 4 && (
             <div className="space-y-6">
+              {/* Translate Content */}
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Languages className="h-5 w-5" />
+                  Translate Content
+                </h2>
+                <p className="mb-4 text-sm text-gray-500">
+                  Auto-translate this event&apos;s content to other languages using AI.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Source Language</label>
+                    <div className="flex gap-2">
+                      {getAvailableSourceLanguages().map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setTranslateSource(lang)
+                            setTranslateTargets((prev) => prev.filter((l) => l !== lang))
+                          }}
+                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                            translateSource === lang
+                              ? "border-[#274C77] bg-[#274C77] text-white"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                          }`}
+                        >
+                          {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Translate To</label>
+                    <div className="flex gap-2">
+                      {(["en", "ko", "de"] as const)
+                        .filter((l) => l !== translateSource)
+                        .map((lang) => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() =>
+                              setTranslateTargets((prev) =>
+                                prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+                              )
+                            }
+                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                              translateTargets.includes(lang)
+                                ? "border-[#274C77] bg-[#274C77] text-white"
+                                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                            }`}
+                          >
+                            {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleTranslate}
+                    disabled={isTranslating || translateTargets.length === 0}
+                    className="bg-[#274C77] hover:bg-[#274C77]/90"
+                  >
+                    {isTranslating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Translating...
+                      </>
+                    ) : (
+                      <>
+                        <Languages className="mr-2 h-4 w-4" />
+                        Translate
+                      </>
+                    )}
+                  </Button>
+                  {translateResult && (
+                    <div
+                      className={`rounded-md border p-3 text-sm ${
+                        translateResult.success
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-red-200 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {translateResult.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-lg bg-white p-6 shadow-sm">
                 <div className="mb-6 flex items-center justify-between">
                   <div>

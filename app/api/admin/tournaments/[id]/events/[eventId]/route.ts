@@ -1,8 +1,29 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { autoTranslateTournamentEvent, autoTranslateItineraryDays, autoTranslatePricingTiers } from "@/lib/auto-translate"
-import { headers } from "next/headers"
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string; eventId: string }> }
+) {
+  const { id: tournamentId, eventId } = await params
+  const supabase = await createClient()
+  const userType = await getUserType()
+
+  if (userType !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { data, error } = await supabase
+    .from("tournament_events")
+    .select("*")
+    .eq("id", eventId)
+    .eq("tournament_id", tournamentId)
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
 
 export async function PATCH(
   request: Request,
@@ -79,16 +100,21 @@ export async function PATCH(
       updated_at: new Date().toISOString(),
     }
 
-    // Only update Korean fields if they were explicitly provided
-    if ('title_ko' in body) updateData.title_ko = title_ko
-    if ('location_ko' in body) updateData.location_ko = location_ko
-    if ('description_ko' in body) updateData.description_ko = description_ko
-    if ('trip_highlights_ko' in body) updateData.trip_highlights_ko = trip_highlights_ko
-    if ('travel_itinerary_ko' in body) updateData.travel_itinerary_ko = travel_itinerary_ko
-    if ('includes_ko' in body) updateData.includes_ko = includes_ko
-    if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko
-
-    // German is always auto-translated, never manually set from the form
+    // Update all localized fields if explicitly provided
+    if ('title_ko' in body) updateData.title_ko = title_ko ?? null
+    if ('title_de' in body) updateData.title_de = title_de ?? null
+    if ('location_ko' in body) updateData.location_ko = location_ko ?? null
+    if ('location_de' in body) updateData.location_de = location_de ?? null
+    if ('description_ko' in body) updateData.description_ko = description_ko ?? null
+    if ('description_de' in body) updateData.description_de = description_de ?? null
+    if ('trip_highlights_ko' in body) updateData.trip_highlights_ko = trip_highlights_ko ?? null
+    if ('trip_highlights_de' in body) updateData.trip_highlights_de = trip_highlights_de ?? null
+    if ('travel_itinerary_ko' in body) updateData.travel_itinerary_ko = travel_itinerary_ko ?? null
+    if ('travel_itinerary_de' in body) updateData.travel_itinerary_de = travel_itinerary_de ?? null
+    if ('includes_ko' in body) updateData.includes_ko = includes_ko ?? null
+    if ('includes_de' in body) updateData.includes_de = includes_de ?? null
+    if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko ?? null
+    if ('excludes_de' in body) updateData.excludes_de = excludes_de ?? null
 
     // Update the event
     const { data: eventData, error: eventError } = await supabase
@@ -174,60 +200,6 @@ export async function PATCH(
 
       if (pricingError) {
         console.error("Error updating pricing tiers:", pricingError)
-      }
-    }
-
-    // Trigger auto-translation in the background (non-blocking)
-    // Always translate from English if available, otherwise from Korean
-    const hasEnglishContent = title && title.trim()
-    const hasKoreanContent = title_ko && title_ko.trim()
-    
-    if (hasEnglishContent || hasKoreanContent) {
-      const headersList = await headers()
-      const host = headersList.get("host") || "localhost:3000"
-      const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-      const baseUrl = `${protocol}://${host}`
-      
-      // Prioritize English as source - if English content exists, use it
-      const useEnglishAsSource = hasEnglishContent
-      
-      autoTranslateTournamentEvent(
-        baseUrl,
-        eventId,
-        useEnglishAsSource
-          ? { title, description, location, trip_highlights, travel_itinerary, includes, excludes }
-          : { title: title_ko, description: description_ko, location: location_ko, trip_highlights: trip_highlights_ko, travel_itinerary: travel_itinerary_ko, includes: includes_ko, excludes: excludes_ko },
-        useEnglishAsSource ? "en" : "ko",
-        supabase
-      ).catch(err => console.error("[v0] Background translation error:", err))
-
-      // Also translate itinerary days and pricing tiers
-      const { data: insertedItinerary } = await supabase
-        .from("tournament_event_itinerary_days")
-        .select("id, title, content")
-        .eq("event_id", eventId)
-
-      if (insertedItinerary && insertedItinerary.length > 0) {
-        autoTranslateItineraryDays(
-          baseUrl,
-          insertedItinerary,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background itinerary translation error:", err))
-      }
-
-      const { data: insertedPricingTiers } = await supabase
-        .from("tournament_event_pricing_tiers")
-        .select("id, name")
-        .eq("event_id", eventId)
-
-      if (insertedPricingTiers && insertedPricingTiers.length > 0) {
-        autoTranslatePricingTiers(
-          baseUrl,
-          insertedPricingTiers,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background pricing tier translation error:", err))
       }
     }
 

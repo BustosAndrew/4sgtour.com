@@ -81,21 +81,13 @@ export async function POST(
       
       const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
 
-      // Collect ALL fields to translate in a single batch
-      const allFieldsToTranslate: { field: string; text: string; fieldType: string; meta?: { type: string; id: string } }[] = []
+      // Simple event-level text fields
+      const simpleFields = [
+        { key: "title", fieldType: "title" },
+        { key: "location", fieldType: "location" },
+      ]
 
-      // Simple text fields
-      const sourceTitle = event[`title${sourceSuffix}`]
-      if (sourceTitle) {
-        allFieldsToTranslate.push({ field: `title${targetSuffix}`, text: sourceTitle, fieldType: "title" })
-      }
-
-      const sourceLocation = event[`location${sourceSuffix}`]
-      if (sourceLocation) {
-        allFieldsToTranslate.push({ field: `location${targetSuffix}`, text: sourceLocation, fieldType: "location" })
-      }
-
-      // Array fields
+      // Array event-level fields
       const arrayFields = [
         { key: "description", fieldType: "description" },
         { key: "trip_highlights", fieldType: "highlight" },
@@ -104,11 +96,40 @@ export async function POST(
         { key: "excludes", fieldType: "item" },
       ]
 
+      // Collect ALL fields to translate in a single batch
+      // Use a clear type tag to route responses back correctly
+      type FieldMeta =
+        | { kind: "simple"; targetField: string }
+        | { kind: "array"; arrayKey: string; index: number; targetArrayKey: string }
+        | { kind: "itinerary_day"; dayId: string; targetField: string }
+        | { kind: "pricing_tier"; tierId: string; targetField: string }
+
+      const allFieldsToTranslate: { field: string; text: string; fieldType: string; meta: FieldMeta }[] = []
+
+      // Simple fields
+      for (const { key, fieldType } of simpleFields) {
+        const sourceVal = event[`${key}${sourceSuffix}`]
+        if (sourceVal) {
+          allFieldsToTranslate.push({
+            field: `${key}${targetSuffix}`,
+            text: sourceVal,
+            fieldType,
+            meta: { kind: "simple", targetField: `${key}${targetSuffix}` },
+          })
+        }
+      }
+
+      // Array fields — each item becomes a separate translation entry
       for (const { key, fieldType } of arrayFields) {
         const sourceData = event[`${key}${sourceSuffix}`]
         if (sourceData?.length) {
           sourceData.forEach((text: string, i: number) => {
-            allFieldsToTranslate.push({ field: `${key}_${i}`, text, fieldType })
+            allFieldsToTranslate.push({
+              field: `arr_${key}_${i}`,
+              text,
+              fieldType,
+              meta: { kind: "array", arrayKey: key, index: i, targetArrayKey: `${key}${targetSuffix}` },
+            })
           })
         }
       }
@@ -118,21 +139,20 @@ export async function POST(
         for (const day of itineraryDays) {
           const daySourceTitle = day[`title${sourceSuffix}`]
           if (daySourceTitle) {
-            allFieldsToTranslate.push({ 
-              field: `day_${day.id}_title${targetSuffix}`, 
-              text: daySourceTitle, 
+            allFieldsToTranslate.push({
+              field: `day_title_${day.id}`,
+              text: daySourceTitle,
               fieldType: "title",
-              meta: { type: "itinerary_day", id: day.id }
+              meta: { kind: "itinerary_day", dayId: day.id, targetField: `title${targetSuffix}` },
             })
           }
-          
           const daySourceContent = day[`content${sourceSuffix}`]
           if (daySourceContent) {
-            allFieldsToTranslate.push({ 
-              field: `day_${day.id}_content${targetSuffix}`, 
-              text: daySourceContent, 
+            allFieldsToTranslate.push({
+              field: `day_content_${day.id}`,
+              text: daySourceContent,
               fieldType: "description",
-              meta: { type: "itinerary_day", id: day.id }
+              meta: { kind: "itinerary_day", dayId: day.id, targetField: `content${targetSuffix}` },
             })
           }
         }
@@ -143,11 +163,11 @@ export async function POST(
         for (const tier of pricingTiers) {
           const tierSourceName = tier[`name${sourceSuffix}`]
           if (tierSourceName) {
-            allFieldsToTranslate.push({ 
-              field: `tier_${tier.id}_name${targetSuffix}`, 
-              text: tierSourceName, 
+            allFieldsToTranslate.push({
+              field: `tier_name_${tier.id}`,
+              text: tierSourceName,
               fieldType: "title",
-              meta: { type: "pricing_tier", id: tier.id }
+              meta: { kind: "pricing_tier", tierId: tier.id, targetField: `name${targetSuffix}` },
             })
           }
         }
@@ -168,49 +188,34 @@ export async function POST(
         if (response.ok) {
           const result = await response.json()
           if (result.translations) {
-            // Process translations
             for (const fieldInfo of allFieldsToTranslate) {
               const translation = result.translations[fieldInfo.field]
               if (!translation) continue
 
-              if (fieldInfo.meta?.type === "itinerary_day") {
-                const dayId = fieldInfo.meta.id
-                if (!itineraryDayUpdates.has(dayId)) {
-                  itineraryDayUpdates.set(dayId, {})
-                }
-                // Extract actual field name from the composite key
-                const actualField = fieldInfo.field.replace(`day_${dayId}_`, "")
-                itineraryDayUpdates.get(dayId)![actualField] = translation as string
-              } else if (fieldInfo.meta?.type === "pricing_tier") {
-                const tierId = fieldInfo.meta.id
-                if (!pricingTierUpdates.has(tierId)) {
-                  pricingTierUpdates.set(tierId, {})
-                }
-                const actualField = fieldInfo.field.replace(`tier_${tierId}_`, "")
-                pricingTierUpdates.get(tierId)![actualField] = translation as string
-              } else if (fieldInfo.field.includes("_") && !fieldInfo.field.startsWith("title") && !fieldInfo.field.startsWith("location")) {
-                // Array field - extract array name and index
-                const match = fieldInfo.field.match(/^(.+)_(\d+)$/)
-                if (match) {
-                  const [, arrayName, indexStr] = match
-                  const targetArrayKey = `${arrayName}${targetSuffix}`
-                  if (!updates[targetArrayKey]) {
-                    updates[targetArrayKey] = []
-                  }
-                  const index = parseInt(indexStr)
-                  updates[targetArrayKey][index] = translation
-                }
-              } else {
-                // Simple field
-                updates[fieldInfo.field] = translation
+              const { meta } = fieldInfo
+
+              if (meta.kind === "simple") {
+                updates[meta.targetField] = translation
+
+              } else if (meta.kind === "array") {
+                if (!updates[meta.targetArrayKey]) updates[meta.targetArrayKey] = []
+                updates[meta.targetArrayKey][meta.index] = translation
+
+              } else if (meta.kind === "itinerary_day") {
+                if (!itineraryDayUpdates.has(meta.dayId)) itineraryDayUpdates.set(meta.dayId, {})
+                itineraryDayUpdates.get(meta.dayId)![meta.targetField] = translation as string
+
+              } else if (meta.kind === "pricing_tier") {
+                if (!pricingTierUpdates.has(meta.tierId)) pricingTierUpdates.set(meta.tierId, {})
+                pricingTierUpdates.get(meta.tierId)![meta.targetField] = translation as string
               }
             }
 
-            // Clean up array fields (remove empty slots)
+            // Remove sparse slots from array fields
             for (const { key } of arrayFields) {
               const targetArrayKey = `${key}${targetSuffix}`
               if (updates[targetArrayKey]) {
-                updates[targetArrayKey] = updates[targetArrayKey].filter((t: string) => t)
+                updates[targetArrayKey] = (updates[targetArrayKey] as (string | undefined)[]).filter((t) => t)
               }
             }
           }
