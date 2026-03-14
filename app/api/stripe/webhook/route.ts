@@ -5,7 +5,7 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2026-02-25.clover',
 })
 
 // Use service role for webhook (bypasses RLS)
@@ -163,9 +163,8 @@ NEXT STEPS
 ==========
 Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.
 
-${
-  isGuest
-    ? `
+${isGuest
+      ? `
 CREATE AN ACCOUNT
 =================
 We noticed you booked as a guest. Create an account to:
@@ -175,8 +174,8 @@ We noticed you booked as a guest. Create an account to:
 
 Sign up here: ${process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'}/auth/sign-up
 `
-    : ''
-}
+      : ''
+    }
 
 If you have any questions, please don't hesitate to contact us.
 
