@@ -18,6 +18,7 @@ import {
   GripVertical,
   Languages,
   Loader2,
+  CreditCard,
 } from "lucide-react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
@@ -174,6 +175,10 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
   const [isTranslating, setIsTranslating] = useState(false)
   const [translateResult, setTranslateResult] = useState<{ success: boolean; message: string } | null>(null)
+  
+  // Stripe state
+  const [generatingStripe, setGeneratingStripe] = useState(false)
+  const [stripeResult, setStripeResult] = useState<{ success: boolean; message: string } | null>(null)
   
   // Determine which languages have content
   const getAvailableSourceLanguages = (): ("en" | "ko" | "de")[] => {
@@ -647,6 +652,43 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       setTranslateResult({ success: false, message: "Failed to connect to translation service. Please check your network connection." })
     } finally {
       setIsTranslating(false)
+    }
+  }
+
+  const handleGenerateStripe = async () => {
+    if (generatingStripe) return
+    
+    setGeneratingStripe(true)
+    setStripeResult(null)
+    
+    try {
+      const response = await fetch("/api/admin/stripe/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tripId: trip.id }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        const created = data.results.filter((r: any) => r.status === "created").length
+        const skipped = data.results.filter((r: any) => r.status === "skipped").length
+        const errors = data.results.filter((r: any) => r.status === "error").length
+        
+        let message = `Stripe configuration complete. `
+        if (created > 0) message += `${created} package(s) configured. `
+        if (skipped > 0) message += `${skipped} already configured. `
+        if (errors > 0) message += `${errors} error(s).`
+        
+        setStripeResult({ success: errors === 0, message: message.trim() })
+        router.refresh()
+      } else {
+        setStripeResult({ success: false, message: data.error || "Failed to generate Stripe configuration" })
+      }
+    } catch (error) {
+      setStripeResult({ success: false, message: "Failed to connect to server. Please try again." })
+    } finally {
+      setGeneratingStripe(false)
     }
   }
 
@@ -2187,6 +2229,71 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         : "bg-red-50 text-red-700 border border-red-200"
                     }`}>
                       {translateResult.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stripe Payment Configuration */}
+              <div className="rounded-lg border border-border p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                  <CreditCard className="h-5 w-5" />
+                  Stripe Payment Configuration
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Generate Stripe products and prices for all packages in this trip. This enables customers to pay a 30% deposit to confirm their booking.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="rounded-md border border-border bg-muted/30 p-4">
+                    <h4 className="font-medium text-sm mb-2">Packages to Configure</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {packages.map((pkg: any) => (
+                        <li key={pkg.id} className="flex items-center justify-between">
+                          <span>{pkg.name}</span>
+                          <span className="flex items-center gap-2">
+                            <span>${pkg.price}</span>
+                            <span className="text-xs">
+                              (30% deposit: ${(pkg.price * 0.3).toFixed(2)})
+                            </span>
+                            {pkg.stripe_product_id && (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                Configured
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    onClick={handleGenerateStripe}
+                    disabled={generatingStripe || packages.length === 0}
+                    className="w-full sm:w-auto"
+                  >
+                    {generatingStripe ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Generate Stripe Configuration
+                      </>
+                    )}
+                  </Button>
+                  
+                  {/* Result */}
+                  {stripeResult && (
+                    <div className={`rounded-md p-3 text-sm ${
+                      stripeResult.success 
+                        ? "bg-green-50 text-green-700 border border-green-200" 
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}>
+                      {stripeResult.message}
                     </div>
                   )}
                 </div>

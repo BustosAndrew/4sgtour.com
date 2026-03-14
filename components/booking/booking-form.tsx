@@ -14,6 +14,7 @@ import {
   Plus,
   X,
 } from 'lucide-react'
+import { StripeCheckout } from '@/components/booking/stripe-checkout'
   import {
   format,
   addDays,
@@ -215,6 +216,8 @@ export function BookingForm({
   const [currentUser, setCurrentUser] = useState<any>(user)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [galleryIndex, setGalleryIndex] = useState(0)
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false)
+  const [bookingSuccess, setBookingSuccess] = useState(false)
 
   const packages = trip.packages || []
   const premiumPackage = packages.find((pkg: any) => pkg.name === 'Premium')
@@ -413,9 +416,32 @@ export function BookingForm({
     return days
   }
 
+  const handleProceedToPayment = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!travelDateRange.from || !travelDateRange.to) {
+      alert('Please select your travel dates')
+      return
+    }
+
+    if (!roomType) {
+      alert('Please select a room type (Double or Single Occupancy)')
+      return
+    }
+
+    if (!selectedPlan) {
+      alert('Please select a package')
+      return
+    }
+
+    // Proceed to Stripe checkout
+    setShowStripeCheckout(true)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // This is now only for the legacy inquiry flow (fallback)
     if (!currentUser) {
       alert('Please sign in to submit an inquiry')
       return
@@ -708,8 +734,125 @@ export function BookingForm({
   )
   const additionalRequestsSectionNumber = serviceOptions.length > 0 ? 8 : 7
 
+  // Get booking details for Stripe checkout
+  const getBookingDetails = () => {
+    const startDate = travelDateRange.from
+      ? format(travelDateRange.from, 'yyyy-MM-dd')
+      : ''
+    const endDate = travelDateRange.to
+      ? format(travelDateRange.to, 'yyyy-MM-dd')
+      : ''
+    const occupancyType =
+      roomType === 'double' ? 'Double Occupancy' : 'Single Occupancy'
+
+    const courseDetails = Object.entries(courseRounds)
+      .filter(([_, rounds]) => rounds > 0)
+      .map(([courseId, rounds]) => {
+        const course = golfCourses.find((c: any) => c.id === courseId)
+        return course ? `${course.course_name} (${rounds} rounds)` : null
+      })
+      .filter(Boolean) as string[]
+
+    const mealOptionName =
+      includedMealIds.length > 0
+        ? mealOptions
+            .filter((meal: any) => meal.is_included)
+            .map((meal: any) => meal.name)
+            .join(', ')
+        : selectedMealOption?.name || ''
+
+    const transportOptionName =
+      includedTransportIds.length > 0
+        ? transportationOptions
+            .filter((t: any) => t.is_included)
+            .map((t: any) => t.name)
+            .join(', ')
+        : selectedTransportOption?.name || ''
+
+    return {
+      startDate,
+      endDate,
+      roomType: occupancyType,
+      golfCourses: courseDetails,
+      mealOption: mealOptionName,
+      transportOption: transportOptionName,
+    }
+  }
+
+  // Show success message after payment
+  if (bookingSuccess) {
+    return (
+      <div className="w-full max-w-2xl mx-auto text-center py-16">
+        <div className="mb-6">
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+        </div>
+        <h1 className="font-serif text-3xl font-bold mb-4">
+          {t('bookingConfirmed') || 'Booking Confirmed!'}
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          {t('bookingConfirmedMessage') ||
+            "Thank you for your booking! We've sent a confirmation email with all the details."}
+        </p>
+        {!currentUser && (
+          <div className="bg-[#3D5A80]/10 border border-[#3D5A80]/20 p-4 rounded-lg mb-6">
+            <p className="text-sm text-[#3D5A80] font-medium mb-2">
+              Create an account to manage your booking
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Sign up to track your trip details, communicate with our team, and
+              access exclusive member benefits.
+            </p>
+            <a
+              href="/auth/sign-up"
+              className="inline-block bg-[#3D5A80] text-white px-6 py-2 font-medium hover:bg-[#3D5A80]/90 transition-colors"
+            >
+              Create Account
+            </a>
+          </div>
+        )}
+        <a
+          href={`/trips/${trip.slug}`}
+          className="text-[#3D5A80] hover:underline"
+        >
+          Return to Trip Details
+        </a>
+      </div>
+    )
+  }
+
+  // Show Stripe checkout
+  if (showStripeCheckout && selectedPackage) {
+    const bookingDetails = getBookingDetails()
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <StripeCheckout
+          tripId={trip.id}
+          tripTitle={trip.title}
+          packageId={selectedPackage.id}
+          packageName={`${getLocalizedField(selectedPackage, 'name', locale as any)} - ${bookingDetails.roomType}`}
+          packagePrice={selectedPackage.price}
+          startDate={bookingDetails.startDate}
+          endDate={bookingDetails.endDate}
+          roomType={bookingDetails.roomType}
+          golfCourses={bookingDetails.golfCourses}
+          mealOption={bookingDetails.mealOption}
+          transportOption={bookingDetails.transportOption}
+          additionalRequests={additionalRequests}
+          prefillName={profile?.display_name || ''}
+          prefillEmail={profile?.email || currentUser?.email || ''}
+          prefillPhone={profile?.phone || ''}
+          isGuest={!currentUser}
+          onBack={() => setShowStripeCheckout(false)}
+          onSuccess={() => setBookingSuccess(true)}
+        />
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleProceedToPayment} className="w-full">
       <div className="flex flex-col gap-16 lg:flex-row">
         {/* Left Column - Form Sections */}
         <div className="flex-1 space-y-8">
@@ -1237,14 +1380,17 @@ export function BookingForm({
                     <span>{t('total')}:</span>
                     <span>${calculateTotal()}</span>
                   </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    30% deposit due at booking: ${(calculateTotal() * 0.3).toFixed(2)}
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={!selectedPlan || !roomType || !travelDateRange.from || !travelDateRange.to}
                   className="mt-4 w-full text-xl bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
                 >
-                  {submitting ? t('submitting') : t('submitInquiry')}
+                  {t('proceedToPayment') || 'Proceed to Payment'}
                 </button>
               </div>
             </div>
