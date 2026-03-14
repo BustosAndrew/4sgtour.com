@@ -1,7 +1,7 @@
 import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
 import { SiteFooter } from "@/components/site-footer"
 import { createClient } from "@/lib/supabase/server"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { BookingForm } from "@/components/booking/booking-form"
 
 interface BookingPageProps {
@@ -17,13 +17,10 @@ export default async function BookingPage({
   const { package: packageId } = await searchParams
   const supabase = await createClient()
 
+  // Allow guests to access booking page - no redirect
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect(`/auth/login?redirect=/trips/${slug}/book`)
-  }
 
   const { data: trip } = await supabase
     .from("trips")
@@ -76,11 +73,16 @@ export default async function BookingPage({
     service_options: serviceOptions || [],
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, email")
-    .eq("id", user.id)
-    .single()
+  // Only fetch profile if user is logged in
+  let profile = null
+  if (user) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("display_name, email, phone")
+      .eq("id", user.id)
+      .single()
+    profile = profileData
+  }
 
   return (
     <div className="min-h-screen bg-background">
