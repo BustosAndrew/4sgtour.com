@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserType } from '@/lib/supabase/get-user-type'
 import { stripe } from '@/lib/stripe'
 
 export async function POST(request: Request) {
@@ -15,13 +16,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const userType = await getUserType()
 
-    if (profile?.role !== 'admin') {
+    if (userType !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
