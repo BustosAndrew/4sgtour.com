@@ -152,6 +152,29 @@
     "submitInquiry": "Anfrage absenden",
     "sending": "Wird gesendet..."
   },
+  "favoritesPage": {
+    "title": "Meine Favoriten",
+    "empty": "Sie haben noch keine Favoriten hinzugefügt.",
+    "browseTrips": "Reisen durchsuchen"
+  },
+  "bookingsPage": {
+    "title": "Meine Anfragen",
+    "inquirySubmitted": "Anfrage eingereicht!",
+    "inquirySubmittedMessage": "Ihre Buchungsanfrage wurde erfolgreich eingereicht. Wir werden uns in Kürze mit Ihnen in Verbindung setzen, um die Details zu bestätigen.",
+    "empty": "Sie haben noch keine Buchungsanfragen eingereicht.",
+    "browseDestinations": "Reiseziele durchsuchen",
+    "start": "Start:",
+    "end": "Ende:",
+    "duration": "Dauer:",
+    "days": "Tage",
+    "rounds": "Runden:",
+    "submitted": "Eingereicht:",
+    "notes": "Notizen:",
+    "confirmed": "Bestätigt",
+    "inProgress": "In Bearbeitung",
+    "cancelled": "Storniert",
+    "pending": "Ausstehend"
+  },
   "auth": {
     "signedInAs": "Angemeldet als",
     "myBookings": "Meine Buchungen",
