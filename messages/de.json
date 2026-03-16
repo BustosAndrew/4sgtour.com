@@ -296,6 +296,9 @@
     "readMore": "Mehr lesen",
     "includedServices": "Enthaltene Services",
     "total": "Gesamt",
+    "basePrice": "Grundpreis",
+    "extraNights": "Zusätzliche Nächte",
+    "extraNightsCost": "{nights} zusätzliche Nacht(e) x ${price}",
     "proceedToPayment": "Zur Zahlung",
     "depositDue": "30% Anzahlung bei Buchung:",
     "bookingConfirmed": "Buchung bestätigt!",
@@ -333,6 +336,8 @@
     "travelDates": "Reisedaten",
     "roomType": "Zimmertyp",
     "packageTotal": "Paketgesamtpreis",
+    "basePrice": "Grundpreis",
+    "extraNightsCost": "Zusätzliche Nächte ({nights})",
     "depositDue": "Fällige Anzahlung (30%)"
   },
   "destinations": {

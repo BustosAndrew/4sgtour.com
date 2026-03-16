@@ -296,6 +296,9 @@
     "readMore": "Read more",
     "includedServices": "Included Services",
     "total": "Total",
+    "basePrice": "Base Price",
+    "extraNights": "Extra Nights",
+    "extraNightsCost": "{nights} extra night(s) x ${price}",
     "proceedToPayment": "Proceed to Payment",
     "depositDue": "30% deposit due at booking:",
     "bookingConfirmed": "Booking Confirmed!",
@@ -333,6 +336,8 @@
     "travelDates": "Travel Dates",
     "roomType": "Room Type",
     "packageTotal": "Package Total",
+    "basePrice": "Base Price",
+    "extraNightsCost": "Extra Nights ({nights})",
     "depositDue": "Deposit Due (30%)"
   },
   "destinations": {

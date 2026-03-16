@@ -81,6 +81,9 @@ interface StripeCheckoutProps {
   packageId: string
   packageName: string
   packagePrice: number
+  basePrice: number
+  extraNights: number
+  extraNightPrice: number
   startDate: string
   endDate: string
   roomType: string
@@ -104,6 +107,9 @@ export function StripeCheckout({
   packageId,
   packageName,
   packagePrice,
+  basePrice,
+  extraNights,
+  extraNightPrice,
   startDate,
   endDate,
   roomType,
@@ -349,10 +355,27 @@ export function StripeCheckout({
             <span>{t('roomType')}</span>
             <span>{roomType}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t border-border mt-2">
-            <span>{t('packageTotal')}</span>
-            <span className="font-medium">${packagePrice.toFixed(2)}</span>
-          </div>
+          {extraNights > 0 ? (
+            <>
+              <div className="flex justify-between pt-2 border-t border-border mt-2">
+                <span>{t('basePrice')}</span>
+                <span>${basePrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('extraNightsCost', { nights: extraNights })}</span>
+                <span>${(extraNights * extraNightPrice).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span>{t('packageTotal')}</span>
+                <span>${packagePrice.toFixed(2)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between pt-2 border-t border-border mt-2">
+              <span>{t('packageTotal')}</span>
+              <span className="font-medium">${packagePrice.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-[#3D5A80] font-medium">
             <span>{t('depositDue')}</span>
             <span>${depositAmount.toFixed(2)}</span>

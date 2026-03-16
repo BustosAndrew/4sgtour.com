@@ -838,6 +838,13 @@ export function BookingForm({
   // Show Stripe checkout
   if (showStripeCheckout && selectedPackage) {
     const bookingDetails = getBookingDetails()
+    const nightsBooked = travelDateRange.from && travelDateRange.to 
+      ? differenceInDays(travelDateRange.to, travelDateRange.from) 
+      : minNights
+    const extraNightsCount = selectedPackage.price_per_extra_night 
+      ? Math.max(0, nightsBooked - minNights) 
+      : 0
+    
     return (
       <div className="w-full max-w-2xl mx-auto">
         <StripeCheckout
@@ -846,6 +853,9 @@ export function BookingForm({
           packageId={selectedPackage.id}
           packageName={`${getLocalizedField(selectedPackage, 'name', locale as any)} - ${bookingDetails.roomType}`}
           packagePrice={calculateTotal()}
+          basePrice={selectedPackage.price}
+          extraNights={extraNightsCount}
+          extraNightPrice={selectedPackage.price_per_extra_night || 0}
           startDate={bookingDetails.startDate}
           endDate={bookingDetails.endDate}
           roomType={bookingDetails.roomType}
@@ -1389,10 +1399,38 @@ export function BookingForm({
                 </div>
 
                 <div className="mt-6 pt-4">
-                  <div className="flex items-baseline gap-1 font-serif text-xl">
-                    <span>{t('total')}:</span>
-                    <span>${calculateTotal()}</span>
-                  </div>
+                  {(() => {
+                    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+                    const hasExtraNights = selectedPackage?.price_per_extra_night && travelDateRange.from && travelDateRange.to
+                    const nightsBooked = hasExtraNights ? differenceInDays(travelDateRange.to, travelDateRange.from) : 0
+                    const extraNights = hasExtraNights ? Math.max(0, nightsBooked - minNights) : 0
+                    const extraNightsCost = extraNights * Number(selectedPackage?.price_per_extra_night || 0)
+                    
+                    return (
+                      <>
+                        {hasExtraNights && extraNights > 0 && (
+                          <div className="text-sm space-y-1 mb-2 pb-2 border-b border-border">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">{t('basePrice')}</span>
+                              <span>${selectedPackage.price}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                {t('extraNightsCost')
+                                  .replace('{nights}', String(extraNights))
+                                  .replace('{price}', String(selectedPackage.price_per_extra_night))}
+                              </span>
+                              <span>${extraNightsCost.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-baseline gap-1 font-serif text-xl">
+                          <span>{t('total')}:</span>
+                          <span>${calculateTotal()}</span>
+                        </div>
+                      </>
+                    )
+                  })()}
                   <div className="text-sm text-muted-foreground mt-1">
                     {t('depositDue')} ${(calculateTotal() * 0.3).toFixed(2)}
                   </div>

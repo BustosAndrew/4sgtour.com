@@ -296,6 +296,9 @@
     "readMore": "더보기",
     "includedServices": "포함 서비스",
     "total": "합계",
+    "basePrice": "기본 가격",
+    "extraNights": "추가 숙박",
+    "extraNightsCost": "{nights}박 추가 x ${price}",
     "proceedToPayment": "결제 진행",
     "depositDue": "예약 시 30% 보증금:",
     "bookingConfirmed": "예약 확정!",
@@ -319,7 +322,7 @@
     "creditDebitCard": "신용/체크카드",
     "processingFee": "+4% 결제 수수료 ({fee})",
     "paymentSummary": "결제 요약",
-    "deposit": "30% 보증금",
+    "deposit": "30% 보���금",
     "cardProcessingFee": "카드 결제 수수료 (4%)",
     "total": "합계",
     "continueToPayment": "결제 계속",
@@ -333,6 +336,8 @@
     "travelDates": "여행 날짜",
     "roomType": "객실 유형",
     "packageTotal": "패키지 합계",
+    "basePrice": "기본 가격",
+    "extraNightsCost": "추가 숙박 ({nights}박)",
     "depositDue": "보증금 (30%)"
   },
   "destinations": {
