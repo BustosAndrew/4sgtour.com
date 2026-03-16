@@ -929,11 +929,11 @@ export function BookingForm({
                   {t('selectDatesDescription')}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground italic">
-                  {t('maximumStay').replace('{days}', String(maxDays))}
+                  {t('maximumStay').replace('{days}', String(maxNights))}
                 </p>
-                {minDays > 1 && (
+                {minNights > 1 && (
                   <p className="mt-1 text-sm text-muted-foreground italic">
-                    {t('minimumStay').replace('{days}', String(minDays))}
+                    {t('minimumStay').replace('{days}', String(minNights))}
                   </p>
                 )}
                 {minAdvanceDays > 0 && (
