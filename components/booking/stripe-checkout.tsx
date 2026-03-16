@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useMemo } from 'react'
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from '@stripe/react-stripe-js'
-import { loadStripe } from '@stripe/stripe-js'
+import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createTripCheckoutSession } from '@/app/actions/stripe'
 import { CreditCard, Building2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from '@/lib/i18n/provider'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Initialize stripe once, outside of component
+let stripePromise: Promise<Stripe | null> | null = null
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  }
+  return stripePromise
+}
 
 interface StripeCheckoutProps {
   tripId: string
@@ -66,7 +73,7 @@ export function StripeCheckout({
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
   const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
   const [showCheckout, setShowCheckout] = useState(false)
-  const [isValidating, setIsValidating] = useState(false)
+  const [checkoutKey, setCheckoutKey] = useState(0) // Key to force remount on payment method change
 
   const depositAmount = packagePrice * 0.3
   const cardFee = depositAmount * 0.04
@@ -89,6 +96,8 @@ export function StripeCheckout({
       alert(t('paymentMethod') + ' is required')
       return
     }
+    // Increment key to force fresh EmbeddedCheckoutProvider mount
+    setCheckoutKey((k) => k + 1)
     setShowCheckout(true)
   }
 
@@ -166,9 +175,9 @@ export function StripeCheckout({
           </div>
         </div>
 
-        <div id="checkout">
+        <div id="checkout" key={checkoutKey}>
           <EmbeddedCheckoutProvider
-            stripe={stripePromise}
+            stripe={getStripe()}
             options={{
               fetchClientSecret,
               onComplete: handleComplete,
