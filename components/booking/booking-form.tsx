@@ -340,8 +340,9 @@ export function BookingForm({
   }
 
   const minAdvanceDays = trip.min_days_advance || 0
-  const maxDays = trip.max_days || 14
-  const minDays = trip.min_days || 1
+  // Use max_nights/min_nights from trip - these represent number of nights
+  const maxNights = (trip as any).max_nights || trip.max_days || 14
+  const minNights = (trip as any).min_nights || trip.min_days || 1
   const minDate = addDays(new Date(), minAdvanceDays)
 
   const handleTravelDateSelect = (date: Date) => {
@@ -353,14 +354,17 @@ export function BookingForm({
       if (isBefore(date, travelDateRange.from)) {
         setTravelDateRange({ from: date, to: undefined })
       } else {
-        const daysDiff = differenceInDays(date, travelDateRange.from) + 1
-        if (daysDiff >= minDays && daysDiff <= maxDays) {
+        // differenceInDays gives us the number of nights (e.g., March 1 to March 5 = 4 nights)
+        const nightsCount = differenceInDays(date, travelDateRange.from)
+        if (nightsCount >= minNights && nightsCount <= maxNights) {
           setTravelDateRange({ from: travelDateRange.from, to: date })
-        } else if (daysDiff < minDays) {
-          const minEndDate = addDays(travelDateRange.from, minDays - 1)
+        } else if (nightsCount < minNights) {
+          // Snap to minimum nights
+          const minEndDate = addDays(travelDateRange.from, minNights)
           setTravelDateRange({ from: travelDateRange.from, to: minEndDate })
         } else {
-          const maxEndDate = addDays(travelDateRange.from, maxDays - 1)
+          // Snap to maximum nights
+          const maxEndDate = addDays(travelDateRange.from, maxNights)
           setTravelDateRange({ from: travelDateRange.from, to: maxEndDate })
         }
       }
