@@ -93,12 +93,19 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Create checkout session with appropriate payment methods
+  // Explicitly set payment_method_types to restrict to only the selected method
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
     line_items: lineItems,
     mode: 'payment',
+    // This explicitly restricts to only the selected payment method
+    // 'card' = only card fields shown, 'us_bank_account' = only ACH shown
     payment_method_types: paymentMethod === 'ach' ? ['us_bank_account'] : ['card'],
+    // Disable automatic payment methods to prevent Stripe from adding others
+    payment_method_options: paymentMethod === 'card' 
+      ? { card: { request_three_d_secure: 'automatic' } }
+      : { us_bank_account: { financial_connections: { permissions: ['payment_method'] } } },
     customer_email: customerEmail,
     metadata: {
       trip_id: tripId,
