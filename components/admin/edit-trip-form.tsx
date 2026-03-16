@@ -204,6 +204,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         ...premiumPkg,
         name: "Premium", // Normalize to "Premium"
         price: premiumPkg.price || 0,
+        price_per_extra_night: premiumPkg.price_per_extra_night || null,
       })
     } else {
       pkgs.push({
@@ -211,6 +212,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         name: "Premium",
         description: "",
         price: 0,
+        price_per_extra_night: null,
         availability: "unlimited",
         quantity: null,
         participants_per_booking: 1,
@@ -223,6 +225,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         ...upgradePkg,
         name: "Upgrade", // Normalize to "Upgrade"
         price: upgradePkg.price || 0,
+        price_per_extra_night: upgradePkg.price_per_extra_night || null,
       })
     }
 
@@ -338,6 +341,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           name: "Upgrade",
           description: "",
           price: 0,
+          price_per_extra_night: null,
           availability: "unlimited",
           quantity: null,
           participants_per_booking: 1,

@@ -35,6 +35,7 @@ type Package = {
   name: "Premium" | "Upgrade"
   description: string
   price: string
+  price_per_extra_night: string
   availability: string
   quantity: string
   participants_per_booking: string
@@ -137,6 +138,7 @@ export function CreateTripForm() {
       name: "Premium",
       description: "",
       price: "",
+      price_per_extra_night: "",
       availability: "unlimited",
       quantity: "",
       participants_per_booking: "1",
@@ -472,14 +474,15 @@ export function CreateTripForm() {
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           highlights: highlights.filter((h) => h.trim() !== ""),
-          packages: packages.map((pkg) => ({
-            name: pkg.name,
-            description: pkg.description,
-            price: Number(pkg.price),
-            availability: pkg.availability,
-            quantity: pkg.quantity ? Number(pkg.quantity) : null,
-            participants_per_booking: Number(pkg.participants_per_booking),
-          })),
+  packages: packages.map((pkg) => ({
+    name: pkg.name,
+    description: pkg.description,
+    price: Number(pkg.price),
+    price_per_extra_night: pkg.price_per_extra_night ? Number(pkg.price_per_extra_night) : null,
+    availability: pkg.availability,
+    quantity: pkg.quantity ? Number(pkg.quantity) : null,
+    participants_per_booking: Number(pkg.participants_per_booking),
+  })),
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
             max_rounds: Number(course.max_rounds),
@@ -530,6 +533,7 @@ export function CreateTripForm() {
           name: "Upgrade",
           description: "",
           price: "",
+          price_per_extra_night: "",
           availability: "unlimited",
           quantity: "",
           participants_per_booking: "1",
@@ -1282,6 +1286,26 @@ export function CreateTripForm() {
 
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
+                          Price per extra night
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={pkg.price_per_extra_night}
+                          onChange={(e) =>
+                            updatePackage(pkg.id, "price_per_extra_night", e.target.value)
+                          }
+                          placeholder="50"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Additional cost per night beyond minimum stay (optional)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="text-base text-foreground">
                           Participants per booking *
                         </Label>
                         <Input
@@ -1298,9 +1322,7 @@ export function CreateTripForm() {
                           required
                         />
                       </div>
-                    </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
                           Availability
@@ -1396,6 +1418,26 @@ export function CreateTripForm() {
 
                         <div className="space-y-2">
                           <Label className="text-base text-foreground">
+                            Price per extra night
+                          </Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={pkg.price_per_extra_night}
+                            onChange={(e) =>
+                              updatePackage(pkg.id, "price_per_extra_night", e.target.value)
+                            }
+                            placeholder="75"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Additional cost per night beyond minimum stay (optional)
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label className="text-base text-foreground">
                             Participants per booking *
                           </Label>
                           <Input
@@ -1412,9 +1454,7 @@ export function CreateTripForm() {
                             required
                           />
                         </div>
-                      </div>
 
-                      <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label className="text-base text-foreground">
                             Availability
@@ -1996,6 +2036,12 @@ export function CreateTripForm() {
                             <span className="font-medium">Price:</span> $
                             {pkg.price}
                           </div>
+                          {pkg.price_per_extra_night && (
+                            <div>
+                              <span className="font-medium">Extra night:</span> $
+                              {pkg.price_per_extra_night}/night
+                            </div>
+                          )}
                           <div>
                             <span className="font-medium">Participants:</span>{" "}
                             {pkg.participants_per_booking}
