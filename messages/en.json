@@ -149,7 +149,7 @@
     "additionalNotes": "Additional Notes",
     "optional": "(Optional)",
     "additionalNotesPlaceholder": "Any special requirements, dietary needs, accessibility requests, etc.",
-    "submitInquiry": "Submit Inquiry",
+    "submitInquiry": "Send a Travel Inquiry",
     "sending": "Sending..."
   },
   "favoritesPage": {
@@ -290,7 +290,7 @@
     "mealsLabel": "Meals",
     "transportationLabel": "Transportation",
     "servicesLabel": "Services",
-    "submitInquiry": "Submit Inquiry",
+    "submitInquiry": "Send a Travel Inquiry",
     "submitting": "Submitting...",
     "showLess": "Show less",
     "readMore": "Read more",

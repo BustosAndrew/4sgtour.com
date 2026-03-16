@@ -149,7 +149,7 @@
     "additionalNotes": "추가 사항",
     "optional": "(선택사항)",
     "additionalNotesPlaceholder": "특별 요청, 식이 요구사항, 접근성 요청 등",
-    "submitInquiry": "문의 제출",
+    "submitInquiry": "여행 문의 보내기",
     "sending": "전송 중..."
   },
   "favoritesPage": {
@@ -290,7 +290,7 @@
     "mealsLabel": "식사",
     "transportationLabel": "교통",
     "servicesLabel": "서비스",
-    "submitInquiry": "문의 제출",
+    "submitInquiry": "여행 문의 보내기",
     "submitting": "제출 중...",
     "showLess": "간략히",
     "readMore": "더보기",

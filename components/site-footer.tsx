@@ -199,14 +199,6 @@ export function SiteFooter() {
                   1-714-485-5463
                 </a>
               </li>
-              <li>
-                <a
-                  href="tel:1-213-828-1212"
-                  className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
-                >
-                  1-213-828-1212
-                </a>
-              </li>
             </ul>
             <h2 className="mb-2 mt-4 font-sans uppercase text-[#EAE0D6] text-[14px] font-bold underline underline-offset-4">
               {t('freeToCall')}

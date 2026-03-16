@@ -149,7 +149,7 @@
     "additionalNotes": "Zusätzliche Anmerkungen",
     "optional": "(Optional)",
     "additionalNotesPlaceholder": "Besondere Anforderungen, Ernährungsbedürfnisse, Barrierefreiheit usw.",
-    "submitInquiry": "Anfrage absenden",
+    "submitInquiry": "Eine Reiseanfrage senden",
     "sending": "Wird gesendet..."
   },
   "favoritesPage": {
@@ -290,7 +290,7 @@
     "mealsLabel": "Mahlzeiten",
     "transportationLabel": "Transport",
     "servicesLabel": "Services",
-    "submitInquiry": "Anfrage absenden",
+    "submitInquiry": "Eine Reiseanfrage senden",
     "submitting": "Wird gesendet...",
     "showLess": "Weniger anzeigen",
     "readMore": "Mehr lesen",
