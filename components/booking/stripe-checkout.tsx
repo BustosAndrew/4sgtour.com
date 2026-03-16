@@ -37,6 +37,7 @@ interface EmbeddedCheckoutWrapperProps {
     endDate: string
     roomType: string
     packageName: string
+    totalPrice: number
     golfCourses?: string[]
     mealOption?: string
     transportOption?: string
@@ -167,6 +168,7 @@ export function StripeCheckout({
       endDate,
       roomType,
       packageName,
+      totalPrice: packagePrice, // packagePrice is now the calculated total including extra nights
       golfCourses,
       mealOption,
       transportOption,

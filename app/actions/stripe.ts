@@ -17,6 +17,7 @@ interface CheckoutSessionParams {
   endDate: string
   roomType: string
   packageName: string
+  totalPrice: number // Total price including extra nights
   golfCourses?: string[]
   mealOption?: string
   transportOption?: string
@@ -36,6 +37,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     endDate,
     roomType,
     packageName,
+    totalPrice,
     golfCourses,
     mealOption,
     transportOption,
@@ -55,8 +57,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     throw new Error('Package not found')
   }
 
-  // Calculate 30% deposit
-  const depositAmount = Math.round(pkg.price * 0.3 * 100) // Convert to cents
+  // Calculate 30% deposit based on total price (includes extra nights if applicable)
+  const depositAmount = Math.round(totalPrice * 0.3 * 100) // Convert to cents
 
   // Build line items
   const lineItems: any[] = [

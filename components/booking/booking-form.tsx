@@ -563,7 +563,18 @@ export function BookingForm({
     let total = 0
 
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-    if (selectedPackage) total += Number(selectedPackage.price)
+    if (selectedPackage) {
+      total += Number(selectedPackage.price)
+      
+      // Add extra nights cost if applicable
+      if (selectedPackage.price_per_extra_night && travelDateRange.from && travelDateRange.to) {
+        const nightsBooked = differenceInDays(travelDateRange.to, travelDateRange.from)
+        const extraNights = Math.max(0, nightsBooked - minNights)
+        if (extraNights > 0) {
+          total += extraNights * Number(selectedPackage.price_per_extra_night)
+        }
+      }
+    }
 
     // Note: Golf courses, meals, and transportation no longer have individual prices
     // All pricing is now included in the package price
@@ -834,7 +845,7 @@ export function BookingForm({
           tripTitle={trip.title}
           packageId={selectedPackage.id}
           packageName={`${getLocalizedField(selectedPackage, 'name', locale as any)} - ${bookingDetails.roomType}`}
-          packagePrice={selectedPackage.price}
+          packagePrice={calculateTotal()}
           startDate={bookingDetails.startDate}
           endDate={bookingDetails.endDate}
           roomType={bookingDetails.roomType}

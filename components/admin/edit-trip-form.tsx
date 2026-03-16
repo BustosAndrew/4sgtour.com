@@ -1264,6 +1264,28 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div>
                           <Label className="text-base text-foreground">
+                            Price Per Extra Night
+                          </Label>
+                          <Input
+                            type="number"
+                            value={pkg.price_per_extra_night || ""}
+                            onChange={(e) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "price_per_extra_night",
+                                e.target.value ? Number(e.target.value) : null,
+                              )
+                            }
+                            placeholder="0"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Extra cost per night beyond minimum stay (optional)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <Label className="text-base text-foreground">
                             Participants Per Booking
                           </Label>
                           <Input
@@ -1279,6 +1301,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                             placeholder="1"
                             min="1"
                           />
+                        </div>
+                        <div>
+                          <Label className="text-base text-foreground">
+                            Availability
+                          </Label>
+                          <Select
+                            value={pkg.availability}
+                            onValueChange={(value) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "availability",
+                                value,
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unlimited">
+                                Unlimited
+                              </SelectItem>
+                              <SelectItem value="limited">Limited</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       <div>
