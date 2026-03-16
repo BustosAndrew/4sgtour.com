@@ -7,10 +7,11 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { createTripCheckoutSession } from '@/app/actions/stripe'
-import { CreditCard, Building2, ArrowLeft, Loader2 } from 'lucide-react'
+import { CreditCard, Building2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useTranslations } from 'next-intl'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -58,6 +59,8 @@ export function StripeCheckout({
   onBack,
   onSuccess,
 }: StripeCheckoutProps) {
+  const t = useTranslations('checkout')
+
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null)
   const [customerName, setCustomerName] = useState(prefillName || '')
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
@@ -71,19 +74,19 @@ export function StripeCheckout({
 
   const validateAndProceed = () => {
     if (!customerName.trim()) {
-      alert('Please enter your name')
+      alert(t('fullName') + ' is required')
       return
     }
     if (!customerEmail.trim() || !customerEmail.includes('@')) {
-      alert('Please enter a valid email address')
+      alert(t('emailAddress') + ' is invalid')
       return
     }
     if (!customerPhone.trim()) {
-      alert('Please enter your phone number')
+      alert(t('phoneNumber') + ' is required')
       return
     }
     if (!paymentMethod) {
-      alert('Please select a payment method')
+      alert(t('paymentMethod') + ' is required')
       return
     }
     setShowCheckout(true)
@@ -138,24 +141,24 @@ export function StripeCheckout({
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to payment options
+          {t('backToPaymentOptions')}
         </Button>
 
         <div className="border border-border bg-muted/30 p-4 mb-4">
-          <h3 className="font-medium mb-2">Payment Summary</h3>
+          <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>30% Deposit</span>
+              <span>{t('deposit')}</span>
               <span>${depositAmount.toFixed(2)}</span>
             </div>
             {paymentMethod === 'card' && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Card Processing Fee (4%)</span>
+                <span>{t('cardProcessingFee')}</span>
                 <span>${cardFee.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-2 border-t border-border mt-2">
-              <span>Total</span>
+              <span>{t('total')}</span>
               <span>
                 ${paymentMethod === 'card' ? cardTotal.toFixed(2) : depositAmount.toFixed(2)}
               </span>
@@ -182,20 +185,18 @@ export function StripeCheckout({
     <div className="space-y-6">
       <Button variant="ghost" onClick={onBack} className="mb-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to booking details
+        {t('backToBookingDetails')}
       </Button>
 
       <div className="border border-border bg-background p-6">
-        <h2 className="font-serif text-xl font-medium mb-4">Contact Information</h2>
+        <h2 className="font-serif text-xl font-medium mb-4">{t('contactInformation')}</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          {isGuest
-            ? 'Please provide your contact details for booking confirmation.'
-            : 'Confirm your contact details for this booking.'}
+          {isGuest ? t('guestContactPrompt') : t('memberContactPrompt')}
         </p>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="customer-name">Full Name *</Label>
+            <Label htmlFor="customer-name">{t('fullName')} *</Label>
             <Input
               id="customer-name"
               value={customerName}
@@ -206,7 +207,7 @@ export function StripeCheckout({
           </div>
 
           <div>
-            <Label htmlFor="customer-email">Email Address *</Label>
+            <Label htmlFor="customer-email">{t('emailAddress')} *</Label>
             <Input
               id="customer-email"
               type="email"
@@ -218,7 +219,7 @@ export function StripeCheckout({
           </div>
 
           <div>
-            <Label htmlFor="customer-phone">Phone Number *</Label>
+            <Label htmlFor="customer-phone">{t('phoneNumber')} *</Label>
             <Input
               id="customer-phone"
               type="tel"
@@ -232,9 +233,9 @@ export function StripeCheckout({
       </div>
 
       <div className="border border-border bg-background p-6">
-        <h2 className="font-serif text-xl font-medium mb-4">Payment Method</h2>
+        <h2 className="font-serif text-xl font-medium mb-4">{t('paymentMethod')}</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          A 30% deposit (${depositAmount.toFixed(2)}) is required to confirm your booking.
+          {t('depositRequired', { amount: `$${depositAmount.toFixed(2)}` })}
         </p>
 
         <div className="space-y-3">
@@ -250,8 +251,8 @@ export function StripeCheckout({
             <div className="flex items-center gap-3">
               <Building2 className="h-5 w-5 text-muted-foreground" />
               <div className="text-left">
-                <div className="font-medium">Bank Transfer (ACH)</div>
-                <div className="text-sm text-muted-foreground">No processing fee</div>
+                <div className="font-medium">{t('bankTransfer')}</div>
+                <div className="text-sm text-muted-foreground">{t('noProcessingFee')}</div>
               </div>
             </div>
             <div className="text-right">
@@ -271,9 +272,9 @@ export function StripeCheckout({
             <div className="flex items-center gap-3">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
               <div className="text-left">
-                <div className="font-medium">Credit/Debit Card</div>
+                <div className="font-medium">{t('creditDebitCard')}</div>
                 <div className="text-sm text-muted-foreground">
-                  +4% processing fee (${cardFee.toFixed(2)})
+                  {t('processingFee', { fee: `$${cardFee.toFixed(2)}` })}
                 </div>
               </div>
             </div>
@@ -285,30 +286,30 @@ export function StripeCheckout({
       </div>
 
       <div className="border border-border bg-muted/30 p-4">
-        <h3 className="font-medium mb-2">Booking Summary</h3>
+        <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
         <div className="text-sm space-y-1">
           <div className="flex justify-between">
-            <span>Trip</span>
+            <span>{t('trip')}</span>
             <span className="font-medium">{tripTitle}</span>
           </div>
           <div className="flex justify-between">
-            <span>Package</span>
+            <span>{t('package')}</span>
             <span>{packageName}</span>
           </div>
           <div className="flex justify-between">
-            <span>Travel Dates</span>
+            <span>{t('travelDates')}</span>
             <span>{startDate} - {endDate}</span>
           </div>
           <div className="flex justify-between">
-            <span>Room Type</span>
+            <span>{t('roomType')}</span>
             <span>{roomType}</span>
           </div>
           <div className="flex justify-between pt-2 border-t border-border mt-2">
-            <span>Package Total</span>
+            <span>{t('packageTotal')}</span>
             <span className="font-medium">${packagePrice.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-[#3D5A80] font-medium">
-            <span>Deposit Due (30%)</span>
+            <span>{t('depositDue')}</span>
             <span>${depositAmount.toFixed(2)}</span>
           </div>
         </div>
@@ -320,16 +321,16 @@ export function StripeCheckout({
         className="w-full bg-[#3D5A80] hover:bg-[#3D5A80]/90"
         size="lg"
       >
-        Continue to Payment
+        {t('continueToPayment')}
       </Button>
 
       {isGuest && (
         <p className="text-xs text-center text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          {t('noAccountPrompt')}{' '}
           <a href="/auth/sign-up" className="text-[#3D5A80] hover:underline">
-            Sign up
+            {t('signUp')}
           </a>{' '}
-          to manage your bookings and communicate with our team.
+          {t('manageBookings')}
         </p>
       )}
     </div>
