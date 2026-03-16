@@ -26,7 +26,6 @@ export async function PATCH(
   }
 
   const body = await request.json()
-  console.log("[v0] PATCH trip - body.packages:", JSON.stringify(body.packages, null, 2))
 
   // Build update object - only include localized fields if they were explicitly sent
   // This allows auto-translate to fill in missing translations without being overwritten
@@ -66,6 +65,7 @@ export async function PATCH(
     .eq("id", id)
 
   if (error) {
+    console.error("[v0] Error updating trip:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
