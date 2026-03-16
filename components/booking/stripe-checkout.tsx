@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useRef, useMemo } from 'react'
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
@@ -23,6 +23,7 @@ const getStripe = () => {
 }
 
 // Separate component for the embedded checkout to ensure clean mounting
+// All props must be stable - they cannot change after initial mount
 interface EmbeddedCheckoutWrapperProps {
   checkoutParams: {
     packageId: string
@@ -41,21 +42,32 @@ interface EmbeddedCheckoutWrapperProps {
     transportOption?: string
     additionalRequests?: string
   }
-  onComplete: () => void
+  onCompleteRef: React.RefObject<(() => void) | undefined>
 }
 
-function EmbeddedCheckoutWrapper({ checkoutParams, onComplete }: EmbeddedCheckoutWrapperProps) {
+function EmbeddedCheckoutWrapper({ checkoutParams, onCompleteRef }: EmbeddedCheckoutWrapperProps) {
+  // Capture params at mount time using useMemo
+  const stableParams = useMemo(() => checkoutParams, [])
+  
   const fetchClientSecret = useCallback(async () => {
-    return createTripCheckoutSession(checkoutParams)
-  }, []) // Empty deps - params are captured at mount time
+    return createTripCheckoutSession(stableParams)
+  }, [stableParams])
+
+  // Stable onComplete that reads from ref
+  const onComplete = useCallback(() => {
+    onCompleteRef.current?.()
+  }, [onCompleteRef])
+
+  // Memoize options to prevent any changes
+  const options = useMemo(() => ({
+    fetchClientSecret,
+    onComplete,
+  }), [fetchClientSecret, onComplete])
 
   return (
     <EmbeddedCheckoutProvider
       stripe={getStripe()}
-      options={{
-        fetchClientSecret,
-        onComplete,
-      }}
+      options={options}
     >
       <EmbeddedCheckout />
     </EmbeddedCheckoutProvider>
@@ -114,6 +126,10 @@ export function StripeCheckout({
   
   // Store checkout params when user proceeds - this freezes the values
   const [checkoutParams, setCheckoutParams] = useState<EmbeddedCheckoutWrapperProps['checkoutParams'] | null>(null)
+  
+  // Use ref for onSuccess to avoid changing the onComplete callback
+  const onSuccessRef = useRef(onSuccess)
+  onSuccessRef.current = onSuccess
 
   const depositAmount = packagePrice * 0.3
   const cardFee = depositAmount * 0.04
@@ -158,10 +174,6 @@ export function StripeCheckout({
     })
   }
 
-  const handleComplete = useCallback(() => {
-    onSuccess?.()
-  }, [onSuccess])
-
   const handleBackToPayment = () => {
     // Clear checkout params to unmount the EmbeddedCheckoutProvider
     setCheckoutParams(null)
@@ -205,7 +217,7 @@ export function StripeCheckout({
         <div id="checkout">
           <EmbeddedCheckoutWrapper
             checkoutParams={checkoutParams}
-            onComplete={handleComplete}
+            onCompleteRef={onSuccessRef}
           />
         </div>
       </div>
