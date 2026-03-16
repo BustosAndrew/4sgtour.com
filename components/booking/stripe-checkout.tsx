@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useState } from 'react'
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
@@ -22,6 +22,46 @@ const getStripe = () => {
   return stripePromise
 }
 
+// Separate component for the embedded checkout to ensure clean mounting
+interface EmbeddedCheckoutWrapperProps {
+  checkoutParams: {
+    packageId: string
+    tripId: string
+    tripTitle: string
+    paymentMethod: 'card' | 'ach'
+    customerName: string
+    customerEmail: string
+    customerPhone: string
+    startDate: string
+    endDate: string
+    roomType: string
+    packageName: string
+    golfCourses?: string[]
+    mealOption?: string
+    transportOption?: string
+    additionalRequests?: string
+  }
+  onComplete: () => void
+}
+
+function EmbeddedCheckoutWrapper({ checkoutParams, onComplete }: EmbeddedCheckoutWrapperProps) {
+  const fetchClientSecret = useCallback(async () => {
+    return createTripCheckoutSession(checkoutParams)
+  }, []) // Empty deps - params are captured at mount time
+
+  return (
+    <EmbeddedCheckoutProvider
+      stripe={getStripe()}
+      options={{
+        fetchClientSecret,
+        onComplete,
+      }}
+    >
+      <EmbeddedCheckout />
+    </EmbeddedCheckoutProvider>
+  )
+}
+
 interface StripeCheckoutProps {
   tripId: string
   tripTitle: string
@@ -35,7 +75,6 @@ interface StripeCheckoutProps {
   mealOption?: string
   transportOption?: string
   additionalRequests?: string
-  // Prefilled user info (for logged-in users)
   prefillName?: string
   prefillEmail?: string
   prefillPhone?: string
@@ -72,8 +111,9 @@ export function StripeCheckout({
   const [customerName, setCustomerName] = useState(prefillName || '')
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
   const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
-  const [showCheckout, setShowCheckout] = useState(false)
-  const [checkoutKey, setCheckoutKey] = useState(0) // Key to force remount on payment method change
+  
+  // Store checkout params when user proceeds - this freezes the values
+  const [checkoutParams, setCheckoutParams] = useState<EmbeddedCheckoutWrapperProps['checkoutParams'] | null>(null)
 
   const depositAmount = packagePrice * 0.3
   const cardFee = depositAmount * 0.04
@@ -96,17 +136,14 @@ export function StripeCheckout({
       alert(t('paymentMethod') + ' is required')
       return
     }
-    // Increment key to force fresh EmbeddedCheckoutProvider mount
-    setCheckoutKey((k) => k + 1)
-    setShowCheckout(true)
-  }
-
-  const fetchClientSecret = useCallback(async () => {
-    return createTripCheckoutSession({
+    
+    // Freeze the params at this moment - this ensures the checkout wrapper
+    // gets stable props and won't try to change fetchClientSecret
+    setCheckoutParams({
       packageId,
       tripId,
       tripTitle,
-      paymentMethod: paymentMethod!,
+      paymentMethod,
       customerName,
       customerEmail,
       customerPhone,
@@ -119,34 +156,24 @@ export function StripeCheckout({
       transportOption,
       additionalRequests,
     })
-  }, [
-    packageId,
-    tripId,
-    tripTitle,
-    paymentMethod,
-    customerName,
-    customerEmail,
-    customerPhone,
-    startDate,
-    endDate,
-    roomType,
-    packageName,
-    golfCourses,
-    mealOption,
-    transportOption,
-    additionalRequests,
-  ])
+  }
 
   const handleComplete = useCallback(() => {
     onSuccess?.()
   }, [onSuccess])
 
-  if (showCheckout && paymentMethod) {
+  const handleBackToPayment = () => {
+    // Clear checkout params to unmount the EmbeddedCheckoutProvider
+    setCheckoutParams(null)
+  }
+
+  // Show Stripe checkout when params are set
+  if (checkoutParams) {
     return (
       <div className="space-y-4">
         <Button
           variant="ghost"
-          onClick={() => setShowCheckout(false)}
+          onClick={handleBackToPayment}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -160,7 +187,7 @@ export function StripeCheckout({
               <span>{t('deposit')}</span>
               <span>${depositAmount.toFixed(2)}</span>
             </div>
-            {paymentMethod === 'card' && (
+            {checkoutParams.paymentMethod === 'card' && (
               <div className="flex justify-between text-muted-foreground">
                 <span>{t('cardProcessingFee')}</span>
                 <span>${cardFee.toFixed(2)}</span>
@@ -169,22 +196,17 @@ export function StripeCheckout({
             <div className="flex justify-between font-medium pt-2 border-t border-border mt-2">
               <span>{t('total')}</span>
               <span>
-                ${paymentMethod === 'card' ? cardTotal.toFixed(2) : depositAmount.toFixed(2)}
+                ${checkoutParams.paymentMethod === 'card' ? cardTotal.toFixed(2) : depositAmount.toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
-        <div id="checkout" key={checkoutKey}>
-          <EmbeddedCheckoutProvider
-            stripe={getStripe()}
-            options={{
-              fetchClientSecret,
-              onComplete: handleComplete,
-            }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
+        <div id="checkout">
+          <EmbeddedCheckoutWrapper
+            checkoutParams={checkoutParams}
+            onComplete={handleComplete}
+          />
         </div>
       </div>
     )
