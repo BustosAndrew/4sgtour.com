@@ -563,7 +563,6 @@ export function BookingForm({
     let total = 0
 
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-    console.log("[v0] calculateTotal - selectedPackage:", selectedPackage?.name, "price_per_extra_night:", selectedPackage?.price_per_extra_night, "minNights:", minNights)
     if (selectedPackage) {
       total += Number(selectedPackage.price)
       
@@ -571,7 +570,6 @@ export function BookingForm({
       if (selectedPackage.price_per_extra_night && travelDateRange.from && travelDateRange.to) {
         const nightsBooked = differenceInDays(travelDateRange.to, travelDateRange.from)
         const extraNights = Math.max(0, nightsBooked - minNights)
-        console.log("[v0] Extra nights calculation - nightsBooked:", nightsBooked, "extraNights:", extraNights, "extraCost:", extraNights * Number(selectedPackage.price_per_extra_night))
         if (extraNights > 0) {
           total += extraNights * Number(selectedPackage.price_per_extra_night)
         }
