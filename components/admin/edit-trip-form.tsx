@@ -235,7 +235,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [packages, setPackages] = useState(initializePackages())
   const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
     (trip.packages || []).some(
-      (p: any) => p.name === "Upgrade" || p.name === "Premium",
+      (p: any) => p.name === "Upgrade",
     ),
   )
 
