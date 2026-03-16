@@ -128,6 +128,10 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     },
   })
 
+  // Calculate amounts for the booking record
+  const totalAmountCents = lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0)
+  const processingFeeCents = paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
+
   // Create a pending booking record
   const { data: booking, error: bookingError } = await supabase
     .from('stripe_bookings')
@@ -135,11 +139,14 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       trip_id: tripId,
       package_id: packageId,
       user_id: user?.id || null,
-      stripe_session_id: session.id,
+      stripe_checkout_session_id: session.id,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone,
-      amount_cents: lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0),
+      deposit_amount: depositAmount / 100, // Store in dollars
+      total_package_price: pkg.price,
+      processing_fee: processingFeeCents / 100, // Store in dollars
+      total_paid: totalAmountCents / 100, // Store in dollars
       payment_method: paymentMethod,
       status: 'pending',
       booking_details: {
