@@ -789,26 +789,24 @@ export function BookingForm({
           </div>
         </div>
         <h1 className="font-serif text-3xl font-bold mb-4">
-          {t('bookingConfirmed') || 'Booking Confirmed!'}
+          {t('bookingConfirmed')}
         </h1>
         <p className="text-muted-foreground mb-6">
-          {t('bookingConfirmedMessage') ||
-            "Thank you for your booking! We've sent a confirmation email with all the details."}
+          {t('bookingConfirmedMessage')}
         </p>
         {!currentUser && (
           <div className="bg-[#3D5A80]/10 border border-[#3D5A80]/20 p-4 rounded-lg mb-6">
             <p className="text-sm text-[#3D5A80] font-medium mb-2">
-              Create an account to manage your booking
+              {t('createAccountPrompt')}
             </p>
             <p className="text-sm text-muted-foreground mb-4">
-              Sign up to track your trip details, communicate with our team, and
-              access exclusive member benefits.
+              {t('createAccountDescription')}
             </p>
             <a
               href="/auth/sign-up"
               className="inline-block bg-[#3D5A80] text-white px-6 py-2 font-medium hover:bg-[#3D5A80]/90 transition-colors"
             >
-              Create Account
+              {t('createAccount')}
             </a>
           </div>
         )}
@@ -816,7 +814,7 @@ export function BookingForm({
           href={`/trips/${trip.slug}`}
           className="text-[#3D5A80] hover:underline"
         >
-          Return to Trip Details
+          {t('returnToTrip')}
         </a>
       </div>
     )
@@ -1381,7 +1379,7 @@ export function BookingForm({
                     <span>${calculateTotal()}</span>
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    30% deposit due at booking: ${(calculateTotal() * 0.3).toFixed(2)}
+                    {t('depositDue')} ${(calculateTotal() * 0.3).toFixed(2)}
                   </div>
                 </div>
 
@@ -1390,7 +1388,7 @@ export function BookingForm({
                   disabled={!selectedPlan || !roomType || !travelDateRange.from || !travelDateRange.to}
                   className="mt-4 w-full text-xl bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
                 >
-                  {t('proceedToPayment') || 'Proceed to Payment'}
+                  {t('proceedToPayment')}
                 </button>
               </div>
             </div>
