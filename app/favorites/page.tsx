@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Trip } from "@/lib/types/database"
+import { FavoritesContent } from "@/components/favorites/favorites-content"
 
 export default async function FavoritesPage() {
   const supabase = await createClient()
@@ -41,26 +42,7 @@ export default async function FavoritesPage() {
     <div className="">
       <SiteHeaderWrapper />
       <main className="container px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32 min-h-screen">
-        <h1 className="mb-8 text-2xl font-semibold sm:text-3xl">
-          My Favorites
-        </h1>
-
-        {trips.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {trips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} isFavorite={true} />
-            ))}
-          </div>
-        ) : (
-          <div className="border border-border bg-card p-8 text-center sm:p-12">
-            <p className="text-muted-foreground">
-              You haven&apos;t added any favorites yet.
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/">Browse Trips</Link>
-            </Button>
-          </div>
-        )}
+        <FavoritesContent trips={trips} />
       </main>
       <SiteFooter />
     </div>

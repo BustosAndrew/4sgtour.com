@@ -152,6 +152,29 @@
     "submitInquiry": "Submit Inquiry",
     "sending": "Sending..."
   },
+  "favoritesPage": {
+    "title": "My Favorites",
+    "empty": "You haven't added any favorites yet.",
+    "browseTrips": "Browse Trips"
+  },
+  "bookingsPage": {
+    "title": "My Inquiries",
+    "inquirySubmitted": "Inquiry Submitted!",
+    "inquirySubmittedMessage": "Your booking inquiry has been successfully submitted. We'll contact you shortly to confirm the details.",
+    "empty": "You haven't submitted any booking inquiries yet.",
+    "browseDestinations": "Browse Destinations",
+    "start": "Start:",
+    "end": "End:",
+    "duration": "Duration:",
+    "days": "days",
+    "rounds": "Rounds:",
+    "submitted": "Submitted:",
+    "notes": "Notes:",
+    "confirmed": "Confirmed",
+    "inProgress": "In Progress",
+    "cancelled": "Cancelled",
+    "pending": "Pending"
+  },
   "auth": {
     "signedInAs": "Signed in as",
     "myBookings": "My Bookings",
@@ -273,6 +296,9 @@
     "readMore": "Read more",
     "includedServices": "Included Services",
     "total": "Total",
+    "basePrice": "Base Price",
+    "extraNights": "Extra Nights",
+    "extraNightsCost": "{nights} extra night(s) x ${price}",
     "proceedToPayment": "Proceed to Payment",
     "depositDue": "30% deposit due at booking:",
     "bookingConfirmed": "Booking Confirmed!",
@@ -310,6 +336,8 @@
     "travelDates": "Travel Dates",
     "roomType": "Room Type",
     "packageTotal": "Package Total",
+    "basePrice": "Base Price",
+    "extraNightsCost": "Extra Nights ({nights})",
     "depositDue": "Deposit Due (30%)"
   },
   "destinations": {

@@ -140,9 +140,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     continent: trip.continent || "",
     price_regular: trip.price_regular || 0,
     max_guests: trip.max_guests?.toString() || "20",
-    max_days: trip.max_days?.toString() || "",
-    min_days_advance: trip.min_days_advance?.toString() || "0",
-    min_days: trip.min_days?.toString() || "1",
+  max_days: (trip.max_nights || trip.max_days)?.toString() || "",
+  min_days_advance: trip.min_days_advance?.toString() || "0",
+  min_days: (trip.min_nights || trip.min_days)?.toString() || "1",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
   const [highlights_ko, setHighlights_ko] = useState<string[]>(trip.highlights_ko || [])
@@ -204,6 +204,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         ...premiumPkg,
         name: "Premium", // Normalize to "Premium"
         price: premiumPkg.price || 0,
+        price_per_extra_night: premiumPkg.price_per_extra_night || null,
       })
     } else {
       pkgs.push({
@@ -211,6 +212,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         name: "Premium",
         description: "",
         price: 0,
+        price_per_extra_night: null,
         availability: "unlimited",
         quantity: null,
         participants_per_booking: 1,
@@ -223,6 +225,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         ...upgradePkg,
         name: "Upgrade", // Normalize to "Upgrade"
         price: upgradePkg.price || 0,
+        price_per_extra_night: upgradePkg.price_per_extra_night || null,
       })
     }
 
@@ -338,6 +341,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           name: "Upgrade",
           description: "",
           price: 0,
+          price_per_extra_night: null,
           availability: "unlimited",
           quantity: null,
           participants_per_booking: 1,
@@ -1260,6 +1264,28 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div>
                           <Label className="text-base text-foreground">
+                            Price Per Extra Night
+                          </Label>
+                          <Input
+                            type="number"
+                            value={pkg.price_per_extra_night || ""}
+                            onChange={(e) =>
+                              handlePackageChange(
+                                packages.findIndex((p) => p.id === pkg.id),
+                                "price_per_extra_night",
+                                e.target.value ? Number(e.target.value) : null,
+                              )
+                            }
+                            placeholder="0"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Extra cost per night beyond minimum stay (optional)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <Label className="text-base text-foreground">
                             Participants Per Booking
                           </Label>
                           <Input
@@ -1276,25 +1302,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                             min="1"
                           />
                         </div>
-                      </div>
-                      <div>
-                        <Label className="text-base text-foreground">
-                          Package Details
-                        </Label>
-                        <Textarea
-                          value={pkg.description || ""}
-                          onChange={(e) =>
-                            handlePackageChange(
-                              packages.findIndex((p) => p.id === pkg.id),
-                              "description",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="What's included in this package..."
-                          rows={2}
-                        />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                           <Label className="text-base text-foreground">
                             Availability
@@ -1320,6 +1327,25 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+                      <div>
+                        <Label className="text-base text-foreground">
+                          Package Details
+                        </Label>
+                        <Textarea
+                          value={pkg.description || ""}
+                          onChange={(e) =>
+                            handlePackageChange(
+                              packages.findIndex((p) => p.id === pkg.id),
+                              "description",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="What's included in this package..."
+                          rows={2}
+                        />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
                         {pkg.availability === "limited" && (
                           <div>
                             <Label className="text-base text-foreground">

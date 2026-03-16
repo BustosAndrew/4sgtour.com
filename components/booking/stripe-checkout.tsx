@@ -1,19 +1,79 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useRef, useMemo } from 'react'
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from '@stripe/react-stripe-js'
-import { loadStripe } from '@stripe/stripe-js'
+import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createTripCheckoutSession } from '@/app/actions/stripe'
 import { CreditCard, Building2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/lib/i18n/provider'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Initialize stripe once, outside of component
+let stripePromise: Promise<Stripe | null> | null = null
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  }
+  return stripePromise
+}
+
+// Separate component for the embedded checkout to ensure clean mounting
+// All props must be stable - they cannot change after initial mount
+interface EmbeddedCheckoutWrapperProps {
+  checkoutParams: {
+    packageId: string
+    tripId: string
+    tripTitle: string
+    paymentMethod: 'card' | 'ach'
+    customerName: string
+    customerEmail: string
+    customerPhone: string
+    startDate: string
+    endDate: string
+    roomType: string
+    packageName: string
+    totalPrice: number
+    golfCourses?: string[]
+    mealOption?: string
+    transportOption?: string
+    additionalRequests?: string
+  }
+  onCompleteRef: React.RefObject<(() => void) | undefined>
+}
+
+function EmbeddedCheckoutWrapper({ checkoutParams, onCompleteRef }: EmbeddedCheckoutWrapperProps) {
+  // Capture params at mount time using useMemo
+  const stableParams = useMemo(() => checkoutParams, [])
+  
+  const fetchClientSecret = useCallback(async () => {
+    return createTripCheckoutSession(stableParams)
+  }, [stableParams])
+
+  // Stable onComplete that reads from ref
+  const onComplete = useCallback(() => {
+    onCompleteRef.current?.()
+  }, [onCompleteRef])
+
+  // Memoize options to prevent any changes
+  const options = useMemo(() => ({
+    fetchClientSecret,
+    onComplete,
+  }), [fetchClientSecret, onComplete])
+
+  return (
+    <EmbeddedCheckoutProvider
+      stripe={getStripe()}
+      options={options}
+    >
+      <EmbeddedCheckout />
+    </EmbeddedCheckoutProvider>
+  )
+}
 
 interface StripeCheckoutProps {
   tripId: string
@@ -21,6 +81,9 @@ interface StripeCheckoutProps {
   packageId: string
   packageName: string
   packagePrice: number
+  basePrice: number
+  extraNights: number
+  extraNightPrice: number
   startDate: string
   endDate: string
   roomType: string
@@ -28,7 +91,6 @@ interface StripeCheckoutProps {
   mealOption?: string
   transportOption?: string
   additionalRequests?: string
-  // Prefilled user info (for logged-in users)
   prefillName?: string
   prefillEmail?: string
   prefillPhone?: string
@@ -45,6 +107,9 @@ export function StripeCheckout({
   packageId,
   packageName,
   packagePrice,
+  basePrice,
+  extraNights,
+  extraNightPrice,
   startDate,
   endDate,
   roomType,
@@ -65,8 +130,13 @@ export function StripeCheckout({
   const [customerName, setCustomerName] = useState(prefillName || '')
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
   const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
-  const [showCheckout, setShowCheckout] = useState(false)
-  const [isValidating, setIsValidating] = useState(false)
+  
+  // Store checkout params when user proceeds - this freezes the values
+  const [checkoutParams, setCheckoutParams] = useState<EmbeddedCheckoutWrapperProps['checkoutParams'] | null>(null)
+  
+  // Use ref for onSuccess to avoid changing the onComplete callback
+  const onSuccessRef = useRef(onSuccess)
+  onSuccessRef.current = onSuccess
 
   const depositAmount = packagePrice * 0.3
   const cardFee = depositAmount * 0.04
@@ -89,15 +159,14 @@ export function StripeCheckout({
       alert(t('paymentMethod') + ' is required')
       return
     }
-    setShowCheckout(true)
-  }
-
-  const fetchClientSecret = useCallback(async () => {
-    return createTripCheckoutSession({
+    
+    // Freeze the params at this moment - this ensures the checkout wrapper
+    // gets stable props and won't try to change fetchClientSecret
+    setCheckoutParams({
       packageId,
       tripId,
       tripTitle,
-      paymentMethod: paymentMethod!,
+      paymentMethod,
       customerName,
       customerEmail,
       customerPhone,
@@ -105,39 +174,26 @@ export function StripeCheckout({
       endDate,
       roomType,
       packageName,
+      totalPrice: packagePrice, // packagePrice is now the calculated total including extra nights
       golfCourses,
       mealOption,
       transportOption,
       additionalRequests,
     })
-  }, [
-    packageId,
-    tripId,
-    tripTitle,
-    paymentMethod,
-    customerName,
-    customerEmail,
-    customerPhone,
-    startDate,
-    endDate,
-    roomType,
-    packageName,
-    golfCourses,
-    mealOption,
-    transportOption,
-    additionalRequests,
-  ])
+  }
 
-  const handleComplete = useCallback(() => {
-    onSuccess?.()
-  }, [onSuccess])
+  const handleBackToPayment = () => {
+    // Clear checkout params to unmount the EmbeddedCheckoutProvider
+    setCheckoutParams(null)
+  }
 
-  if (showCheckout && paymentMethod) {
+  // Show Stripe checkout when params are set
+  if (checkoutParams) {
     return (
       <div className="space-y-4">
         <Button
           variant="ghost"
-          onClick={() => setShowCheckout(false)}
+          onClick={handleBackToPayment}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -151,7 +207,7 @@ export function StripeCheckout({
               <span>{t('deposit')}</span>
               <span>${depositAmount.toFixed(2)}</span>
             </div>
-            {paymentMethod === 'card' && (
+            {checkoutParams.paymentMethod === 'card' && (
               <div className="flex justify-between text-muted-foreground">
                 <span>{t('cardProcessingFee')}</span>
                 <span>${cardFee.toFixed(2)}</span>
@@ -160,22 +216,17 @@ export function StripeCheckout({
             <div className="flex justify-between font-medium pt-2 border-t border-border mt-2">
               <span>{t('total')}</span>
               <span>
-                ${paymentMethod === 'card' ? cardTotal.toFixed(2) : depositAmount.toFixed(2)}
+                ${checkoutParams.paymentMethod === 'card' ? cardTotal.toFixed(2) : depositAmount.toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
         <div id="checkout">
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{
-              fetchClientSecret,
-              onComplete: handleComplete,
-            }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
+          <EmbeddedCheckoutWrapper
+            checkoutParams={checkoutParams}
+            onCompleteRef={onSuccessRef}
+          />
         </div>
       </div>
     )
@@ -304,10 +355,27 @@ export function StripeCheckout({
             <span>{t('roomType')}</span>
             <span>{roomType}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t border-border mt-2">
-            <span>{t('packageTotal')}</span>
-            <span className="font-medium">${packagePrice.toFixed(2)}</span>
-          </div>
+          {extraNights > 0 ? (
+            <>
+              <div className="flex justify-between pt-2 border-t border-border mt-2">
+                <span>{t('basePrice')}</span>
+                <span>${basePrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('extraNightsCost', { nights: extraNights })}</span>
+                <span>${(extraNights * extraNightPrice).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span>{t('packageTotal')}</span>
+                <span>${packagePrice.toFixed(2)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between pt-2 border-t border-border mt-2">
+              <span>{t('packageTotal')}</span>
+              <span className="font-medium">${packagePrice.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-[#3D5A80] font-medium">
             <span>{t('depositDue')}</span>
             <span>${depositAmount.toFixed(2)}</span>

@@ -17,6 +17,7 @@ interface CheckoutSessionParams {
   endDate: string
   roomType: string
   packageName: string
+  totalPrice: number // Total price including extra nights
   golfCourses?: string[]
   mealOption?: string
   transportOption?: string
@@ -36,6 +37,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     endDate,
     roomType,
     packageName,
+    totalPrice,
     golfCourses,
     mealOption,
     transportOption,
@@ -55,8 +57,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     throw new Error('Package not found')
   }
 
-  // Calculate 30% deposit
-  const depositAmount = Math.round(pkg.price * 0.3 * 100) // Convert to cents
+  // Calculate 30% deposit based on total price (includes extra nights if applicable)
+  const depositAmount = Math.round(totalPrice * 0.3 * 100) // Convert to cents
 
   // Build line items
   const lineItems: any[] = [
@@ -93,12 +95,19 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Create checkout session with appropriate payment methods
+  // Explicitly set payment_method_types to restrict to only the selected method
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
     line_items: lineItems,
     mode: 'payment',
+    // This explicitly restricts to only the selected payment method
+    // 'card' = only card fields shown, 'us_bank_account' = only ACH shown
     payment_method_types: paymentMethod === 'ach' ? ['us_bank_account'] : ['card'],
+    // Disable automatic payment methods to prevent Stripe from adding others
+    payment_method_options: paymentMethod === 'card' 
+      ? { card: { request_three_d_secure: 'automatic' } }
+      : { us_bank_account: { financial_connections: { permissions: ['payment_method'] } } },
     customer_email: customerEmail,
     metadata: {
       trip_id: tripId,
@@ -121,6 +130,10 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     },
   })
 
+  // Calculate amounts for the booking record
+  const totalAmountCents = lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0)
+  const processingFeeCents = paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
+
   // Create a pending booking record
   const { data: booking, error: bookingError } = await supabase
     .from('stripe_bookings')
@@ -128,11 +141,14 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       trip_id: tripId,
       package_id: packageId,
       user_id: user?.id || null,
-      stripe_session_id: session.id,
+      stripe_checkout_session_id: session.id,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone,
-      amount_cents: lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0),
+      deposit_amount: depositAmount / 100, // Store in dollars
+      total_package_price: pkg.price,
+      processing_fee: processingFeeCents / 100, // Store in dollars
+      total_paid: totalAmountCents / 100, // Store in dollars
       payment_method: paymentMethod,
       status: 'pending',
       booking_details: {

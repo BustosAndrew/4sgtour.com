@@ -139,7 +139,7 @@
     "accommodations": "숙박",
     "backToEvent": "이벤트로 돌아가기",
     "selectedEvent": "선택한 이벤트",
-    "package": "패키지",
+    "package": "패키���",
     "inquirySent": "문의가 전송되었습니다",
     "thankYouMessage": "관심을 가져주셔서 감사합니다! 저희 팀이 문의 내용을 검토한 후 곧 연락드리겠습니다.",
     "yourInformation": "고객 정보",
@@ -151,6 +151,29 @@
     "additionalNotesPlaceholder": "특별 요청, 식이 요구사항, 접근성 요청 등",
     "submitInquiry": "문의 제출",
     "sending": "전송 중..."
+  },
+  "favoritesPage": {
+    "title": "내 즐겨찾기",
+    "empty": "아직 즐겨찾기에 추가한 항목이 없습니다.",
+    "browseTrips": "여행 둘러보기"
+  },
+  "bookingsPage": {
+    "title": "내 문의",
+    "inquirySubmitted": "문의가 제출되었습니다!",
+    "inquirySubmittedMessage": "예약 문의가 성공적으로 제출되었습니다. 세부 사항 확인을 위해 곧 연락드리겠습니다.",
+    "empty": "아직 제출한 예약 문의가 없습니다.",
+    "browseDestinations": "목적지 둘러보기",
+    "start": "시작:",
+    "end": "종료:",
+    "duration": "기간:",
+    "days": "일",
+    "rounds": "라운드:",
+    "submitted": "제출일:",
+    "notes": "메모:",
+    "confirmed": "확정",
+    "inProgress": "진행 중",
+    "cancelled": "취소됨",
+    "pending": "대기 중"
   },
   "auth": {
     "signedInAs": "로그인 계정",
@@ -273,6 +296,9 @@
     "readMore": "더보기",
     "includedServices": "포함 서비스",
     "total": "합계",
+    "basePrice": "기본 가격",
+    "extraNights": "추가 숙박",
+    "extraNightsCost": "{nights}박 추가 x ${price}",
     "proceedToPayment": "결제 진행",
     "depositDue": "예약 시 30% 보증금:",
     "bookingConfirmed": "예약 확정!",
@@ -296,7 +322,7 @@
     "creditDebitCard": "신용/체크카드",
     "processingFee": "+4% 결제 수수료 ({fee})",
     "paymentSummary": "결제 요약",
-    "deposit": "30% 보증금",
+    "deposit": "30% 보���금",
     "cardProcessingFee": "카드 결제 수수료 (4%)",
     "total": "합계",
     "continueToPayment": "결제 계속",
@@ -310,6 +336,8 @@
     "travelDates": "여행 날짜",
     "roomType": "객실 유형",
     "packageTotal": "패키지 합계",
+    "basePrice": "기본 가격",
+    "extraNightsCost": "추가 숙박 ({nights}박)",
     "depositDue": "보증금 (30%)"
   },
   "destinations": {
