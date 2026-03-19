@@ -8,7 +8,17 @@ export default async function DestinationsPage() {
   const supabase = await createClient()
   const locale = await getServerLocale()
   const allMessages = await getServerMessages(locale)
-  const destinationMessages = (allMessages?.destinations ?? {}) as Record<string, string>
+  const destinationsNamespace = allMessages?.destinations as Record<string, unknown> ?? {}
+  // Flatten the nested continents object into the messages
+  const continents = (destinationsNamespace.continents ?? {}) as Record<string, string>
+  const destinationMessages: Record<string, string> = {
+    ...(Object.fromEntries(
+      Object.entries(destinationsNamespace).filter(([_, v]) => typeof v === 'string')
+    ) as Record<string, string>),
+    ...Object.fromEntries(
+      Object.entries(continents).map(([k, v]) => [`continents.${k}`, v])
+    ),
+  }
 
   const { data: destinations } = await supabase
     .from("destinations")
