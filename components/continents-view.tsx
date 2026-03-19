@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CONTINENTS } from '@/lib/continents'
-import { useTranslations } from '@/lib/i18n/provider'
 
 type Destination = {
   id: string
@@ -26,6 +25,7 @@ type Destination = {
 type ContinentsViewProps = {
   destinations: Destination[]
   locale?: string
+  messages?: Record<string, string>
 }
 
 // Map from slug to translation key
@@ -37,12 +37,12 @@ const CONTINENT_KEYS: Record<string, string> = {
   'africa': 'world',
 }
 
-export function ContinentsView({ destinations, locale = 'en' }: ContinentsViewProps) {
+export function ContinentsView({ destinations, locale = 'en', messages = {} }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(
     null,
   )
   const [hoveredContinent, setHoveredContinent] = useState<string | null>(null)
-  const t = useTranslations('destinations')
+  const t = (key: string) => messages[key] ?? key
 
   const getLocalizedField = (dest: Destination, field: 'name' | 'country' | 'description') => {
     if (locale === 'ko') {
