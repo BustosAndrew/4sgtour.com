@@ -89,7 +89,7 @@ export function TripCard({ trip, isFavorite = false }: TripCardProps) {
         </div>
         <div className="p-3 sm:p-4">
           <p className="text-xs text-muted-foreground sm:text-sm">{tripLocation}</p>
-          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">{tripTitle}</h3>
+          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base min-h-[2.5rem] sm:min-h-[3rem] line-clamp-2">{tripTitle}</h3>
 
           <div className="mt-2 flex items-center gap-3">
             {hasBothPackages ? (
