@@ -37,7 +37,7 @@ const CONTINENT_KEYS: Record<string, string> = {
   'africa': 'world',
 }
 
-export function ContinentsView({ destinations, locale = 'en', messages = {} }: ContinentsViewProps) {
+export function ContinentsView({ destinations, locale = 'en', messages = {} as Record<string, string> }: ContinentsViewProps) {
   const [selectedContinent, setSelectedContinent] = useState<string | null>(
     null,
   )
