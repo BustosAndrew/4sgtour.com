@@ -153,12 +153,11 @@ export async function PATCH(
       meal.name?.trim(),
     )
     if (validMeals.length > 0) {
-      const mealsToInsert = validMeals.map((meal: any, idx: number) => ({
+      const mealsToInsert = validMeals.map((meal: any) => ({
         trip_id: id,
         name: meal.name,
         description: meal.description || null,
         is_included: meal.is_included || false,
-        is_recommended: idx === 0,
       }))
 
       const { error: mealError } = await supabase
@@ -181,12 +180,11 @@ export async function PATCH(
     )
     if (validTransport.length > 0) {
       const transportToInsert = validTransport.map(
-        (transport: any, idx: number) => ({
+        (transport: any) => ({
           trip_id: id,
           name: transport.name,
           description: transport.description || null,
           is_included: transport.is_included || false,
-          is_recommended: idx === 0,
         }),
       )
 
