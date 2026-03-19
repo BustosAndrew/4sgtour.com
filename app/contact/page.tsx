@@ -83,7 +83,7 @@ export default async function ContactPage() {
                       href="mailto:info@4sgtour.com"
                       className="text-[#735c38]/70 hover:text-[#735c38] text-sm sm:text-base lg:text-[20px] transition-colors font-semibold"
                     >
-                      info@4sgtour.com
+                      booking@4sgtour.com
                     </a>
                   </div>
                 </div>
