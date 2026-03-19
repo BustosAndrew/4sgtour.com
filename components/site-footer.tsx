@@ -242,7 +242,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="mailto:info@4sgtour.com"
+                  href="mailto:booking@4sgtour.com"
                   className="text-white hover:text-white/80 font-semibold text-[16px] uppercase"
                 >
                   booking@4sgtour.com
