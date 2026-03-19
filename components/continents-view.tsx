@@ -37,12 +37,15 @@ const CONTINENT_KEYS: Record<string, string> = {
   'africa': 'world',
 }
 
-export function ContinentsView({ destinations, locale = 'en', messages = {} as Record<string, string> }: ContinentsViewProps) {
-  const [selectedContinent, setSelectedContinent] = useState<string | null>(
-    null,
-  )
+function translate(messages: Record<string, string>, key: string): string {
+  return messages[key] ?? key
+}
+
+export function ContinentsView({ destinations, locale = 'en', messages = {} }: ContinentsViewProps) {
+  const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
   const [hoveredContinent, setHoveredContinent] = useState<string | null>(null)
-  const t = (key: string) => messages[key] ?? key
+
+  const t = (key: string) => translate(messages, key)
 
   const getLocalizedField = (dest: Destination, field: 'name' | 'country' | 'description') => {
     if (locale === 'ko') {
@@ -95,9 +98,7 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} as R
               <div className="absolute inset-0 overflow-hidden">
                 <img
                   src={continent.image || '/placeholder.svg'}
-                  alt={
-                    continent.displayName || continent.name.replace('\n', ' ')
-                  }
+                  alt={continent.displayName || continent.name.replace('\n', ' ')}
                   className="h-full w-full scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
                 {/* Dark overlay that lightens on hover */}
@@ -144,9 +145,7 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} as R
           <div className="text-center">
             <h1
               className="text-4xl font-bold text-[#22333b] md:text-5xl"
-              style={{
-                fontFamily: "'loretta', serif",
-              }}
+              style={{ fontFamily: "'loretta', serif" }}
             >
               <span style={{ fontVariantNumeric: 'lining-nums', fontWeight: 400, WebkitTextStroke: '1.5px currentColor' }}>4</span>{' '}
               Seasons Golf Tour - {selectedContinent}
@@ -169,9 +168,7 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} as R
                   <img
                     src={
                       destination.image_url ||
-                      `/placeholder.svg?height=400&width=600&query=golf+course+${
-                        destination.name || '/placeholder.svg'
-                      }`
+                      `/placeholder.svg?height=400&width=600&query=golf+course+${destination.name || '/placeholder.svg'}`
                     }
                     alt={getLocalizedField(destination, 'name') || ''}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
