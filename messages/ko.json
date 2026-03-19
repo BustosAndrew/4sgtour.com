@@ -1,9 +1,9 @@
 {
   "hero": {
-    "subtitle": "럭셔리 골프 여행",
+    "subtitle": "프리미엄 골프여행",
     "title": "4 Seasons Golf Tour",
-    "tagline": "나만의 골프 여정을 만들어보세요.",
-    "cta": "탐색 시작"
+    "tagline": "세계 최고의 코스를 경험하는 단 하나의 여정",
+    "cta": "여정 둘러보기"
   },
   "nav": {
     "home": "홈",
@@ -20,14 +20,14 @@
     "nextTripInDays": "다음 여행까지 {days}일"
   },
   "home": {
-    "settingStandard": "해외 골프 여행의",
-    "forOverseas": "새로운 기준을 세우다",
-    "description": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 해외 골프 여행과 투어를 강조하며, 저희 투어가 제공하는 다양한 특별 혜택과 서비스를 즐기실 수 있습니다.",
+    "settingStandard": "내 인 생 최 고 의",
+    "forOverseas": "골 프 여 행 을 만 나 다",
+    "description": "지금 이 순간, 누군가는 꿈꾸고 누군가는 떠납니다 우리는 그 여정을 평생 기억될 골프 여행으로 완성합니다.",
     "viewAll": "전체 보기",
-    "fourSeasonsDifference": "4 Seasons의 차별화.",
-    "differenceDescription": "4SGTours에서는 여러분의 여정이 플레이하시는 코스만큼이나 특별해야 한다고 믿습니다. 엄선된 럭셔리, 독점적인 내부자 액세스, 원활한 계획 수립, 그리고 개인 호스트 옵션을 통해 여러분만을 위한 잊지 못할 골프 경험을 만들어 드립니다.",
-    "viewTournaments": "골프 토너먼트 보기",
-    "tournamentsDescription": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 해외 골프 여행과 투어를 강조하며, 저희 투어가 제공하는 다양한 특별 혜택과 서비스를 즐기실 수 있습니다.",
+    "fourSeasonsDifference": "차원이 다른 골프 여행",
+    "differenceDescription": "4SGTOUR 는 전문가들이 설계하고 운영하는 프리미엄 골프투어 전문 기업입니다. 코스 선정부터 일정, 숙박 현지 경험까지 전체의 흐름을 하나의 완성된 여정으로 설계합니다. 불필요한 것은 덜고 필요한 가치만 남겨 차이를 직접 체감할 수 있는 골프 여행을 제공합니다.",
+    "viewTournaments": "메이저 대회",
+    "tournamentsDescription": "골프의 정점, 세계 최고의 순간을 직접 경험해보세요",
     "charmOfGolf": "해외 골프 여행의 매력",
     "journeyWith": "4 Seasons Golf Tour와 함께하는 여정",
     "worldGolfTeeTime": "월드 골프 티타임",
@@ -74,8 +74,8 @@
     "sendMessage": "메시지 보내기",
     "sending": "전송 중...",
     "successMessage": "메시지를 보내주셔서 감사합니다! 곧 연락드리겠습니다.",
-    "getInTouch": "연락하기",
-    "getInTouchDescription": "저희는 해외 골프 여행 전문 한국 여행사로, 뛰어난 서비스와 다양한 여행지를 제공하며 최고의 골프 투어를 선보입니다. 언제든 연락주세요. 여러분의 연락을 기다리겠습니다!",
+    "getInTouch": "전문가 상담요청",
+    "getInTouchDescription": "당신만을 위한 골프여정을 한국인 전문가 상담과 함께 편안하게 설계해보세요!",
     "representativeEmail": "대표 이메일",
     "website": "웹사이트"
   },
