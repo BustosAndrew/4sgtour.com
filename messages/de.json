@@ -315,6 +315,7 @@
     "additionalGuests": "Weitere Gäste",
     "additionalGuestsDescription": "Geben Sie die Namen und Telefonnummern aller Gäste ein, die an der Reise teilnehmen.",
     "maxGuestsNote": "Diese Reise hat eine Kapazität von maximal {max} Gästen insgesamt (einschließlich Ihrer Person).",
+    "maxGuestsOverflowHint": "Mehr Plätze benötigt? Fordern Sie eine Unterkunft an und wir finden eine Lösung.",
     "guest": "Gast",
     "guestName": "Vollständiger Name",
     "guestNamePlaceholder": "Name des Gastes",

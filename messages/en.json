@@ -315,6 +315,7 @@
     "additionalGuests": "Additional Guests",
     "additionalGuestsDescription": "Add the names and phone numbers of all guests joining your trip.",
     "maxGuestsNote": "This trip accommodates up to {max} guests total (including yourself).",
+    "maxGuestsOverflowHint": "Need more spots? Request accommodation and we'll work something out.",
     "guest": "Guest",
     "guestName": "Full Name",
     "guestNamePlaceholder": "Guest full name",

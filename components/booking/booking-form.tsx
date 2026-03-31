@@ -1052,14 +1052,27 @@ export function BookingForm({
           <div className="overflow-hidden">
             <SectionHeader number={3} title={t('additionalGuests')} />
             <div className="py-6 space-y-4">
-              <div>
+              <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {t('additionalGuestsDescription')}
                 </p>
                 {maxGuests !== null && (
-                  <p className="mt-1 text-sm text-muted-foreground italic">
-                    {t('maxGuestsNote').replace('{max}', String(maxGuests))}
-                  </p>
+                  <div className="flex flex-col gap-2 border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                      <p className="text-sm text-amber-800">
+                        {t('maxGuestsNote').replace('{max}', String(maxGuests))}{' '}
+                        {t('maxGuestsOverflowHint')}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAccommodationModal(true)}
+                      className="shrink-0 self-start whitespace-nowrap border border-amber-500 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition-colors sm:self-auto"
+                    >
+                      {t('requestAccommodation')}
+                    </button>
+                  </div>
                 )}
               </div>
 
