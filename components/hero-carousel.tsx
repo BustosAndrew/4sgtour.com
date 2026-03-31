@@ -70,7 +70,8 @@ export function HeroCarousel() {
               fontWeight: 400,
             }}
           >
-            {t('title')}
+            <span className="italic inline-block translate-y-[-0.05em]">4</span>
+            &nbsp;{t('title').replace(/^4\s*/, '')}
           </p>
           {/* Tagline */}
           <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white mb-6 sm:mb-8 font-semibold">

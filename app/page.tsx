@@ -147,7 +147,7 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                {t('fourSeasonsDifference')}
+                The <span className="italic inline-block translate-y-[-0.05em]">4</span> Seasons Difference.
               </h2>
               <p
                 className="text-white leading-relaxed mb-8"
@@ -255,7 +255,7 @@ export default async function HomePage() {
               className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] text-center"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              {t('journeyWith')}
+              Journey with <span className="italic inline-block translate-y-[-0.05em]">4</span> Seasons Golf Tour
             </h2>
 
             {/* Three videos in a row */}
