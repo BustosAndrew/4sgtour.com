@@ -282,7 +282,10 @@ export function BookingForm({
     from: undefined,
     to: undefined,
   })
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const advanceDays = trip.min_days_advance || 0
+    return advanceDays > 0 ? addDays(new Date(), advanceDays) : new Date()
+  })
 
   // Show accommodation image in booking details
   const accommodationImages: Array<{
@@ -703,7 +706,11 @@ export function BookingForm({
           <div className="flex gap-1">
             <button
               type="button"
-              className="rounded p-1.5 hover:bg-muted transition-colors"
+              disabled={
+                currentMonth.getFullYear() === minDate.getFullYear() &&
+                currentMonth.getMonth() <= minDate.getMonth()
+              }
+              className="rounded p-1.5 hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={() =>
                 setCurrentMonth(
                   new Date(
