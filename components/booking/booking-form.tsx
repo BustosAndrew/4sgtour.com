@@ -573,6 +573,8 @@ export function BookingForm({
     }
   }
 
+  const SINGLE_OCCUPANCY_SURCHARGE = 0.12 // 12% surcharge for single occupancy
+
   const calculateTotal = () => {
     let total = 0
 
@@ -597,10 +599,42 @@ export function BookingForm({
       }
     }
 
+    // Apply 12% single occupancy surcharge to the full booking total
+    if (roomType === 'single') {
+      total = total * (1 + SINGLE_OCCUPANCY_SURCHARGE)
+    }
+
     // Note: Golf courses, meals, and transportation no longer have individual prices
     // All pricing is now included in the package price
 
     return total
+  }
+
+  // Calculate the surcharge amount for display purposes
+  const calculateSingleOccupancySurcharge = () => {
+    let baseTotal = 0
+
+    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+    if (selectedPackage) {
+      baseTotal += Number(selectedPackage.price)
+
+      if (
+        selectedPackage.price_per_extra_night &&
+        travelDateRange.from &&
+        travelDateRange.to
+      ) {
+        const nightsBooked = differenceInDays(
+          travelDateRange.to,
+          travelDateRange.from,
+        )
+        const extraNights = Math.max(0, nightsBooked - minNights)
+        if (extraNights > 0) {
+          baseTotal += extraNights * Number(selectedPackage.price_per_extra_night)
+        }
+      }
+    }
+
+    return baseTotal * SINGLE_OCCUPANCY_SURCHARGE
   }
 
   const totalRounds = Object.values(courseRounds).reduce((sum, r) => sum + r, 0)
@@ -866,6 +900,7 @@ export function BookingForm({
     const extraNightsCount = selectedPackage.price_per_extra_night
       ? Math.max(0, nightsBooked - minNights)
       : 0
+    const surchargeAmount = roomType === 'single' ? calculateSingleOccupancySurcharge() : 0
 
     return (
       <div className="w-full max-w-2xl mx-auto">
@@ -878,6 +913,7 @@ export function BookingForm({
           basePrice={selectedPackage.price}
           extraNights={extraNightsCount}
           extraNightPrice={selectedPackage.price_per_extra_night || 0}
+          singleOccupancySurcharge={surchargeAmount}
           startDate={bookingDetails.startDate}
           endDate={bookingDetails.endDate}
           roomType={bookingDetails.roomType}
@@ -950,9 +986,14 @@ export function BookingForm({
                 <div className="flex items-start gap-3">
                   <User className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
-                    <h3 className="font-serif text-xl font-medium">
-                      {t('singleOccupancy')}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-serif text-xl font-medium">
+                        {t('singleOccupancy')}
+                      </h3>
+                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                        +12%
+                      </span>
+                    </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {t('singleDescription')}
                     </p>
@@ -1528,35 +1569,49 @@ export function BookingForm({
                     const extraNightsCost =
                       extraNights *
                       Number(selectedPackage?.price_per_extra_night || 0)
+                    const showBreakdown = (hasExtraNights && extraNights > 0) || roomType === 'single'
+                    const subtotalBeforeSurcharge = selectedPackage 
+                      ? Number(selectedPackage.price) + extraNightsCost 
+                      : 0
 
                     return (
                       <>
-                        {hasExtraNights && extraNights > 0 && (
+                        {showBreakdown && (
                           <div className="text-sm space-y-1 mb-2 pb-2 border-b border-border">
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">
                                 {t('basePrice')}
                               </span>
-                              <span>${selectedPackage.price}</span>
+                              <span>${selectedPackage?.price || 0}</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                {t('extraNightsCost')
-                                  .replace('{nights}', String(extraNights))
-                                  .replace(
-                                    '{price}',
-                                    String(
-                                      selectedPackage.price_per_extra_night,
-                                    ),
-                                  )}
-                              </span>
-                              <span>${extraNightsCost.toFixed(2)}</span>
-                            </div>
+                            {hasExtraNights && extraNights > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  {t('extraNightsCost')
+                                    .replace('{nights}', String(extraNights))
+                                    .replace(
+                                      '{price}',
+                                      String(
+                                        selectedPackage?.price_per_extra_night,
+                                      ),
+                                    )}
+                                </span>
+                                <span>${extraNightsCost.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {roomType === 'single' && (
+                              <div className="flex justify-between text-amber-700">
+                                <span>
+                                  {t('singleOccupancySurcharge')} (+12%)
+                                </span>
+                                <span>+${(subtotalBeforeSurcharge * SINGLE_OCCUPANCY_SURCHARGE).toFixed(2)}</span>
+                              </div>
+                            )}
                           </div>
                         )}
                         <div className="flex items-baseline gap-1 font-serif text-xl">
                           <span>{t('total')}:</span>
-                          <span>${calculateTotal()}</span>
+                          <span>${calculateTotal().toFixed(2)}</span>
                         </div>
                       </>
                     )

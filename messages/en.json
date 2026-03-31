@@ -250,6 +250,7 @@
     "doubleDescription": "Share a room with another guest for a more economical option",
     "singleOccupancy": "Single Occupancy",
     "singleDescription": "Private room for yourself for maximum comfort and privacy",
+    "singleOccupancySurcharge": "Single Occupancy",
     "travelDuration": "Travel Duration",
     "selectDates": "Select Dates",
     "selectDatesDescription": "Choose your travel dates for your golf experience",
@@ -339,7 +340,8 @@
     "packageTotal": "Package Total",
     "basePrice": "Base Price",
     "extraNightsCost": "Extra Nights ({nights})",
-    "depositDue": "Deposit Due (30%)"
+    "depositDue": "Deposit Due (30%)",
+    "singleOccupancySurcharge": "Single Occupancy"
   },
   "destinations": {
     "title": "Destinations",

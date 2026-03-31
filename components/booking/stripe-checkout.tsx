@@ -84,6 +84,7 @@ interface StripeCheckoutProps {
   basePrice: number
   extraNights: number
   extraNightPrice: number
+  singleOccupancySurcharge?: number
   startDate: string
   endDate: string
   roomType: string
@@ -110,6 +111,7 @@ export function StripeCheckout({
   basePrice,
   extraNights,
   extraNightPrice,
+  singleOccupancySurcharge = 0,
   startDate,
   endDate,
   roomType,
@@ -355,16 +357,24 @@ export function StripeCheckout({
             <span>{t('roomType')}</span>
             <span>{roomType}</span>
           </div>
-          {extraNights > 0 ? (
+          {(extraNights > 0 || singleOccupancySurcharge > 0) ? (
             <>
               <div className="flex justify-between pt-2 border-t border-border mt-2">
                 <span>{t('basePrice')}</span>
                 <span>${basePrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>{t('extraNightsCost', { nights: extraNights })}</span>
-                <span>${(extraNights * extraNightPrice).toFixed(2)}</span>
-              </div>
+              {extraNights > 0 && (
+                <div className="flex justify-between">
+                  <span>{t('extraNightsCost', { nights: extraNights })}</span>
+                  <span>${(extraNights * extraNightPrice).toFixed(2)}</span>
+                </div>
+              )}
+              {singleOccupancySurcharge > 0 && (
+                <div className="flex justify-between text-amber-700">
+                  <span>{t('singleOccupancySurcharge')} (+12%)</span>
+                  <span>+${singleOccupancySurcharge.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-medium">
                 <span>{t('packageTotal')}</span>
                 <span>${packagePrice.toFixed(2)}</span>

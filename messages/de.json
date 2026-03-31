@@ -250,6 +250,7 @@
     "doubleDescription": "Teilen Sie ein Zimmer mit einem anderen Gast für eine günstigere Option",
     "singleOccupancy": "Einzelbelegung",
     "singleDescription": "Eigenes Zimmer für maximalen Komfort und Privatsphäre",
+    "singleOccupancySurcharge": "Einzelbelegung Zuschlag",
     "travelDuration": "Reisedauer",
     "selectDates": "Daten auswählen",
     "selectDatesDescription": "Wählen Sie Ihre Reisedaten für Ihr Golferlebnis",
@@ -339,7 +340,8 @@
     "packageTotal": "Paketgesamtpreis",
     "basePrice": "Grundpreis",
     "extraNightsCost": "Zusätzliche Nächte ({nights})",
-    "depositDue": "Fällige Anzahlung (30%)"
+    "depositDue": "Fällige Anzahlung (30%)",
+    "singleOccupancySurcharge": "Einzelbelegung Zuschlag"
   },
   "destinations": {
     "title": "Reiseziele",
