@@ -171,10 +171,12 @@
     "rounds": "Rounds:",
     "submitted": "Submitted:",
     "notes": "Notes:",
-    "confirmed": "Confirmed",
-    "inProgress": "In Progress",
-    "cancelled": "Cancelled",
-    "pending": "Pending"
+  "confirmed": "Confirmed",
+  "inProgress": "In Progress",
+  "cancelled": "Cancelled",
+  "pending": "Pending",
+  "tournamentInquiry": "Tournament",
+  "participants": "Participants:"
   },
   "auth": {
     "signedInAs": "Signed in as",
@@ -250,6 +252,7 @@
     "doubleDescription": "Share a room with another guest for a more economical option",
     "singleOccupancy": "Single Occupancy",
     "singleDescription": "Private room for yourself for maximum comfort and privacy",
+    "singleOccupancySurcharge": "Single Occupancy",
     "travelDuration": "Travel Duration",
     "selectDates": "Select Dates",
     "selectDatesDescription": "Choose your travel dates for your golf experience",
@@ -307,7 +310,29 @@
     "createAccountPrompt": "Create an account to manage your booking",
     "createAccountDescription": "Sign up to track your trip details, communicate with our team, and access exclusive member benefits.",
     "createAccount": "Create Account",
-    "returnToTrip": "Return to Trip Details"
+    "viewMyBookings": "View My Bookings",
+    "returnToTrip": "Return to Trip Details",
+    "additionalGuests": "Additional Guests",
+    "additionalGuestsDescription": "Add the names and phone numbers of all guests joining your trip.",
+    "maxGuestsNote": "This trip accommodates up to {max} guests total (including yourself).",
+    "maxGuestsOverflowHint": "Need more spots? Request accommodation and we'll work something out.",
+    "guest": "Guest",
+    "guestName": "Full Name",
+    "guestNamePlaceholder": "Guest full name",
+    "guestPhone": "Phone Number",
+    "guestPhonePlaceholder": "+1 (555) 000-0000",
+    "guestOccupancy": "Occupancy Type",
+    "guestPrice": "Price for this guest",
+    "addGuest": "Add Guest",
+    "totalGuests": "Total guests",
+    "people": "people",
+    "additionalGuestCount": "additional guest(s)",
+    "requestAccommodation": "Request Accommodation",
+    "requestAccommodationTitle": "Need More Accommodation?",
+    "requestAccommodationMessage": "This trip has a maximum capacity of {max} guests total. If your group exceeds this limit, please fill out our contact form and our team will be happy to discuss custom arrangements.",
+    "requestAccommodationContact": "Our team will work with you to find the best solution for your group.",
+    "goToContactForm": "Go to Contact Form",
+    "dismissModal": "Continue with Current Guests"
   },
   "checkout": {
     "contactInformation": "Contact Information",
@@ -339,7 +364,8 @@
     "packageTotal": "Package Total",
     "basePrice": "Base Price",
     "extraNightsCost": "Extra Nights ({nights})",
-    "depositDue": "Deposit Due (30%)"
+    "depositDue": "Deposit Due (30%)",
+    "singleOccupancySurcharge": "Single Occupancy"
   },
   "destinations": {
     "title": "Destinations",

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageSquare, Send, ChevronDown, ChevronUp } from "lucide-react"
+import { MessageSquare, Send, ChevronDown, ChevronUp, Pencil, Trash2, Check, X } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
 interface Message {
@@ -14,6 +14,7 @@ interface Message {
   is_admin: boolean
   message_text: string
   created_at: string
+  updated_at?: string
 }
 
 interface UserInquiryMessagesProps {
@@ -34,6 +35,11 @@ export function UserInquiryMessages({
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState("")
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const editRef = useRef<HTMLTextAreaElement>(null)
 
   const loadMessages = async () => {
     setLoading(true)
@@ -84,6 +90,57 @@ export function UserInquiryMessages({
     }
   }
 
+  const startEdit = (message: Message) => {
+    setEditingId(message.id)
+    setEditText(message.message_text)
+    setTimeout(() => editRef.current?.focus(), 50)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditText("")
+  }
+
+  const saveEdit = async (messageId: string) => {
+    if (!editText.trim()) return
+    setSavingEdit(true)
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageText: editText }),
+      })
+      if (response.ok) {
+        const updated = await response.json()
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? updated : m)),
+        )
+        setEditingId(null)
+        setEditText("")
+      }
+    } catch (error) {
+      console.error("Error editing message:", error)
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const deleteMessage = async (messageId: string) => {
+    setDeletingId(messageId)
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: "DELETE",
+      })
+      if (response.ok) {
+        setMessages((prev) => prev.filter((m) => m.id !== messageId))
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   useEffect(() => {
     if (isExpanded) {
       loadMessages()
@@ -125,32 +182,95 @@ export function UserInquiryMessages({
                 </p>
               </div>
             ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.is_admin ? "justify-start" : "justify-end"
-                  }`}
-                >
+              messages.map((message) => {
+                const isOwn = !message.is_admin
+                const isEditing = editingId === message.id
+                return (
                   <div
-                    className={`max-w-[80%] p-3 ${
-                      message.is_admin
-                        ? "bg-muted"
-                        : "bg-primary text-primary-foreground"
-                    }`}
+                    key={message.id}
+                    className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
-                    <p className="mb-1 text-xs font-medium">
-                      {message.sender_name}
-                    </p>
-                    <p className="text-sm">{message.message_text}</p>
-                    <p className="mt-1 text-xs opacity-70">
-                      {formatDistanceToNow(new Date(message.created_at), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    <div className={`group relative max-w-[80%]`}>
+                      {/* Edit/delete controls for own messages */}
+                      {isOwn && !isEditing && (
+                        <div className="absolute -top-6 right-0 hidden items-center gap-1 group-hover:flex">
+                          <button
+                            onClick={() => startEdit(message)}
+                            className="rounded bg-background p-1 shadow-sm border text-muted-foreground hover:text-foreground transition-colors"
+                            title="Edit message"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => deleteMessage(message.id)}
+                            disabled={deletingId === message.id}
+                            className="rounded bg-background p-1 shadow-sm border text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                            title="Delete message"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div
+                        className={`p-3 ${
+                          isOwn
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="mb-1 text-xs font-medium">
+                          {message.sender_name}
+                        </p>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <textarea
+                              ref={editRef}
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault()
+                                  saveEdit(message.id)
+                                }
+                                if (e.key === "Escape") cancelEdit()
+                              }}
+                              rows={2}
+                              className="w-full resize-none rounded border-0 bg-primary-foreground/20 p-1.5 text-sm text-inherit placeholder:opacity-60 focus:outline-none focus:ring-1 focus:ring-primary-foreground/40"
+                            />
+                            <div className="flex gap-1 justify-end">
+                              <button
+                                onClick={cancelEdit}
+                                className="rounded p-1 opacity-70 hover:opacity-100 transition-opacity"
+                                title="Cancel"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => saveEdit(message.id)}
+                                disabled={savingEdit || !editText.trim()}
+                                className="rounded p-1 opacity-70 hover:opacity-100 transition-opacity disabled:opacity-30"
+                                title="Save"
+                              >
+                                <Check className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm">{message.message_text}</p>
+                        )}
+                        <p className="mt-1 text-xs opacity-70">
+                          {formatDistanceToNow(new Date(message.created_at), {
+                            addSuffix: true,
+                          })}
+                          {message.updated_at && message.updated_at !== message.created_at && (
+                            <span className="ml-1">(edited)</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
 

@@ -3,7 +3,7 @@
 import { useTranslations } from '@/lib/i18n/provider'
 import { Button } from '@/components/ui/button'
 import { differenceInDays, format } from 'date-fns'
-import { CheckCircle2, Calendar, MapPin, Users, Clock } from 'lucide-react'
+import { CheckCircle2, Calendar, MapPin, Users, Clock, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { UserInquiryMessages } from '@/components/user-inquiry-messages'
 
@@ -64,9 +64,17 @@ export function BookingsContent({
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground text-lg">
-                    {inquiry.trip_title}
-                  </h3>
+                  <div className="flex items-start gap-2 flex-wrap">
+                    <h3 className="font-semibold text-foreground text-lg">
+                      {inquiry.trip_title}
+                    </h3>
+                    {inquiry.inquiry_type === 'tournament' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 shrink-0 mt-0.5">
+                        <Trophy className="h-3 w-3" />
+                        {t('tournamentInquiry')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     {inquiry.package_name && (
                       <span className="inline-flex items-center gap-1">
@@ -76,51 +84,67 @@ export function BookingsContent({
                     )}
                   </p>
                   <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                    {inquiry.start_date && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {t('start')}
-                        </span>{' '}
-                        <span className="font-medium">
-                          {format(new Date(inquiry.start_date), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    )}
-                    {inquiry.end_date && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {t('end')}
-                        </span>{' '}
-                        <span className="font-medium">
-                          {format(new Date(inquiry.end_date), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    )}
-                    {inquiry.start_date && inquiry.end_date && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {t('duration')}
-                        </span>{' '}
-                        <span className="font-medium">
-                          {differenceInDays(
-                            new Date(inquiry.end_date),
-                            new Date(inquiry.start_date)
-                          ) + 1}{' '}
-                          {t('days')}
-                        </span>
-                      </div>
-                    )}
-                    {inquiry.rounds > 0 && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {t('rounds')}
-                        </span>{' '}
-                        <span className="font-medium">{inquiry.rounds}</span>
-                      </div>
+                    {inquiry.inquiry_type === 'tournament' ? (
+                      <>
+                        {inquiry.participants > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('participants')}
+                            </span>{' '}
+                            <span className="font-medium">{inquiry.participants}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {inquiry.start_date && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('start')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {format(new Date(inquiry.start_date), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                        )}
+                        {inquiry.end_date && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('end')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {format(new Date(inquiry.end_date), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                        )}
+                        {inquiry.start_date && inquiry.end_date && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('duration')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {differenceInDays(
+                                new Date(inquiry.end_date),
+                                new Date(inquiry.start_date)
+                              ) + 1}{' '}
+                              {t('days')}
+                            </span>
+                          </div>
+                        )}
+                        {inquiry.rounds > 0 && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('rounds')}
+                            </span>{' '}
+                            <span className="font-medium">{inquiry.rounds}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />

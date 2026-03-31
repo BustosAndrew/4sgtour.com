@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
+    const supabase = await createClient()
 
     const body = await request.json()
     const {
+      eventId,
       eventTitle,
       tierName,
       tierPrice,
@@ -21,6 +24,27 @@ export async function POST(request: Request) {
         { error: "Name, email, and number of participants are required." },
         { status: 400 },
       )
+    }
+
+    // Save to inquiries table
+    const { data: inquiry, error: dbError } = await supabase
+      .from("inquiries")
+      .insert({
+        trip_id: eventId || null,
+        trip_title: eventTitle,
+        customer_name: name,
+        customer_email: email,
+        package_name: tierName ? `${tierName}${tierPrice ? ` — ${tierPrice}` : ""}` : null,
+        additional_requests: notes || null,
+        participants: Number(participants),
+        inquiry_type: "tournament",
+        status: "pending",
+      })
+      .select()
+      .single()
+
+    if (dbError) {
+      console.error("[v0] Tournament inquiry DB error:", dbError)
     }
 
     const emailHtml = `
@@ -106,7 +130,7 @@ This inquiry was submitted through the tournament tickets form.
       text: textContent,
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, inquiryId: inquiry?.id })
   } catch (error) {
     console.error("Error sending tournament ticket inquiry:", error)
     return NextResponse.json(
