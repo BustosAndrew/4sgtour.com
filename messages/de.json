@@ -365,7 +365,17 @@
     "basePrice": "Grundpreis",
     "extraNightsCost": "Zusätzliche Nächte ({nights})",
     "depositDue": "Fällige Anzahlung (30%)",
-    "singleOccupancySurcharge": "Einzelbelegung Zuschlag"
+    "singleOccupancySurcharge": "Einzelbelegung Zuschlag",
+    "smsPaymentLink": "Zahlungslink per SMS",
+    "smsPaymentLinkDescription": "Erhalten Sie einen Zahlungslink per SMS",
+    "smsLinkSendButton": "Zahlungslink an mein Telefon senden",
+    "smsLinkSending": "Zahlungslink wird gesendet...",
+    "smsLinkSentTitle": "Zahlungslink gesendet!",
+    "smsLinkSentMessage": "Wir haben einen Zahlungslink an {phone} gesendet.",
+    "smsLinkSentDeposit": "Öffnen Sie den Link auf Ihrem Telefon, um Ihre 30% Anzahlung ({amount}) abzuschließen.",
+    "smsLinkExpiry": "Dieser Zahlungslink läuft in 24 Stunden ab. Falls er abläuft, können Sie einen neuen anfordern.",
+    "smsLinkResend": "Zahlungslink erneut senden",
+    "smsLinkViewBookings": "Meine Buchungen ansehen"
   },
   "destinations": {
     "title": "Reiseziele",

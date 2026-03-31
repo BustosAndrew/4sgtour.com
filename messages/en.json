@@ -171,12 +171,12 @@
     "rounds": "Rounds:",
     "submitted": "Submitted:",
     "notes": "Notes:",
-  "confirmed": "Confirmed",
-  "inProgress": "In Progress",
-  "cancelled": "Cancelled",
-  "pending": "Pending",
-  "tournamentInquiry": "Tournament",
-  "participants": "Participants:"
+    "confirmed": "Confirmed",
+    "inProgress": "In Progress",
+    "cancelled": "Cancelled",
+    "pending": "Pending",
+    "tournamentInquiry": "Tournament",
+    "participants": "Participants:"
   },
   "auth": {
     "signedInAs": "Signed in as",
@@ -365,7 +365,17 @@
     "basePrice": "Base Price",
     "extraNightsCost": "Extra Nights ({nights})",
     "depositDue": "Deposit Due (30%)",
-    "singleOccupancySurcharge": "Single Occupancy"
+    "singleOccupancySurcharge": "Single Occupancy",
+    "smsPaymentLink": "Text Message Payment Link",
+    "smsPaymentLinkDescription": "Receive a payment link via SMS",
+    "smsLinkSendButton": "Send Payment Link to My Phone",
+    "smsLinkSending": "Sending payment link...",
+    "smsLinkSentTitle": "Payment Link Sent!",
+    "smsLinkSentMessage": "We've texted a payment link to {phone}.",
+    "smsLinkSentDeposit": "Open the link on your phone to complete your 30% deposit ({amount}).",
+    "smsLinkExpiry": "This payment link will expire in 24 hours. If it expires, you can request a new one.",
+    "smsLinkResend": "Resend Payment Link",
+    "smsLinkViewBookings": "View My Bookings"
   },
   "destinations": {
     "title": "Destinations",

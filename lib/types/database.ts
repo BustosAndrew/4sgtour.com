@@ -1,8 +1,8 @@
-export type UserType = "regular" | "admin"
+export type UserType = 'regular' | 'admin'
 
-export type RoomType = "single" | "double"
+export type RoomType = 'single' | 'double'
 
-export type BookingStatus = "pending" | "confirmed" | "cancelled"
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled'
 
 export interface Profile {
   id: string
@@ -101,7 +101,7 @@ export interface AddOn {
   name: string
   description: string | null
   price: number
-  price_type: "per_participant" | "per_booking"
+  price_type: 'per_participant' | 'per_booking'
   availability: string
   quantity: number | null
   created_at: string
@@ -114,6 +114,7 @@ export interface Inquiry {
   trip_title: string
   customer_name: string
   customer_email: string
+  customer_phone: string | null
   package_name: string | null
   start_date: string | null
   end_date: string | null
@@ -121,7 +122,15 @@ export interface Inquiry {
   rounds: number
   additional_requests: string | null
   total_price: number
-  status: "pending" | "contacted" | "converted" | "cancelled"
+  status: 'pending' | 'contacted' | 'converted' | 'cancelled'
+  guests: Array<{
+    name: string
+    phone: string
+    occupancy: 'single' | 'double'
+  }> | null
+  payment_link: string | null
+  stripe_session_id: string | null
+  payment_link_sent_at: string | null
   created_at: string
   updated_at: string
 }

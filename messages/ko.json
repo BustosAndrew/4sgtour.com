@@ -365,7 +365,17 @@
     "basePrice": "기본 가격",
     "extraNightsCost": "추가 숙박 ({nights}박)",
     "depositDue": "보증금 (30%)",
-    "singleOccupancySurcharge": "1인 객실 추가 요금"
+    "singleOccupancySurcharge": "1인 객실 추가 요금",
+    "smsPaymentLink": "문자 결제 링크",
+    "smsPaymentLinkDescription": "SMS로 결제 링크를 받으세요",
+    "smsLinkSendButton": "결제 링크를 내 폰으로 보내기",
+    "smsLinkSending": "결제 링크 전송 중...",
+    "smsLinkSentTitle": "결제 링크가 전송되었습니다!",
+    "smsLinkSentMessage": "{phone}으로 결제 링크를 보냈습니다.",
+    "smsLinkSentDeposit": "휴대폰에서 링크를 열어 30% 보증금({amount})을 완료하세요.",
+    "smsLinkExpiry": "이 결제 링크는 24시간 후에 만료됩니다. 만료되면 새로운 링크를 요청할 수 있습니다.",
+    "smsLinkResend": "결제 링크 재전송",
+    "smsLinkViewBookings": "내 예약 보기"
   },
   "destinations": {
     "title": "여행지",

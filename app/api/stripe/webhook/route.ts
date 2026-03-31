@@ -70,7 +70,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       status: 'confirmed',
       stripe_payment_intent_id: session.payment_intent as string,
     })
-    .eq('stripe_session_id', sessionId)
+    .eq('stripe_checkout_session_id', sessionId)
     .select()
     .single()
 
@@ -83,7 +83,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         trip_id: metadata.trip_id,
         package_id: metadata.package_id,
         user_id: metadata.user_id || null,
-        stripe_session_id: sessionId,
+        stripe_checkout_session_id: sessionId,
         stripe_payment_intent_id: session.payment_intent as string,
         customer_name: metadata.customer_name,
         customer_email: metadata.customer_email,
@@ -111,6 +111,25 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
 
   // Send confirmation emails
   await sendBookingConfirmationEmails(metadata, session, booking)
+
+  // If this was a SMS payment link, update the inquiry status to converted
+  // and send an invoice email to the customer
+  if (metadata.payment_method === 'sms_link') {
+    const { error: inquiryError } = await supabase
+      .from('inquiries')
+      .update({
+        status: 'converted',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_session_id', sessionId)
+
+    if (inquiryError) {
+      console.error('[v0] Error updating inquiry status:', inquiryError)
+    }
+
+    // Send invoice email for SMS link payments
+    await sendInvoiceEmail(metadata, session)
+  }
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
@@ -120,7 +139,7 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   const { error } = await supabase
     .from('stripe_bookings')
     .update({ status: 'expired' })
-    .eq('stripe_session_id', sessionId)
+    .eq('stripe_checkout_session_id', sessionId)
 
   if (error) {
     console.error('[v0] Error updating expired booking:', error)
@@ -163,8 +182,9 @@ NEXT STEPS
 ==========
 Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.
 
-${isGuest
-      ? `
+${
+  isGuest
+    ? `
 CREATE AN ACCOUNT
 =================
 We noticed you booked as a guest. Create an account to:
@@ -174,8 +194,8 @@ We noticed you booked as a guest. Create an account to:
 
 Sign up here: ${process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'}/auth/sign-up
 `
-      : ''
-    }
+    : ''
+}
 
 If you have any questions, please don't hesitate to contact us.
 
@@ -237,5 +257,83 @@ Booking ID: ${booking?.id || 'N/A'}
     console.log('[v0] Admin notification email sent')
   } catch (error) {
     console.error('[v0] Error sending admin email:', error)
+  }
+}
+
+async function sendInvoiceEmail(
+  metadata: Record<string, string>,
+  session: Stripe.Checkout.Session,
+) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const amountPaid = session.amount_total
+    ? (session.amount_total / 100).toFixed(2)
+    : '0.00'
+  const invoiceDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  const golfCourses = (() => {
+    try {
+      return JSON.parse(metadata.golf_courses || '[]')
+    } catch {
+      return []
+    }
+  })()
+
+  const invoiceContent = `
+INVOICE - 4 Seasons Golf Tour
+==============================
+
+Invoice Date: ${invoiceDate}
+Payment Reference: ${session.payment_intent || session.id}
+
+BILL TO
+-------
+${metadata.customer_name}
+${metadata.customer_email}
+${metadata.customer_phone}
+
+BOOKING DETAILS
+--------------
+Trip: ${metadata.trip_title}
+Package: ${metadata.package_name}
+Travel Dates: ${metadata.start_date} to ${metadata.end_date}
+Room Type: ${metadata.room_type}
+${golfCourses.length > 0 ? `Golf Courses: ${golfCourses.join(', ')}` : ''}
+${metadata.meal_option ? `Meals: ${metadata.meal_option}` : ''}
+${metadata.transport_option ? `Transportation: ${metadata.transport_option}` : ''}
+
+PAYMENT SUMMARY
+---------------
+30% Deposit Paid: $${amountPaid}
+Payment Method: Text Message Payment Link
+Status: PAID
+
+${metadata.additional_requests ? `\nADDITIONAL REQUESTS\n-------------------\n${metadata.additional_requests}\n` : ''}
+
+NEXT STEPS
+----------
+Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.
+
+Thank you for choosing 4 Seasons Golf Tour!
+
+---
+4 Seasons Golf Tour
+Website: ${process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'}
+Email: ${process.env.ADMIN_EMAIL || 'info@4sgtour.com'}
+  `.trim()
+
+  try {
+    await resend.emails.send({
+      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      to: metadata.customer_email,
+      subject: `Invoice: ${metadata.trip_title} - Payment Confirmed`,
+      text: invoiceContent,
+    })
+    console.log('[v0] Invoice email sent to customer via SMS link payment')
+  } catch (error) {
+    console.error('[v0] Error sending invoice email:', error)
   }
 }
