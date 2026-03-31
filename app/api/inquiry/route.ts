@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       roomType,
       additionalRequests,
       totalPrice,
+      guests,
     } = body
 
     const totalRounds = golfCourses?.length || rounds || 0
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
         rounds: totalRounds,
         additional_requests: additionalRequests,
         total_price: totalPrice,
+        guests: guests || [],
         status: "pending",
       })
       .select()
@@ -79,6 +81,9 @@ ${mealOption ? `Meals: ${mealOption}` : ""}
 ${transportOption ? `Transportation: ${transportOption}` : ""}
 
 Total Price: $${totalPrice}
+${guests && guests.length > 0
+  ? `\nAdditional Guests (${guests.length}):\n${guests.map((g: any, i: number) => `  ${i + 1}. ${g.name} | ${g.phone} | ${g.occupancy === 'single' ? 'Single Occupancy (+12%)' : 'Double Occupancy'}`).join('\n')}`
+  : ''}
 
 Additional Requests:
 ${additionalRequests || "None"}

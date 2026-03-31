@@ -42,6 +42,7 @@ interface EmbeddedCheckoutWrapperProps {
     mealOption?: string
     transportOption?: string
     additionalRequests?: string
+  guests?: Array<{ name: string; phone: string; occupancy: 'single' | 'double' }>
   }
   onCompleteRef: React.RefObject<(() => void) | undefined>
 }
@@ -92,6 +93,7 @@ interface StripeCheckoutProps {
   mealOption?: string
   transportOption?: string
   additionalRequests?: string
+  guests?: Array<{ name: string; phone: string; occupancy: 'single' | 'double' }>
   prefillName?: string
   prefillEmail?: string
   prefillPhone?: string
@@ -119,6 +121,7 @@ export function StripeCheckout({
   mealOption,
   transportOption,
   additionalRequests,
+  guests = [],
   prefillName,
   prefillEmail,
   prefillPhone,
@@ -181,6 +184,7 @@ export function StripeCheckout({
       mealOption,
       transportOption,
       additionalRequests,
+      guests,
     })
   }
 

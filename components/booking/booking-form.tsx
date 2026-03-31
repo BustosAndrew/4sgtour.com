@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,6 +15,9 @@ import {
   Minus,
   Plus,
   X,
+  UserPlus,
+  Phone,
+  AlertCircle,
 } from 'lucide-react'
 import { StripeCheckout } from '@/components/booking/stripe-checkout'
 import {
@@ -42,6 +46,7 @@ interface Trip {
   max_days?: number
   min_days?: number
   min_days_advance?: number
+  max_guests?: number | null
   courses_photo_url?: string | null
   room_photo_url?: string | null
   images?: Array<{
@@ -231,6 +236,36 @@ export function BookingForm({
   const [galleryIndex, setGalleryIndex] = useState(0)
   const [showStripeCheckout, setShowStripeCheckout] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
+  const [showAccommodationModal, setShowAccommodationModal] = useState(false)
+
+  interface Guest {
+    name: string
+    phone: string
+    occupancy: 'single' | 'double'
+  }
+  const [guests, setGuests] = useState<Guest[]>([])
+
+  const maxGuests = (trip as any).max_guests ?? null
+  // How many additional guests can still be added (max_guests includes primary booker)
+  const maxAdditionalGuests = maxGuests !== null ? Math.max(0, maxGuests - 1) : 99
+
+  const addGuest = () => {
+    if (maxGuests !== null && guests.length >= maxAdditionalGuests) {
+      setShowAccommodationModal(true)
+      return
+    }
+    setGuests((prev) => [...prev, { name: '', phone: '', occupancy: 'double' }])
+  }
+
+  const removeGuest = (index: number) => {
+    setGuests((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const updateGuest = (index: number, field: keyof Guest, value: string) => {
+    setGuests((prev) =>
+      prev.map((g, i) => (i === index ? { ...g, [field]: value } : g)),
+    )
+  }
 
   const packages = trip.packages || []
   const premiumPackage = packages.find((pkg: any) => pkg.name === 'Premium')
@@ -555,6 +590,7 @@ export function BookingForm({
           additionalRequests,
           totalPrice: total,
           roomType: occupancyType,
+          guests,
         }),
       })
 
@@ -571,69 +607,62 @@ export function BookingForm({
     }
   }
 
-  const SINGLE_OCCUPANCY_SURCHARGE = 0.12 // 12% surcharge for single occupancy
+  const SINGLE_OCCUPANCY_SURCHARGE = 0.12
 
-  const calculateTotal = () => {
-    let total = 0
-
+  // Per-person base price (package price + extra nights)
+  const getPerPersonBase = () => {
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-    if (selectedPackage) {
-      total += Number(selectedPackage.price)
-
-      // Add extra nights cost if applicable
-      if (
-        selectedPackage.price_per_extra_night &&
-        travelDateRange.from &&
-        travelDateRange.to
-      ) {
-        const nightsBooked = differenceInDays(
-          travelDateRange.to,
-          travelDateRange.from,
-        )
-        const extraNights = Math.max(0, nightsBooked - minNights)
-        if (extraNights > 0) {
-          total += extraNights * Number(selectedPackage.price_per_extra_night)
-        }
+    if (!selectedPackage) return 0
+    let base = Number(selectedPackage.price)
+    if (
+      selectedPackage.price_per_extra_night &&
+      travelDateRange.from &&
+      travelDateRange.to
+    ) {
+      const nightsBooked = differenceInDays(travelDateRange.to, travelDateRange.from)
+      const extraNights = Math.max(0, nightsBooked - minNights)
+      if (extraNights > 0) {
+        base += extraNights * Number(selectedPackage.price_per_extra_night)
       }
     }
+    return base
+  }
 
-    // Apply 12% single occupancy surcharge to the full booking total
-    if (roomType === 'single') {
-      total = total * (1 + SINGLE_OCCUPANCY_SURCHARGE)
+  // Price for a single person given their occupancy
+  const priceForPerson = (occupancy: 'single' | 'double', perPersonBase: number) => {
+    return occupancy === 'single'
+      ? perPersonBase * (1 + SINGLE_OCCUPANCY_SURCHARGE)
+      : perPersonBase
+  }
+
+  const calculateTotal = () => {
+    const base = getPerPersonBase()
+    // Primary booker
+    let total = priceForPerson(roomType as 'single' | 'double', base)
+    // Additional guests
+    for (const guest of guests) {
+      total += priceForPerson(guest.occupancy, base)
     }
-
-    // Note: Golf courses, meals, and transportation no longer have individual prices
-    // All pricing is now included in the package price
-
     return total
   }
 
-  // Calculate the surcharge amount for display purposes
+  // Surcharge amount for the primary booker only (used in existing sidebar display)
   const calculateSingleOccupancySurcharge = () => {
-    let baseTotal = 0
-
-    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-    if (selectedPackage) {
-      baseTotal += Number(selectedPackage.price)
-
-      if (
-        selectedPackage.price_per_extra_night &&
-        travelDateRange.from &&
-        travelDateRange.to
-      ) {
-        const nightsBooked = differenceInDays(
-          travelDateRange.to,
-          travelDateRange.from,
-        )
-        const extraNights = Math.max(0, nightsBooked - minNights)
-        if (extraNights > 0) {
-          baseTotal += extraNights * Number(selectedPackage.price_per_extra_night)
-        }
-      }
-    }
-
-    return baseTotal * SINGLE_OCCUPANCY_SURCHARGE
+    const base = getPerPersonBase()
+    return roomType === 'single' ? base * SINGLE_OCCUPANCY_SURCHARGE : 0
   }
+
+  // Total surcharge across all people with single occupancy
+  const calculateTotalSingleSurcharge = () => {
+    const base = getPerPersonBase()
+    let surcharge = roomType === 'single' ? base * SINGLE_OCCUPANCY_SURCHARGE : 0
+    for (const guest of guests) {
+      if (guest.occupancy === 'single') surcharge += base * SINGLE_OCCUPANCY_SURCHARGE
+    }
+    return surcharge
+  }
+
+  const totalPeople = 1 + guests.length
 
   const totalRounds = Object.values(courseRounds).reduce((sum, r) => sum + r, 0)
 
@@ -804,7 +833,12 @@ export function BookingForm({
   const includedServices = serviceOptions.filter(
     (service: any) => service.is_included,
   )
-  const additionalRequestsSectionNumber = serviceOptions.length > 0 ? 8 : 7
+  // Sections: 1=Plan, 2=RoomType, 3=Guests, 4=TravelDuration, 5=Golf, 6=Meals, 7=Transport, 8=Services, 9=AdditionalRequests
+  const golfSectionNumber = 5
+  const mealsSectionNumber = golfCourses.length > 0 ? 6 : 5
+  const transportSectionNumber = golfCourses.length > 0 ? 7 : mealOptions.length > 0 ? 6 : 5
+  const servicesSectionNumber = transportSectionNumber + (transportationOptions.length > 0 ? 1 : 0)
+  const additionalRequestsSectionNumber = servicesSectionNumber + (serviceOptions.length > 0 ? 1 : 0)
 
   // Get booking details for Stripe checkout
   const getBookingDetails = () => {
@@ -931,6 +965,7 @@ export function BookingForm({
           mealOption={bookingDetails.mealOption}
           transportOption={bookingDetails.transportOption}
           additionalRequests={additionalRequests}
+          guests={guests}
           prefillName={profile?.display_name || ''}
           prefillEmail={profile?.email || currentUser?.email || ''}
           prefillPhone={profile?.phone || ''}
@@ -1013,9 +1048,151 @@ export function BookingForm({
             </div>
           </div>
 
-          {/* Section 3: Travel Duration */}
+          {/* Section 3: Additional Guests */}
           <div className="overflow-hidden">
-            <SectionHeader number={3} title={t('travelDuration')} />
+            <SectionHeader number={3} title={t('additionalGuests')} />
+            <div className="py-6 space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t('additionalGuestsDescription')}
+                </p>
+                {maxGuests !== null && (
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    {t('maxGuestsNote').replace('{max}', String(maxGuests))}
+                  </p>
+                )}
+              </div>
+
+              {guests.map((guest, index) => (
+                <div
+                  key={index}
+                  className="border border-gray-200 bg-[#f5f5f5] p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-serif text-base font-medium">
+                      {t('guest')} {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeGuest(index)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-gray-200 hover:text-foreground transition-colors"
+                      aria-label={`Remove guest ${index + 1}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        {t('guestName')}
+                      </label>
+                      <Input
+                        value={guest.name}
+                        onChange={(e) => updateGuest(index, 'name', e.target.value)}
+                        placeholder={t('guestNamePlaceholder')}
+                        className="mt-1 border-gray-200 bg-white"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        {t('guestPhone')}
+                      </label>
+                      <div className="relative mt-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={guest.phone}
+                          onChange={(e) => updateGuest(index, 'phone', e.target.value)}
+                          placeholder={t('guestPhonePlaceholder')}
+                          className="border-gray-200 bg-white pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t('guestOccupancy')}
+                    </label>
+                    <div className="mt-2 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => updateGuest(index, 'occupancy', 'double')}
+                        className={`flex flex-1 items-center justify-center gap-2 border px-3 py-2 text-sm transition-colors ${
+                          guest.occupancy === 'double'
+                            ? 'border-[#3D5A80] bg-white font-medium text-[#3D5A80]'
+                            : 'border-gray-200 bg-white text-muted-foreground hover:border-gray-300'
+                        }`}
+                      >
+                        <Users className="h-4 w-4" />
+                        {t('doubleOccupancy')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateGuest(index, 'occupancy', 'single')}
+                        className={`flex flex-1 items-center justify-center gap-2 border px-3 py-2 text-sm transition-colors ${
+                          guest.occupancy === 'single'
+                            ? 'border-[#3D5A80] bg-white font-medium text-[#3D5A80]'
+                            : 'border-gray-200 bg-white text-muted-foreground hover:border-gray-300'
+                        }`}
+                      >
+                        <User className="h-4 w-4" />
+                        {t('singleOccupancy')}
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+                          +12%
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Per-guest price */}
+                  <div className="border-t border-gray-200 pt-2 flex justify-between text-sm">
+                    <span className="text-muted-foreground">{t('guestPrice')}</span>
+                    <span className="font-medium">
+                      ${priceForPerson(guest.occupancy, getPerPersonBase()).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add guest / Request Accommodation */}
+              <div className="flex flex-wrap gap-3">
+                {(maxGuests === null || guests.length < maxAdditionalGuests) && (
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="inline-flex items-center gap-2 border-2 border-[#3D5A80] px-4 py-2 text-sm font-medium text-[#3D5A80] hover:bg-[#3D5A80]/5 transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    {t('addGuest')}
+                  </button>
+                )}
+                {maxGuests !== null && guests.length >= maxAdditionalGuests && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAccommodationModal(true)}
+                    className="inline-flex items-center gap-2 border-2 border-amber-500 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 transition-colors"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    {t('requestAccommodation')}
+                  </button>
+                )}
+              </div>
+
+              {guests.length > 0 && (
+                <div className="bg-[#3D5A80]/5 border border-[#3D5A80]/20 px-4 py-2 text-sm">
+                  <span className="text-muted-foreground">{t('totalGuests')}:</span>{' '}
+                  <span className="font-medium">{totalPeople} {t('people')}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Section 4: Travel Duration */}
+          <div className="overflow-hidden">
+            <SectionHeader number={4} title={t('travelDuration')} />
             <div className="py-6">
               <div className="mb-1">
                 <Label className="text-base font-medium">
@@ -1185,10 +1362,10 @@ export function BookingForm({
             </div>
           </div>
 
-          {/* Section 4: Golf Courses & Rounds */}
+          {/* Section 5: Golf Courses & Rounds */}
           {golfCourses.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={4} title={t('golfCoursesRounds')} />
+              <SectionHeader number={golfSectionNumber} title={t('golfCoursesRounds')} />
               <div className="py-6">
                 <div className="mb-4">
                   <Label className="text-base font-medium">
@@ -1309,10 +1486,10 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 5: Meals */}
+          {/* Section 6: Meals */}
           {mealOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={5} title={t('meals')} />
+              <SectionHeader number={mealsSectionNumber} title={t('meals')} />
               <div className="mt-6 space-y-4">
                 {mealOptions.map((meal: any) => (
                   <RadioOption
@@ -1342,10 +1519,10 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 6: Transportation */}
+          {/* Section 7: Transportation */}
           {transportationOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={6} title={t('transportation')} />
+              <SectionHeader number={transportSectionNumber} title={t('transportation')} />
               <div className="mt-6 space-y-4">
                 {transportationOptions.map((transport: any) => (
                   <RadioOption
@@ -1375,10 +1552,10 @@ export function BookingForm({
             </div>
           )}
 
-          {/* Section 7/8: Service Options */}
+          {/* Section 8: Service Options */}
           {serviceOptions.length > 0 && (
             <div className="overflow-hidden">
-              <SectionHeader number={7} title={t('additionalServices')} />
+              <SectionHeader number={servicesSectionNumber} title={t('additionalServices')} />
               <div className="py-6">
                 <div className="space-y-4">
                   {serviceOptions.map((service: any) => {
@@ -1485,6 +1662,15 @@ export function BookingForm({
                     </div>
                   )}
 
+                  {guests.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {guests.length} {t('additionalGuestCount')}
+                      </span>
+                      <Check className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
                   {Object.entries(courseRounds)
                     .filter(([_, rounds]) => rounds > 0)
                     .map(([courseId, rounds]) => {
@@ -1560,29 +1746,19 @@ export function BookingForm({
 
                 <div className="mt-6 pt-4">
                   {(() => {
-                    const selectedPackage = packages.find(
-                      (p: any) => p.id === selectedPlan,
-                    )
+                    const perPersonBase = getPerPersonBase()
+                    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
                     const hasExtraNights =
                       selectedPackage?.price_per_extra_night &&
                       travelDateRange.from &&
                       travelDateRange.to
                     const nightsBooked = hasExtraNights
-                      ? differenceInDays(
-                          travelDateRange.to!,
-                          travelDateRange.from!,
-                        )
+                      ? differenceInDays(travelDateRange.to!, travelDateRange.from!)
                       : 0
-                    const extraNights = hasExtraNights
-                      ? Math.max(0, nightsBooked - minNights)
-                      : 0
-                    const extraNightsCost =
-                      extraNights *
-                      Number(selectedPackage?.price_per_extra_night || 0)
-                    const showBreakdown = (hasExtraNights && extraNights > 0) || roomType === 'single'
-                    const subtotalBeforeSurcharge = selectedPackage 
-                      ? Number(selectedPackage.price) + extraNightsCost 
-                      : 0
+                    const extraNights = hasExtraNights ? Math.max(0, nightsBooked - minNights) : 0
+                    const extraNightsCost = extraNights * Number(selectedPackage?.price_per_extra_night || 0)
+                    const totalSurcharge = calculateTotalSingleSurcharge()
+                    const showBreakdown = (hasExtraNights && extraNights > 0) || totalSurcharge > 0 || totalPeople > 1
 
                     return (
                       <>
@@ -1590,31 +1766,25 @@ export function BookingForm({
                           <div className="text-sm space-y-1 mb-2 pb-2 border-b border-border">
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">
-                                {t('basePrice')}
+                                {t('basePrice')} × {totalPeople}
                               </span>
-                              <span>${selectedPackage?.price || 0}</span>
+                              <span>${(Number(selectedPackage?.price || 0) * totalPeople).toFixed(2)}</span>
                             </div>
                             {hasExtraNights && extraNights > 0 && (
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
                                   {t('extraNightsCost')
                                     .replace('{nights}', String(extraNights))
-                                    .replace(
-                                      '{price}',
-                                      String(
-                                        selectedPackage?.price_per_extra_night,
-                                      ),
-                                    )}
+                                    .replace('{price}', String(selectedPackage?.price_per_extra_night))}
+                                  {' × '}{totalPeople}
                                 </span>
-                                <span>${extraNightsCost.toFixed(2)}</span>
+                                <span>${(extraNightsCost * totalPeople).toFixed(2)}</span>
                               </div>
                             )}
-                            {roomType === 'single' && (
+                            {totalSurcharge > 0 && (
                               <div className="flex justify-between text-amber-700">
-                                <span>
-                                  {t('singleOccupancySurcharge')} (+12%)
-                                </span>
-                                <span>+${(subtotalBeforeSurcharge * SINGLE_OCCUPANCY_SURCHARGE).toFixed(2)}</span>
+                                <span>{t('singleOccupancySurcharge')} (+12%)</span>
+                                <span>+${totalSurcharge.toFixed(2)}</span>
                               </div>
                             )}
                           </div>
@@ -1707,6 +1877,63 @@ export function BookingForm({
           </div>
         </div>
       </div>
+
+      {/* Request Accommodation Modal */}
+      {showAccommodationModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setShowAccommodationModal(false)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center bg-[#3D5A80]">
+              <span className="flex h-full items-center justify-center bg-[#14184E] px-4 py-3 text-lg font-medium text-white">
+                <AlertCircle className="h-5 w-5" />
+              </span>
+              <h2 className="px-4 py-3 font-serif text-lg text-white">
+                {t('requestAccommodationTitle')}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowAccommodationModal(false)}
+                className="ml-auto mr-3 flex h-7 w-7 items-center justify-center rounded-full text-white/70 hover:text-white transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t('requestAccommodationMessage').replace('{max}', String(maxGuests))}
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t('requestAccommodationContact')}
+              </p>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <a
+                  href="/contact"
+                  className="flex w-full items-center justify-center bg-[#14184E] px-6 py-3 text-sm font-medium text-white hover:bg-[#0d0f38] transition-colors"
+                  onClick={() => setShowAccommodationModal(false)}
+                >
+                  {t('goToContactForm')}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowAccommodationModal(false)}
+                  className="w-full border border-gray-200 px-6 py-2.5 text-sm font-medium text-muted-foreground hover:bg-gray-50 transition-colors"
+                >
+                  {t('dismissModal')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {galleryOpen && (
         <div
