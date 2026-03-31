@@ -174,7 +174,9 @@
     "confirmed": "Bestätigt",
     "inProgress": "In Bearbeitung",
     "cancelled": "Storniert",
-    "pending": "Ausstehend"
+    "pending": "Ausstehend",
+    "tournamentInquiry": "Turnier",
+    "participants": "Teilnehmer:"
   },
   "auth": {
     "signedInAs": "Angemeldet als",
@@ -308,6 +310,7 @@
     "createAccountPrompt": "Erstellen Sie ein Konto, um Ihre Buchung zu verwalten",
     "createAccountDescription": "Registrieren Sie sich, um Ihre Reisedetails zu verfolgen, mit unserem Team zu kommunizieren und exklusive Mitgliedervorteile zu genießen.",
     "createAccount": "Konto erstellen",
+    "viewMyBookings": "Meine Buchungen anzeigen",
     "returnToTrip": "Zurück zu den Reisedetails"
   },
   "checkout": {

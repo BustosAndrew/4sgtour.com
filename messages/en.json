@@ -171,10 +171,12 @@
     "rounds": "Rounds:",
     "submitted": "Submitted:",
     "notes": "Notes:",
-    "confirmed": "Confirmed",
-    "inProgress": "In Progress",
-    "cancelled": "Cancelled",
-    "pending": "Pending"
+  "confirmed": "Confirmed",
+  "inProgress": "In Progress",
+  "cancelled": "Cancelled",
+  "pending": "Pending",
+  "tournamentInquiry": "Tournament",
+  "participants": "Participants:"
   },
   "auth": {
     "signedInAs": "Signed in as",
@@ -308,6 +310,7 @@
     "createAccountPrompt": "Create an account to manage your booking",
     "createAccountDescription": "Sign up to track your trip details, communicate with our team, and access exclusive member benefits.",
     "createAccount": "Create Account",
+    "viewMyBookings": "View My Bookings",
     "returnToTrip": "Return to Trip Details"
   },
   "checkout": {

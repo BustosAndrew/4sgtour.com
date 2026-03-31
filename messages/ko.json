@@ -174,7 +174,9 @@
     "confirmed": "확정",
     "inProgress": "진행 중",
     "cancelled": "취소됨",
-    "pending": "대기 중"
+    "pending": "대기 중",
+    "tournamentInquiry": "토너먼트",
+    "participants": "참가자:"
   },
   "auth": {
     "signedInAs": "로그인 계정",
@@ -308,6 +310,7 @@
     "createAccountPrompt": "계정을 만들어 예약을 관리하세요",
     "createAccountDescription": "회원가입하여 여행 상세 정보를 확인하고, 저희 팀과 소통하며 독점 회원 혜택을 누리세요.",
     "createAccount": "계정 만들기",
+    "viewMyBookings": "내 예약 보기",
     "returnToTrip": "여행 상세로 돌아가기"
   },
   "checkout": {
@@ -328,7 +331,7 @@
     "cardProcessingFee": "카드 결제 수수료 (4%)",
     "total": "합계",
     "continueToPayment": "결제 계속",
-    "backToBookingDetails": "예약 상세로 돌아가기",
+    "backToBookingDetails": "예��� 상세로 돌아가기",
     "backToPaymentOptions": "결��� 방법 선택으로 돌아가기",
     "noAccountPrompt": "계정이 없으신가요?",
     "signUp": "회원가입",
@@ -454,7 +457,7 @@
     "s3Item5": "표시·광고에 관한 기록: 6개월",
     "s3Item6": "설문조사나 이벤트 등 일시적 목적으로 수집된 경우: 해당 설문조사 또는 이벤트 종료 시",
     "s4Title": "4. 개인정보 파기 절차 및 방법",
-    "s4Intro": "원칙적으로 개인정보의 수집 및 이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 파기 절차 및 방법은 다음과 같습니다:",
+    "s4Intro": "원칙적으로 개인정보의 수�� 및 이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 파기 절차 및 방법은 다음과 같습니다:",
     "s4ProcedureHeading": "파기 절차:",
     "s4ProcedureText": "서비스 이용을 위해 입력하신 정보는 목적이 달성된 후 별도의 데이터베이스(종이의 경우 별도의 서류함)로 이관됩니다. 내부 정책 및 관련 법령에 따라 일정 기간 보관 후 파기됩니다. 별도 데이터베이스로 이관된 개인정보는 법률에 의한 경우를 제외하고 보유 목적 이외의 다른 용도로 이용되지 않습니다.",
     "s4MethodHeading": "파기 방법:",

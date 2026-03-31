@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, Ticket, Users, Mail, User, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -10,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useTranslations } from '@/lib/i18n/provider'
 
 interface TournamentTicketFormProps {
+  eventId?: string
   eventTitle: string
   eventDate: string
   eventLocation: string
@@ -17,9 +19,11 @@ interface TournamentTicketFormProps {
   tierPrice: string | null
   backHref: string
   heroImage: string
+  isAuthenticated?: boolean
 }
 
 export function TournamentTicketForm({
+  eventId,
   eventTitle,
   eventDate,
   eventLocation,
@@ -27,8 +31,10 @@ export function TournamentTicketForm({
   tierPrice,
   backHref,
   heroImage,
+  isAuthenticated = false,
 }: TournamentTicketFormProps) {
   const t = useTranslations('tournaments')
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [participants, setParticipants] = useState('')
@@ -52,6 +58,7 @@ export function TournamentTicketForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          eventId: eventId || null,
           eventTitle: formattedTitle,
           tierName,
           tierPrice,
@@ -67,11 +74,15 @@ export function TournamentTicketForm({
         throw new Error(data.error || 'Failed to send inquiry')
       }
 
-      setIsSuccess(true)
-      setName('')
-      setEmail('')
-      setParticipants('')
-      setNotes('')
+      if (isAuthenticated) {
+        router.push('/bookings?success=true')
+      } else {
+        setIsSuccess(true)
+        setName('')
+        setEmail('')
+        setParticipants('')
+        setNotes('')
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {

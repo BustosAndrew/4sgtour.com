@@ -49,11 +49,15 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
       )
     : null
 
+  // Check auth so we can redirect to /bookings after submission
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <main>
         <TournamentTicketForm
+          eventId={event.id}
           eventTitle={event.title}
           eventDate={event.date}
           eventLocation={event.location}
@@ -61,6 +65,7 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
           tierPrice={matchedTier?.price ?? null}
           backHref={`/tournaments/${slug}/${eventSlug}`}
           heroImage={tournament.hero_image || '/placeholder.svg'}
+          isAuthenticated={!!user}
         />
       </main>
       <SiteFooter />

@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -213,6 +214,7 @@ export function BookingForm({
 }: BookingFormProps) {
   const t = useTranslations('booking')
   const locale = useLocale()
+  const router = useRouter()
   const supabase = createClient()
 
   const [courseRounds, setCourseRounds] = useState<{ [key: string]: number }>(
@@ -557,14 +559,7 @@ export function BookingForm({
         throw new Error('Failed to send inquiry')
       }
 
-      alert("Your inquiry has been submitted! We'll contact you shortly.")
-
-      setTravelDateRange({ from: undefined, to: undefined })
-      setCourseRounds({})
-      setRoomType('')
-      setSelectedMeal(lockedMealId || '')
-      setSelectedTransport(lockedTransportId || '')
-      setAdditionalRequests('')
+      router.push('/bookings?success=true')
     } catch (error) {
       console.error('Error submitting inquiry:', error)
       alert('There was an error submitting your inquiry. Please try again.')
@@ -879,6 +874,14 @@ export function BookingForm({
               {t('createAccount')}
             </a>
           </div>
+        )}
+        {currentUser && (
+          <a
+            href="/bookings?success=true"
+            className="block mb-4 text-primary font-medium hover:underline"
+          >
+            {t('viewMyBookings')}
+          </a>
         )}
         <a
           href={`/trips/${trip.slug}`}
