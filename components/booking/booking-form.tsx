@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { StripeCheckout } from '@/components/booking/stripe-checkout'
-  import {
+import {
   format,
   addDays,
   differenceInDays,
@@ -30,6 +30,7 @@ import { useTranslations, useLocale } from '@/lib/i18n/provider'
 import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 interface Trip {
+  [key: string]: unknown
   id: string
   title: string
   slug: string
@@ -55,6 +56,7 @@ interface Trip {
     description_ko?: string | null
     description_de?: string | null
     price: number
+    price_per_extra_night?: number | null
   }>
   add_ons?: Array<{
     id: string
@@ -124,7 +126,16 @@ function PlanCard({
   t,
   locale,
 }: {
-  pkg: { id: string; name: string; name_ko?: string | null; name_de?: string | null; description: string | null; description_ko?: string | null; description_de?: string | null; price: number }
+  pkg: {
+    id: string
+    name: string
+    name_ko?: string | null
+    name_de?: string | null
+    description: string | null
+    description_ko?: string | null
+    description_de?: string | null
+    price: number
+  }
   selected: boolean
   onSelect: () => void
   t: (key: string) => string
@@ -133,7 +144,7 @@ function PlanCard({
   const [expanded, setExpanded] = useState(false)
   const [clamped, setClamped] = useState(false)
   const descRef = useRef<HTMLParagraphElement>(null)
-  
+
   const pkgName = getLocalizedField(pkg, 'name', locale as any)
   const pkgDescription = getLocalizedField(pkg, 'description', locale as any)
 
@@ -272,7 +283,10 @@ export function BookingForm({
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
   // Show accommodation image in booking details
-  const accommodationImages: Array<{ image_url: string; display_order: number }> = []
+  const accommodationImages: Array<{
+    image_url: string
+    display_order: number
+  }> = []
   if (trip.room_photo_url) {
     accommodationImages.push({
       image_url: trip.room_photo_url,
@@ -565,10 +579,17 @@ export function BookingForm({
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
     if (selectedPackage) {
       total += Number(selectedPackage.price)
-      
+
       // Add extra nights cost if applicable
-      if (selectedPackage.price_per_extra_night && travelDateRange.from && travelDateRange.to) {
-        const nightsBooked = differenceInDays(travelDateRange.to, travelDateRange.from)
+      if (
+        selectedPackage.price_per_extra_night &&
+        travelDateRange.from &&
+        travelDateRange.to
+      ) {
+        const nightsBooked = differenceInDays(
+          travelDateRange.to,
+          travelDateRange.from,
+        )
         const extraNights = Math.max(0, nightsBooked - minNights)
         if (extraNights > 0) {
           total += extraNights * Number(selectedPackage.price_per_extra_night)
@@ -838,13 +859,14 @@ export function BookingForm({
   // Show Stripe checkout
   if (showStripeCheckout && selectedPackage) {
     const bookingDetails = getBookingDetails()
-    const nightsBooked = travelDateRange.from && travelDateRange.to 
-      ? differenceInDays(travelDateRange.to, travelDateRange.from) 
-      : minNights
-    const extraNightsCount = selectedPackage.price_per_extra_night 
-      ? Math.max(0, nightsBooked - minNights) 
+    const nightsBooked =
+      travelDateRange.from && travelDateRange.to
+        ? differenceInDays(travelDateRange.to, travelDateRange.from)
+        : minNights
+    const extraNightsCount = selectedPackage.price_per_extra_night
+      ? Math.max(0, nightsBooked - minNights)
       : 0
-    
+
     return (
       <div className="w-full max-w-2xl mx-auto">
         <StripeCheckout
@@ -945,7 +967,9 @@ export function BookingForm({
             <SectionHeader number={3} title={t('travelDuration')} />
             <div className="py-6">
               <div className="mb-1">
-                <Label className="text-base font-medium">{t('selectDates')}</Label>
+                <Label className="text-base font-medium">
+                  {t('selectDates')}
+                </Label>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t('selectDatesDescription')}
                 </p>
@@ -959,28 +983,52 @@ export function BookingForm({
                 )}
                 {minAdvanceDays > 0 && (
                   <p className="mt-1 text-sm text-muted-foreground italic">
-                    {t('advanceBooking').replace('{days}', String(minAdvanceDays)).replace('{date}', format(minDate, 'MMM d, yyyy'))}
+                    {t('advanceBooking')
+                      .replace('{days}', String(minAdvanceDays))
+                      .replace('{date}', format(minDate, 'MMM d, yyyy'))}
                   </p>
                 )}
               </div>
 
               {/* Step indicator */}
               <div className="mt-4 mb-2 flex items-center gap-2">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                  selectionStep === 'pick-start' ? 'bg-[#3D5A80] text-white' : 'bg-[#3D5A80]/15 text-[#3D5A80]'
-                }`}>
-                  {selectionStep !== 'pick-start' ? <Check className="h-3.5 w-3.5" /> : '1'}
+                <div
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                    selectionStep === 'pick-start'
+                      ? 'bg-[#3D5A80] text-white'
+                      : 'bg-[#3D5A80]/15 text-[#3D5A80]'
+                  }`}
+                >
+                  {selectionStep !== 'pick-start' ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    '1'
+                  )}
                 </div>
-                <span className={`text-sm ${selectionStep === 'pick-start' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                <span
+                  className={`text-sm ${selectionStep === 'pick-start' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
+                >
                   {t('selectCheckIn')}
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                  selectionStep === 'pick-end' ? 'bg-[#3D5A80] text-white' : selectionStep === 'complete' ? 'bg-[#3D5A80]/15 text-[#3D5A80]' : 'bg-gray-100 text-muted-foreground'
-                }`}>
-                  {selectionStep === 'complete' ? <Check className="h-3.5 w-3.5" /> : '2'}
+                <div
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                    selectionStep === 'pick-end'
+                      ? 'bg-[#3D5A80] text-white'
+                      : selectionStep === 'complete'
+                        ? 'bg-[#3D5A80]/15 text-[#3D5A80]'
+                        : 'bg-gray-100 text-muted-foreground'
+                  }`}
+                >
+                  {selectionStep === 'complete' ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    '2'
+                  )}
                 </div>
-                <span className={`text-sm ${selectionStep === 'pick-end' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                <span
+                  className={`text-sm ${selectionStep === 'pick-end' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
+                >
                   {t('selectCheckOut')}
                 </span>
               </div>
@@ -991,7 +1039,9 @@ export function BookingForm({
                 {/* Legend & summary side panel */}
                 <div className="flex flex-col gap-4 lg:w-48 shrink-0">
                   <div className="border border-border bg-white p-4 space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('legend')}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t('legend')}
+                    </p>
                     <div className="flex items-center gap-2.5">
                       <div className="h-5 w-5 rounded-sm bg-[#14184E]" />
                       <span className="text-sm">{t('checkInOut')}</span>
@@ -1011,22 +1061,36 @@ export function BookingForm({
                   {/* Check-in / Check-out display */}
                   <div className="border border-border bg-white p-4 space-y-2">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('checkIn')}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('checkIn')}
+                      </p>
                       <p className="font-serif text-base font-medium mt-0.5">
-                        {travelDateRange.from ? format(travelDateRange.from, 'EEE, MMM d, yyyy') : '—'}
+                        {travelDateRange.from
+                          ? format(travelDateRange.from, 'EEE, MMM d, yyyy')
+                          : '—'}
                       </p>
                     </div>
                     <div className="border-t border-border pt-2">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('checkOut')}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('checkOut')}
+                      </p>
                       <p className="font-serif text-base font-medium mt-0.5">
-                        {travelDateRange.to ? format(travelDateRange.to, 'EEE, MMM d, yyyy') : '—'}
+                        {travelDateRange.to
+                          ? format(travelDateRange.to, 'EEE, MMM d, yyyy')
+                          : '—'}
                       </p>
                     </div>
                     {travelDateRange.from && travelDateRange.to && (
                       <div className="border-t border-border pt-2">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('duration')}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t('duration')}
+                        </p>
                         <p className="font-serif text-base font-medium mt-0.5">
-                          {differenceInDays(travelDateRange.to, travelDateRange.from)} {t('nights')}
+                          {differenceInDays(
+                            travelDateRange.to,
+                            travelDateRange.from,
+                          )}{' '}
+                          {t('nights')}
                         </p>
                       </div>
                     )}
@@ -1036,7 +1100,9 @@ export function BookingForm({
                   {travelDateRange.from && (
                     <button
                       type="button"
-                      onClick={() => setTravelDateRange({ from: undefined, to: undefined })}
+                      onClick={() =>
+                        setTravelDateRange({ from: undefined, to: undefined })
+                      }
                       className="flex items-center justify-center gap-1.5 border border-gray-200 bg-white px-3 py-2 text-sm text-muted-foreground hover:bg-gray-50 hover:text-foreground transition-colors"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -1055,7 +1121,12 @@ export function BookingForm({
                       {format(travelDateRange.to, 'MMM d, yyyy')}
                     </strong>
                     <span className="text-muted-foreground ml-2">
-                      ({differenceInDays(travelDateRange.to, travelDateRange.from)} {t('nights')})
+                      (
+                      {differenceInDays(
+                        travelDateRange.to,
+                        travelDateRange.from,
+                      )}{' '}
+                      {t('nights')})
                     </span>
                   </span>
                 </div>
@@ -1105,7 +1176,11 @@ export function BookingForm({
                       >
                         <div className="flex items-center justify-between gap-4">
                           <span className="font-serif text-lg font-medium">
-                            {getLocalizedField(course, 'course_name', locale as any)}
+                            {getLocalizedField(
+                              course,
+                              'course_name',
+                              locale as any,
+                            )}
                           </span>
 
                           <div className="flex items-center gap-3">
@@ -1159,10 +1234,14 @@ export function BookingForm({
 
                         <div className="mt-2 flex gap-4 text-sm text-muted-foreground">
                           {course.num_holes && (
-                            <span>{course.num_holes} {t('holes')}</span>
+                            <span>
+                              {course.num_holes} {t('holes')}
+                            </span>
                           )}
                           {typeof maxRounds === 'number' && maxRounds > 0 && (
-                            <span>{t('maxRounds')} {maxRounds}</span>
+                            <span>
+                              {t('maxRounds')} {maxRounds}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1272,11 +1351,21 @@ export function BookingForm({
                                 {t('included')}
                               </span>
                             )}
-                            <span className="font-serif text-lg font-medium">{getLocalizedField(service, 'name', locale as any)}</span>
+                            <span className="font-serif text-lg font-medium">
+                              {getLocalizedField(
+                                service,
+                                'name',
+                                locale as any,
+                              )}
+                            </span>
                           </div>
                           {service.description && (
                             <p className="mt-1 text-sm text-muted-foreground">
-                              {getLocalizedField(service, 'description', locale as any)}
+                              {getLocalizedField(
+                                service,
+                                'description',
+                                locale as any,
+                              )}
                             </p>
                           )}
                         </div>
@@ -1295,7 +1384,9 @@ export function BookingForm({
               title={t('additionalRequests')}
             />
             <div className="py-6">
-              <Label className="text-base font-medium">{t('additionalRequestsLabel')}</Label>
+              <Label className="text-base font-medium">
+                {t('additionalRequestsLabel')}
+              </Label>
               <Textarea
                 value={additionalRequests}
                 onChange={(e) => setAdditionalRequests(e.target.value)}
@@ -1324,8 +1415,9 @@ export function BookingForm({
                   {travelDateRange.from && travelDateRange.to && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {t('reservationFor')} {format(travelDateRange.from, 'MMM d')}{' '}
-                        – {format(travelDateRange.to, 'MMM d')}
+                        {t('reservationFor')}{' '}
+                        {format(travelDateRange.from, 'MMM d')} –{' '}
+                        {format(travelDateRange.to, 'MMM d')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1351,7 +1443,14 @@ export function BookingForm({
                       return course ? (
                         <div key={courseId} className="flex items-center gap-2">
                           <span className="text-muted-foreground">
-                            {getLocalizedField(course, 'course_name', locale as any)}{course.num_holes ? ` (${course.num_holes} holes)` : ''}
+                            {getLocalizedField(
+                              course,
+                              'course_name',
+                              locale as any,
+                            )}
+                            {course.num_holes
+                              ? ` (${course.num_holes} holes)`
+                              : ''}
                           </span>
                           <Check className="h-4 w-4 text-muted-foreground" />
                         </div>
@@ -1370,7 +1469,11 @@ export function BookingForm({
                   {selectedTransportOption && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {getLocalizedField(selectedTransportOption, 'name', locale as any)}
+                        {getLocalizedField(
+                          selectedTransportOption,
+                          'name',
+                          locale as any,
+                        )}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1379,7 +1482,11 @@ export function BookingForm({
                   {selectedMealOption && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
-                        {getLocalizedField(selectedMealOption, 'name', locale as any)}
+                        {getLocalizedField(
+                          selectedMealOption,
+                          'name',
+                          locale as any,
+                        )}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -1390,7 +1497,9 @@ export function BookingForm({
                       <span className="text-muted-foreground">
                         {t('includedServices')}:{' '}
                         {includedServices
-                          .map((service: any) => getLocalizedField(service, 'name', locale as any))
+                          .map((service: any) =>
+                            getLocalizedField(service, 'name', locale as any),
+                          )
                           .join(', ')}
                       </span>
                       <Check className="h-4 w-4 text-muted-foreground" />
@@ -1400,25 +1509,46 @@ export function BookingForm({
 
                 <div className="mt-6 pt-4">
                   {(() => {
-                    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
-                    const hasExtraNights = selectedPackage?.price_per_extra_night && travelDateRange.from && travelDateRange.to
-                    const nightsBooked = hasExtraNights ? differenceInDays(travelDateRange.to, travelDateRange.from) : 0
-                    const extraNights = hasExtraNights ? Math.max(0, nightsBooked - minNights) : 0
-                    const extraNightsCost = extraNights * Number(selectedPackage?.price_per_extra_night || 0)
-                    
+                    const selectedPackage = packages.find(
+                      (p: any) => p.id === selectedPlan,
+                    )
+                    const hasExtraNights =
+                      selectedPackage?.price_per_extra_night &&
+                      travelDateRange.from &&
+                      travelDateRange.to
+                    const nightsBooked = hasExtraNights
+                      ? differenceInDays(
+                          travelDateRange.to!,
+                          travelDateRange.from!,
+                        )
+                      : 0
+                    const extraNights = hasExtraNights
+                      ? Math.max(0, nightsBooked - minNights)
+                      : 0
+                    const extraNightsCost =
+                      extraNights *
+                      Number(selectedPackage?.price_per_extra_night || 0)
+
                     return (
                       <>
                         {hasExtraNights && extraNights > 0 && (
                           <div className="text-sm space-y-1 mb-2 pb-2 border-b border-border">
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">{t('basePrice')}</span>
+                              <span className="text-muted-foreground">
+                                {t('basePrice')}
+                              </span>
                               <span>${selectedPackage.price}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">
                                 {t('extraNightsCost')
                                   .replace('{nights}', String(extraNights))
-                                  .replace('{price}', String(selectedPackage.price_per_extra_night))}
+                                  .replace(
+                                    '{price}',
+                                    String(
+                                      selectedPackage.price_per_extra_night,
+                                    ),
+                                  )}
                               </span>
                               <span>${extraNightsCost.toFixed(2)}</span>
                             </div>
@@ -1438,7 +1568,12 @@ export function BookingForm({
 
                 <button
                   type="submit"
-                  disabled={!selectedPlan || !roomType || !travelDateRange.from || !travelDateRange.to}
+                  disabled={
+                    !selectedPlan ||
+                    !roomType ||
+                    !travelDateRange.from ||
+                    !travelDateRange.to
+                  }
                   className="mt-4 w-full text-xl bg-[#14184E] py-3 font-medium text-white transition-colors hover:bg-[#0d0f38] disabled:opacity-50"
                 >
                   {t('proceedToPayment')}

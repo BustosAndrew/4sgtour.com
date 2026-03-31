@@ -21,7 +21,8 @@ export default async function HomePage() {
   // Fetch tournament events with their tournament info
   const { data: eventsData } = await supabase
     .from('tournament_events')
-    .select(`
+    .select(
+      `
       id,
       slug,
       title,
@@ -36,7 +37,8 @@ export default async function HomePage() {
       image,
       tournament_id,
       tournaments!inner(slug)
-    `)
+    `,
+    )
     .order('date', { ascending: true })
     .limit(8)
 
@@ -147,7 +149,11 @@ export default async function HomePage() {
                 className="text-3xl md:text-4xl lg:text-5xl text-white mb-6"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                The <span className="italic inline-block translate-y-[-0.05em]">4</span> Seasons Difference.
+                The{' '}
+                <span className="italic inline-block translate-y-[-0.2em]">
+                  4
+                </span>{' '}
+                Seasons Difference.
               </h2>
               <p
                 className="text-white leading-relaxed mb-8"
@@ -255,7 +261,11 @@ export default async function HomePage() {
               className="text-3xl md:text-4xl lg:text-5xl text-[#735c38] text-center"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Journey with <span className="italic inline-block translate-y-[-0.05em]">4</span> Seasons Golf Tour
+              Journey with{' '}
+              <span className="italic inline-block translate-y-[-0.2em]">
+                4
+              </span>{' '}
+              Seasons Golf Tour
             </h2>
 
             {/* Three videos in a row */}

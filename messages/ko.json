@@ -350,7 +350,7 @@
     "backToContinents": "대륙으로 돌아가기",
     "discoverIn": "멋진 골프 여행지를 발견하세요:",
     "noDestinationsYet": "아직 {continent}에 이용 가능한 여행지가 없습니다.",
-    "coursesIn": "코스",
+    "coursesIn": "",
     "discoverCoursesIn": "세계 최고의 골프 코스와 잊지 못할 경험을 발견하세요",
     "noCoursesAvailable": "현재 이 지역에서 이용 가능한 코스가 없습니다.",
     "continents": {

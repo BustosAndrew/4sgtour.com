@@ -33,7 +33,7 @@ export default async function ContactPage() {
           >
             {t('title')}
           </h1>
-          <p className="max-w-xl mx-auto text-[#ffffff] text-sm sm:text-[20px] leading-relaxed">
+          <p className="max-w-[550px] mx-auto text-[#ffffff] text-sm sm:text-[20px] leading-relaxed">
             {t('subtitle')}
           </p>
           <div className="mt-6 w-12 h-[2px] bg-[#ffffff] mx-auto" />

@@ -1,18 +1,18 @@
-import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import { AnimatedHr } from "@/components/ui/animated-hr"
-import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import {} from "lucide-react"
-import { SiteFooter } from "@/components/site-footer"
+import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
+import { AnimatedButton } from '@/components/ui/animated-button'
+import { AnimatedHr } from '@/components/ui/animated-hr'
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import {} from 'lucide-react'
+import { SiteFooter } from '@/components/site-footer'
 import {
   TripImageGallery,
   RoomImageSection,
-} from "@/components/trip-image-gallery"
-import { getServerTranslations, getServerLocale } from "@/lib/i18n/server"
-import { getLocalizedField } from "@/lib/i18n/get-localized-field"
-import type { Locale } from "@/lib/i18n/config"
+} from '@/components/trip-image-gallery'
+import { getServerTranslations, getServerLocale } from '@/lib/i18n/server'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
+import type { Locale } from '@/lib/i18n/config'
 
 interface TripPageProps {
   params: Promise<{ slug: string }>
@@ -21,11 +21,11 @@ interface TripPageProps {
 export default async function TripPage({ params }: TripPageProps) {
   const { slug } = await params
   const supabase = await createClient()
-  const t = await getServerTranslations("tripDetails")
+  const t = await getServerTranslations('tripDetails')
   const locale = await getServerLocale()
 
   const { data: trip, error } = await supabase
-    .from("trips")
+    .from('trips')
     .select(
       `
       *,
@@ -34,9 +34,9 @@ export default async function TripPage({ params }: TripPageProps) {
       trip_images(id, image_url, display_order)
     `,
     )
-    .eq("slug", slug)
+    .eq('slug', slug)
     .single()
-  
+
   if (!trip) {
     notFound()
   }
@@ -50,19 +50,31 @@ export default async function TripPage({ params }: TripPageProps) {
       (a: any, b: any) => a.display_order - b.display_order,
     ) || []
   const additionalImages =
-    tripImages.length > 0
-      ? tripImages.map((img: any) => img.image_url)
-      : []
+    tripImages.length > 0 ? tripImages.map((img: any) => img.image_url) : []
 
   const roomImage = trip.room_photo_url || null
 
   // Get localized content
-  const tripTitle = getLocalizedField(trip, 'title', locale)
-  const tripLocation = getLocalizedField(trip, 'location', locale)
-  const tripOverview = getLocalizedField(trip, 'overview_content', locale)
-  const tripDescription = getLocalizedField(trip, 'description', locale)
-  const tripRefundPolicy = getLocalizedField(trip, 'refund_policy', locale)
-  const tripHighlights = getLocalizedField(trip, 'highlights', locale, true) as string[] | null
+  const tripTitle = getLocalizedField(trip, 'title', locale) as string
+  const tripLocation = getLocalizedField(trip, 'location', locale) as string
+  const tripOverview = getLocalizedField(
+    trip,
+    'overview_content',
+    locale,
+  ) as string
+  const tripDescription = getLocalizedField(
+    trip,
+    'description',
+    locale,
+  ) as string
+  const tripRefundPolicy = getLocalizedField(
+    trip,
+    'refund_policy',
+    locale,
+  ) as string
+  const tripHighlights = getLocalizedField(trip, 'highlights', locale, true) as
+    | string[]
+    | null
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +83,7 @@ export default async function TripPage({ params }: TripPageProps) {
       {/* Hero Section */}
       <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] w-full">
         <img
-          src={mainImage || "/placeholder.svg"}
+          src={mainImage || '/placeholder.svg'}
           alt={tripTitle}
           className="h-full w-full object-cover"
         />
@@ -95,26 +107,28 @@ export default async function TripPage({ params }: TripPageProps) {
             {/* Packages / Inquire Now Section - Desktop Only */}
             <div className="hidden lg:block">
               <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                {t("inquireNow")}
+                {t('inquireNow')}
               </h2>
               <div className="mt-2 mb-4">
                 <AnimatedHr />
               </div>
               <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
-                {t("choosePackage")}
+                {t('choosePackage')}
               </p>
 
               {trip.packages && trip.packages.length > 0 ? (
                 <div className="mt-6 space-y-4">
                   {trip.packages.map((pkg: any) => {
-                    const isUpgrade = pkg.name === "Upgrade"
+                    const isUpgrade = pkg.name === 'Upgrade'
                     const pkgName = getLocalizedField(pkg, 'name', locale)
 
                     return (
                       <div
                         key={pkg.id}
                         className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors sm:flex-row sm:items-center sm:justify-between"
-                        style={{ borderColor: isUpgrade ? "#274C77" : "#6096BA" }}
+                        style={{
+                          borderColor: isUpgrade ? '#274C77' : '#6096BA',
+                        }}
                       >
                         <div className="flex-1">
                           <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
@@ -123,7 +137,7 @@ export default async function TripPage({ params }: TripPageProps) {
                           <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
                             {trip.show_from_price && (
                               <span className="text-sm font-semibold text-muted-foreground">
-                                {t("from")}{' '}
+                                {t('from')}{' '}
                               </span>
                             )}
                             ${pkg.price.toFixed(0)}
@@ -135,12 +149,12 @@ export default async function TripPage({ params }: TripPageProps) {
                           className="shrink-0"
                         >
                           <AnimatedButton
-                            startColor={isUpgrade ? "#274C77" : "#6096BA"}
-                            endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
-                            hoverText={t("letsGo")}
+                            startColor={isUpgrade ? '#274C77' : '#6096BA'}
+                            endColor={isUpgrade ? '#1a3a5c' : '#4a7a9e'}
+                            hoverText={t('letsGo')}
                             className="w-full sm:w-auto sm:px-8"
                           >
-                            {t("inquireNow")}
+                            {t('inquireNow')}
                           </AnimatedButton>
                         </Link>
                       </div>
@@ -153,17 +167,17 @@ export default async function TripPage({ params }: TripPageProps) {
                     <AnimatedButton
                       startColor="#6096BA"
                       endColor="#4a7a9e"
-                      hoverText={t("letsGo")}
+                      hoverText={t('letsGo')}
                       className="w-full sm:w-auto"
                     >
-                      {t("inquireNow")}
+                      {t('inquireNow')}
                     </AnimatedButton>
                   </Link>
                 </div>
               )}
             </div>
 
-{additionalImages.length > 0 && (
+            {additionalImages.length > 0 && (
               <TripImageGallery images={additionalImages} title={tripTitle} />
             )}
 
@@ -171,7 +185,7 @@ export default async function TripPage({ params }: TripPageProps) {
             {roomImage && (
               <RoomImageSection
                 imageUrl={roomImage}
-                heading={t("accommodation")}
+                heading={t('accommodation')}
                 title={tripTitle}
               />
             )}
@@ -182,15 +196,13 @@ export default async function TripPage({ params }: TripPageProps) {
             {/* Overview Section */}
             <div>
               <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                {t("overview")}
+                {t('overview')}
               </h2>
               <div className="mt-2 mb-4">
                 <AnimatedHr />
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg whitespace-pre-wrap">
-                {tripOverview ||
-                  tripDescription ||
-                  t("defaultOverview")}
+                {tripOverview || tripDescription || t('defaultOverview')}
               </p>
             </div>
 
@@ -198,7 +210,7 @@ export default async function TripPage({ params }: TripPageProps) {
             {tripRefundPolicy && (
               <div>
                 <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  {t("refundPolicy")}
+                  {t('refundPolicy')}
                 </h2>
                 <div className="mt-2 mb-4">
                   <AnimatedHr />
@@ -213,7 +225,7 @@ export default async function TripPage({ params }: TripPageProps) {
             {tripHighlights && tripHighlights.length > 0 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  {t("highlights")}
+                  {t('highlights')}
                 </h2>
                 <div className="mt-2 mb-4">
                   <AnimatedHr />
@@ -235,26 +247,28 @@ export default async function TripPage({ params }: TripPageProps) {
             {/* Packages / Inquire Now Section - Mobile Only */}
             <div className="lg:hidden">
               <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                {t("inquireNow")}
+                {t('inquireNow')}
               </h2>
               <div className="mt-2 mb-4">
                 <AnimatedHr />
               </div>
               <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
-                {t("choosePackage")}
+                {t('choosePackage')}
               </p>
 
               {trip.packages && trip.packages.length > 0 ? (
                 <div className="mt-6 space-y-4">
                   {trip.packages.map((pkg: any) => {
-                    const isUpgrade = pkg.name === "Upgrade"
+                    const isUpgrade = pkg.name === 'Upgrade'
                     const pkgName = getLocalizedField(pkg, 'name', locale)
 
                     return (
                       <div
                         key={pkg.id}
                         className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors sm:flex-row sm:items-center sm:justify-between"
-                        style={{ borderColor: isUpgrade ? "#274C77" : "#6096BA" }}
+                        style={{
+                          borderColor: isUpgrade ? '#274C77' : '#6096BA',
+                        }}
                       >
                         <div className="flex-1">
                           <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
@@ -263,7 +277,7 @@ export default async function TripPage({ params }: TripPageProps) {
                           <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
                             {trip.show_from_price && (
                               <span className="text-sm font-semibold text-muted-foreground">
-                                {t("from")}{' '}
+                                {t('from')}{' '}
                               </span>
                             )}
                             ${pkg.price.toFixed(0)}
@@ -275,12 +289,12 @@ export default async function TripPage({ params }: TripPageProps) {
                           className="shrink-0"
                         >
                           <AnimatedButton
-                            startColor={isUpgrade ? "#274C77" : "#6096BA"}
-                            endColor={isUpgrade ? "#1a3a5c" : "#4a7a9e"}
-                            hoverText={t("letsGo")}
+                            startColor={isUpgrade ? '#274C77' : '#6096BA'}
+                            endColor={isUpgrade ? '#1a3a5c' : '#4a7a9e'}
+                            hoverText={t('letsGo')}
                             className="w-full sm:w-auto sm:px-8"
                           >
-                            {t("inquireNow")}
+                            {t('inquireNow')}
                           </AnimatedButton>
                         </Link>
                       </div>
@@ -293,16 +307,15 @@ export default async function TripPage({ params }: TripPageProps) {
                     <AnimatedButton
                       startColor="#6096BA"
                       endColor="#4a7a9e"
-                      hoverText={t("letsGo")}
+                      hoverText={t('letsGo')}
                       className="w-full sm:w-auto"
                     >
-                      {t("inquireNow")}
+                      {t('inquireNow')}
                     </AnimatedButton>
                   </Link>
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </section>
