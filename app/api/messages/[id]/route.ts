@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getUserType } from "@/lib/supabase/get-user-type"
 import { NextResponse } from "next/server"
 
 export async function PATCH(
@@ -26,19 +27,33 @@ export async function PATCH(
       )
     }
 
-    const { data: message, error } = await supabase
+    const isAdmin = (await getUserType()) === "admin"
+
+    // Build query — admins can edit any message, users only their own.
+    // RLS policies enforce this at the DB level too.
+    let query = supabase
       .from("messages")
       .update({
         message_text: messageText.trim(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("sender_id", user.id)
-      .select()
-      .single()
+
+    if (!isAdmin) {
+      query = query.eq("sender_id", user.id)
+    }
+
+    const { data: message, error } = await query.select().single()
 
     if (error) {
       throw error
+    }
+
+    if (!message) {
+      return NextResponse.json(
+        { error: "Message not found or not authorized" },
+        { status: 404 },
+      )
     }
 
     return NextResponse.json(message)
@@ -67,11 +82,15 @@ export async function DELETE(
   }
 
   try {
-    const { error } = await supabase
-      .from("messages")
-      .delete()
-      .eq("id", id)
-      .eq("sender_id", user.id)
+    const isAdmin = (await getUserType()) === "admin"
+
+    let query = supabase.from("messages").delete().eq("id", id)
+
+    if (!isAdmin) {
+      query = query.eq("sender_id", user.id)
+    }
+
+    const { error } = await query
 
     if (error) {
       throw error
