@@ -42,9 +42,9 @@ export function Logo({
       style={{ fontFamily: "'loretta', serif" }}
     >
       {/* 4 SEASONS */}
-      <div className="flex items-end gap-1.5">
+      <div className="flex items-baseline gap-1.5">
         <span
-          className={`${sizes.four} italic font-normal leading-none ${textColor}`}
+          className={`${sizes.four} italic font-normal leading-none ${textColor} inline-block translate-y-[-0.05em]`}
         >
           4
         </span>

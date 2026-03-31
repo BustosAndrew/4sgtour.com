@@ -64,14 +64,14 @@ export function HeroCarousel() {
           </p>
           {/* Main heading */}
           <p
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] text-white leading-tight inline-flex items-baseline justify-center sm:justify-end"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-[64px] text-white leading-tight"
             style={{
               fontFamily: "'loretta', serif",
               fontWeight: 400,
             }}
           >
-            <span className="italic">4</span>
-            <span>&nbsp;{t('title').replace(/^4\s*/, '')}</span>
+            <span className="italic inline-block translate-y-[-0.05em]">4</span>
+            &nbsp;{t('title').replace(/^4\s*/, '')}
           </p>
           {/* Tagline */}
           <p className="text-base sm:text-lg md:text-xl lg:text-[24px] text-white mb-6 sm:mb-8 font-semibold">
