@@ -63,12 +63,54 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
 
   console.log('[v0] Processing completed checkout:', sessionId)
 
-  // Update booking status
+  // Get payment intent to retrieve customer and payment method
+  let stripeCustomerId: string | null = null
+  let stripePaymentMethodId: string | null = null
+  
+  if (session.payment_intent) {
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string)
+      stripeCustomerId = paymentIntent.customer as string | null
+      stripePaymentMethodId = paymentIntent.payment_method as string | null
+      
+      // If no customer exists, create one and attach the payment method
+      if (!stripeCustomerId && stripePaymentMethodId) {
+        const customer = await stripe.customers.create({
+          email: metadata.customer_email,
+          name: metadata.customer_name,
+          phone: metadata.customer_phone,
+          metadata: {
+            trip_id: metadata.trip_id,
+            user_id: metadata.user_id || '',
+          },
+        })
+        stripeCustomerId = customer.id
+        
+        // Attach the payment method to the customer
+        await stripe.paymentMethods.attach(stripePaymentMethodId, {
+          customer: stripeCustomerId,
+        })
+        
+        // Set as default payment method
+        await stripe.customers.update(stripeCustomerId, {
+          invoice_settings: {
+            default_payment_method: stripePaymentMethodId,
+          },
+        })
+      }
+    } catch (error) {
+      console.error('[v0] Error retrieving payment intent details:', error)
+    }
+  }
+
+  // Update booking status with customer and payment method info
   const { data: booking, error: updateError } = await supabase
     .from('stripe_bookings')
     .update({
       status: 'confirmed',
       stripe_payment_intent_id: session.payment_intent as string,
+      stripe_customer_id: stripeCustomerId,
+      stripe_payment_method_id: stripePaymentMethodId,
     })
     .eq('stripe_checkout_session_id', sessionId)
     .select()
@@ -85,12 +127,19 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         user_id: metadata.user_id || null,
         stripe_checkout_session_id: sessionId,
         stripe_payment_intent_id: session.payment_intent as string,
+        stripe_customer_id: stripeCustomerId,
+        stripe_payment_method_id: stripePaymentMethodId,
         customer_name: metadata.customer_name,
         customer_email: metadata.customer_email,
         customer_phone: metadata.customer_phone,
         amount_cents: session.amount_total || 0,
         payment_method: metadata.payment_method,
         status: 'confirmed',
+        // Auto-charge fields from metadata
+        trip_start_date: metadata.start_date,
+        remaining_balance: metadata.remaining_balance ? parseFloat(metadata.remaining_balance) : null,
+        auto_charge_date: metadata.auto_charge_date ? metadata.auto_charge_date.split('T')[0] : null,
+        remaining_balance_charged: false,
         booking_details: {
           trip_title: metadata.trip_title,
           package_name: metadata.package_name,

@@ -15,6 +15,7 @@ import {
   Smartphone,
   CheckCircle2,
   Loader2,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -402,6 +403,23 @@ export function StripeCheckout({
         <p className="text-sm text-muted-foreground mb-4">
           {t('depositRequired', { amount: `$${depositAmount.toFixed(2)}` })}
         </p>
+
+        {/* Auto-charge disclaimer */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-amber-800 mb-1">
+                {t('autoChargeTitle')}
+              </p>
+              <p className="text-amber-700">
+                {t('autoChargeDescription', { 
+                  remainingAmount: `$${(packagePrice - depositAmount).toFixed(2)}` 
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-3">
           <button

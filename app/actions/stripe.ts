@@ -94,7 +94,31 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   // Get current user if logged in
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Calculate remaining balance and auto-charge date
+  const remainingBalance = totalPrice - (depositAmount / 100) // depositAmount is in cents
+  const tripStartDate = new Date(startDate)
+  const today = new Date()
+  const daysUntilTrip = Math.ceil((tripStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  
+  // Determine auto-charge date based on days until trip
+  // If trip is more than 60 days away, charge 60 days before trip
+  // If trip is less than 60 days away, charge 30 days from now (or before trip if less than 30 days)
+  let autoChargeDate: Date
+  if (daysUntilTrip > 60) {
+    // Trip is more than 60 days away - charge 60 days before trip
+    autoChargeDate = new Date(tripStartDate)
+    autoChargeDate.setDate(autoChargeDate.getDate() - 60)
+  } else if (daysUntilTrip > 30) {
+    // Trip is 31-60 days away - charge 30 days before trip
+    autoChargeDate = new Date(tripStartDate)
+    autoChargeDate.setDate(autoChargeDate.getDate() - 30)
+  } else {
+    // Trip is less than 30 days away - charge immediately (will be handled at payment)
+    autoChargeDate = new Date()
+  }
+
   // Create checkout session with appropriate payment methods
+  // Use payment_intent_data.setup_future_usage to save the payment method for future charges
   // Explicitly set payment_method_types to restrict to only the selected method
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
@@ -105,9 +129,13 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     // 'card' = only card fields shown, 'us_bank_account' = only ACH shown
     payment_method_types: paymentMethod === 'ach' ? ['us_bank_account'] : ['card'],
     // Disable automatic payment methods to prevent Stripe from adding others
+    // Also set up future usage to save the payment method for remaining balance charge
     payment_method_options: paymentMethod === 'card' 
       ? { card: { request_three_d_secure: 'automatic' } }
       : { us_bank_account: { financial_connections: { permissions: ['payment_method'] } } },
+    payment_intent_data: {
+      setup_future_usage: 'off_session', // Save payment method for future charges
+    },
     customer_email: customerEmail,
     metadata: {
       trip_id: tripId,
@@ -127,6 +155,9 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       additional_requests: additionalRequests || '',
       payment_method: paymentMethod,
       is_guest: user ? 'false' : 'true',
+      total_price: String(totalPrice),
+      remaining_balance: String(remainingBalance),
+      auto_charge_date: autoChargeDate.toISOString(),
     },
   })
 
@@ -134,7 +165,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   const totalAmountCents = lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0)
   const processingFeeCents = paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
 
-  // Create a pending booking record
+  // Create a pending booking record with auto-charge info
   const { data: booking, error: bookingError } = await supabase
     .from('stripe_bookings')
     .insert({
@@ -146,11 +177,16 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       customer_email: customerEmail,
       customer_phone: customerPhone,
       deposit_amount: depositAmount / 100, // Store in dollars
-      total_package_price: pkg.price,
+      total_package_price: totalPrice, // Use actual total price including extras
       processing_fee: processingFeeCents / 100, // Store in dollars
       total_paid: totalAmountCents / 100, // Store in dollars
       payment_method: paymentMethod,
       status: 'pending',
+      // Auto-charge fields
+      trip_start_date: startDate,
+      remaining_balance: remainingBalance,
+      auto_charge_date: autoChargeDate.toISOString().split('T')[0], // Store as date
+      remaining_balance_charged: false,
       booking_details: {
         trip_title: tripTitle,
         package_name: packageName,
