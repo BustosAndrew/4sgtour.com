@@ -376,6 +376,7 @@
     "smsLinkExpiry": "이 결제 링크는 24시간 후에 만료됩니다. 만료되면 새로운 링크를 요청할 수 있습니다.",
     "smsLinkResend": "결제 링크 재전송",
     "smsLinkViewBookings": "내 예약 보기",
+    "smsConsentLabel": "위에 입력한 번호로 결제 링크가 포함된 문자 메시지를 수신하는 데 동의합니다. 메시지 및 데이터 요금이 부과될 수 있습니다. 언제든지 STOP으로 수신을 거부할 수 있습니다.",
     "autoChargeTitle": "자동 결제 안내",
     "autoChargeDescription": "잔여 금액({remainingAmount})은 등록된 결제 수단으로 자동 청구됩니다. 여행이 60일 이상 남은 경우 여행 60일 전에 청구되며, 60일 이내인 경우 여행 30일 전에 청구됩니다."
   },

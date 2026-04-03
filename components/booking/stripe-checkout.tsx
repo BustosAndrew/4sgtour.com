@@ -167,6 +167,7 @@ export function StripeCheckout({
   const [smsSending, setSmsSending] = useState(false)
   const [smsSent, setSmsSent] = useState(false)
   const [smsError, setSmsError] = useState<string | null>(null)
+  const [smsConsent, setSmsConsent] = useState(false)
 
   // Use ref for onSuccess to avoid changing the onComplete callback
   const onSuccessRef = useRef(onSuccess)
@@ -413,8 +414,8 @@ export function StripeCheckout({
                 {t('autoChargeTitle')}
               </p>
               <p className="text-amber-700">
-                {t('autoChargeDescription', { 
-                  remainingAmount: `$${(packagePrice - depositAmount).toFixed(2)}` 
+                {t('autoChargeDescription', {
+                  remainingAmount: `$${(packagePrice - depositAmount).toFixed(2)}`,
                 })}
               </p>
             </div>
@@ -468,8 +469,7 @@ export function StripeCheckout({
             </div>
           </button>
 
-          {/* SMS payment option - commented out for now */}
-          {/* <button
+          <button
             type="button"
             onClick={() => setPaymentMethod('sms')}
             className={`w-full flex items-center justify-between border p-4 transition-colors ${
@@ -490,7 +490,7 @@ export function StripeCheckout({
             <div className="text-right">
               <div className="font-medium">${depositAmount.toFixed(2)}</div>
             </div>
-          </button> */}
+          </button>
         </div>
       </div>
 
@@ -551,6 +551,20 @@ export function StripeCheckout({
         </div>
       </div>
 
+      {paymentMethod === 'sms' && (
+        <label className="flex items-start gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={smsConsent}
+            onChange={(e) => setSmsConsent(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[#3D5A80] cursor-pointer"
+          />
+          <span className="text-sm text-muted-foreground leading-snug">
+            {t('smsConsentLabel')}
+          </span>
+        </label>
+      )}
+
       {smsError && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-3 text-sm rounded">
           {smsError}
@@ -564,7 +578,8 @@ export function StripeCheckout({
           !customerName ||
           !customerEmail ||
           !customerPhone ||
-          smsSending
+          smsSending ||
+          (paymentMethod === 'sms' && !smsConsent)
         }
         className="w-full bg-[#3D5A80] hover:bg-[#3D5A80]/90"
         size="lg"

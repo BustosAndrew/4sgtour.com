@@ -376,6 +376,7 @@
     "smsLinkExpiry": "Dieser Zahlungslink läuft in 24 Stunden ab. Falls er abläuft, können Sie einen neuen anfordern.",
     "smsLinkResend": "Zahlungslink erneut senden",
     "smsLinkViewBookings": "Meine Buchungen ansehen",
+    "smsConsentLabel": "Ich stimme zu, eine SMS an die oben angegebene Nummer mit meinem Zahlungslink zu erhalten. Es können Nachrichten- und Datengebühren anfallen. Antworten Sie mit STOP, um sich jederzeit abzumelden.",
     "autoChargeTitle": "Hinweis zur automatischen Zahlung",
     "autoChargeDescription": "Der Restbetrag ({remainingAmount}) wird automatisch von Ihrer Zahlungsmethode abgebucht. Wenn Ihre Reise mehr als 60 Tage entfernt ist, erfolgt die Abbuchung 60 Tage vor Reisebeginn. Bei weniger als 60 Tagen erfolgt sie 30 Tage vor Reisebeginn."
   },

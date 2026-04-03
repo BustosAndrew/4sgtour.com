@@ -201,7 +201,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
   await twilioClient.messages.create({
     to: customerPhone,
     from: process.env.TWILIO_PHONE_NUMBER!,
-    body: `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Complete your 30% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url}`,
+    body: `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Complete your 30% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`,
   })
 
   return { success: true }

@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
+import Twilio from 'twilio'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -66,13 +67,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   // Get payment intent to retrieve customer and payment method
   let stripeCustomerId: string | null = null
   let stripePaymentMethodId: string | null = null
-  
+
   if (session.payment_intent) {
     try {
-      const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string)
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        session.payment_intent as string,
+      )
       stripeCustomerId = paymentIntent.customer as string | null
       stripePaymentMethodId = paymentIntent.payment_method as string | null
-      
+
       // If no customer exists, create one and attach the payment method
       if (!stripeCustomerId && stripePaymentMethodId) {
         const customer = await stripe.customers.create({
@@ -85,12 +88,12 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
           },
         })
         stripeCustomerId = customer.id
-        
+
         // Attach the payment method to the customer
         await stripe.paymentMethods.attach(stripePaymentMethodId, {
           customer: stripeCustomerId,
         })
-        
+
         // Set as default payment method
         await stripe.customers.update(stripeCustomerId, {
           invoice_settings: {
@@ -137,8 +140,12 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         status: 'confirmed',
         // Auto-charge fields from metadata
         trip_start_date: metadata.start_date,
-        remaining_balance: metadata.remaining_balance ? parseFloat(metadata.remaining_balance) : null,
-        auto_charge_date: metadata.auto_charge_date ? metadata.auto_charge_date.split('T')[0] : null,
+        remaining_balance: metadata.remaining_balance
+          ? parseFloat(metadata.remaining_balance)
+          : null,
+        auto_charge_date: metadata.auto_charge_date
+          ? metadata.auto_charge_date.split('T')[0]
+          : null,
         remaining_balance_charged: false,
         booking_details: {
           trip_title: metadata.trip_title,
@@ -263,6 +270,28 @@ Best regards,
     console.log('[v0] Customer confirmation email sent')
   } catch (error) {
     console.error('[v0] Error sending customer email:', error)
+  }
+
+  // Send booking confirmation SMS
+  if (
+    metadata.customer_phone &&
+    process.env.TWILIO_ACCOUNT_SID &&
+    process.env.TWILIO_AUTH_TOKEN
+  ) {
+    try {
+      const twilioClient = Twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN,
+      )
+      await twilioClient.messages.create({
+        to: metadata.customer_phone,
+        from: process.env.TWILIO_PHONE_NUMBER!,
+        body: `4 Seasons Golf Tour: Your booking for ${metadata.trip_title} (${metadata.start_date} – ${metadata.end_date}) has been confirmed! A confirmation email has been sent to ${metadata.customer_email}. Reply STOP to opt out.`,
+      })
+      console.log('[v0] Booking confirmation SMS sent')
+    } catch (error) {
+      console.error('[v0] Error sending booking confirmation SMS:', error)
+    }
   }
 
   // Email to admin
