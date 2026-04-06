@@ -26,12 +26,15 @@ interface InquiriesListProps {
   onViewInInbox?: (inquiryId: string) => void
 }
 
+type FilterType = "all" | "paid" | "unpaid"
+
 export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiries, setInquiries] = useState<InquiryWithPayment[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [inquiryToDelete, setInquiryToDelete] = useState<InquiryWithPayment | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [filter, setFilter] = useState<FilterType>("all")
 
   useEffect(() => {
     fetchInquiries()
@@ -77,6 +80,13 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
     }
   }
 
+  const filteredInquiries = inquiries.filter((inquiry) => {
+    if (filter === "all") return true
+    if (filter === "paid") return (inquiry as any).inquiry_type === "stripe_booking"
+    if (filter === "unpaid") return (inquiry as any).inquiry_type !== "stripe_booking"
+    return true
+  })
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -98,14 +108,56 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
 
   return (
     <>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm text-muted-foreground">Filter:</span>
+        <div className="flex rounded-lg border border-input bg-background p-1">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              filter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("paid")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              filter === "paid"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Paid
+          </button>
+          <button
+            onClick={() => setFilter("unpaid")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              filter === "unpaid"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Unpaid
+          </button>
+        </div>
+        <span className="text-sm text-muted-foreground ml-2">
+          ({filteredInquiries.length} {filteredInquiries.length === 1 ? "inquiry" : "inquiries"})
+        </span>
+      </div>
+
       <div className="space-y-4">
-        {inquiries.length === 0 ? (
+        {filteredInquiries.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground">
-            No inquiries yet. When customers submit booking inquiries, they&apos;ll
-            appear here.
+            {filter === "all"
+              ? "No inquiries yet. When customers submit booking inquiries, they'll appear here."
+              : filter === "paid"
+                ? "No paid bookings found."
+                : "No unpaid inquiries found."}
           </Card>
         ) : (
-          inquiries.map((inquiry) => (
+          filteredInquiries.map((inquiry) => (
             <Card key={inquiry.id} className="p-4 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 space-y-3">
