@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Mail, DollarSign, MessageSquare, Trash2 } from "lucide-react"
+import { Calendar, Mail, DollarSign, MessageSquare, Trash2, CheckCircle } from "lucide-react"
 import { differenceInDays } from "date-fns"
 import {
   Dialog,
@@ -16,15 +16,21 @@ import {
 } from "@/components/ui/dialog"
 import type { Inquiry } from "@/lib/types/database"
 
+interface InquiryWithPayment extends Inquiry {
+  payment_status?: string | null
+  amount_paid?: number | null
+  is_fully_paid?: boolean
+}
+
 interface InquiriesListProps {
   onViewInInbox?: (inquiryId: string) => void
 }
 
 export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
-  const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [inquiries, setInquiries] = useState<InquiryWithPayment[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [inquiryToDelete, setInquiryToDelete] = useState<Inquiry | null>(null)
+  const [inquiryToDelete, setInquiryToDelete] = useState<InquiryWithPayment | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
@@ -43,7 +49,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
     }
   }
 
-  const handleDeleteClick = (inquiry: Inquiry) => {
+  const handleDeleteClick = (inquiry: InquiryWithPayment) => {
     setInquiryToDelete(inquiry)
     setDeleteDialogOpen(true)
   }
@@ -113,6 +119,18 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                     {(inquiry as any).inquiry_type === "tournament" && (
                       <Badge variant="outline" className="text-xs">
                         Tournament
+                      </Badge>
+                    )}
+                    {inquiry.payment_status && (
+                      <Badge 
+                        className={
+                          inquiry.is_fully_paid 
+                            ? "bg-green-500/10 text-green-700 border-green-500/20" 
+                            : "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+                        }
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {inquiry.is_fully_paid ? "Fully Paid" : "Paid"}
                       </Badge>
                     )}
                   </div>
@@ -203,14 +221,24 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                 </div>
 
                 <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right sm:gap-3">
-                  {inquiry.total_price && Number(inquiry.total_price) > 0 && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xl font-bold">
-                        {Number(inquiry.total_price).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex flex-col items-end gap-1">
+                    {inquiry.amount_paid && inquiry.amount_paid > 0 && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          ${Number(inquiry.amount_paid).toFixed(2)} paid
+                        </span>
+                      </div>
+                    )}
+                    {inquiry.total_price && Number(inquiry.total_price) > 0 && (
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-xl font-bold">
+                          {Number(inquiry.total_price).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
                     <Button
                       variant="outline"
