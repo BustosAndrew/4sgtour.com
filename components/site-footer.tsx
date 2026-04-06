@@ -10,6 +10,22 @@ export function SiteFooter() {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
 
+  const renderBranchLabel = (label: string) => {
+    const parts = label.trim().split(/\s+/)
+
+    if (parts.length < 2) return label
+
+    const country = parts.pop()
+    const brand = parts.join(' ')
+
+    return (
+      <>
+        <span className="block">{brand}</span>
+        <span className="block">{country}</span>
+      </>
+    )
+  }
+
   return (
     <footer className="bg-[#22333b] text-white">
       <div className="container py-26">
@@ -110,7 +126,7 @@ export function SiteFooter() {
                 className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                {t('germany')}
+                {renderBranchLabel(t('germany'))}
               </p>
             </a>
             <a
@@ -132,7 +148,7 @@ export function SiteFooter() {
                 className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                {t('austria')}
+                {renderBranchLabel(t('austria'))}
               </p>
             </a>
           </div>
