@@ -4,8 +4,16 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Mail, DollarSign, MessageSquare } from "lucide-react"
+import { Calendar, Mail, DollarSign, MessageSquare, Trash2 } from "lucide-react"
 import { differenceInDays } from "date-fns"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import type { Inquiry } from "@/lib/types/database"
 
 interface InquiriesListProps {
@@ -15,6 +23,9 @@ interface InquiriesListProps {
 export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [inquiryToDelete, setInquiryToDelete] = useState<Inquiry | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchInquiries()
@@ -29,6 +40,34 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
       console.error("Error fetching inquiries:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteClick = (inquiry: Inquiry) => {
+    setInquiryToDelete(inquiry)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!inquiryToDelete) return
+
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/admin/inquiries/${inquiryToDelete.id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setInquiries((prev) => prev.filter((i) => i.id !== inquiryToDelete.id))
+        setDeleteDialogOpen(false)
+        setInquiryToDelete(null)
+      } else {
+        console.error("Failed to delete inquiry")
+      }
+    } catch (error) {
+      console.error("Error deleting inquiry:", error)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -52,123 +91,180 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {inquiries.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">
-          No inquiries yet. When customers submit booking inquiries, they'll
-          appear here.
-        </Card>
-      ) : (
-        inquiries.map((inquiry) => (
-          <Card key={inquiry.id} className="p-4 sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex-1 space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-lg">
-                    {inquiry.trip_title}
-                  </h3>
-                  <Badge className={getStatusColor(inquiry.status)}>
-                    {inquiry.status}
-                  </Badge>
-                </div>
-
-                <div className="grid gap-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{inquiry.customer_name}</span>
-                    <span className="text-muted-foreground">
-                      ({inquiry.customer_email})
-                    </span>
+    <>
+      <div className="space-y-4">
+        {inquiries.length === 0 ? (
+          <Card className="p-8 text-center text-muted-foreground">
+            No inquiries yet. When customers submit booking inquiries, they&apos;ll
+            appear here.
+          </Card>
+        ) : (
+          inquiries.map((inquiry) => (
+            <Card key={inquiry.id} className="p-4 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex-1 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-lg">
+                      {inquiry.trip_title}
+                    </h3>
+                    <Badge className={getStatusColor(inquiry.status)}>
+                      {inquiry.status}
+                    </Badge>
+                    {(inquiry as any).inquiry_type === "tournament" && (
+                      <Badge variant="outline" className="text-xs">
+                        Tournament
+                      </Badge>
+                    )}
                   </div>
 
-                  {inquiry.start_date && inquiry.end_date && (
+                  <div className="grid gap-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{inquiry.customer_name}</span>
                       <span className="text-muted-foreground">
-                        {new Date(inquiry.start_date).toLocaleDateString()} -{" "}
-                        {new Date(inquiry.end_date).toLocaleDateString()}
+                        ({inquiry.customer_email})
                       </span>
                     </div>
-                  )}
 
-                  {inquiry.start_date && inquiry.end_date && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Duration:</span>
-                      <span className="font-medium text-foreground">
-                        {differenceInDays(
-                          new Date(inquiry.end_date),
-                          new Date(inquiry.start_date),
-                        ) + 1}{" "}
-                        days
-                      </span>
-                    </div>
-                  )}
-
-                  {inquiry.package_name && (
-                    <div className="text-muted-foreground">
-                      Package:{" "}
-                      <span className="font-medium text-foreground">
-                        {inquiry.package_name}
-                      </span>
-                    </div>
-                  )}
-
-                  {inquiry.add_ons && inquiry.add_ons.length > 0 && (
-                    <div className="text-muted-foreground">
-                      Add-ons:{" "}
-                      <span className="font-medium text-foreground">
-                        {inquiry.add_ons.join(", ")}
-                      </span>
-                    </div>
-                  )}
-
-                  {inquiry.rounds > 0 && (
-                    <div className="text-muted-foreground">
-                      Rounds:{" "}
-                      <span className="font-medium text-foreground">
-                        {inquiry.rounds}
-                      </span>
-                    </div>
-                  )}
-
-                  {inquiry.additional_requests && (
-                    <div className="mt-2">
-                      <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Additional Requests:
+                    {inquiry.start_date && inquiry.end_date && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          {new Date(inquiry.start_date).toLocaleDateString()} -{" "}
+                          {new Date(inquiry.end_date).toLocaleDateString()}
+                        </span>
                       </div>
-                      <div className="text-sm bg-muted/50 rounded p-2">
-                        {inquiry.additional_requests}
+                    )}
+
+                    {inquiry.start_date && inquiry.end_date && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Duration:</span>
+                        <span className="font-medium text-foreground">
+                          {differenceInDays(
+                            new Date(inquiry.end_date),
+                            new Date(inquiry.start_date),
+                          ) + 1}{" "}
+                          days
+                        </span>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {inquiry.package_name && (
+                      <div className="text-muted-foreground">
+                        Package:{" "}
+                        <span className="font-medium text-foreground">
+                          {inquiry.package_name}
+                        </span>
+                      </div>
+                    )}
+
+                    {(inquiry as any).participants && (
+                      <div className="text-muted-foreground">
+                        Participants:{" "}
+                        <span className="font-medium text-foreground">
+                          {(inquiry as any).participants}
+                        </span>
+                      </div>
+                    )}
+
+                    {inquiry.add_ons && inquiry.add_ons.length > 0 && (
+                      <div className="text-muted-foreground">
+                        Add-ons:{" "}
+                        <span className="font-medium text-foreground">
+                          {inquiry.add_ons.join(", ")}
+                        </span>
+                      </div>
+                    )}
+
+                    {inquiry.rounds > 0 && (
+                      <div className="text-muted-foreground">
+                        Rounds:{" "}
+                        <span className="font-medium text-foreground">
+                          {inquiry.rounds}
+                        </span>
+                      </div>
+                    )}
+
+                    {inquiry.additional_requests && (
+                      <div className="mt-2">
+                        <div className="text-xs font-medium text-muted-foreground mb-1">
+                          Additional Requests:
+                        </div>
+                        <div className="text-sm bg-muted/50 rounded p-2">
+                          {inquiry.additional_requests}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-small text-muted-foreground">
+                    Submitted {new Date(inquiry.created_at).toLocaleString()}
+                  </div>
                 </div>
 
-                <div className="text-small text-muted-foreground">
-                  Submitted {new Date(inquiry.created_at).toLocaleString()}
+                <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right sm:gap-3">
+                  {inquiry.total_price && Number(inquiry.total_price) > 0 && (
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xl font-bold">
+                        {Number(inquiry.total_price).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-2 sm:mt-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onViewInInbox?.(inquiry.id)}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      View in Inbox
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(inquiry)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
+            </Card>
+          ))
+        )}
+      </div>
 
-              <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right sm:gap-3">
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-xl font-bold">
-                    {Number(inquiry.total_price).toFixed(2)}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewInInbox?.(inquiry.id)}
-                  className="mt-2 sm:mt-0"
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  View in Inbox
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))
-      )}
-    </div>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Inquiry</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the inquiry from{" "}
+              <span className="font-medium">{inquiryToDelete?.customer_name}</span>{" "}
+              for <span className="font-medium">{inquiryToDelete?.trip_title}</span>?
+              This action cannot be undone and will also delete any associated messages.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
