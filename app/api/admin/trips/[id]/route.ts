@@ -3,8 +3,6 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
 import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
 import { headers } from "next/headers"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
-import { Resend } from "resend"
 
 export async function PATCH(
   request: NextRequest,
