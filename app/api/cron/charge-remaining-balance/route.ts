@@ -66,6 +66,27 @@ export async function GET(request: Request) {
 
     for (const booking of bookings) {
       try {
+        // Check if the trip still exists (may have been deleted/cancelled)
+        const { data: trip } = await supabase
+          .from('trips')
+          .select('id')
+          .eq('id', booking.trip_id)
+          .single()
+
+        if (!trip) {
+          console.log(`[v0] Skipping booking ${booking.id} - trip ${booking.trip_id} no longer exists`)
+          // Mark as cancelled to prevent future charge attempts
+          await supabase
+            .from('stripe_bookings')
+            .update({
+              status: 'cancelled',
+              remaining_balance_charged: true,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', booking.id)
+          continue
+        }
+
         // Calculate remaining balance amount in cents
         // Add 4% processing fee for card payments
         const remainingBalanceCents = Math.round(booking.remaining_balance * 100)
