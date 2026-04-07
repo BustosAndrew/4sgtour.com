@@ -315,6 +315,40 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  // Cancel any pending future payments for this trip before deleting
+  // This marks bookings as cancelled and prevents remaining balance from being charged
+  const { data: bookingsToCancel, error: fetchBookingsError } = await supabase
+    .from("stripe_bookings")
+    .select("id, customer_name, customer_email, remaining_balance")
+    .eq("trip_id", id)
+    .eq("remaining_balance_charged", false)
+    .gt("remaining_balance", 0)
+
+  if (fetchBookingsError) {
+    console.error("[v0] Error fetching bookings to cancel:", fetchBookingsError)
+  }
+
+  if (bookingsToCancel && bookingsToCancel.length > 0) {
+    console.log(`[v0] Cancelling ${bookingsToCancel.length} pending payments for deleted trip ${id}`)
+    
+    // Update all bookings for this trip to prevent future charges
+    const { error: updateError } = await supabase
+      .from("stripe_bookings")
+      .update({
+        status: "cancelled",
+        remaining_balance_charged: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("trip_id", id)
+      .eq("remaining_balance_charged", false)
+
+    if (updateError) {
+      console.error("[v0] Error cancelling bookings:", updateError)
+    } else {
+      console.log(`[v0] Successfully cancelled pending payments for trip ${id}`)
+    }
+  }
+
   // Delete the trip by primary key id (related records cascade via foreign keys)
   const { error } = await supabase.from("trips").delete().eq("id", id)
 
