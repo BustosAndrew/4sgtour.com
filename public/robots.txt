@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Private pages - do not index
+Disallow: /checkout/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap
+Sitemap: https://4sgtour.com/sitemap.xml
