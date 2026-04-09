@@ -202,6 +202,98 @@ export function CreateCustomBookingForm({
     }
   }
 
+  // Success Dialog
+  if (showSuccess) {
+    return (
+      <div className="w-full">
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <CheckCircle className="h-10 w-10 text-emerald-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground">
+            Custom Booking Created!
+          </h2>
+          <p className="mt-2 text-muted-foreground">
+            The payment link has been sent to {customerName} via SMS.
+          </p>
+
+          {packagePageUrl && (
+            <div className="mt-6 w-full max-w-md">
+              <Label className="text-left block mb-2">Private Package Page URL</Label>
+              <p className="text-xs text-muted-foreground mb-2 text-left">
+                Share this link with the customer. It is private and will not appear in search results.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={packagePageUrl}
+                  readOnly
+                  className="flex-1 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copyToClipboard(packagePageUrl)}
+                  className="shrink-0"
+                >
+                  {copiedUrl ? (
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => window.open(packagePageUrl, "_blank")}
+                  className="shrink-0"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 flex gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowSuccess(false)
+                onSuccess()
+              }}
+            >
+              Back to Inquiries
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                // Reset form for new booking
+                setShowSuccess(false)
+                setPackagePageUrl(null)
+                setCurrentStep(1)
+                setPackageName("")
+                setPackageDescription("")
+                setTotalPrice(0)
+                setCustomerName("")
+                setCustomerEmail("")
+                setCustomerPhone("")
+                setStartDate(undefined)
+                setEndDate(undefined)
+                setDepositPercentage(30)
+                setRemainderDueDate(undefined)
+              }}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Create Another Booking
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
       {/* Step Indicator */}
