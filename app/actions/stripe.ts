@@ -92,14 +92,18 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   }
 
   // Get current user if logged in
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // Calculate remaining balance and auto-charge date
-  const remainingBalance = totalPrice - (depositAmount / 100) // depositAmount is in cents
+  const remainingBalance = totalPrice - depositAmount / 100 // depositAmount is in cents
   const tripStartDate = new Date(startDate)
   const today = new Date()
-  const daysUntilTrip = Math.ceil((tripStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  
+  const daysUntilTrip = Math.ceil(
+    (tripStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  )
+
   // Determine auto-charge date based on days until trip
   // If trip is more than 60 days away, charge 60 days before trip
   // If trip is less than 60 days away, charge 30 days from now (or before trip if less than 30 days)
@@ -127,12 +131,18 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     mode: 'payment',
     // This explicitly restricts to only the selected payment method
     // 'card' = only card fields shown, 'us_bank_account' = only ACH shown
-    payment_method_types: paymentMethod === 'ach' ? ['us_bank_account'] : ['card'],
+    payment_method_types:
+      paymentMethod === 'ach' ? ['us_bank_account'] : ['card'],
     // Disable automatic payment methods to prevent Stripe from adding others
     // Also set up future usage to save the payment method for remaining balance charge
-    payment_method_options: paymentMethod === 'card' 
-      ? { card: { request_three_d_secure: 'automatic' } }
-      : { us_bank_account: { financial_connections: { permissions: ['payment_method'] } } },
+    payment_method_options:
+      paymentMethod === 'card'
+        ? { card: { request_three_d_secure: 'automatic' } }
+        : {
+            us_bank_account: {
+              financial_connections: { permissions: ['payment_method'] },
+            },
+          },
     payment_intent_data: {
       setup_future_usage: 'off_session', // Save payment method for future charges
     },
@@ -162,8 +172,12 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   })
 
   // Calculate amounts for the booking record
-  const totalAmountCents = lineItems.reduce((sum, item) => sum + item.price_data.unit_amount, 0)
-  const processingFeeCents = paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
+  const totalAmountCents = lineItems.reduce(
+    (sum, item) => sum + item.price_data.unit_amount,
+    0,
+  )
+  const processingFeeCents =
+    paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
 
   // Create a pending booking record with auto-charge info
   const { data: booking, error: bookingError } = await supabase
@@ -178,6 +192,9 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       customer_phone: customerPhone,
       deposit_amount: depositAmount / 100, // Store in dollars
       total_package_price: totalPrice, // Use actual total price including extras
+      total_price: totalPrice,
+      trip_title: tripTitle,
+      deposit_percentage: 30,
       processing_fee: processingFeeCents / 100, // Store in dollars
       total_paid: totalAmountCents / 100, // Store in dollars
       payment_method: paymentMethod,

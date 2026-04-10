@@ -131,6 +131,52 @@ export interface Inquiry {
   payment_link: string | null
   stripe_session_id: string | null
   payment_link_sent_at: string | null
+  is_custom_package: boolean | null
+  custom_package_description: string | null
+  deposit_percentage: number | null
+  remainder_due_date: string | null
+  payment_reminder_sent_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface StripeBooking {
+  id: string
+  trip_id: string | null
+  package_id: string | null
+  user_id: string | null
+  stripe_checkout_session_id: string | null
+  stripe_payment_intent_id: string | null
+  customer_name: string
+  customer_email: string
+  customer_phone: string | null
+  payment_method: 'card' | 'us_bank_account' | 'sms_link' | null
+  deposit_amount: number
+  processing_fee: number
+  total_paid: number
+  total_package_price: number
+  total_price: number
+  trip_title: string | null
+  booking_details: Record<string, unknown> | null
+  status:
+    | 'pending'
+    | 'confirmed'
+    | 'completed'
+    | 'failed'
+    | 'refunded'
+    | 'expired'
+  trip_start_date: string | null
+  remaining_balance: number
+  auto_charge_date: string | null
+  stripe_customer_id: string | null
+  stripe_payment_method_id: string | null
+  remaining_balance_charged: boolean
+  remaining_balance_charged_at: string | null
+  remaining_balance_payment_intent_id: string | null
+  deposit_percentage: number | null
+  remainder_due_date: string | null
+  remainder_payment_link: string | null
+  payment_reminder_sent_at: string | null
   created_at: string
   updated_at: string
 }

@@ -138,6 +138,13 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         amount_cents: session.amount_total || 0,
         payment_method: metadata.payment_method,
         status: 'confirmed',
+        trip_title: metadata.trip_title,
+        total_price: metadata.total_price
+          ? parseFloat(metadata.total_price)
+          : null,
+        deposit_percentage: metadata.deposit_percentage
+          ? parseInt(metadata.deposit_percentage)
+          : 30,
         // Auto-charge fields from metadata
         trip_start_date: metadata.start_date,
         remaining_balance: metadata.remaining_balance
