@@ -173,9 +173,14 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         Tournament
                       </Badge>
                     )}
-                    {(inquiry as any).inquiry_type === "stripe_booking" && (
+{(inquiry as any).inquiry_type === "stripe_booking" && (
                       <Badge variant="outline" className="text-xs bg-emerald-50 border-emerald-200 text-emerald-700">
                         Paid Booking
+                      </Badge>
+                    )}
+                    {(inquiry as any).is_custom_package && (
+                      <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
+                        Custom Package
                       </Badge>
                     )}
                     {inquiry.payment_status && (
