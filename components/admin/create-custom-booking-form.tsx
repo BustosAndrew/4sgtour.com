@@ -172,7 +172,11 @@ export function CreateCustomBookingForm({
         throw new Error(errorData.error || "Failed to create custom booking")
       }
 
-      onSuccess()
+      const data = await response.json()
+      
+      // Show success dialog with package URL
+      setPackagePageUrl(data.packagePageUrl)
+      setShowSuccess(true)
     } catch (error) {
       console.error("[v0] Error creating custom booking:", error)
       setValidationErrors([
