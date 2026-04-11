@@ -44,6 +44,7 @@ export interface Trip {
   courses_photo_url: string | null
   room_photo_url: string | null
   show_from_price: boolean
+  is_custom: boolean
   created_at: string
   updated_at: string
 }

@@ -58,6 +58,7 @@ export default async function ContinentTripsPage({
     `,
     )
     .eq('continent', continentName)
+    .neq('is_custom', true)
     .order('created_at', { ascending: false })
 
   const heroImage =
@@ -97,7 +98,10 @@ export default async function ContinentTripsPage({
               </span>{' '}
               Seasons Golf Tour
             </p>
-            <p className="mt-2 text-3xl sm:mt-4">{t('coursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}</p>
+            <p className="mt-2 text-3xl sm:mt-4">
+              {t('coursesIn')}{' '}
+              {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}
+            </p>
           </div>
         </div>
         <ScrollIndicator />
@@ -109,7 +113,8 @@ export default async function ContinentTripsPage({
             {t('coursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}
           </h2>
           <p className="mx-auto mt-3 max-w-4xl px-4 text-pretty text-xl sm:mt-4">
-            {t('discoverCoursesIn')} {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}.
+            {t('discoverCoursesIn')}{' '}
+            {t(`continents.${CONTINENT_KEYS[continentSlug]}`)}.
           </p>
         </div>
 

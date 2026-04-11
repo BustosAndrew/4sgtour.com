@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,9 +31,6 @@ import {
   Package,
   User,
   CreditCard,
-  CheckCircle,
-  Copy,
-  ExternalLink,
   Upload,
   X,
   Plus,
@@ -114,21 +112,64 @@ const STEPS = [
   },
   {
     id: 5,
-    title: 'Payment & Review',
-    description: 'Deposit and send payment link',
+    title: 'Review & Save',
+    description: 'Review and save changes',
     icon: CreditCard,
   },
 ]
 
-interface CreateCustomBookingFormProps {
-  onCancel: () => void
-  onSuccess: () => void
+export interface EditCustomBookingFormProps {
+  trip: {
+    id: string
+    title: string
+    title_ko?: string | null
+    description: string | null
+    description_ko?: string | null
+    overview_content?: string | null
+    overview_content_ko?: string | null
+    refund_policy?: string | null
+    refund_policy_ko?: string | null
+    location: string
+    location_ko?: string | null
+    highlights?: string[]
+    highlights_ko?: string[] | null
+    continent: string | null
+    price_regular: number
+    max_guests: number
+    max_nights?: number | null
+    max_days?: number | null
+    min_nights?: number | null
+    min_days?: number | null
+    min_days_advance?: number | null
+    courses_photo_url: string | null
+    room_photo_url: string | null
+    show_from_price?: boolean
+    images?: { id: string; image_url: string; display_order: number | null }[]
+    packages?: any[]
+    golf_courses?: any[]
+    meal_options?: any[]
+    transportation_options?: any[]
+    service_options?: any[]
+  }
+  inquiry: {
+    id: string
+    customer_name: string | null
+    customer_email: string | null
+    customer_phone: string | null
+    start_date: string | null
+    end_date: string | null
+    total_price: number | null
+    deposit_percentage: number | null
+    remainder_due_date: string | null
+    payment_link: string | null
+  }
 }
 
-export function CreateCustomBookingForm({
-  onCancel,
-  onSuccess,
-}: CreateCustomBookingFormProps) {
+export function EditCustomBookingForm({
+  trip,
+  inquiry,
+}: EditCustomBookingFormProps) {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -138,92 +179,166 @@ export function CreateCustomBookingForm({
 
   // Step 1: Trip Basics
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    overview_content: '',
-    refund_policy: '',
-    location: '',
-    continent: '',
-    max_guests: '20',
-    max_days: '',
-    min_days_advance: '0',
-    min_days: '1',
+    title: trip.title || '',
+    description: trip.description || '',
+    overview_content: trip.overview_content || '',
+    refund_policy: trip.refund_policy || '',
+    location: trip.location || '',
+    continent: trip.continent || '',
+    max_guests: trip.max_guests?.toString() || '20',
+    max_days: (trip.max_nights || trip.max_days)?.toString() || '',
+    min_days_advance: trip.min_days_advance?.toString() || '0',
+    min_days: (trip.min_nights || trip.min_days)?.toString() || '1',
   })
 
   const [koreanData, setKoreanData] = useState({
-    title_ko: '',
-    description_ko: '',
-    overview_content_ko: '',
-    refund_policy_ko: '',
-    location_ko: '',
+    title_ko: trip.title_ko || '',
+    description_ko: trip.description_ko || '',
+    overview_content_ko: trip.overview_content_ko || '',
+    refund_policy_ko: trip.refund_policy_ko || '',
+    location_ko: trip.location_ko || '',
   })
 
-  const [highlights, setHighlights] = useState<string[]>([])
-  const [highlightsKo, setHighlightsKo] = useState<string[]>([])
-  const [coursePhotos, setCoursePhotos] = useState<string[]>([])
+  const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
+  const [highlightsKo, setHighlightsKo] = useState<string[]>(
+    trip.highlights_ko || [],
+  )
+
+  const [coursePhotos, setCoursePhotos] = useState<string[]>(() => {
+    const existing: string[] = []
+    if (trip.courses_photo_url) existing.push(trip.courses_photo_url)
+    if (trip.images && trip.images.length > 0) {
+      const sorted = [...trip.images].sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
+      )
+      for (const img of sorted) {
+        if (img.image_url && !existing.includes(img.image_url)) {
+          existing.push(img.image_url)
+        }
+      }
+    }
+    return existing.slice(0, 5)
+  })
   const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [photos, setPhotos] = useState({ room: '' })
+  const [photos, setPhotos] = useState({ room: trip.room_photo_url || '' })
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
 
   // Step 2: Packages
-  const [packages, setPackages] = useState<PackageType[]>([
-    {
-      id: 'premium',
-      name: 'Premium',
-      description: '',
-      price: '',
-      price_per_extra_night: '',
-      availability: 'unlimited',
-      quantity: '',
-      participants_per_booking: '1',
-    },
-  ])
-  const [showFromPrice, setShowFromPrice] = useState(false)
-  const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
+  const initializePackages = (): PackageType[] => {
+    const existingPackages = trip.packages || []
+    const premiumPkg = existingPackages.find(
+      (p: any) =>
+        p.name === 'Premium' || p.name === 'Basic' || p.name === 'Regular',
+    )
+    const upgradePkg = existingPackages.find((p: any) => p.name === 'Upgrade')
 
-  // Step 3: Booking Options
-  const [golfCourses, setGolfCourses] = useState<GolfCourse[]>([])
-  const [mealOptions, setMealOptions] = useState<MealOption[]>([])
-  const [transportationOptions, setTransportationOptions] = useState<
-    TransportationOption[]
-  >([])
-  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([
-    { id: 'caddy', name: 'Caddy', description: '', is_included: false },
-    { id: 'golf-cart', name: 'Golf Cart', description: '', is_included: false },
-  ])
+    const pkgs: PackageType[] = []
+    if (premiumPkg) {
+      pkgs.push({
+        id: premiumPkg.id || 'premium',
+        name: 'Premium',
+        description: premiumPkg.description || '',
+        price: premiumPkg.price?.toString() || '',
+        price_per_extra_night:
+          premiumPkg.price_per_extra_night?.toString() || '',
+        availability: premiumPkg.availability || 'unlimited',
+        quantity: premiumPkg.quantity?.toString() || '',
+        participants_per_booking:
+          premiumPkg.participants_per_booking?.toString() || '1',
+      })
+    } else {
+      pkgs.push({
+        id: 'premium',
+        name: 'Premium',
+        description: '',
+        price: '',
+        price_per_extra_night: '',
+        availability: 'unlimited',
+        quantity: '',
+        participants_per_booking: '1',
+      })
+    }
+    if (upgradePkg) {
+      pkgs.push({
+        id: upgradePkg.id || 'upgrade',
+        name: 'Upgrade',
+        description: upgradePkg.description || '',
+        price: upgradePkg.price?.toString() || '',
+        price_per_extra_night:
+          upgradePkg.price_per_extra_night?.toString() || '',
+        availability: upgradePkg.availability || 'unlimited',
+        quantity: upgradePkg.quantity?.toString() || '',
+        participants_per_booking:
+          upgradePkg.participants_per_booking?.toString() || '1',
+      })
+    }
+    return pkgs
+  }
 
-  // Step 4: Customer Info & Dates
-  const [customerName, setCustomerName] = useState('')
-  const [customerEmail, setCustomerEmail] = useState('')
-  const [customerPhone, setCustomerPhone] = useState('')
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined)
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined)
-
-  // Step 5: Payment
-  const [depositPercentage, setDepositPercentage] = useState(30)
-  const [remainderDueDate, setRemainderDueDate] = useState<Date | undefined>(
-    undefined,
+  const [packages, setPackages] = useState<PackageType[]>(initializePackages)
+  const [showFromPrice, setShowFromPrice] = useState(
+    trip.show_from_price ?? false,
+  )
+  const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
+    (trip.packages || []).some((p: any) => p.name === 'Upgrade'),
   )
 
-  // Success state
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [packagePageUrl, setPackagePageUrl] = useState<string | null>(null)
-  const [copiedUrl, setCopiedUrl] = useState(false)
+  // Step 3: Booking Options
+  const [golfCourses, setGolfCourses] = useState<GolfCourse[]>(() =>
+    (trip.golf_courses || []).map((c: any) => ({
+      id: c.id || `course-${Date.now()}-${Math.random()}`,
+      course_name: c.course_name || c.name || '',
+      max_rounds: c.max_rounds?.toString() || '5',
+      num_holes: c.num_holes?.toString() || '18',
+    })),
+  )
+  const [mealOptions, setMealOptions] = useState<MealOption[]>(
+    trip.meal_options || [],
+  )
+  const [transportationOptions, setTransportationOptions] = useState<
+    TransportationOption[]
+  >(trip.transportation_options || [])
+  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>(
+    trip.service_options || [
+      { id: 'caddy', name: 'Caddy', description: '', is_included: false },
+      {
+        id: 'golf-cart',
+        name: 'Golf Cart',
+        description: '',
+        is_included: false,
+      },
+    ],
+  )
+
+  // Step 4: Customer Info & Dates
+  const [customerName, setCustomerName] = useState(inquiry.customer_name || '')
+  const [customerEmail, setCustomerEmail] = useState(
+    inquiry.customer_email || '',
+  )
+  const [customerPhone, setCustomerPhone] = useState(
+    inquiry.customer_phone || '',
+  )
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    inquiry.start_date ? new Date(inquiry.start_date) : undefined,
+  )
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    inquiry.end_date ? new Date(inquiry.end_date) : undefined,
+  )
+
+  // Step 5: Payment
+  const [depositPercentage, setDepositPercentage] = useState(
+    inquiry.deposit_percentage || 100,
+  )
+  const [remainderDueDate, setRemainderDueDate] = useState<Date | undefined>(
+    inquiry.remainder_due_date
+      ? new Date(inquiry.remainder_due_date)
+      : undefined,
+  )
 
   const premiumPkg = packages.find((p) => p.name === 'Premium')
   const totalPrice = premiumPkg ? Number(premiumPkg.price) || 0 : 0
   const depositAmount = (totalPrice * depositPercentage) / 100
   const remainderAmount = totalPrice - depositAmount
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedUrl(true)
-      setTimeout(() => setCopiedUrl(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy:', err)
-    }
-  }
 
   // Photo upload
   const handlePhotoUpload = async (
@@ -232,7 +347,6 @@ export function CreateCustomBookingForm({
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setUploadingPhoto(photoType)
     try {
       const fd = new FormData()
@@ -245,8 +359,7 @@ export function CreateCustomBookingForm({
           const parsed = raw ? JSON.parse(raw) : {}
           message = parsed?.error || message
         } catch {
-          const snippet = raw.replace(/\s+/g, ' ').slice(0, 200)
-          message = `Upload failed (${response.status})${snippet ? `: ${snippet}` : ''}`
+          message = `Upload failed (${response.status})`
         }
         throw new Error(message)
       }
@@ -414,7 +527,6 @@ export function CreateCustomBookingForm({
 
   const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
-
     switch (currentStep) {
       case 1:
         if (!formData.title.trim()) errors.push('Trip title is required')
@@ -453,20 +565,6 @@ export function CreateCustomBookingForm({
         if (upgrade) {
           if (!upgrade.price || Number(upgrade.price) <= 0)
             errors.push('Upgrade package price is required')
-          if (
-            !upgrade.participants_per_booking ||
-            Number(upgrade.participants_per_booking) <= 0
-          )
-            errors.push(
-              'Upgrade package must have valid participants per booking',
-            )
-          if (
-            upgrade.availability === 'limited' &&
-            (!upgrade.quantity || Number(upgrade.quantity) <= 0)
-          )
-            errors.push(
-              'Upgrade package must have valid quantity for limited availability',
-            )
         }
         break
       }
@@ -474,8 +572,6 @@ export function CreateCustomBookingForm({
         golfCourses.forEach((course, idx) => {
           if (!course.course_name.trim())
             errors.push(`Golf course ${idx + 1} name is required`)
-          if (!course.max_rounds || Number(course.max_rounds) < 0)
-            errors.push(`Golf course ${idx + 1} must have valid max rounds`)
         })
         mealOptions.forEach((meal, idx) => {
           if (!meal.name.trim())
@@ -504,7 +600,6 @@ export function CreateCustomBookingForm({
           )
         break
     }
-
     return { valid: errors.length === 0, errors }
   }
 
@@ -518,8 +613,7 @@ export function CreateCustomBookingForm({
           formData.max_days &&
           Number(formData.max_days) > 0 &&
           formData.min_days &&
-          Number(formData.min_days) > 0 &&
-          (!formData.min_days_advance || Number(formData.min_days_advance) >= 0)
+          Number(formData.min_days) > 0
         )
       case 2: {
         const p = packages.find((p) => p.name === 'Premium')
@@ -568,12 +662,17 @@ export function CreateCustomBookingForm({
     setValidationErrors([])
 
     try {
-      const response = await fetch('/api/admin/custom-booking', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/custom-booking/${trip.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           // Trip basics
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          overview_content: formData.overview_content || null,
+          refund_policy: formData.refund_policy || null,
+          location: formData.location,
+          continent: formData.continent,
           ...(koreanData.title_ko?.trim() && { title_ko: koreanData.title_ko }),
           ...(koreanData.description_ko?.trim() && {
             description_ko: koreanData.description_ko,
@@ -590,6 +689,7 @@ export function CreateCustomBookingForm({
           ...(highlightsKo.some((h) => h.trim()) && {
             highlights_ko: highlightsKo.filter((h) => h.trim() !== ''),
           }),
+          price_regular: totalPrice,
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance
@@ -612,197 +712,53 @@ export function CreateCustomBookingForm({
             quantity: pkg.quantity ? Number(pkg.quantity) : null,
             participants_per_booking: Number(pkg.participants_per_booking),
           })),
-          golfCourses: golfCourses.map((course) => ({
+          golf_courses: golfCourses.map((course) => ({
             course_name: course.course_name,
             max_rounds: Number(course.max_rounds),
             num_holes: Number(course.num_holes) || 18,
           })),
-          mealOptions: mealOptions.map((meal) => ({
+          meal_options: mealOptions.map((meal) => ({
             name: meal.name,
             description: meal.description,
             is_included: meal.is_included,
           })),
-          transportationOptions: transportationOptions.map((transport) => ({
+          transportation_options: transportationOptions.map((transport) => ({
             name: transport.name,
             description: transport.description,
             is_included: transport.is_included,
           })),
-          serviceOptions: serviceOptions.map((service) => ({
+          service_options: serviceOptions.map((service) => ({
             name: service.name,
             description: service.description,
             is_included: service.is_included,
           })),
-          // Customer info
+          // Inquiry data
+          inquiryId: inquiry.id,
           customerName,
           customerEmail,
           customerPhone,
+          totalPrice,
+          depositPercentage,
           startDate: startDate?.toISOString(),
           endDate: endDate?.toISOString(),
-          // Payment
-          depositPercentage,
           remainderDueDate: remainderDueDate?.toISOString(),
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to create custom booking')
+        throw new Error(errorData.error || 'Failed to update custom booking')
       }
 
-      const data = await response.json()
-      setPackagePageUrl(data.paymentLink)
-      setShowSuccess(true)
+      window.location.href = '/admin'
     } catch (error) {
-      console.error('[v0] Error creating custom booking:', error)
+      console.error('[v0] Error updating custom booking:', error)
       setValidationErrors([
-        error instanceof Error ? error.message : 'Failed to create booking',
+        error instanceof Error ? error.message : 'Failed to update booking',
       ])
     } finally {
       setLoading(false)
     }
-  }
-
-  // Success Dialog
-  if (showSuccess) {
-    return (
-      <div className="w-full">
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-            <CheckCircle className="h-10 w-10 text-emerald-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Custom Booking Created!
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            The payment link has been sent to {customerName} via SMS.
-          </p>
-
-          {packagePageUrl && (
-            <div className="mt-6 w-full max-w-md">
-              <Label className="text-left block mb-2">Payment Link</Label>
-              <p className="text-xs text-muted-foreground mb-2 text-left">
-                This is the Stripe checkout link that was sent via SMS. You can
-                also share it manually.
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={packagePageUrl}
-                  readOnly
-                  className="flex-1 text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => copyToClipboard(packagePageUrl)}
-                  className="shrink-0"
-                >
-                  {copiedUrl ? (
-                    <Check className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => window.open(packagePageUrl, '_blank')}
-                  className="shrink-0"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8 flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowSuccess(false)
-                onSuccess()
-              }}
-            >
-              Back to Inquiries
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                setShowSuccess(false)
-                setPackagePageUrl(null)
-                setCurrentStep(1)
-                setFormData({
-                  title: '',
-                  description: '',
-                  overview_content: '',
-                  refund_policy: '',
-                  location: '',
-                  continent: '',
-                  max_guests: '20',
-                  max_days: '',
-                  min_days_advance: '0',
-                  min_days: '1',
-                })
-                setKoreanData({
-                  title_ko: '',
-                  description_ko: '',
-                  overview_content_ko: '',
-                  refund_policy_ko: '',
-                  location_ko: '',
-                })
-                setHighlights([])
-                setHighlightsKo([])
-                setCoursePhotos([])
-                setPhotos({ room: '' })
-                setPackages([
-                  {
-                    id: 'premium',
-                    name: 'Premium',
-                    description: '',
-                    price: '',
-                    price_per_extra_night: '',
-                    availability: 'unlimited',
-                    quantity: '',
-                    participants_per_booking: '1',
-                  },
-                ])
-                setShowFromPrice(false)
-                setHasUpgradePackage(false)
-                setGolfCourses([])
-                setMealOptions([])
-                setTransportationOptions([])
-                setServiceOptions([
-                  {
-                    id: 'caddy',
-                    name: 'Caddy',
-                    description: '',
-                    is_included: false,
-                  },
-                  {
-                    id: 'golf-cart',
-                    name: 'Golf Cart',
-                    description: '',
-                    is_included: false,
-                  },
-                ])
-                setCustomerName('')
-                setCustomerEmail('')
-                setCustomerPhone('')
-                setStartDate(undefined)
-                setEndDate(undefined)
-                setDepositPercentage(30)
-                setRemainderDueDate(undefined)
-              }}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Create Another Booking
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -814,7 +770,6 @@ export function CreateCustomBookingForm({
             const StepIcon = step.icon
             const isActive = currentStep === step.id
             const isCompleted = currentStep > step.id
-
             return (
               <div key={step.id} className="flex flex-1 items-center">
                 <div className="flex flex-col items-center">
@@ -886,7 +841,7 @@ export function CreateCustomBookingForm({
             <div>
               <h2 className="text-xl font-semibold sm:text-2xl">Trip Basics</h2>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Enter the basic information about the custom golf trip
+                Edit the basic information about the custom golf trip
               </p>
             </div>
 
@@ -946,7 +901,6 @@ export function CreateCustomBookingForm({
                   required={activeLanguage === 'en'}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-base text-foreground">
                   Location *{' '}
@@ -1010,8 +964,8 @@ export function CreateCustomBookingForm({
                 }
                 placeholder={
                   activeLanguage === 'en'
-                    ? 'Provide a brief overview of the trip for guests...'
-                    : '여행에 대한 간략한 개요를 제공하세요...'
+                    ? 'Provide a brief overview...'
+                    : '간략한 개요를 제공하세요...'
                 }
                 rows={6}
               />
@@ -1049,15 +1003,11 @@ export function CreateCustomBookingForm({
                 }
                 placeholder={
                   activeLanguage === 'en'
-                    ? 'Provide a detailed overview shown on the trip detail page...'
-                    : '여행 상세 페이지에 표시될 자세한 개요를 제공하세요...'
+                    ? 'Detailed overview shown on detail page...'
+                    : '상세 페이지에 표시될 자세한 개요...'
                 }
                 rows={8}
               />
-              <p className="text-xs text-muted-foreground">
-                This detailed overview will be displayed on the trip detail
-                page. If empty, the Trip Overview above will be used.
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -1092,8 +1042,8 @@ export function CreateCustomBookingForm({
                 }
                 placeholder={
                   activeLanguage === 'en'
-                    ? 'Enter the refund policy specific to this trip...'
-                    : '이 여행에 대한 환불 정책을 입력하세요...'
+                    ? 'Enter the refund policy...'
+                    : '환불 정책을 입력하세요...'
                 }
                 rows={4}
               />
@@ -1169,7 +1119,7 @@ export function CreateCustomBookingForm({
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Add highlights in English first, then translate them here
+                  Add highlights in English first
                 </p>
               )}
             </div>
@@ -1233,12 +1183,8 @@ export function CreateCustomBookingForm({
                 onChange={(e) =>
                   setFormData({ ...formData, min_days: e.target.value })
                 }
-                placeholder="e.g., 3"
+                placeholder="3"
               />
-              <p className="text-xs text-muted-foreground">
-                Minimum number of days guests must select on the calendar
-                (default: 1)
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -1253,12 +1199,8 @@ export function CreateCustomBookingForm({
                 onChange={(e) =>
                   setFormData({ ...formData, max_days: e.target.value })
                 }
-                placeholder="e.g., 7"
+                placeholder="7"
               />
-              <p className="text-xs text-muted-foreground">
-                Optional: Set a maximum number of days guests can book for this
-                trip
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -1276,12 +1218,8 @@ export function CreateCustomBookingForm({
                 onChange={(e) =>
                   setFormData({ ...formData, min_days_advance: e.target.value })
                 }
-                placeholder="e.g., 30"
+                placeholder="30"
               />
-              <p className="text-xs text-muted-foreground">
-                Optional: Minimum days in advance required to book (0 = no
-                restriction)
-              </p>
             </div>
 
             {/* Course Photos */}
@@ -1320,7 +1258,7 @@ export function CreateCustomBookingForm({
                       </div>
                       <Image
                         src={url || '/placeholder.svg'}
-                        alt={`Golf course photo ${index + 1}`}
+                        alt={`Course photo ${index + 1}`}
                         fill
                         className="object-cover"
                       />
@@ -1454,7 +1392,6 @@ export function CreateCustomBookingForm({
                         Premium Package (Required)
                       </h4>
                     </div>
-
                     <div className="space-y-2">
                       <Label className="text-base text-foreground">
                         Package Details (optional)
@@ -1464,11 +1401,10 @@ export function CreateCustomBookingForm({
                         onChange={(e) =>
                           updatePackage(pkg.id, 'description', e.target.value)
                         }
-                        placeholder="What's included in this package..."
+                        placeholder="What's included..."
                         rows={3}
                       />
                     </div>
-
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
@@ -1502,13 +1438,8 @@ export function CreateCustomBookingForm({
                           }
                           placeholder="50"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          Additional cost per night beyond minimum stay
-                          (optional)
-                        </p>
                       </div>
                     </div>
-
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
@@ -1588,7 +1519,6 @@ export function CreateCustomBookingForm({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
                           Package Details (optional)
@@ -1598,11 +1528,10 @@ export function CreateCustomBookingForm({
                           onChange={(e) =>
                             updatePackage(pkg.id, 'description', e.target.value)
                           }
-                          placeholder="What's included in this package..."
+                          placeholder="What's included..."
                           rows={3}
                         />
                       </div>
-
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label className="text-base text-foreground">
@@ -1636,13 +1565,8 @@ export function CreateCustomBookingForm({
                             }
                             placeholder="75"
                           />
-                          <p className="text-xs text-muted-foreground">
-                            Additional cost per night beyond minimum stay
-                            (optional)
-                          </p>
                         </div>
                       </div>
-
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label className="text-base text-foreground">
@@ -1757,7 +1681,6 @@ export function CreateCustomBookingForm({
                   Add Course
                 </Button>
               </div>
-
               {golfCourses.map((course, index) => (
                 <div
                   key={course.id}
@@ -1813,9 +1736,6 @@ export function CreateCustomBookingForm({
                         placeholder="5"
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Maximum rounds available (min: 0)
-                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-base text-foreground">
@@ -1835,18 +1755,13 @@ export function CreateCustomBookingForm({
                         placeholder="18"
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Number of holes per round (e.g., 9, 18)
-                      </p>
                     </div>
                   </div>
                 </div>
               ))}
-
               {golfCourses.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No golf courses added. Click &quot;Add Course&quot; to add
-                  courses (optional).
+                  No golf courses added.
                 </div>
               )}
             </div>
@@ -1857,7 +1772,7 @@ export function CreateCustomBookingForm({
                 <div>
                   <h3 className="text-lg font-semibold">Meals</h3>
                   <p className="text-sm text-muted-foreground">
-                    Add meal options for this trip (optional)
+                    Add meal options (optional)
                   </p>
                 </div>
                 <Button
@@ -1870,7 +1785,6 @@ export function CreateCustomBookingForm({
                   Add Meal Option
                 </Button>
               </div>
-
               {mealOptions.map((meal, index) => (
                 <div
                   key={meal.id}
@@ -1888,20 +1802,18 @@ export function CreateCustomBookingForm({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-base text-foreground">
-                        Option Name *
-                      </Label>
-                      <Input
-                        value={meal.name}
-                        onChange={(e) =>
-                          updateMealOption(meal.id, 'name', e.target.value)
-                        }
-                        placeholder="e.g., Breakfast Included"
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-base text-foreground">
+                      Option Name *
+                    </Label>
+                    <Input
+                      value={meal.name}
+                      onChange={(e) =>
+                        updateMealOption(meal.id, 'name', e.target.value)
+                      }
+                      placeholder="e.g., Breakfast Included"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-base text-foreground">
@@ -1912,20 +1824,20 @@ export function CreateCustomBookingForm({
                       onChange={(e) =>
                         updateMealOption(meal.id, 'description', e.target.value)
                       }
-                      placeholder="Describe this meal option..."
+                      placeholder="Describe..."
                       rows={2}
                     />
                   </div>
-                  <div className="flex items-center justify-start gap-2">
+                  <div className="flex items-center gap-2">
                     <Switch
-                      id={`meal-included-${meal.id}`}
+                      id={`meal-inc-${meal.id}`}
                       checked={meal.is_included}
                       onCheckedChange={(checked) =>
                         updateMealOption(meal.id, 'is_included', checked)
                       }
                     />
                     <Label
-                      htmlFor={`meal-included-${meal.id}`}
+                      htmlFor={`meal-inc-${meal.id}`}
                       className="text-base text-foreground"
                     >
                       Included in Package
@@ -1933,11 +1845,9 @@ export function CreateCustomBookingForm({
                   </div>
                 </div>
               ))}
-
               {mealOptions.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No meal options added. Click &quot;Add Meal Option&quot; to
-                  add options (optional).
+                  No meal options added.
                 </div>
               )}
             </div>
@@ -1948,7 +1858,7 @@ export function CreateCustomBookingForm({
                 <div>
                   <h3 className="text-lg font-semibold">Transportation</h3>
                   <p className="text-sm text-muted-foreground">
-                    Add transportation options for this trip (optional)
+                    Add transportation options (optional)
                   </p>
                 </div>
                 <Button
@@ -1961,7 +1871,6 @@ export function CreateCustomBookingForm({
                   Add Transportation Option
                 </Button>
               </div>
-
               {transportationOptions.map((transport, index) => (
                 <div
                   key={transport.id}
@@ -1981,24 +1890,22 @@ export function CreateCustomBookingForm({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-base text-foreground">
-                        Option Name *
-                      </Label>
-                      <Input
-                        value={transport.name}
-                        onChange={(e) =>
-                          updateTransportationOption(
-                            transport.id,
-                            'name',
-                            e.target.value,
-                          )
-                        }
-                        placeholder="e.g., Private Car with Driver"
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-base text-foreground">
+                      Option Name *
+                    </Label>
+                    <Input
+                      value={transport.name}
+                      onChange={(e) =>
+                        updateTransportationOption(
+                          transport.id,
+                          'name',
+                          e.target.value,
+                        )
+                      }
+                      placeholder="e.g., Private Car with Driver"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-base text-foreground">
@@ -2013,13 +1920,13 @@ export function CreateCustomBookingForm({
                           e.target.value,
                         )
                       }
-                      placeholder="Describe this transportation option..."
+                      placeholder="Describe..."
                       rows={2}
                     />
                   </div>
-                  <div className="flex items-center justify-start gap-2">
+                  <div className="flex items-center gap-2">
                     <Switch
-                      id={`transport-included-${transport.id}`}
+                      id={`trans-inc-${transport.id}`}
                       checked={transport.is_included}
                       onCheckedChange={(checked) =>
                         updateTransportationOption(
@@ -2030,7 +1937,7 @@ export function CreateCustomBookingForm({
                       }
                     />
                     <Label
-                      htmlFor={`transport-included-${transport.id}`}
+                      htmlFor={`trans-inc-${transport.id}`}
                       className="text-base text-foreground"
                     >
                       Included in Package
@@ -2038,11 +1945,9 @@ export function CreateCustomBookingForm({
                   </div>
                 </div>
               ))}
-
               {transportationOptions.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No transportation options added. Click &quot;Add
-                  Transportation Option&quot; to add options (optional).
+                  No transportation options added.
                 </div>
               )}
             </div>
@@ -2060,7 +1965,7 @@ export function CreateCustomBookingForm({
                   <div>
                     <p className="text-sm font-medium">Caddy Included</p>
                     <p className="text-xs text-muted-foreground">
-                      Toggle on if a caddy is included for players.
+                      Toggle on if a caddy is included.
                     </p>
                   </div>
                   <Switch
@@ -2077,7 +1982,7 @@ export function CreateCustomBookingForm({
                   <div>
                     <p className="text-sm font-medium">Golf Cart Included</p>
                     <p className="text-xs text-muted-foreground">
-                      Toggle on if a golf cart is included for players.
+                      Toggle on if a golf cart is included.
                     </p>
                   </div>
                   <Switch
@@ -2103,10 +2008,9 @@ export function CreateCustomBookingForm({
                 Customer Information & Travel Dates
               </h2>
               <p className="text-muted-foreground">
-                Enter the customer&apos;s contact details and trip dates
+                Update the customer&apos;s contact details and trip dates
               </p>
             </div>
-
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="customerName">Full Name *</Label>
@@ -2136,12 +2040,8 @@ export function CreateCustomBookingForm({
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="+1 (555) 000-0000"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Payment link will be sent via SMS to this number
-                </p>
               </div>
             </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Start Date *</Label>
@@ -2167,7 +2067,6 @@ export function CreateCustomBookingForm({
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
-                      disabled={(date) => date < new Date()}
                       initialFocus
                       className="rounded-md border"
                     />
@@ -2199,8 +2098,7 @@ export function CreateCustomBookingForm({
                       selected={endDate}
                       onSelect={setEndDate}
                       disabled={(date) =>
-                        date < new Date() ||
-                        (startDate ? date < startDate : false)
+                        startDate ? date < startDate : false
                       }
                       initialFocus
                       className="rounded-md border"
@@ -2209,7 +2107,6 @@ export function CreateCustomBookingForm({
                 </Popover>
               </div>
             </div>
-
             {startDate && endDate && (
               <div className="rounded-lg border border-border bg-muted/20 p-4">
                 <p className="text-sm text-muted-foreground">
@@ -2224,16 +2121,27 @@ export function CreateCustomBookingForm({
                 </p>
               </div>
             )}
+
+            {inquiry.payment_link && (
+              <div className="rounded-lg border border-border bg-muted/20 p-4">
+                <Label className="text-sm font-medium">
+                  Current Payment Link
+                </Label>
+                <p className="mt-1 text-sm text-muted-foreground break-all">
+                  {inquiry.payment_link}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* ========== STEP 5: Payment & Review ========== */}
+        {/* ========== STEP 5: Review & Save ========== */}
         {currentStep === 5 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold">Payment & Review</h2>
+              <h2 className="text-xl font-semibold">Review & Save</h2>
               <p className="text-muted-foreground">
-                Set the payment amount and review all booking details
+                Review all booking details and save changes
               </p>
             </div>
 
@@ -2387,24 +2295,6 @@ export function CreateCustomBookingForm({
                       </ul>
                     </div>
                   )}
-                  <div className="grid gap-2 md:grid-cols-2">
-                    <div>
-                      <span className="font-medium">Max Guests:</span>{' '}
-                      {formData.max_guests}
-                    </div>
-                    {formData.max_days && (
-                      <div>
-                        <span className="font-medium">Max Days:</span>{' '}
-                        {formData.max_days}
-                      </div>
-                    )}
-                    {formData.min_days && (
-                      <div>
-                        <span className="font-medium">Min Days:</span>{' '}
-                        {formData.min_days}
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -2508,7 +2398,7 @@ export function CreateCustomBookingForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={() => (window.location.href = '/admin')}
               className="w-full sm:w-auto bg-transparent"
             >
               Cancel
@@ -2543,7 +2433,7 @@ export function CreateCustomBookingForm({
             disabled={loading}
             className="w-full bg-primary hover:bg-primary/90 sm:w-auto"
           >
-            {loading ? 'Creating Custom Trip...' : 'Create & Send Payment Link'}
+            {loading ? 'Saving Changes...' : 'Save Changes'}
           </Button>
         )}
       </div>

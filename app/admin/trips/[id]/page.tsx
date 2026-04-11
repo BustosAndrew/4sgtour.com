@@ -1,11 +1,12 @@
-import { createClient } from "@/lib/supabase/server"
-import { getUserType } from "@/lib/supabase/get-user-type"
-import { redirect } from "next/navigation"
-import { notFound } from "next/navigation"
-import { EditTripForm } from "@/components/admin/edit-trip-form"
-import { AdminAvatarButton } from "@/components/admin/admin-avatar-button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { createClient } from '@/lib/supabase/server'
+import { getUserType } from '@/lib/supabase/get-user-type'
+import { redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
+import { EditTripForm } from '@/components/admin/edit-trip-form'
+import { EditCustomBookingForm } from '@/components/admin/edit-custom-booking-form'
+import { AdminAvatarButton } from '@/components/admin/admin-avatar-button'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 interface AdminTripPageProps {
   params: Promise<{ id: string }>
@@ -20,19 +21,19 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect('/auth/login')
   }
 
   const userType = await getUserType()
 
-  if (userType !== "admin") {
-    redirect("/")
+  if (userType !== 'admin') {
+    redirect('/')
   }
 
   const { data: trip } = await supabase
-    .from("trips")
-    .select("*")
-    .eq("id", id)
+    .from('trips')
+    .select('*')
+    .eq('id', id)
     .single()
 
   if (!trip) {
@@ -41,40 +42,40 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
 
   // Fetch related data
   const { data: packages } = await supabase
-    .from("packages")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at", { ascending: true })
+    .from('packages')
+    .select('*')
+    .eq('trip_id', id)
+    .order('created_at', { ascending: true })
 
   const { data: golfCourses } = await supabase
-    .from("trip_golf_courses")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at", { ascending: true })
+    .from('trip_golf_courses')
+    .select('*')
+    .eq('trip_id', id)
+    .order('created_at', { ascending: true })
 
   const { data: mealOptions } = await supabase
-    .from("trip_meal_options")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at", { ascending: true })
+    .from('trip_meal_options')
+    .select('*')
+    .eq('trip_id', id)
+    .order('created_at', { ascending: true })
 
   const { data: transportationOptions } = await supabase
-    .from("trip_transportation_options")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at", { ascending: true })
+    .from('trip_transportation_options')
+    .select('*')
+    .eq('trip_id', id)
+    .order('created_at', { ascending: true })
 
   const { data: serviceOptions } = await supabase
-    .from("trip_service_options")
-    .select("*")
-    .eq("trip_id", id)
-    .order("created_at", { ascending: true })
+    .from('trip_service_options')
+    .select('*')
+    .eq('trip_id', id)
+    .order('created_at', { ascending: true })
 
   const { data: images } = await supabase
-    .from("trip_images")
-    .select("id, image_url, display_order")
-    .eq("trip_id", id)
-    .order("display_order", { ascending: true, nullsFirst: true })
+    .from('trip_images')
+    .select('id, image_url, display_order')
+    .eq('trip_id', id)
+    .order('display_order', { ascending: true, nullsFirst: true })
 
   // Combine all data
   const tripWithRelations = {
@@ -87,10 +88,26 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     images: images || [],
   }
 
+  // For custom trips, fetch linked inquiry
+  let inquiry = null
+  if (trip.is_custom) {
+    const { data: inquiryData } = await supabase
+      .from('inquiries')
+      .select(
+        'id, customer_name, customer_email, customer_phone, start_date, end_date, total_price, deposit_percentage, remainder_due_date, payment_link',
+      )
+      .eq('trip_id', id)
+      .eq('is_custom_package', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    inquiry = inquiryData
+  }
+
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, email, phone, photo_url")
-    .eq("id", user.id)
+    .from('profiles')
+    .select('display_name, email, phone, photo_url')
+    .eq('id', user.id)
     .single()
 
   return (
@@ -107,8 +124,8 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
             </Link>
           </div>
           <AdminAvatarButton
-            userName={profile?.display_name || profile?.email || ""}
-            userEmail={profile?.email || user.email || ""}
+            userName={profile?.display_name || profile?.email || ''}
+            userEmail={profile?.email || user.email || ''}
             userPhone={profile?.phone || null}
             userPhotoUrl={profile?.photo_url || null}
           />
@@ -117,7 +134,11 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
 
       {/* Main Content */}
       <main className="p-4 sm:p-6 md:p-8">
-        <EditTripForm trip={tripWithRelations} />
+        {trip.is_custom && inquiry ? (
+          <EditCustomBookingForm trip={tripWithRelations} inquiry={inquiry} />
+        ) : (
+          <EditTripForm trip={tripWithRelations} />
+        )}
       </main>
     </div>
   )
