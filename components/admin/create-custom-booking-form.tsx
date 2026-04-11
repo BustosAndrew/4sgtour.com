@@ -192,8 +192,8 @@ export function CreateCustomBookingForm({
 
       const data = await response.json()
       
-      // Show success dialog with package URL
-      setPackagePageUrl(data.packagePageUrl)
+      // Show success dialog with payment link
+      setPackagePageUrl(data.paymentLink)
       setShowSuccess(true)
     } catch (error) {
       console.error("[v0] Error creating custom booking:", error)
@@ -241,9 +241,9 @@ export function CreateCustomBookingForm({
 
           {packagePageUrl && (
             <div className="mt-6 w-full max-w-md">
-              <Label className="text-left block mb-2">Private Package Page URL</Label>
+              <Label className="text-left block mb-2">Payment Link</Label>
               <p className="text-xs text-muted-foreground mb-2 text-left">
-                Share this link with the customer. It is private and will not appear in search results.
+                This is the Stripe checkout link that was sent via SMS. You can also share it manually.
               </p>
               <div className="flex items-center gap-2">
                 <Input
