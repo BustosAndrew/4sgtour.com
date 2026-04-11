@@ -1006,18 +1006,52 @@ export function AdminCourses({
             </>
           ) : activeTab === "inquiries" ? (
             <>
-              <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  Inquiries
-                </h2>
-                <p className="text-sm text-gray-600">
-                  View and manage customer booking inquiries
-                </p>
-              </div>
+              {showCustomBookingForm ? (
+                <>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">
+                      Create Custom Booking
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Create a custom package and send payment link to customer
+                    </p>
+                  </div>
 
-              <div className="rounded-lg bg-white p-6 shadow-sm">
-                <InquiriesList onViewInInbox={handleViewInInbox} />
-              </div>
+                  <div className="rounded-lg bg-white p-6 shadow-sm">
+                    <CreateCustomBookingForm
+                      onCancel={() => setShowCustomBookingForm(false)}
+                      onSuccess={() => {
+                        setShowCustomBookingForm(false)
+                        router.refresh()
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-900">
+                        Inquiries
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        View and manage customer booking inquiries
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => setShowCustomBookingForm(true)}
+                      className="w-full sm:w-auto bg-[#274C77] text-white hover:bg-[#274C77]/90"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Custom Booking
+                    </Button>
+                  </div>
+
+                  <div className="rounded-lg bg-white p-6 shadow-sm">
+                    <InquiriesList onViewInInbox={handleViewInInbox} />
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <>

@@ -36,11 +36,12 @@ export async function DELETE(
       // Continue anyway - messages may not exist
     }
 
-    // Delete the inquiry
-    const { error } = await supabase
+    // Delete the inquiry and verify it was deleted
+    const { data, error } = await supabase
       .from("inquiries")
       .delete()
       .eq("id", id)
+      .select()
 
     if (error) {
       console.error("Error deleting inquiry:", error)
@@ -50,7 +51,16 @@ export async function DELETE(
       )
     }
 
-    return NextResponse.json({ success: true })
+    // Check if any row was actually deleted
+    if (!data || data.length === 0) {
+      console.error("No inquiry found or RLS blocked deletion for id:", id)
+      return NextResponse.json(
+        { error: "Inquiry not found or access denied" },
+        { status: 404 },
+      )
+    }
+
+    return NextResponse.json({ success: true, deleted: data.length })
   } catch (error) {
     console.error("Error in inquiry delete route:", error)
     return NextResponse.json(
