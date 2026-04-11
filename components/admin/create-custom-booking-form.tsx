@@ -21,6 +21,9 @@ import {
   Package,
   User,
   CreditCard,
+  CheckCircle,
+  Copy,
+  ExternalLink,
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -85,8 +88,23 @@ export function CreateCustomBookingForm({
     undefined
   )
 
+  // Success state
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [packagePageUrl, setPackagePageUrl] = useState<string | null>(null)
+  const [copiedUrl, setCopiedUrl] = useState(false)
+
   const depositAmount = (totalPrice * depositPercentage) / 100
   const remainderAmount = totalPrice - depositAmount
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedUrl(true)
+      setTimeout(() => setCopiedUrl(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy:", err)
+    }
+  }
 
   const validateCurrentStep = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
