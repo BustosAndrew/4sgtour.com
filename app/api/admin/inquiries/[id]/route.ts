@@ -43,31 +43,45 @@ export async function DELETE(
       // Continue anyway - messages may not exist
     }
 
-    // Delete the inquiry and verify it was deleted
-    const { data, error } = await adminClient
+    // Try to delete from inquiries table first
+    const { data: inquiryData, error: inquiryError } = await adminClient
       .from("inquiries")
       .delete()
       .eq("id", id)
       .select()
 
-    if (error) {
-      console.error("Error deleting inquiry:", error)
-      return NextResponse.json(
-        { error: "Failed to delete inquiry" },
-        { status: 500 },
-      )
+    if (inquiryError) {
+      console.error("Error deleting from inquiries:", inquiryError)
     }
 
-    // Check if any row was actually deleted
-    if (!data || data.length === 0) {
-      console.error("No inquiry found for id:", id)
-      return NextResponse.json(
-        { error: "Inquiry not found" },
-        { status: 404 },
-      )
+    // If not found in inquiries, try stripe_bookings table
+    if (!inquiryData || inquiryData.length === 0) {
+      const { data: bookingData, error: bookingError } = await adminClient
+        .from("stripe_bookings")
+        .delete()
+        .eq("id", id)
+        .select()
+
+      if (bookingError) {
+        console.error("Error deleting from stripe_bookings:", bookingError)
+        return NextResponse.json(
+          { error: "Failed to delete booking" },
+          { status: 500 },
+        )
+      }
+
+      if (!bookingData || bookingData.length === 0) {
+        console.error("No inquiry or booking found for id:", id)
+        return NextResponse.json(
+          { error: "Inquiry not found" },
+          { status: 404 },
+        )
+      }
+
+      return NextResponse.json({ success: true, deleted: bookingData.length, source: "stripe_bookings" })
     }
 
-    return NextResponse.json({ success: true, deleted: data.length })
+    return NextResponse.json({ success: true, deleted: inquiryData.length, source: "inquiries" })
   } catch (error) {
     console.error("Error in inquiry delete route:", error)
     return NextResponse.json(
