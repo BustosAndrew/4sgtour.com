@@ -520,13 +520,14 @@ export function CreateCustomBookingForm({
                       {startDate ? format(startDate, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
                       disabled={(date) => date < new Date()}
                       initialFocus
+                      className="rounded-md border"
                     />
                   </PopoverContent>
                 </Popover>
@@ -547,7 +548,7 @@ export function CreateCustomBookingForm({
                       {endDate ? format(endDate, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={endDate}
@@ -556,6 +557,7 @@ export function CreateCustomBookingForm({
                         date < new Date() || (startDate ? date < startDate : false)
                       }
                       initialFocus
+                      className="rounded-md border"
                     />
                   </PopoverContent>
                 </Popover>
@@ -683,13 +685,14 @@ export function CreateCustomBookingForm({
                         : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={remainderDueDate}
                       onSelect={setRemainderDueDate}
                       disabled={(date) => date < new Date()}
                       initialFocus
+                      className="rounded-md border"
                     />
                   </PopoverContent>
                 </Popover>
