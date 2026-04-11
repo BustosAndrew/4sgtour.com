@@ -29,6 +29,7 @@ import { InboxList } from "@/components/admin/inbox-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { TranslateDialog } from "@/components/admin/translate-dialog"
+import { CreateCustomBookingForm } from "@/components/admin/create-custom-booking-form"
 
 type Trip = {
   id: string
@@ -118,6 +119,7 @@ export function AdminCourses({
     id: string
     name: string
   } | null>(null)
+  const [showCustomBookingForm, setShowCustomBookingForm] = useState(false)
   const router = useRouter()
 
   const handleTranslateAll = async () => {
