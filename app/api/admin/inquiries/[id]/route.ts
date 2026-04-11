@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { NextResponse } from "next/server"
 
@@ -25,8 +26,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
+    // Use service role client for admin operations to bypass RLS
+    const adminClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+
     // First delete any associated messages
-    const { error: messagesError } = await supabase
+    const { error: messagesError } = await adminClient
       .from("messages")
       .delete()
       .eq("inquiry_id", id)
@@ -37,7 +44,7 @@ export async function DELETE(
     }
 
     // Delete the inquiry and verify it was deleted
-    const { data, error } = await supabase
+    const { data, error } = await adminClient
       .from("inquiries")
       .delete()
       .eq("id", id)
@@ -53,9 +60,9 @@ export async function DELETE(
 
     // Check if any row was actually deleted
     if (!data || data.length === 0) {
-      console.error("No inquiry found or RLS blocked deletion for id:", id)
+      console.error("No inquiry found for id:", id)
       return NextResponse.json(
-        { error: "Inquiry not found or access denied" },
+        { error: "Inquiry not found" },
         { status: 404 },
       )
     }
