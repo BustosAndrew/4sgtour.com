@@ -1,12 +1,12 @@
-import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { SiteFooter } from "@/components/site-footer"
-import { TripCard } from "@/components/trip-card"
-import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import type { Trip } from "@/lib/types/database"
-import { FavoritesContent } from "@/components/favorites/favorites-content"
+import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
+import { SiteFooter } from '@/components/site-footer'
+import { TripCard } from '@/components/trip-card'
+import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import type { Trip } from '@/lib/types/database'
+import { FavoritesContent } from '@/components/favorites/favorites-content'
 
 export default async function FavoritesPage() {
   const supabase = await createClient()
@@ -16,11 +16,11 @@ export default async function FavoritesPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect('/auth/login')
   }
 
   const { data: favorites } = await supabase
-    .from("favorites")
+    .from('favorites')
     .select(
       `
       trip_id,
@@ -30,11 +30,15 @@ export default async function FavoritesPage() {
       )
     `,
     )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  // Filter out custom trips from favorites
+  const filteredFavorites =
+    favorites?.filter((f: any) => !f.trips?.is_custom) || []
 
   const trips =
-    (favorites?.map((f: any) => f.trips).filter(Boolean) as Array<
+    (filteredFavorites.map((f: any) => f.trips).filter(Boolean) as Array<
       Trip & { images?: Array<{ image_url: string }> }
     >) || []
 

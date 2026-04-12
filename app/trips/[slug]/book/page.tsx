@@ -1,8 +1,8 @@
-import { SiteHeaderWrapper } from "@/components/site-header-wrapper"
-import { SiteFooter } from "@/components/site-footer"
-import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
-import { BookingForm } from "@/components/booking/booking-form"
+import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
+import { SiteFooter } from '@/components/site-footer'
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import { BookingForm } from '@/components/booking/booking-form'
 
 interface BookingPageProps {
   params: Promise<{ slug: string }>
@@ -23,7 +23,7 @@ export default async function BookingPage({
   } = await supabase.auth.getUser()
 
   const { data: trip } = await supabase
-    .from("trips")
+    .from('trips')
     .select(
       `
       *,
@@ -33,36 +33,36 @@ export default async function BookingPage({
       add_ons(*)
     `,
     )
-    .eq("slug", slug)
+    .eq('slug', slug)
     .single()
 
-  if (!trip) {
+  if (!trip || trip.is_custom) {
     notFound()
   }
 
   const { data: golfCourses } = await supabase
-    .from("trip_golf_courses")
-    .select("*")
-    .eq("trip_id", trip.id)
-    .order("created_at", { ascending: true })
+    .from('trip_golf_courses')
+    .select('*')
+    .eq('trip_id', trip.id)
+    .order('created_at', { ascending: true })
 
   const { data: mealOptions } = await supabase
-    .from("trip_meal_options")
-    .select("*")
-    .eq("trip_id", trip.id)
-    .order("created_at", { ascending: true })
+    .from('trip_meal_options')
+    .select('*')
+    .eq('trip_id', trip.id)
+    .order('created_at', { ascending: true })
 
   const { data: transportationOptions } = await supabase
-    .from("trip_transportation_options")
-    .select("*")
-    .eq("trip_id", trip.id)
-    .order("created_at", { ascending: true })
+    .from('trip_transportation_options')
+    .select('*')
+    .eq('trip_id', trip.id)
+    .order('created_at', { ascending: true })
 
   const { data: serviceOptions } = await supabase
-    .from("trip_service_options")
-    .select("*")
-    .eq("trip_id", trip.id)
-    .order("created_at", { ascending: true })
+    .from('trip_service_options')
+    .select('*')
+    .eq('trip_id', trip.id)
+    .order('created_at', { ascending: true })
 
   // Combine all data
   const tripWithOptions = {
@@ -77,9 +77,9 @@ export default async function BookingPage({
   let profile = null
   if (user) {
     const { data: profileData } = await supabase
-      .from("profiles")
-      .select("display_name, email, phone")
-      .eq("id", user.id)
+      .from('profiles')
+      .select('display_name, email, phone')
+      .eq('id', user.id)
       .single()
     profile = profileData
   }

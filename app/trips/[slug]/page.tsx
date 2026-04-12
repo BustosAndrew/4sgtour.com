@@ -37,7 +37,7 @@ export default async function TripPage({ params }: TripPageProps) {
     .eq('slug', slug)
     .single()
 
-  if (!trip) {
+  if (!trip || trip.is_custom) {
     notFound()
   }
 
