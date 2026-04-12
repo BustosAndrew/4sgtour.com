@@ -61,6 +61,7 @@ interface EditTripFormProps {
     courses_photo_url: string | null
     room_photo_url: string | null
     show_from_price?: boolean
+    deposit_percentage?: number | null
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
     golf_courses?: any[]
@@ -164,6 +165,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   })
 
   const [showFromPrice, setShowFromPrice] = useState(trip.show_from_price ?? false)
+  const [depositPercentage, setDepositPercentage] = useState(trip.deposit_percentage ?? 30)
   const [photos, setPhotos] = useState({
     room: trip.room_photo_url || "",
   })
@@ -592,9 +594,10 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           min_days_advance: Number(formData.min_days_advance),
           courses_photo_url: coursePhotos[0] || null,
           course_images: coursePhotos,
-          room_photo_url: photos.room || null,
-          show_from_price: showFromPrice,
-          highlights: highlights.filter((h) => h.trim() !== ""),
+      room_photo_url: photos.room || null,
+      show_from_price: showFromPrice,
+      deposit_percentage: depositPercentage,
+      highlights: highlights.filter((h) => h.trim() !== ""),
           // Only send Korean highlights if any were entered
           ...(highlights_ko.some((h) => h.trim()) && { highlights_ko: highlights_ko.filter((h) => h.trim() !== "") }),
           packages,
@@ -1230,6 +1233,69 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 checked={showFromPrice}
                 onCheckedChange={setShowFromPrice}
               />
+            </div>
+
+            {/* Deposit Percentage Setting */}
+            <div className="space-y-4 rounded-lg border border-border p-4">
+              <div>
+                <Label className="text-base font-medium text-foreground">
+                  Deposit Percentage
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Configure the deposit percentage customers can pay when booking. They can choose between this percentage or full payment.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(30)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 30
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  30%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(50)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 50
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  50%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(100)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 100
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  100% (Full)
+                </button>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Custom: {depositPercentage}%</Label>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={depositPercentage}
+                  onChange={(e) => setDepositPercentage(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              {depositPercentage < 100 && (
+                <p className="text-xs text-muted-foreground">
+                  Customers will be able to choose between paying {depositPercentage}% deposit or 100% full payment at checkout.
+                </p>
+              )}
             </div>
 
             <div className="space-y-4 rounded-lg border border-border p-6">

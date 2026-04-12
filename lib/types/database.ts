@@ -45,6 +45,7 @@ export interface Trip {
   room_photo_url: string | null
   show_from_price: boolean
   is_custom: boolean
+  deposit_percentage: number | null
   created_at: string
   updated_at: string
 }

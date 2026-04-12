@@ -8,6 +8,8 @@ interface CheckoutSessionParams {
   tripId: string
   tripTitle: string
   paymentMethod: 'card' | 'ach'
+  paymentType: 'deposit' | 'full' // Payment type: deposit or full payment
+  depositPercentage: number // Configurable deposit percentage
   // Customer info - required for guests, prefilled for logged-in users
   customerName: string
   customerEmail: string
@@ -30,6 +32,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     tripId,
     tripTitle,
     paymentMethod,
+    paymentType,
+    depositPercentage,
     customerName,
     customerEmail,
     customerPhone,
@@ -57,8 +61,15 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     throw new Error('Package not found')
   }
 
-  // Calculate 30% deposit based on total price (includes extra nights if applicable)
-  const depositAmount = Math.round(totalPrice * 0.3 * 100) // Convert to cents
+  // Calculate payment amount based on payment type (deposit or full)
+  const isFullPayment = paymentType === 'full'
+  const depositOnlyAmount = Math.round(totalPrice * (depositPercentage / 100) * 100) // Convert to cents
+  const paymentAmountCents = isFullPayment ? Math.round(totalPrice * 100) : depositOnlyAmount
+
+  // Determine the line item description
+  const paymentDescription = isFullPayment
+    ? `${tripTitle} - ${packageName} (Full Payment)`
+    : `${tripTitle} - ${packageName} (${depositPercentage}% Deposit)`
 
   // Build line items
   const lineItems: any[] = [
@@ -66,10 +77,10 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       price_data: {
         currency: 'usd',
         product_data: {
-          name: `${tripTitle} - ${packageName} (30% Deposit)`,
+          name: paymentDescription,
           description: `Travel dates: ${startDate} to ${endDate}. Room: ${roomType}.`,
         },
-        unit_amount: depositAmount,
+        unit_amount: paymentAmountCents,
       },
       quantity: 1,
     },
@@ -77,7 +88,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
 
   // Add 4% processing fee for card payments
   if (paymentMethod === 'card') {
-    const processingFee = Math.round(depositAmount * 0.04)
+    const processingFee = Math.round(paymentAmountCents * 0.04)
     lineItems.push({
       price_data: {
         currency: 'usd',
@@ -97,7 +108,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   } = await supabase.auth.getUser()
 
   // Calculate remaining balance and auto-charge date
-  const remainingBalance = totalPrice - depositAmount / 100 // depositAmount is in cents
+  // For full payments, remaining balance is 0
+  const remainingBalance = isFullPayment ? 0 : totalPrice - paymentAmountCents / 100
   const tripStartDate = new Date(startDate)
   const today = new Date()
   const daysUntilTrip = Math.ceil(
@@ -164,6 +176,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       transport_option: transportOption || '',
       additional_requests: additionalRequests || '',
       payment_method: paymentMethod,
+      payment_type: paymentType,
+      deposit_percentage: String(depositPercentage),
       is_guest: user ? 'false' : 'true',
       total_price: String(totalPrice),
       remaining_balance: String(remainingBalance),
@@ -190,20 +204,20 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone,
-      deposit_amount: depositAmount / 100, // Store in dollars
+      deposit_amount: paymentAmountCents / 100, // Store in dollars (could be deposit or full)
       total_package_price: totalPrice, // Use actual total price including extras
       total_price: totalPrice,
       trip_title: tripTitle,
-      deposit_percentage: 30,
+      deposit_percentage: depositPercentage,
       processing_fee: processingFeeCents / 100, // Store in dollars
       total_paid: totalAmountCents / 100, // Store in dollars
       payment_method: paymentMethod,
       status: 'pending',
-      // Auto-charge fields
+      // Auto-charge fields - for full payments, mark as already charged
       trip_start_date: startDate,
       remaining_balance: remainingBalance,
-      auto_charge_date: autoChargeDate.toISOString().split('T')[0], // Store as date
-      remaining_balance_charged: false,
+      auto_charge_date: isFullPayment ? null : autoChargeDate.toISOString().split('T')[0],
+      remaining_balance_charged: isFullPayment, // True for full payments (no remaining balance)
       booking_details: {
         trip_title: tripTitle,
         package_name: packageName,

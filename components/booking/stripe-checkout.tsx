@@ -39,6 +39,8 @@ interface EmbeddedCheckoutWrapperProps {
     tripId: string
     tripTitle: string
     paymentMethod: 'card' | 'ach'
+    paymentType: 'deposit' | 'full'
+    depositPercentage: number
     customerName: string
     customerEmail: string
     customerPhone: string
@@ -122,9 +124,11 @@ interface StripeCheckoutProps {
   isGuest: boolean
   onBack: () => void
   onSuccess?: () => void
+  depositPercentage?: number // Configurable deposit percentage (default 30)
 }
 
 type PaymentMethod = 'card' | 'ach' | 'sms' | null
+type PaymentType = 'deposit' | 'full'
 
 export function StripeCheckout({
   tripId,
@@ -150,10 +154,12 @@ export function StripeCheckout({
   isGuest,
   onBack,
   onSuccess,
+  depositPercentage = 30,
 }: StripeCheckoutProps) {
   const t = useTranslations('checkout')
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null)
+  const [paymentType, setPaymentType] = useState<PaymentType>('deposit')
   const [customerName, setCustomerName] = useState(prefillName || '')
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
   const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
@@ -173,9 +179,11 @@ export function StripeCheckout({
   const onSuccessRef = useRef(onSuccess)
   onSuccessRef.current = onSuccess
 
-  const depositAmount = packagePrice * 0.3
-  const cardFee = depositAmount * 0.04
-  const cardTotal = depositAmount + cardFee
+  // Calculate amounts based on payment type (deposit or full)
+  const depositOnlyAmount = packagePrice * (depositPercentage / 100)
+  const paymentAmount = paymentType === 'full' ? packagePrice : depositOnlyAmount
+  const cardFee = paymentAmount * 0.04
+  const cardTotal = paymentAmount + cardFee
 
   const validateAndProceed = async () => {
     if (!customerName.trim()) {
@@ -237,6 +245,8 @@ export function StripeCheckout({
       tripId,
       tripTitle,
       paymentMethod,
+      paymentType,
+      depositPercentage,
       customerName,
       customerEmail,
       customerPhone,
@@ -274,7 +284,7 @@ export function StripeCheckout({
           {t('smsLinkSentMessage', { phone: customerPhone })}
         </p>
         <p className="text-sm text-muted-foreground mb-6">
-          {t('smsLinkSentDeposit', { amount: `$${depositAmount.toFixed(2)}` })}
+          {t('smsLinkSentDeposit', { amount: `$${paymentAmount.toFixed(2)}` })}
         </p>
         <div className="bg-muted/50 border border-border p-4 rounded-lg mb-6 max-w-md mx-auto">
           <p className="text-sm text-muted-foreground">{t('smsLinkExpiry')}</p>
@@ -313,8 +323,8 @@ export function StripeCheckout({
           <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{t('deposit')}</span>
-              <span>${depositAmount.toFixed(2)}</span>
+              <span>{checkoutParams.paymentType === 'full' ? t('fullPayment') : t('deposit')}</span>
+              <span>${paymentAmount.toFixed(2)}</span>
             </div>
             {checkoutParams.paymentMethod === 'card' && (
               <div className="flex justify-between text-muted-foreground">
@@ -328,7 +338,7 @@ export function StripeCheckout({
                 $
                 {checkoutParams.paymentMethod === 'card'
                   ? cardTotal.toFixed(2)
-                  : depositAmount.toFixed(2)}
+                  : paymentAmount.toFixed(2)}
               </span>
             </div>
           </div>
@@ -397,30 +407,86 @@ export function StripeCheckout({
         </div>
       </div>
 
+      {/* Payment Type Selection */}
+      <div className="border border-border bg-background p-6">
+        <h2 className="font-serif text-xl font-medium mb-4">
+          {t('paymentAmount')}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          {t('paymentAmountDescription')}
+        </p>
+
+        <div className="space-y-3 mb-6">
+          <button
+            type="button"
+            onClick={() => setPaymentType('deposit')}
+            className={`w-full flex items-center justify-between border p-4 transition-colors ${
+              paymentType === 'deposit'
+                ? 'border-[#3D5A80] bg-[#3D5A80]/5'
+                : 'border-border hover:border-gray-300'
+            }`}
+          >
+            <div className="text-left">
+              <div className="font-medium">{t('payDeposit', { percentage: depositPercentage })}</div>
+              <div className="text-sm text-muted-foreground">
+                {t('payDepositDescription')}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-medium">${depositOnlyAmount.toFixed(2)}</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPaymentType('full')}
+            className={`w-full flex items-center justify-between border p-4 transition-colors ${
+              paymentType === 'full'
+                ? 'border-[#3D5A80] bg-[#3D5A80]/5'
+                : 'border-border hover:border-gray-300'
+            }`}
+          >
+            <div className="text-left">
+              <div className="font-medium">{t('payFull')}</div>
+              <div className="text-sm text-muted-foreground">
+                {t('payFullDescription')}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-medium">${packagePrice.toFixed(2)}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
       <div className="border border-border bg-background p-6">
         <h2 className="font-serif text-xl font-medium mb-4">
           {t('paymentMethod')}
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
-          {t('depositRequired', { amount: `$${depositAmount.toFixed(2)}` })}
+          {paymentType === 'full' 
+            ? t('fullPaymentRequired', { amount: `$${packagePrice.toFixed(2)}` })
+            : t('depositRequired', { amount: `$${depositOnlyAmount.toFixed(2)}` })}
         </p>
 
-        {/* Auto-charge disclaimer */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-          <div className="flex gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-amber-800 mb-1">
-                {t('autoChargeTitle')}
-              </p>
-              <p className="text-amber-700">
-                {t('autoChargeDescription', {
-                  remainingAmount: `$${(packagePrice - depositAmount).toFixed(2)}`,
-                })}
-              </p>
+        {/* Auto-charge disclaimer - only show for deposit payments */}
+        {paymentType === 'deposit' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <div className="flex gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-800 mb-1">
+                  {t('autoChargeTitle')}
+                </p>
+                <p className="text-amber-700">
+                  {t('autoChargeDescription', {
+                    remainingAmount: `$${(packagePrice - depositOnlyAmount).toFixed(2)}`,
+                  })}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-3">
           <button
@@ -442,7 +508,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${depositAmount.toFixed(2)}</div>
+              <div className="font-medium">${paymentAmount.toFixed(2)}</div>
             </div>
           </button>
 
@@ -488,7 +554,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${depositAmount.toFixed(2)}</div>
+              <div className="font-medium">${paymentAmount.toFixed(2)}</div>
             </div>
           </button>
         </div>
@@ -545,8 +611,8 @@ export function StripeCheckout({
             </div>
           )}
           <div className="flex justify-between text-[#3D5A80] font-medium">
-            <span>{t('depositDue')}</span>
-            <span>${depositAmount.toFixed(2)}</span>
+            <span>{paymentType === 'full' ? t('totalDue') : t('depositDue')}</span>
+            <span>${paymentAmount.toFixed(2)}</span>
           </div>
         </div>
       </div>

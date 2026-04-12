@@ -308,14 +308,16 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 9. Calculate deposit & create Stripe checkout session ─────────
+    // ── 9. Calculate deposit & create Stripe checkout sessions ─────────
     const totalPrice = pkgs[0].price
     const depPct = depositPercentage || 100
     const depositAmountCents = Math.round(((totalPrice * depPct) / 100) * 100)
     const depositAmountDollars = depositAmountCents / 100
+    const fullAmountCents = Math.round(totalPrice * 100)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'
 
+    // Create deposit payment session
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -341,6 +343,7 @@ export async function POST(request: Request) {
         custom_package_name: title,
         total_price: totalPrice.toString(),
         deposit_percentage: depPct.toString(),
+        payment_type: 'deposit',
         remainder_due_date: remainderDueDate || '',
         customer_name: customerName,
         customer_email: customerEmail,
@@ -360,8 +363,49 @@ export async function POST(request: Request) {
       )
     }
 
+    // Create full payment session if deposit percentage is less than 100%
+    let fullPaymentSession: { url: string | null; id: string } | null = null
+    if (depPct < 100) {
+      fullPaymentSession = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${title} (Full Payment)`,
+                description: description || `Custom package for ${customerName}`,
+              },
+              unit_amount: fullAmountCents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${appUrl}/bookings?success=true`,
+        cancel_url: `${appUrl}/trips`,
+        customer_email: customerEmail,
+        payment_method_types: ['card', 'us_bank_account'],
+        metadata: {
+          is_custom_package: 'true',
+          trip_id: tripData.id,
+          custom_package_name: title,
+          total_price: totalPrice.toString(),
+          deposit_percentage: '100',
+          payment_type: 'full',
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          start_date: startDate || '',
+          end_date: endDate || '',
+          created_by_admin: user.id,
+          payment_method: 'sms_link',
+        },
+        expires_at: Math.floor(Date.now() / 1000) + 86400 * 3,
+      })
+    }
+
     // ── 10. Create inquiry record linked to the trip ──────────────────
-    const { error: inquiryError } = await supabase.from('inquiries').insert({
+    const inquiryData: Record<string, any> = {
       trip_id: tripData.id,
       trip_title: title,
       customer_name: customerName,
@@ -387,7 +431,18 @@ export async function POST(request: Request) {
         ? new Date(remainderDueDate).toISOString().split('T')[0]
         : null,
       deposit_percentage: depPct,
-    })
+    }
+
+    // Add full payment link if available (for deposit < 100%)
+    if (fullPaymentSession?.url) {
+      inquiryData.remainder_payment_link = fullPaymentSession.url
+    }
+
+    const { data: inquiryRecord, error: inquiryError } = await supabase
+      .from('inquiries')
+      .insert(inquiryData)
+      .select()
+      .single()
 
     if (inquiryError) {
       console.error(
@@ -403,15 +458,22 @@ export async function POST(request: Request) {
         process.env.TWILIO_AUTH_TOKEN!,
       )
 
+      // Link to the package page where customers can choose between deposit and full payment
+      const packagePageUrl = inquiryRecord 
+        ? `${appUrl}/package/${inquiryRecord.id}`
+        : session.url
+      
       const paymentDescription =
         depPct === 100
           ? `full payment ($${totalPrice.toFixed(2)})`
-          : `${depPct}% deposit ($${depositAmountDollars.toFixed(2)})`
+          : fullPaymentSession 
+            ? `${depPct}% deposit or full payment`
+            : `${depPct}% deposit ($${depositAmountDollars.toFixed(2)})`
 
       await twilioClient.messages.create({
         to: customerPhone,
         from: process.env.TWILIO_PHONE_NUMBER!,
-        body: `4 Seasons Golf Tour: Your payment link for ${title} is ready. Complete your ${paymentDescription} here: ${session.url} Reply STOP to opt out.`,
+        body: `4 Seasons Golf Tour: Your payment link for ${title} is ready. Complete your ${paymentDescription} here: ${packagePageUrl} Reply STOP to opt out.`,
       })
     } catch (smsError) {
       console.error('[v0] Error sending SMS:', smsError)
@@ -420,8 +482,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       paymentLink: session.url,
+      fullPaymentLink: fullPaymentSession?.url || null,
       sessionId: session.id,
       tripId: tripData.id,
+      inquiryId: inquiryRecord?.id,
     })
   } catch (error) {
     console.error('[v0] Error creating custom booking:', error)

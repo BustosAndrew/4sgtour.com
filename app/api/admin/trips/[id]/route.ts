@@ -45,6 +45,7 @@ export async function PATCH(
     courses_photo_url: body.courses_photo_url,
     room_photo_url: body.room_photo_url,
     show_from_price: body.show_from_price ?? false,
+    deposit_percentage: body.deposit_percentage ?? 30,
     updated_at: new Date().toISOString(),
   }
 
