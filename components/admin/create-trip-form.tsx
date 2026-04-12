@@ -1239,6 +1239,69 @@ export function CreateTripForm() {
               />
             </div>
 
+            {/* Deposit Percentage Setting */}
+            <div className="space-y-4 rounded-lg border border-border p-4">
+              <div>
+                <Label className="text-base font-medium text-foreground">
+                  Deposit Percentage *
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Select the deposit percentage customers can pay when booking. They will be able to choose between this percentage or full payment.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(30)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 30
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  30%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(50)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 50
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  50%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDepositPercentage(100)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    depositPercentage === 100
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  100% (Full)
+                </button>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Custom: {depositPercentage ?? 0}%</Label>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={depositPercentage ?? 0}
+                  onChange={(e) => setDepositPercentage(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              {depositPercentage !== null && depositPercentage < 100 && (
+                <p className="text-xs text-muted-foreground">
+                  Customers will be able to choose between paying {depositPercentage}% deposit or 100% full payment at checkout.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
                 .filter((pkg) => pkg.name === "Premium") // Updated to check Premium package (was Basic)

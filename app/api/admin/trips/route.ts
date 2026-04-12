@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       room_photo_url,
       highlights: highlights || [],
       show_from_price: body.show_from_price || false,
+      deposit_percentage: body.deposit_percentage ?? 30,
       is_payment_link_trip: false,
     }
 

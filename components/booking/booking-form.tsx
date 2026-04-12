@@ -972,6 +972,7 @@ export function BookingForm({
           isGuest={!currentUser}
           onBack={() => setShowStripeCheckout(false)}
           onSuccess={() => setBookingSuccess(true)}
+          depositPercentage={trip.deposit_percentage || 30}
         />
       </div>
     )

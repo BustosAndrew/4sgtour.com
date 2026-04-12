@@ -68,10 +68,14 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
   }
 
   const isPaid = inquiry.status === 'paid' || inquiry.status === 'completed'
-  const depositPercentage = inquiry.deposit_percentage || 100
+  const configuredDepositPercentage = inquiry.deposit_percentage || 100
   const totalPrice = inquiry.total_price || 0
-  const depositAmount = (totalPrice * depositPercentage) / 100
+  const depositAmount = (totalPrice * configuredDepositPercentage) / 100
   const remainderAmount = totalPrice - depositAmount
+  
+  // Determine if we should show payment options (deposit vs full)
+  // Only show options when deposit percentage is less than 100%
+  const showPaymentOptions = configuredDepositPercentage < 100 && !isPaid
 
   // Trip data
   const mainImage = trip?.courses_photo_url || null
@@ -96,64 +100,153 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
   // Payment section JSX (shared between mobile and desktop)
   const paymentSection = (
     <div className="space-y-4">
-      {/* Deposit / Full Payment */}
-      <div
-        className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-        style={{ borderColor: '#274C77' }}
-      >
-        <div className="flex-1">
-          <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-            {depositPercentage === 100
-              ? 'Full Payment'
-              : `${depositPercentage}% Deposit`}
-          </h3>
-          <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-            $
-            {depositAmount.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-          {depositPercentage < 100 && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Total: $
-              {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+      {/* Payment Options Description - show when options are available */}
+      {showPaymentOptions && (
+        <p className="text-sm text-muted-foreground">
+          Choose to pay a {configuredDepositPercentage}% deposit now or the full amount.
+        </p>
+      )}
+
+      {/* Deposit Payment Option */}
+      {showPaymentOptions && (
+        <div
+          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
+          style={{ borderColor: '#274C77' }}
+        >
+          <div className="flex-1">
+            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
+              {configuredDepositPercentage}% Deposit
+            </h3>
+            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
+              ${depositAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Remaining ${remainderAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} due later
+            </p>
+          </div>
+
+          {inquiry.payment_link ? (
+            <a href={inquiry.payment_link} className="shrink-0">
+              <AnimatedButton
+                startColor="#274C77"
+                endColor="#1a3a5c"
+                hoverText="Let's Go!"
+                className="w-full sm:w-auto sm:px-8"
+              >
+                Pay Deposit
+              </AnimatedButton>
+            </a>
+          ) : (
+            <div className="rounded-lg bg-amber-50 p-4 text-center">
+              <p className="font-semibold text-amber-700">Payment Link Pending</p>
+              <p className="mt-1 text-sm text-amber-600">
+                A payment link will be sent to you shortly.
+              </p>
+            </div>
           )}
         </div>
+      )}
 
-        {isPaid ? (
-          <div className="rounded-lg bg-emerald-50 p-4 text-center">
-            <DollarSign className="mx-auto h-8 w-8 text-emerald-600" />
-            <p className="mt-2 font-semibold text-emerald-700">
-              Payment Complete
+      {/* Full Payment Option */}
+      {showPaymentOptions && (
+        <div
+          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
+          style={{ borderColor: '#6096BA' }}
+        >
+          <div className="flex-1">
+            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
+              Full Payment
+            </h3>
+            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
+              ${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
-            <p className="mt-1 text-sm text-emerald-600">
-              Thank you for your payment!
+            <p className="mt-1 text-sm text-muted-foreground">
+              Pay the complete package price today
             </p>
           </div>
-        ) : inquiry.payment_link ? (
-          <a href={inquiry.payment_link} className="shrink-0">
-            <AnimatedButton
-              startColor="#274C77"
-              endColor="#1a3a5c"
-              hoverText="Let's Go!"
-              className="w-full sm:w-auto sm:px-8"
-            >
-              Pay Now
-            </AnimatedButton>
-          </a>
-        ) : (
-          <div className="rounded-lg bg-amber-50 p-4 text-center">
-            <p className="font-semibold text-amber-700">Payment Link Pending</p>
-            <p className="mt-1 text-sm text-amber-600">
-              A payment link will be sent to you shortly.
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Remainder Info */}
-      {depositPercentage < 100 && (
+          {inquiry.remainder_payment_link ? (
+            <a href={inquiry.remainder_payment_link} className="shrink-0">
+              <AnimatedButton
+                startColor="#6096BA"
+                endColor="#4a7a9e"
+                hoverText="Let's Go!"
+                className="w-full sm:w-auto sm:px-8"
+              >
+                Pay Full Amount
+              </AnimatedButton>
+            </a>
+          ) : (
+            <div className="rounded-lg bg-muted p-4 text-center">
+              <p className="font-semibold text-muted-foreground">Full Payment Link Pending</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Contact us to pay the full amount.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Single Payment Option - show when no options or 100% deposit or paid */}
+      {!showPaymentOptions && (
+        <div
+          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
+          style={{ borderColor: '#274C77' }}
+        >
+          <div className="flex-1">
+            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
+              {configuredDepositPercentage === 100
+                ? 'Full Payment'
+                : `${configuredDepositPercentage}% Deposit`}
+            </h3>
+            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
+              $
+              {depositAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+            {configuredDepositPercentage < 100 && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Total: $
+                {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+            )}
+          </div>
+
+          {isPaid ? (
+            <div className="rounded-lg bg-emerald-50 p-4 text-center">
+              <DollarSign className="mx-auto h-8 w-8 text-emerald-600" />
+              <p className="mt-2 font-semibold text-emerald-700">
+                Payment Complete
+              </p>
+              <p className="mt-1 text-sm text-emerald-600">
+                Thank you for your payment!
+              </p>
+            </div>
+          ) : inquiry.payment_link ? (
+            <a href={inquiry.payment_link} className="shrink-0">
+              <AnimatedButton
+                startColor="#274C77"
+                endColor="#1a3a5c"
+                hoverText="Let's Go!"
+                className="w-full sm:w-auto sm:px-8"
+              >
+                Pay Now
+              </AnimatedButton>
+            </a>
+          ) : (
+            <div className="rounded-lg bg-amber-50 p-4 text-center">
+              <p className="font-semibold text-amber-700">Payment Link Pending</p>
+              <p className="mt-1 text-sm text-amber-600">
+                A payment link will be sent to you shortly.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Remainder Info - only show after deposit is paid and there's a remainder */}
+      {configuredDepositPercentage < 100 && isPaid && remainderAmount > 0 && (
         <div
           className="group flex flex-col gap-2 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
           style={{ borderColor: '#6096BA' }}
