@@ -498,7 +498,9 @@ export function CreateCustomBookingForm({
           errors.push('End date must be after start date')
         break
       case 5:
-        if (depositPercentage < 100 && !remainderDueDate)
+        if (depositPercentage === null)
+          errors.push('Deposit percentage is required - select a payment option')
+        if (depositPercentage !== null && depositPercentage < 100 && !remainderDueDate)
           errors.push(
             'Remainder due date is required when not paying full price',
           )
@@ -536,7 +538,7 @@ export function CreateCustomBookingForm({
           endDate
         )
       case 5:
-        return depositPercentage === 100 || !!remainderDueDate
+        return depositPercentage !== null && (depositPercentage === 100 || !!remainderDueDate)
       default:
         return true
     }
