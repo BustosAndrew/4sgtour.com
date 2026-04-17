@@ -65,7 +65,37 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
   }
 
   // Calculate 30% deposit
+  const depositPercentage = 30
   const depositAmount = Math.round(totalPrice * 0.3 * 100) // cents
+  const remainingBalance = Math.round((totalPrice - depositAmount / 100) * 100) / 100
+
+  // Calculate auto-charge date for the remaining 70% balance.
+  // Mirrors the logic in app/actions/stripe.ts so the cron picks these up.
+  // - Trip > 60 days away: charge 60 days before the trip
+  // - Trip 31-60 days away: charge 30 days before the trip
+  // - Trip < 30 days away: charge immediately (cron will run next pass)
+  const tripStartDate = new Date(startDate)
+  const now = new Date()
+  const daysUntilTrip = Math.floor(
+    (tripStartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  )
+  let autoChargeDate: Date
+  if (daysUntilTrip > 60) {
+    autoChargeDate = new Date(tripStartDate)
+    autoChargeDate.setDate(autoChargeDate.getDate() - 60)
+  } else if (daysUntilTrip > 30) {
+    autoChargeDate = new Date(tripStartDate)
+    autoChargeDate.setDate(autoChargeDate.getDate() - 30)
+  } else {
+    autoChargeDate = new Date()
+  }
+  const autoChargeDateIso = autoChargeDate.toISOString()
+  const autoChargeDateOnly = autoChargeDateIso.split('T')[0]
+  const autoChargeDateDisplay = autoChargeDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 
   // Build line items (no card fee for SMS — they choose method on hosted page)
   const lineItems: any[] = [
@@ -98,6 +128,11 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
     customer_email: customerEmail,
     // Allow both payment methods on the hosted page
     payment_method_types: ['card', 'us_bank_account'],
+    // Save the payment method for off-session use so the cron job can
+    // auto-charge the remaining 70% balance on the auto_charge_date.
+    payment_intent_data: {
+      setup_future_usage: 'off_session',
+    },
     metadata: {
       trip_id: tripId,
       trip_title: tripTitle,
@@ -116,6 +151,10 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       additional_requests: additionalRequests || '',
       payment_method: 'sms_link',
       is_guest: user ? 'false' : 'true',
+      total_price: String(totalPrice),
+      deposit_percentage: String(depositPercentage),
+      remaining_balance: String(remainingBalance),
+      auto_charge_date: autoChargeDateIso,
     },
     // Expire after 24 hours
     expires_at: Math.floor(Date.now() / 1000) + 86400,
@@ -140,11 +179,16 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       total_package_price: pkg.price,
       total_price: totalPrice,
       trip_title: tripTitle,
-      deposit_percentage: 30,
+      deposit_percentage: depositPercentage,
       processing_fee: 0,
       total_paid: depositAmount / 100,
       payment_method: 'sms_link',
       status: 'pending',
+      // Auto-charge fields so the cron can collect the remaining balance
+      trip_start_date: startDate,
+      remaining_balance: remainingBalance,
+      auto_charge_date: autoChargeDateOnly,
+      remaining_balance_charged: false,
       booking_details: {
         trip_title: tripTitle,
         package_name: packageName,
@@ -204,7 +248,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
   await twilioClient.messages.create({
     to: customerPhone,
     from: process.env.TWILIO_PHONE_NUMBER!,
-    body: `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Complete your 30% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`,
+    body: `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your 30% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
   })
 
   return { success: true }
