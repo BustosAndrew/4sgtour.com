@@ -155,9 +155,18 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
               financial_connections: { permissions: ['payment_method'] },
             },
           },
-    payment_intent_data: {
-      setup_future_usage: 'off_session', // Save payment method for future charges
-    },
+    // Only save the payment method for off-session use when we'll need to
+    // charge the remaining balance later (deposit payments). Applying
+    // `setup_future_usage: 'off_session'` to full payments is unnecessary and
+    // triggers stricter issuer scrutiny, which causes many cards to be
+    // declined with a generic "contact the merchant / card issuer" message.
+    ...(isFullPayment
+      ? {}
+      : {
+          payment_intent_data: {
+            setup_future_usage: 'off_session' as const, // Save payment method for future charges
+          },
+        }),
     customer_email: customerEmail,
     metadata: {
       trip_id: tripId,
@@ -191,7 +200,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     0,
   )
   const processingFeeCents =
-    paymentMethod === 'card' ? Math.round(depositAmount * 0.04) : 0
+    paymentMethod === 'card' ? Math.round(paymentAmountCents * 0.04) : 0
 
   // Create a pending booking record with auto-charge info
   const { data: booking, error: bookingError } = await supabase
