@@ -1,4 +1,5 @@
-import { generateText } from 'ai'
+import { generateText, Output } from 'ai'
+import { z } from 'zod'
 
 type TranslationField = {
   field: string
@@ -9,7 +10,11 @@ type TranslationField = {
 
 export async function POST(req: Request) {
   try {
-    const { fields, targetLanguage, sourceLanguage = 'en' } = await req.json() as {
+    const {
+      fields,
+      targetLanguage,
+      sourceLanguage = 'en',
+    } = (await req.json()) as {
       fields: TranslationField[]
       targetLanguage: string
       sourceLanguage?: string
@@ -17,8 +22,10 @@ export async function POST(req: Request) {
 
     if (!fields || !targetLanguage || !Array.isArray(fields)) {
       return Response.json(
-        { error: 'Missing required fields: fields (array) and targetLanguage' },
-        { status: 400 }
+        {
+          error: 'Missing required fields: fields (array) and targetLanguage',
+        },
+        { status: 400 },
       )
     }
 
@@ -31,135 +38,196 @@ export async function POST(req: Request) {
     const targetLang = languageNames[targetLanguage] || targetLanguage
     const sourceLang = languageNames[sourceLanguage] || sourceLanguage
 
-    // Build a structured prompt for batch translation
-    // Use the ORIGINAL index from the fields array so the parser can map back correctly
-    const fieldsToTranslate = fields
-      .map((f, i) => {
-        if (!f.text || !f.text.trim()) return null
-        if (f.isArray && Array.isArray(f.text)) {
-          return `[${i}] ${f.field} (${f.fieldType || 'general'}, array):\n${f.text.map((item: string, j: number) => `  ${j}. ${item}`).join('\n')}`
-        }
-        return `[${i}] ${f.field} (${f.fieldType || 'general'}): ${f.text}`
-      })
-      .filter(Boolean)
-      .join('\n\n')
+    // Filter out fields whose source text is empty; we won't ask the model
+    // to invent content for missing source values (that's where
+    // placeholder-looking output creeps in).
+    const validFields = fields.filter(
+      (f) => typeof f.text === 'string' && f.text.trim().length > 0,
+    )
 
-    if (!fieldsToTranslate) {
+    if (validFields.length === 0) {
       return Response.json({ translations: {} })
     }
 
-    let result
+    // Detect a no-op translation (same language). Just echo the source
+    // rather than hitting the model.
+    if (sourceLanguage === targetLanguage) {
+      const translations: Record<string, string> = {}
+      for (const f of validFields) translations[f.field] = f.text
+      return Response.json({ translations })
+    }
+
+    // Build a JSON payload for the model. Using key/value pairs (rather
+    // than "[0] text" markers) makes parsing deterministic and prevents
+    // the model from ever inventing placeholder-style output.
+    const payload = {
+      source_language: sourceLang,
+      target_language: targetLang,
+      items: validFields.map((f) => ({
+        key: f.field,
+        field_type: f.fieldType || 'general',
+        text: f.text,
+      })),
+    }
+
+    // Schema for structured output. Using an array of {key, value}
+    // objects keeps us compatible with OpenAI strict mode (which rejects
+    // open-ended record schemas).
+    const translationSchema = z.object({
+      translations: z
+        .array(
+          z.object({
+            key: z
+              .string()
+              .describe(
+                'The exact `key` value from the corresponding input item. Copy it verbatim.',
+              ),
+            value: z
+              .string()
+              .describe(
+                'The complete translation of the input `text` into the target language. Never leave placeholders, bracketed tokens, or untranslated source content.',
+              ),
+          }),
+        )
+        .describe(
+          'One entry for every input item, in the same order. Do not omit, merge, or add items.',
+        ),
+    })
+
+    let output: z.infer<typeof translationSchema>
     try {
-      result = await generateText({
+      const result = await generateText({
         model: 'openai/gpt-5-mini',
+        output: Output.object({ schema: translationSchema }),
         system: `You are a professional translator specializing in travel and golf tourism content.
-Translate all the following fields from ${sourceLang} to ${targetLang}.
 
-CRITICAL OUTPUT FORMAT:
-- Start each translation with [index] where index is the field number (e.g., [0], [1], [2])
-- Include the COMPLETE translation for each field - do not truncate or summarize
-- For multi-line content (paragraphs), include ALL paragraphs in the translation
-- For array fields, use [index.subindex] format (e.g., [0.0], [0.1], [0.2])
-- Example for long content:
-  [0] First paragraph of translation.
-  
-  Second paragraph of translation.
-  
-  Third paragraph continues here.
-  [1] Next field translation here.
+You will receive a JSON payload listing items that need to be translated from ${sourceLang} to ${targetLang}. Each item has a stable "key", a "field_type" hint (title | description | location | highlights | general), and the source "text".
 
-TRANSLATION GUIDELINES:
-- Maintain proper grammar, natural phrasing, and cultural appropriateness
-- Keep titles concise and impactful
-- Keep descriptions marketing-friendly
-- Transliterate location names appropriately
-- Preserve paragraph breaks and formatting from the original
-- Do not add explanations or extra text`,
-        prompt: fieldsToTranslate,
+CRITICAL RULES:
+- Return one translation for EVERY input item, using the EXACT same "key" value.
+- "value" must be a complete, natural, fully localized translation of "text" in ${targetLang}.
+- NEVER output bracketed placeholders (e.g. "[title]", "[description]", "{name}", "<value>", "TBD", "TODO", "N/A"), ellipses substituted for missing content, or the literal source text wrapped in brackets. If the source text is a proper noun or brand name that should stay in its original form, write it out naturally without surrounding brackets.
+- Preserve paragraph breaks, line breaks, bullet markers, and list numbering from the source.
+- Do not truncate, summarize, or drop content. Translate the full text.
+- Do not add explanations, notes, quotes, or any content that is not a translation.
+- For titles, keep them concise and impactful. For descriptions, keep marketing-friendly tone. For locations, transliterate proper nouns appropriately for ${targetLang}. For highlights, keep them punchy.`,
+        prompt: JSON.stringify(payload),
       })
+      output = result.output
     } catch (aiError: any) {
-      console.error("Batch translate AI error:", aiError?.message, aiError?.cause)
-      
-      // Check for specific error types
+      console.error(
+        'Batch translate AI error:',
+        aiError?.message,
+        aiError?.cause,
+      )
+
       const errorMessage = aiError?.message || ''
       const errorCause = aiError?.cause?.message || ''
-      
-      if (errorMessage.includes('rate limit') || errorMessage.includes('quota') || 
-          errorCause.includes('rate limit') || errorCause.includes('quota') ||
-          errorMessage.includes('429') || errorCause.includes('429')) {
+
+      if (
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('quota') ||
+        errorCause.includes('rate limit') ||
+        errorCause.includes('quota') ||
+        errorMessage.includes('429') ||
+        errorCause.includes('429')
+      ) {
         return Response.json(
-          { error: 'AI Gateway rate limit exceeded. Please wait a moment and try again.', code: 'RATE_LIMIT' },
-          { status: 429 }
+          {
+            error:
+              'AI Gateway rate limit exceeded. Please wait a moment and try again.',
+            code: 'RATE_LIMIT',
+          },
+          { status: 429 },
         )
       }
-      
-      if (errorMessage.includes('credit') || errorMessage.includes('billing') ||
-          errorCause.includes('credit') || errorCause.includes('billing') ||
-          errorMessage.includes('insufficient') || errorCause.includes('insufficient')) {
+
+      if (
+        errorMessage.includes('credit') ||
+        errorMessage.includes('billing') ||
+        errorCause.includes('credit') ||
+        errorCause.includes('billing') ||
+        errorMessage.includes('insufficient') ||
+        errorCause.includes('insufficient')
+      ) {
         return Response.json(
-          { error: 'AI Gateway credits exhausted. Please refill your AI Gateway credits to continue translating.', code: 'CREDITS_EXHAUSTED' },
-          { status: 402 }
+          {
+            error:
+              'AI Gateway credits exhausted. Please refill your AI Gateway credits to continue translating.',
+            code: 'CREDITS_EXHAUSTED',
+          },
+          { status: 402 },
         )
       }
-      
-      if (errorMessage.includes('401') || errorMessage.includes('unauthorized') ||
-          errorCause.includes('401') || errorCause.includes('unauthorized')) {
+
+      if (
+        errorMessage.includes('401') ||
+        errorMessage.includes('unauthorized') ||
+        errorCause.includes('401') ||
+        errorCause.includes('unauthorized')
+      ) {
         return Response.json(
-          { error: 'AI Gateway authentication failed. Please check your API key configuration.', code: 'AUTH_ERROR' },
-          { status: 401 }
+          {
+            error:
+              'AI Gateway authentication failed. Please check your API key configuration.',
+            code: 'AUTH_ERROR',
+          },
+          { status: 401 },
         )
       }
-      
+
       return Response.json(
-        { error: `Translation AI error: ${errorMessage || 'Unknown error'}`, code: 'AI_ERROR' },
-        { status: 500 }
+        {
+          error: `Translation AI error: ${errorMessage || 'Unknown error'}`,
+          code: 'AI_ERROR',
+        },
+        { status: 500 },
       )
     }
 
-    // Parse the response - handle multi-line content by collecting all text until the next [index]
-    const translations: Record<string, string | string[]> = {}
-    const responseText = result.text.trim()
-    
-    // Split by field markers [0], [1], etc. while preserving the markers
-    const fieldRegex = /\[(\d+)(?:\.(\d+))?\]/g
-    const parts: { index: number; subIndex?: number; startPos: number }[] = []
-    
-    let match
-    while ((match = fieldRegex.exec(responseText)) !== null) {
-      parts.push({
-        index: parseInt(match[1]),
-        subIndex: match[2] !== undefined ? parseInt(match[2]) : undefined,
-        startPos: match.index + match[0].length
-      })
+    // Build a lookup from the model's returned pairs.
+    const returnedByKey = new Map<string, string>()
+    for (const entry of output.translations || []) {
+      if (!entry || typeof entry.key !== 'string') continue
+      const value = typeof entry.value === 'string' ? entry.value : ''
+      returnedByKey.set(entry.key, value)
     }
-    
-    // Extract translations for each part
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i]
-      const endPos = i < parts.length - 1 ? responseText.lastIndexOf('[', parts[i + 1].startPos) : responseText.length
-      const translation = responseText.slice(part.startPos, endPos).trim()
-      
-      const field = fields[part.index]
-      if (!field) continue
-      
-      if (part.subIndex !== undefined) {
-        // Array item
-        if (!translations[field.field]) {
-          translations[field.field] = []
-        }
-        (translations[field.field] as string[]).push(translation)
-      } else if (!field.isArray) {
-        // Simple field
-        translations[field.field] = translation
+
+    // Sanity check for placeholder-looking output. If the model ignores
+    // instructions and emits a placeholder, we fall back to the source
+    // text rather than persisting a broken translation. This guarantees
+    // the final stored value never looks like a half-localized placeholder.
+    const placeholderPattern =
+      /^\s*(?:\[[^\]]*\]|\{\{?[^}]*\}?\}|<[^>]*>|tbd|todo|n\/a|placeholder)\s*$/i
+
+    const translations: Record<string, string> = {}
+    for (const f of validFields) {
+      const raw = returnedByKey.get(f.field)
+      if (!raw) continue
+      const trimmed = raw.trim()
+      if (!trimmed) continue
+      if (placeholderPattern.test(trimmed)) {
+        // Skip placeholder-looking output entirely. The caller will
+        // simply not update this column, and the runtime fallback in
+        // getLocalizedField() will show the source-language text
+        // instead of a broken "[title]"-style placeholder.
+        console.warn(
+          `[translate/batch] Skipping placeholder-looking translation for "${f.field}" (${targetLang}): ${trimmed.slice(0, 80)}`,
+        )
+        continue
       }
+      translations[f.field] = trimmed
     }
 
     return Response.json({ translations })
   } catch (error) {
     console.error('Batch translation error:', error)
     return Response.json(
-      { error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, code: 'TRANSLATION_ERROR' },
-      { status: 500 }
+      {
+        error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        code: 'TRANSLATION_ERROR',
+      },
+      { status: 500 },
     )
   }
 }
