@@ -367,6 +367,36 @@ async function sendInvoiceEmail(
     }
   })()
 
+  // Parse auto-charge details from metadata so we can clearly notify the
+  // customer when (and how much) their remaining balance will be charged.
+  const remainingBalanceRaw = metadata.remaining_balance
+  const remainingBalance = remainingBalanceRaw
+    ? parseFloat(remainingBalanceRaw)
+    : 0
+  const autoChargeDateRaw = metadata.auto_charge_date
+  const autoChargeDateDisplay = autoChargeDateRaw
+    ? new Date(autoChargeDateRaw).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : null
+
+  const autoChargeSection =
+    remainingBalance > 0 && autoChargeDateDisplay
+      ? `
+
+REMAINING BALANCE - AUTOMATIC CHARGE
+------------------------------------
+Remaining Balance: $${remainingBalance.toFixed(2)}
+Scheduled Charge Date: ${autoChargeDateDisplay}
+
+The remaining balance will be automatically charged to the same payment
+method used for your deposit on the date above. No action is required from
+you. If you need to update your payment method or have any questions,
+please contact us before that date.`
+      : ''
+
   const invoiceContent = `
 INVOICE - 4 Seasons Golf Tour
 ==============================
@@ -395,12 +425,13 @@ PAYMENT SUMMARY
 30% Deposit Paid: $${amountPaid}
 Payment Method: Text Message Payment Link
 Status: PAID
+${autoChargeSection}
 
 ${metadata.additional_requests ? `\nADDITIONAL REQUESTS\n-------------------\n${metadata.additional_requests}\n` : ''}
 
 NEXT STEPS
 ----------
-Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.
+Our team will be in touch within 24-48 hours to confirm the details of your trip.${remainingBalance > 0 && autoChargeDateDisplay ? ` Your remaining balance of $${remainingBalance.toFixed(2)} will be charged automatically on ${autoChargeDateDisplay}.` : ''}
 
 Thank you for choosing 4 Seasons Golf Tour!
 
