@@ -195,6 +195,60 @@ export default async function PrivacyPage() {
                     <p>{t("s11Text")}</p>
                   </div>
 
+                  {/* Section 12 - SMS / Text Messaging Program */}
+                  <div>
+                    <h2 className="text-lg font-bold text-white mb-3">{t("s12Title")}</h2>
+                    <p className="mb-3">{t("s12Intro")}</p>
+
+                    <div className="ml-4 space-y-4">
+                      <div>
+                        <p className="font-semibold text-white">{t("s12TypesHeading")}</p>
+                        <ul className="list-disc ml-5 mt-1 space-y-1">
+                          <li>{t("s12TypesItem1")}</li>
+                          <li>{t("s12TypesItem2")}</li>
+                          <li>{t("s12TypesItem3")}</li>
+                          <li>{t("s12TypesItem4")}</li>
+                        </ul>
+                        <p className="mt-2 text-sm italic">{t("s12TypesNote")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12ConsentHeading")}</p>
+                        <p>{t("s12ConsentText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12FrequencyHeading")}</p>
+                        <p>{t("s12FrequencyText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12RatesHeading")}</p>
+                        <p>{t("s12RatesText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12OptOutHeading")}</p>
+                        <p>{t("s12OptOutText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12SharingHeading")}</p>
+                        <p>{t("s12SharingText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12SecurityHeading")}</p>
+                        <p>{t("s12SecurityText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("s12ContactHeading")}</p>
+                        <p>{t("s12ContactText")}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Version Info */}
                   <div className="border-t border-white/20 pt-4 mt-8">
                     <p className="text-sm text-white/60">
