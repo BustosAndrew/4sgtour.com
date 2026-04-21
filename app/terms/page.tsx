@@ -176,7 +176,6 @@ export default async function TermsPage() {
                           <li>{t("smsTypesItem2")}</li>
                           <li>{t("smsTypesItem3")}</li>
                           <li>{t("smsTypesItem4")}</li>
-                          <li>{t("smsTypesItem5")}</li>
                         </ul>
                       </div>
 

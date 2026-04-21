@@ -208,7 +208,6 @@ export default async function PrivacyPage() {
                           <li>{t("s12TypesItem2")}</li>
                           <li>{t("s12TypesItem3")}</li>
                           <li>{t("s12TypesItem4")}</li>
-                          <li>{t("s12TypesItem5")}</li>
                         </ul>
                         <p className="mt-2 text-sm italic">{t("s12TypesNote")}</p>
                       </div>
