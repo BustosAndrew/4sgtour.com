@@ -157,6 +157,70 @@ export default async function TermsPage() {
                       <li>{t("roomItem4")}</li>
                     </ul>
                   </div>
+
+                  {/* SMS / Text Messaging Terms */}
+                  <div>
+                    <h2 className="text-lg font-bold text-white mb-3">{t("smsTitle")}</h2>
+                    <p className="mb-4">{t("smsIntro")}</p>
+
+                    <div className="ml-4 space-y-4">
+                      <div>
+                        <p className="font-semibold text-white">{t("smsProgramHeading")}</p>
+                        <p>{t("smsProgramText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsTypesHeading")}</p>
+                        <ul className="list-disc ml-5 mt-1 space-y-1">
+                          <li>{t("smsTypesItem1")}</li>
+                          <li>{t("smsTypesItem2")}</li>
+                          <li>{t("smsTypesItem3")}</li>
+                          <li>{t("smsTypesItem4")}</li>
+                          <li>{t("smsTypesItem5")}</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsFrequencyHeading")}</p>
+                        <p>{t("smsFrequencyText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsRatesHeading")}</p>
+                        <p>{t("smsRatesText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsOptOutHeading")}</p>
+                        <p>{t("smsOptOutText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsHelpHeading")}</p>
+                        <p>{t("smsHelpText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsCarriersHeading")}</p>
+                        <p>{t("smsCarriersText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsDeliveryHeading")}</p>
+                        <p>{t("smsDeliveryText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsPrivacyHeading")}</p>
+                        <p>{t("smsPrivacyText")}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-white">{t("smsChangesHeading")}</p>
+                        <p>{t("smsChangesText")}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </GlassCard>
