@@ -8,16 +8,21 @@ const LANGUAGE_MAP: Record<string, { name: string; code: string }> = {
   de: { name: "German", code: "de" },
 }
 
-// Field mappings for each language suffix
-const TRIP_FIELDS = {
+// Field mappings for each language suffix.
+// "long" fields are translated one-per-batch-call so a single oversized
+// markdown body cannot truncate the structured-output JSON and starve the
+// other fields of their translations.
+const TRIP_FIELDS: Record<string, { type: string; long?: boolean }> = {
   title: { type: "title" },
   location: { type: "location" },
-  description: { type: "description" },
-  refund_policy: { type: "description" },
-  overview_content: { type: "description" },
+  description: { type: "description", long: true },
+  refund_policy: { type: "description", long: true },
+  overview_content: { type: "description", long: true },
 }
 
 const TRIP_ARRAY_FIELDS = ["highlights"]
+
+type FieldPayload = { field: string; text: string; fieldType: string }
 
 export async function POST(
   request: Request,
@@ -29,9 +34,9 @@ export async function POST(
     const userType = await getUserType()
 
     if (userType !== "admin") {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       })
     }
 
@@ -41,37 +46,34 @@ export async function POST(
     if (!sourceLanguage || !targetLanguages?.length) {
       return new Response(JSON.stringify({ error: "Source language and target languages are required" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       })
     }
 
-    // Validate languages
     if (!["en", "ko", "de"].includes(sourceLanguage)) {
       return new Response(JSON.stringify({ error: "Invalid source language" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       })
     }
 
-    const validTargets = targetLanguages.filter((l: string) => ["en", "ko", "de"].includes(l) && l !== sourceLanguage)
+    const validTargets = targetLanguages.filter(
+      (l: string) => ["en", "ko", "de"].includes(l) && l !== sourceLanguage,
+    )
     if (validTargets.length === 0) {
       return new Response(JSON.stringify({ error: "At least one valid target language is required" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       })
     }
 
     // Fetch the trip
-    const { data: trip, error } = await supabase
-      .from("trips")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const { data: trip, error } = await supabase.from("trips").select("*").eq("id", id).single()
 
     if (error || !trip) {
       return new Response(JSON.stringify({ error: "Trip not found" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       })
     }
 
@@ -80,168 +82,183 @@ export async function POST(
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
     const baseUrl = `${protocol}://${host}`
 
-    const updates: Record<string, any> = {}
+    // Helper: call the batch translation API for a chunk of fields.
+    // Retries any keys the model dropped (typically due to JSON
+    // truncation) one more time on its own. Returns the merged
+    // {field: translation} record plus any keys that still failed.
+    const callBatch = async (
+      fields: FieldPayload[],
+      targetLang: string,
+    ): Promise<{ translations: Record<string, string>; failed: string[] }> => {
+      if (fields.length === 0) return { translations: {}, failed: [] }
 
-    // Get source field suffix (empty for English, _ko for Korean, _de for German)
+      const doFetch = async (chunk: FieldPayload[]) => {
+        const response = await fetch(`${baseUrl}/api/translate/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields: chunk, targetLanguage: targetLang, sourceLanguage }),
+        })
+        if (!response.ok) {
+          let errPayload: any = null
+          try {
+            errPayload = await response.json()
+          } catch {}
+          throw Object.assign(new Error(errPayload?.error || "Translation failed"), {
+            status: response.status,
+            code: errPayload?.code,
+          })
+        }
+        return (await response.json()) as {
+          translations?: Record<string, string>
+          missingKeys?: string[]
+        }
+      }
+
+      const first = await doFetch(fields)
+      const translations: Record<string, string> = { ...(first.translations || {}) }
+      const missing = (first.missingKeys || []).filter((k) => !(k in translations))
+
+      if (missing.length > 0) {
+        console.warn(
+          `[translate-trip] Retrying ${missing.length} missing key(s) for ${targetLang}: ${missing.join(", ")}`,
+        )
+        // Retry the missing fields one at a time so a long body can't
+        // crowd out shorter siblings on the second pass either.
+        const retryResults = await Promise.all(
+          missing.map(async (key) => {
+            const original = fields.find((f) => f.field === key)
+            if (!original) return { key, value: null as string | null }
+            try {
+              const retry = await doFetch([original])
+              return { key, value: retry.translations?.[key] ?? null }
+            } catch (e) {
+              console.error(`[translate-trip] Retry failed for ${key}:`, e)
+              return { key, value: null }
+            }
+          }),
+        )
+        const failed: string[] = []
+        for (const { key, value } of retryResults) {
+          if (value) translations[key] = value
+          else failed.push(key)
+        }
+        return { translations, failed }
+      }
+
+      return { translations, failed: [] }
+    }
+
+    const updates: Record<string, any> = {}
+    let totalRequested = 0
+    let totalApplied = 0
+    const failedFields: string[] = []
+
     const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
 
-    // Translate simple fields for each target language
+    // Translate simple text fields, per target language. Long-bodied
+    // fields go in their own per-call chunk so structured-output
+    // truncation can't lose them.
     for (const targetLang of validTargets) {
       const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
-      const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
 
-      for (const [fieldBase, { type }] of Object.entries(TRIP_FIELDS)) {
+      const shortFields: FieldPayload[] = []
+      const longFields: FieldPayload[] = []
+
+      for (const [fieldBase, meta] of Object.entries(TRIP_FIELDS)) {
         const sourceField = `${fieldBase}${sourceSuffix}`
         const targetField = `${fieldBase}${targetSuffix}`
         const sourceValue = trip[sourceField]
+        if (typeof sourceValue !== "string" || !sourceValue.trim()) continue
 
-        if (sourceValue) {
-          fieldsToTranslate.push({ field: targetField, text: sourceValue, fieldType: type })
+        const payload: FieldPayload = {
+          field: targetField,
+          text: sourceValue,
+          fieldType: meta.type,
         }
+        if (meta.long) longFields.push(payload)
+        else shortFields.push(payload)
       }
 
-      if (fieldsToTranslate.length > 0) {
-        try {
-          const response = await fetch(`${baseUrl}/api/translate/batch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fields: fieldsToTranslate,
-              targetLanguage: targetLang,
-              sourceLanguage: sourceLanguage,
-            }),
-          })
+      totalRequested += shortFields.length + longFields.length
 
-          if (response.ok) {
-            const result = await response.json()
-            // result.translations is { fieldName: translatedText }
-            if (result.translations) {
-              for (const [field, translation] of Object.entries(result.translations)) {
-                updates[field] = translation
-              }
-            }
-          } else {
-            // Propagate error from batch API
-            try {
-              const errorData = await response.json()
-              return new Response(JSON.stringify({ 
-                error: errorData.error || "Translation failed", 
-                code: errorData.code 
-              }), {
-                status: response.status,
-                headers: { "Content-Type": "application/json" }
-              })
-            } catch {
-              return new Response(JSON.stringify({ error: "Translation service error" }), {
-                status: response.status,
-                headers: { "Content-Type": "application/json" }
-              })
-            }
-          }
-        } catch (e) {
-          console.error(`Error translating to ${targetLang}:`, e)
-        }
+      // Short fields: one combined call. Long fields: one call each, in parallel.
+      const [shortResult, ...longResults] = await Promise.all([
+        callBatch(shortFields, targetLang),
+        ...longFields.map((f) => callBatch([f], targetLang)),
+      ])
+
+      for (const r of [shortResult, ...longResults]) {
+        Object.assign(updates, r.translations)
+        totalApplied += Object.keys(r.translations).length
+        failedFields.push(...r.failed)
       }
 
-      // Translate array fields
+      // Translate array fields (highlights). Each item becomes its own
+      // key, so this is naturally one-per-item even inside the batch.
       for (const arrayField of TRIP_ARRAY_FIELDS) {
         const sourceField = `${arrayField}${sourceSuffix}`
         const targetField = `${arrayField}${targetSuffix}`
         const sourceValue = trip[sourceField]
+        if (!Array.isArray(sourceValue) || sourceValue.length === 0) continue
 
-        if (sourceValue?.length) {
-          try {
-            const response = await fetch(`${baseUrl}/api/translate/batch`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                fields: sourceValue.map((text: string, i: number) => ({
-                  field: `${arrayField}_${i}`,
-                  text,
-                  fieldType: "highlight",
-                })),
-                targetLanguage: targetLang,
-                sourceLanguage: sourceLanguage,
-              }),
-            })
+        const arrPayload: FieldPayload[] = sourceValue
+          .map((text: string, i: number) => ({
+            field: `${arrayField}_${i}`,
+            text,
+            fieldType: "highlight",
+          }))
+          .filter((p) => typeof p.text === "string" && p.text.trim().length > 0)
 
-            if (response.ok) {
-              const result = await response.json()
-              // result.translations is { fieldName: translatedText }
-              if (result.translations) {
-                const translatedArray = sourceValue.map((_: string, i: number) => {
-                  const key = `${arrayField}_${i}`
-                  return result.translations[key] || ""
-                }).filter((t: string) => t)
-                if (translatedArray.length > 0) {
-                  updates[targetField] = translatedArray
-                }
-              }
-            }
-          } catch (e) {
-            console.error(`Error translating array field to ${targetLang}:`, e)
-          }
+        if (arrPayload.length === 0) continue
+
+        totalRequested += arrPayload.length
+        const arrResult = await callBatch(arrPayload, targetLang)
+        totalApplied += Object.keys(arrResult.translations).length
+        failedFields.push(...arrResult.failed)
+
+        const translatedArray = sourceValue
+          .map((_: string, i: number) => arrResult.translations[`${arrayField}_${i}`] || "")
+          .filter((t: string) => t)
+        if (translatedArray.length > 0) {
+          updates[targetField] = translatedArray
         }
       }
     }
 
-    // Translate packages
-    const { data: packages } = await supabase
-      .from("packages")
-      .select("*")
-      .eq("trip_id", id)
+    // Translate packages (each package's name + description per target language)
+    const { data: packages } = await supabase.from("packages").select("*").eq("trip_id", id)
 
     if (packages?.length) {
       for (const targetLang of validTargets) {
         const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
 
-        // Batch all package fields for this language in one call
-        const packageFields: { field: string; text: string; fieldType: string; pkgId: string }[] = []
-
         for (const pkg of packages) {
+          const fields: FieldPayload[] = []
           const sourceName = pkg[`name${sourceSuffix}`]
           const sourceDescription = pkg[`description${sourceSuffix}`]
-
-          if (sourceName) {
-            packageFields.push({ field: `name${targetSuffix}`, text: sourceName, fieldType: "title", pkgId: pkg.id })
+          if (typeof sourceName === "string" && sourceName.trim()) {
+            fields.push({ field: `name${targetSuffix}`, text: sourceName, fieldType: "title" })
           }
-          if (sourceDescription) {
-            packageFields.push({ field: `description${targetSuffix}`, text: sourceDescription, fieldType: "description", pkgId: pkg.id })
+          if (typeof sourceDescription === "string" && sourceDescription.trim()) {
+            fields.push({
+              field: `description${targetSuffix}`,
+              text: sourceDescription,
+              fieldType: "description",
+            })
           }
-        }
+          if (fields.length === 0) continue
 
-        if (packageFields.length > 0) {
-          // Group fields by package, translate per package to keep context clear
-          const pkgMap: Map<string, typeof packageFields> = new Map()
-          for (const f of packageFields) {
-            if (!pkgMap.has(f.pkgId)) pkgMap.set(f.pkgId, [])
-            pkgMap.get(f.pkgId)!.push(f)
-          }
+          totalRequested += fields.length
+          const result = await callBatch(fields, targetLang)
+          totalApplied += Object.keys(result.translations).length
+          failedFields.push(...result.failed)
 
-          for (const [pkgId, fields] of pkgMap) {
-            try {
-              const response = await fetch(`${baseUrl}/api/translate/batch`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  fields: fields.map(({ field, text, fieldType }) => ({ field, text, fieldType })),
-                  targetLanguage: targetLang,
-                  sourceLanguage: sourceLanguage,
-                }),
-              })
-
-              if (response.ok) {
-                const result = await response.json()
-                if (result.translations) {
-                  await supabase
-                    .from("packages")
-                    .update(result.translations)
-                    .eq("id", pkgId)
-                }
-              }
-            } catch (e) {
-              console.error(`Error translating package ${pkgId}:`, e)
-            }
+          if (Object.keys(result.translations).length > 0) {
+            const { error: pkgErr } = await supabase
+              .from("packages")
+              .update(result.translations)
+              .eq("id", pkg.id)
+            if (pkgErr) console.error(`[translate-trip] Failed updating package ${pkg.id}:`, pkgErr)
           }
         }
       }
@@ -260,45 +277,59 @@ export async function POST(
         const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
 
         for (const row of rows) {
-          const fields: { field: string; text: string; fieldType: string }[] = []
+          const fields: FieldPayload[] = []
 
           const sourceName = row[`${nameField}${sourceSuffix}`]
-          if (sourceName) fields.push({ field: `${nameField}${targetSuffix}`, text: sourceName, fieldType: "title" })
+          if (typeof sourceName === "string" && sourceName.trim()) {
+            fields.push({
+              field: `${nameField}${targetSuffix}`,
+              text: sourceName,
+              fieldType: "title",
+            })
+          }
 
           if (descriptionField) {
             const sourceDesc = row[`${descriptionField}${sourceSuffix}`]
-            if (sourceDesc) fields.push({ field: `${descriptionField}${targetSuffix}`, text: sourceDesc, fieldType: "description" })
+            if (typeof sourceDesc === "string" && sourceDesc.trim()) {
+              fields.push({
+                field: `${descriptionField}${targetSuffix}`,
+                text: sourceDesc,
+                fieldType: "description",
+              })
+            }
           }
 
           if (!fields.length) continue
 
+          totalRequested += fields.length
           try {
-            const response = await fetch(`${baseUrl}/api/translate/batch`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fields, targetLanguage: targetLang, sourceLanguage }),
-            })
-            if (response.ok) {
-              const result = await response.json()
-              if (result.translations) {
-                await supabase.from(table).update(result.translations).eq("id", row.id)
-              }
+            const result = await callBatch(fields, targetLang)
+            totalApplied += Object.keys(result.translations).length
+            failedFields.push(...result.failed)
+            if (Object.keys(result.translations).length > 0) {
+              const { error: tblErr } = await supabase
+                .from(table)
+                .update(result.translations)
+                .eq("id", row.id)
+              if (tblErr) console.error(`[translate-trip] Failed updating ${table} ${row.id}:`, tblErr)
             }
           } catch (e) {
-            console.error(`Error translating ${table} row ${row.id}:`, e)
+            console.error(`[translate-trip] Error translating ${table} row ${row.id}:`, e)
+            failedFields.push(...fields.map((f) => f.field))
           }
         }
       }
     }
 
     // Fetch and translate all add-on tables
-    const [addOnsResult, golfCoursesResult, mealOptionsResult, transportResult, serviceResult] = await Promise.all([
-      supabase.from("add_ons").select("*").eq("trip_id", id),
-      supabase.from("trip_golf_courses").select("*").eq("trip_id", id),
-      supabase.from("trip_meal_options").select("*").eq("trip_id", id),
-      supabase.from("trip_transportation_options").select("*").eq("trip_id", id),
-      supabase.from("trip_service_options").select("*").eq("trip_id", id),
-    ])
+    const [addOnsResult, golfCoursesResult, mealOptionsResult, transportResult, serviceResult] =
+      await Promise.all([
+        supabase.from("add_ons").select("*").eq("trip_id", id),
+        supabase.from("trip_golf_courses").select("*").eq("trip_id", id),
+        supabase.from("trip_meal_options").select("*").eq("trip_id", id),
+        supabase.from("trip_transportation_options").select("*").eq("trip_id", id),
+        supabase.from("trip_service_options").select("*").eq("trip_id", id),
+      ])
 
     await Promise.all([
       translateSimpleTable("add_ons", addOnsResult.data || [], "name", "description"),
@@ -308,36 +339,63 @@ export async function POST(
       translateSimpleTable("trip_service_options", serviceResult.data || [], "name", "description"),
     ])
 
-    // Update the trip with translations
+    // Update the trips row with the language-suffixed columns we collected
     if (Object.keys(updates).length > 0) {
-      const { error: updateError } = await supabase
-        .from("trips")
-        .update(updates)
-        .eq("id", id)
+      const { error: updateError } = await supabase.from("trips").update(updates).eq("id", id)
 
       if (updateError) {
+        console.error("[translate-trip] trips update error:", updateError)
         return new Response(JSON.stringify({ error: "Failed to save translations" }), {
           status: 500,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         })
       }
     }
 
     const targetNames = validTargets.map((l: string) => LANGUAGE_MAP[l].name).join(" & ")
-    return new Response(JSON.stringify({ 
-      success: true,
-      message: `Translated to ${targetNames}`,
-      fieldsUpdated: Object.keys(updates).length
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    })
+    const partial = failedFields.length > 0
+    const message = partial
+      ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}. ${failedFields.length} field(s) could not be translated — try again.`
+      : `Translated ${totalApplied} fields to ${targetNames}`
 
-  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        success: !partial || totalApplied > 0,
+        partial,
+        message,
+        fieldsRequested: totalRequested,
+        fieldsUpdated: totalApplied,
+        failedFields,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
+  } catch (error: any) {
     console.error("Error in translate-trip:", error)
-    return new Response(JSON.stringify({ error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, code: 'TRANSLATION_ERROR' }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    })
+    // Surface AI Gateway-specific errors so the dialog can show the right message
+    if (error?.status && error?.code) {
+      return new Response(
+        JSON.stringify({
+          error: error.message || "Translation failed",
+          code: error.code,
+        }),
+        {
+          status: error.status,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
+    }
+    return new Response(
+      JSON.stringify({
+        error: `Translation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        code: "TRANSLATION_ERROR",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
   }
 }
