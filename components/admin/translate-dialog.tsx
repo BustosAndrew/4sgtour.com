@@ -44,7 +44,11 @@ export function TranslateDialog({
   )
   const [targetLanguages, setTargetLanguages] = useState<Language[]>([])
   const [isTranslating, setIsTranslating] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [result, setResult] = useState<{
+    success: boolean
+    partial?: boolean
+    message: string
+  } | null>(null)
 
   const allLanguages: Language[] = ["en", "ko", "de"]
   const availableTargets = allLanguages.filter((l) => l !== sourceLanguage)

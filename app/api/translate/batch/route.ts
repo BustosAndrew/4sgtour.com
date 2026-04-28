@@ -99,6 +99,13 @@ export async function POST(req: Request) {
       const result = await generateText({
         model: 'openai/gpt-5-mini',
         output: Output.object({ schema: translationSchema }),
+        // Long markdown fields (overview_content, description) can easily blow
+        // past default output limits when several are batched together.
+        // Without this, the structured-output JSON gets truncated, the SDK
+        // returns a partial array, and downstream callers silently drop the
+        // missing fields — surfacing as "translation succeeded but some
+        // columns weren't updated".
+        maxOutputTokens: 16000,
         system: `You are a professional translator specializing in travel and golf tourism content.
 
 You will receive a JSON payload listing items that need to be translated from ${sourceLang} to ${targetLang}. Each item has a stable "key", a "field_type" hint (title | description | location | highlights | general), and the source "text".
@@ -201,11 +208,24 @@ CRITICAL RULES:
       /^\s*(?:\[[^\]]*\]|\{\{?[^}]*\}?\}|<[^>]*>|tbd|todo|n\/a|placeholder)\s*$/i
 
     const translations: Record<string, string> = {}
+    const missingKeys: string[] = []
     for (const f of validFields) {
       const raw = returnedByKey.get(f.field)
-      if (!raw) continue
+      if (!raw) {
+        // Model dropped this key entirely (most often because the JSON
+        // output ran out of tokens before reaching it). Track it so the
+        // caller can retry just the missing ones.
+        missingKeys.push(f.field)
+        console.warn(
+          `[translate/batch] Missing translation for "${f.field}" (${sourceLang} → ${targetLang})`,
+        )
+        continue
+      }
       const trimmed = raw.trim()
-      if (!trimmed) continue
+      if (!trimmed) {
+        missingKeys.push(f.field)
+        continue
+      }
       if (placeholderPattern.test(trimmed)) {
         // Skip placeholder-looking output entirely. The caller will
         // simply not update this column, and the runtime fallback in
@@ -214,12 +234,13 @@ CRITICAL RULES:
         console.warn(
           `[translate/batch] Skipping placeholder-looking translation for "${f.field}" (${targetLang}): ${trimmed.slice(0, 80)}`,
         )
+        missingKeys.push(f.field)
         continue
       }
       translations[f.field] = trimmed
     }
 
-    return Response.json({ translations })
+    return Response.json({ translations, missingKeys })
   } catch (error) {
     console.error('Batch translation error:', error)
     return Response.json(
