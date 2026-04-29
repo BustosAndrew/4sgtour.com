@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"
 import { getUserType } from "@/lib/supabase/get-user-type"
+import { runWithConcurrency } from "@/lib/run-with-concurrency"
+
+// Translation jobs fan out into many AI Gateway calls (per language,
+// per add-on table, per row). The default function timeout is too
+// short, so bump it. Vercel will cap to whatever the plan supports.
+export const maxDuration = 300
+
+// Max simultaneous AI Gateway requests in flight at once. Keep this
+// low so we never burst into a 429 rate-limit response when a trip
+// has many add-ons or two target languages.
+const AI_CONCURRENCY = 3
 
 const LANGUAGE_MAP: Record<string, { name: string; code: string }> = {
   en: { name: "English", code: "en" },
@@ -123,20 +134,20 @@ export async function POST(
           `[translate-trip] Retrying ${missing.length} missing key(s) for ${targetLang}: ${missing.join(", ")}`,
         )
         // Retry the missing fields one at a time so a long body can't
-        // crowd out shorter siblings on the second pass either.
-        const retryResults = await Promise.all(
-          missing.map(async (key) => {
-            const original = fields.find((f) => f.field === key)
-            if (!original) return { key, value: null as string | null }
-            try {
-              const retry = await doFetch([original])
-              return { key, value: retry.translations?.[key] ?? null }
-            } catch (e) {
-              console.error(`[translate-trip] Retry failed for ${key}:`, e)
-              return { key, value: null }
-            }
-          }),
-        )
+        // crowd out shorter siblings on the second pass either, with
+        // bounded concurrency so we don't burst into the rate limit.
+        const retryTasks = missing.map((key) => async () => {
+          const original = fields.find((f) => f.field === key)
+          if (!original) return { key, value: null as string | null }
+          try {
+            const retry = await doFetch([original])
+            return { key, value: retry.translations?.[key] ?? null }
+          } catch (e) {
+            console.error(`[translate-trip] Retry failed for ${key}:`, e)
+            return { key, value: null }
+          }
+        })
+        const retryResults = await runWithConcurrency(retryTasks, AI_CONCURRENCY)
         const failed: string[] = []
         for (const { key, value } of retryResults) {
           if (value) translations[key] = value
@@ -181,13 +192,15 @@ export async function POST(
 
       totalRequested += shortFields.length + longFields.length
 
-      // Short fields: one combined call. Long fields: one call each, in parallel.
-      const [shortResult, ...longResults] = await Promise.all([
-        callBatch(shortFields, targetLang),
-        ...longFields.map((f) => callBatch([f], targetLang)),
-      ])
+      // Short fields go in one combined call; long fields each get their
+      // own call. Cap how many run at once so we don't trip rate limits.
+      const tripFieldTasks: Array<() => Promise<{ translations: Record<string, string>; failed: string[] }>> = [
+        () => callBatch(shortFields, targetLang),
+        ...longFields.map((f) => () => callBatch([f], targetLang)),
+      ]
+      const tripFieldResults = await runWithConcurrency(tripFieldTasks, AI_CONCURRENCY)
 
-      for (const r of [shortResult, ...longResults]) {
+      for (const r of tripFieldResults) {
         Object.assign(updates, r.translations)
         totalApplied += Object.keys(r.translations).length
         failedFields.push(...r.failed)
@@ -321,7 +334,9 @@ export async function POST(
       }
     }
 
-    // Fetch and translate all add-on tables
+    // Fetch all add-on tables in parallel (cheap DB reads), then run
+    // their translations sequentially so we don't pile dozens of AI
+    // Gateway calls on top of the per-language fanout above.
     const [addOnsResult, golfCoursesResult, mealOptionsResult, transportResult, serviceResult] =
       await Promise.all([
         supabase.from("add_ons").select("*").eq("trip_id", id),
@@ -331,13 +346,11 @@ export async function POST(
         supabase.from("trip_service_options").select("*").eq("trip_id", id),
       ])
 
-    await Promise.all([
-      translateSimpleTable("add_ons", addOnsResult.data || [], "name", "description"),
-      translateSimpleTable("trip_golf_courses", golfCoursesResult.data || [], "course_name", "description"),
-      translateSimpleTable("trip_meal_options", mealOptionsResult.data || [], "name", "description"),
-      translateSimpleTable("trip_transportation_options", transportResult.data || [], "name", "description"),
-      translateSimpleTable("trip_service_options", serviceResult.data || [], "name", "description"),
-    ])
+    await translateSimpleTable("add_ons", addOnsResult.data || [], "name", "description")
+    await translateSimpleTable("trip_golf_courses", golfCoursesResult.data || [], "course_name", "description")
+    await translateSimpleTable("trip_meal_options", mealOptionsResult.data || [], "name", "description")
+    await translateSimpleTable("trip_transportation_options", transportResult.data || [], "name", "description")
+    await translateSimpleTable("trip_service_options", serviceResult.data || [], "name", "description")
 
     // Update the trips row with the language-suffixed columns we collected
     if (Object.keys(updates).length > 0) {

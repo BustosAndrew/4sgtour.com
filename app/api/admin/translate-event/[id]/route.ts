@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { headers } from "next/headers"
+import { runWithConcurrency } from "@/lib/run-with-concurrency"
+
+// Translation jobs fan out into many AI Gateway calls (per language,
+// per itinerary day, per pricing tier). The default function timeout
+// is too short, so bump it. Vercel will cap to whatever the plan supports.
+export const maxDuration = 300
+
+// Max simultaneous AI Gateway requests in flight at once. Keep this
+// low so we never burst into a 429 rate-limit response when an event
+// has many itinerary days or two target languages.
+const AI_CONCURRENCY = 3
 
 type FieldPayload = { field: string; text: string; fieldType: string }
 
@@ -117,19 +128,18 @@ export async function POST(
       console.warn(
         `[translate-event] Retrying ${missing.length} missing key(s) for ${targetLang}: ${missing.join(", ")}`,
       )
-      const retried = await Promise.all(
-        missing.map(async (key) => {
-          const original = fields.find((f) => f.field === key)
-          if (!original) return { key, value: null as string | null }
-          try {
-            const r = await doFetch([original])
-            return { key, value: r.translations?.[key] ?? null }
-          } catch (e) {
-            console.error(`[translate-event] Retry failed for ${key}:`, e)
-            return { key, value: null }
-          }
-        }),
-      )
+      const retryTasks = missing.map((key) => async () => {
+        const original = fields.find((f) => f.field === key)
+        if (!original) return { key, value: null as string | null }
+        try {
+          const r = await doFetch([original])
+          return { key, value: r.translations?.[key] ?? null }
+        } catch (e) {
+          console.error(`[translate-event] Retry failed for ${key}:`, e)
+          return { key, value: null }
+        }
+      })
+      const retried = await runWithConcurrency(retryTasks, AI_CONCURRENCY)
       const failed: string[] = []
       for (const { key, value } of retried) {
         if (value) translations[key] = value
@@ -273,11 +283,14 @@ export async function POST(
       totalRequested += totalForLang
       if (totalForLang === 0) continue
 
-      // Run short batch + all long single-item batches in parallel
-      const results = await Promise.all([
-        callBatch(shortBatch, targetLang),
-        ...longBatches.map((b) => callBatch(b.payloads, targetLang)),
-      ])
+      // Run short batch + all long single-item batches with bounded
+      // concurrency so we don't burst dozens of AI Gateway calls at
+      // once and trip the upstream rate limit.
+      const tasks: Array<() => Promise<{ translations: Record<string, string>; failed: string[] }>> = [
+        () => callBatch(shortBatch, targetLang),
+        ...longBatches.map((b) => () => callBatch(b.payloads, targetLang)),
+      ]
+      const results = await runWithConcurrency(tasks, AI_CONCURRENCY)
 
       const merged: Record<string, string> = {}
       for (const r of results) {
