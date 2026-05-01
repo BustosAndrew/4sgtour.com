@@ -162,6 +162,23 @@ export async function POST(
 
       send({ type: "start", total: totalRequested })
 
+      // Nothing to translate — source language has no content. Bail with a
+      // clear message so the user knows to populate source content first.
+      if (totalRequested === 0) {
+        const sourceName = LANGUAGE_NAMES[sourceLanguage] ?? sourceLanguage
+        send({
+          type: "complete",
+          success: false,
+          partial: false,
+          message: `No ${sourceName} content found on this event to translate. Please add content in ${sourceName} first.`,
+          fieldsRequested: 0,
+          fieldsUpdated: 0,
+          failedFields: [],
+        })
+        controller.close()
+        return
+      }
+
       const callBatch = async (
         fields: FieldPayload[],
         targetLang: string,
