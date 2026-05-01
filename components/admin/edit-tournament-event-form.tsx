@@ -220,7 +220,8 @@ export function EditTournamentEventForm({
   const [translateSource, setTranslateSource] = useState<"en" | "ko" | "de">("en")
   const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
   const [isTranslating, setIsTranslating] = useState(false)
-  const [translateResult, setTranslateResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [translateResult, setTranslateResult] = useState<{ success: boolean; partial?: boolean; message: string } | null>(null)
+  const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number; label: string } | null>(null)
   
   // Determine which languages have content
   const getAvailableSourceLanguages = (): ("en" | "ko" | "de")[] => {
@@ -334,6 +335,7 @@ export function EditTournamentEventForm({
     
     setIsTranslating(true)
     setTranslateResult(null)
+    setTranslateProgress(null)
     
     try {
       const response = await fetch(`/api/admin/translate-event/${event.id}`, {
@@ -345,65 +347,9 @@ export function EditTournamentEventForm({
         }),
       })
       
-      const data = await response.json()
-      
-      if (response.ok) {
-        setTranslateResult({ success: true, message: data.message })
-        // Re-fetch the event to populate translated fields in the form
-        const eventRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}`)
-        if (eventRes.ok) {
-          const updatedEvent = await eventRes.json()
-          setFormData((prev) => ({
-            ...prev,
-            title_ko: updatedEvent.title_ko || "",
-            title_de: updatedEvent.title_de || "",
-            location_ko: updatedEvent.location_ko || "",
-            location_de: updatedEvent.location_de || "",
-            duration_ko: updatedEvent.duration_ko || "",
-            duration_de: updatedEvent.duration_de || "",
-            description_ko: (updatedEvent.description_ko as string[] | null)?.join("\n\n") || "",
-            description_de: (updatedEvent.description_de as string[] | null)?.join("\n\n") || "",
-            trip_highlights_ko: (updatedEvent.trip_highlights_ko as string[] | null)?.join("\n") || "",
-            trip_highlights_de: (updatedEvent.trip_highlights_de as string[] | null)?.join("\n") || "",
-            travel_itinerary_ko: (updatedEvent.travel_itinerary_ko as string[] | null)?.join("\n") || "",
-            travel_itinerary_de: (updatedEvent.travel_itinerary_de as string[] | null)?.join("\n") || "",
-            includes_ko: (updatedEvent.includes_ko as string[] | null)?.join("\n") || "",
-            includes_de: (updatedEvent.includes_de as string[] | null)?.join("\n") || "",
-            excludes_ko: (updatedEvent.excludes_ko as string[] | null)?.join("\n") || "",
-            excludes_de: (updatedEvent.excludes_de as string[] | null)?.join("\n") || "",
-          }))
-          // Re-fetch itinerary days with translated fields
-          const itineraryRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/itinerary`)
-          if (itineraryRes.ok) {
-            const updatedItinerary = await itineraryRes.json()
-            setItinerary(updatedItinerary.map((d: any) => ({
-              id: d.id,
-              display_order: d.display_order,
-              title: d.title,
-              title_ko: d.title_ko || "",
-              title_de: d.title_de || "",
-              content: d.content || "",
-              content_ko: d.content_ko || "",
-              content_de: d.content_de || "",
-            })))
-          }
-          // Re-fetch pricing tiers with translated fields
-          const tiersRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/pricing-tiers`)
-          if (tiersRes.ok) {
-            const updatedTiers = await tiersRes.json()
-            setPricingTiers(updatedTiers.map((t: any) => ({
-              id: t.id,
-              name: t.name,
-              name_ko: t.name_ko || "",
-              name_de: t.name_de || "",
-              price: t.price || "",
-              display_order: t.display_order || 0,
-              booking_url: t.booking_url || "",
-            })))
-          }
-        }
-        router.refresh()
-      } else {
+      if (!response.ok) {
+        // Non-streaming error response
+        const data = await response.json().catch(() => ({}))
         let errorMessage = data.error || "Translation failed"
         
         if (data.code === "CREDITS_EXHAUSTED" || response.status === 402) {
@@ -415,11 +361,110 @@ export function EditTournamentEventForm({
         }
         
         setTranslateResult({ success: false, message: errorMessage })
+        setIsTranslating(false)
+        return
+      }
+      
+      // Parse NDJSON stream
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error("No response body")
+      
+      const decoder = new TextDecoder()
+      let buffer = ""
+      
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+        
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const streamEvent = JSON.parse(line)
+            if (streamEvent.type === "start") {
+              setTranslateProgress({ done: 0, total: streamEvent.total, label: "Starting..." })
+            } else if (streamEvent.type === "progress") {
+              setTranslateProgress({ done: streamEvent.done, total: streamEvent.total, label: streamEvent.label || "" })
+            } else if (streamEvent.type === "complete") {
+              const partial = streamEvent.applied < streamEvent.requested
+              setTranslateResult({
+                success: true,
+                partial,
+                message: partial
+                  ? `Translated ${streamEvent.applied} of ${streamEvent.requested} fields. Some fields may need manual review.`
+                  : `Successfully translated ${streamEvent.applied} fields.`,
+              })
+              
+              // Re-fetch the event to populate translated fields in the form
+              const eventRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}`)
+              if (eventRes.ok) {
+                const updatedEvent = await eventRes.json()
+                setFormData((prev) => ({
+                  ...prev,
+                  title_ko: updatedEvent.title_ko || "",
+                  title_de: updatedEvent.title_de || "",
+                  location_ko: updatedEvent.location_ko || "",
+                  location_de: updatedEvent.location_de || "",
+                  duration_ko: updatedEvent.duration_ko || "",
+                  duration_de: updatedEvent.duration_de || "",
+                  description_ko: (updatedEvent.description_ko as string[] | null)?.join("\n\n") || "",
+                  description_de: (updatedEvent.description_de as string[] | null)?.join("\n\n") || "",
+                  trip_highlights_ko: (updatedEvent.trip_highlights_ko as string[] | null)?.join("\n") || "",
+                  trip_highlights_de: (updatedEvent.trip_highlights_de as string[] | null)?.join("\n") || "",
+                  travel_itinerary_ko: (updatedEvent.travel_itinerary_ko as string[] | null)?.join("\n") || "",
+                  travel_itinerary_de: (updatedEvent.travel_itinerary_de as string[] | null)?.join("\n") || "",
+                  includes_ko: (updatedEvent.includes_ko as string[] | null)?.join("\n") || "",
+                  includes_de: (updatedEvent.includes_de as string[] | null)?.join("\n") || "",
+                  excludes_ko: (updatedEvent.excludes_ko as string[] | null)?.join("\n") || "",
+                  excludes_de: (updatedEvent.excludes_de as string[] | null)?.join("\n") || "",
+                }))
+                // Re-fetch itinerary days with translated fields
+                const itineraryRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/itinerary`)
+                if (itineraryRes.ok) {
+                  const updatedItinerary = await itineraryRes.json()
+                  setItinerary(updatedItinerary.map((d: any) => ({
+                    id: d.id,
+                    display_order: d.display_order,
+                    title: d.title,
+                    title_ko: d.title_ko || "",
+                    title_de: d.title_de || "",
+                    content: d.content || "",
+                    content_ko: d.content_ko || "",
+                    content_de: d.content_de || "",
+                  })))
+                }
+                // Re-fetch pricing tiers with translated fields
+                const tiersRes = await fetch(`/api/admin/tournaments/${event.tournament_id}/events/${event.id}/pricing-tiers`)
+                if (tiersRes.ok) {
+                  const updatedTiers = await tiersRes.json()
+                  setPricingTiers(updatedTiers.map((t: any) => ({
+                    id: t.id,
+                    name: t.name,
+                    name_ko: t.name_ko || "",
+                    name_de: t.name_de || "",
+                    price: t.price || "",
+                    display_order: t.display_order || 0,
+                    booking_url: t.booking_url || "",
+                  })))
+                }
+              }
+              router.refresh()
+            } else if (streamEvent.type === "error") {
+              setTranslateResult({ success: false, message: streamEvent.error || "Translation failed" })
+            }
+          } catch {
+            // Skip invalid JSON lines
+          }
+        }
       }
     } catch (error) {
       setTranslateResult({ success: false, message: "Failed to connect to translation service. Please check your network connection." })
     } finally {
       setIsTranslating(false)
+      setTranslateProgress(null)
     }
   }
 
@@ -1341,11 +1386,42 @@ export function EditTournamentEventForm({
                     )}
                   </Button>
                   
+                  {/* Progress Bar */}
+                  {isTranslating && translateProgress && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">
+                          Translating {translateProgress.done} of {translateProgress.total} fields
+                        </span>
+                        <span className="font-medium">
+                          {translateProgress.total > 0
+                            ? Math.round((translateProgress.done / translateProgress.total) * 100)
+                            : 0}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full bg-[#274C77] transition-all duration-300"
+                          style={{
+                            width: `${translateProgress.total > 0 ? (translateProgress.done / translateProgress.total) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                      {translateProgress.label && (
+                        <p className="text-xs text-gray-500 truncate">
+                          Working on: {translateProgress.label}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Result */}
                   {translateResult && (
                     <div className={`rounded-md p-3 text-sm ${
                       translateResult.success 
-                        ? "bg-green-50 text-green-700 border border-green-200" 
+                        ? translateResult.partial
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-green-50 text-green-700 border border-green-200" 
                         : "bg-red-50 text-red-700 border border-red-200"
                     }`}>
                       {translateResult.message}

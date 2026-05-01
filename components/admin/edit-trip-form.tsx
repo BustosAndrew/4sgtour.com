@@ -176,7 +176,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [translateSource, setTranslateSource] = useState<"en" | "ko" | "de">("en")
   const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
   const [isTranslating, setIsTranslating] = useState(false)
-  const [translateResult, setTranslateResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [translateResult, setTranslateResult] = useState<{ success: boolean; partial?: boolean; message: string } | null>(null)
+  const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number; label: string } | null>(null)
   
   // Stripe state
   const [generatingStripe, setGeneratingStripe] = useState(false)
@@ -626,6 +627,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     
     setIsTranslating(true)
     setTranslateResult(null)
+    setTranslateProgress(null)
     
     try {
       const response = await fetch(`/api/admin/translate-trip/${trip.id}`, {
@@ -637,12 +639,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         }),
       })
       
-      const data = await response.json()
-      
-      if (response.ok) {
-        setTranslateResult({ success: true, message: data.message })
-        router.refresh()
-      } else {
+      if (!response.ok) {
+        // Non-streaming error response
+        const data = await response.json().catch(() => ({}))
         let errorMessage = data.error || "Translation failed"
         
         if (data.code === "CREDITS_EXHAUSTED" || response.status === 402) {
@@ -654,11 +653,56 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         }
         
         setTranslateResult({ success: false, message: errorMessage })
+        setIsTranslating(false)
+        return
+      }
+      
+      // Parse NDJSON stream
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error("No response body")
+      
+      const decoder = new TextDecoder()
+      let buffer = ""
+      
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+        
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line)
+            if (event.type === "start") {
+              setTranslateProgress({ done: 0, total: event.total, label: "Starting..." })
+            } else if (event.type === "progress") {
+              setTranslateProgress({ done: event.done, total: event.total, label: event.label || "" })
+            } else if (event.type === "complete") {
+              const partial = event.applied < event.requested
+              setTranslateResult({
+                success: true,
+                partial,
+                message: partial
+                  ? `Translated ${event.applied} of ${event.requested} fields. Some fields may need manual review.`
+                  : `Successfully translated ${event.applied} fields.`,
+              })
+              router.refresh()
+            } else if (event.type === "error") {
+              setTranslateResult({ success: false, message: event.error || "Translation failed" })
+            }
+          } catch {
+            // Skip invalid JSON lines
+          }
+        }
       }
     } catch (error) {
       setTranslateResult({ success: false, message: "Failed to connect to translation service. Please check your network connection." })
     } finally {
       setIsTranslating(false)
+      setTranslateProgress(null)
     }
   }
 
@@ -2313,11 +2357,42 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     )}
                   </Button>
                   
+                  {/* Progress Bar */}
+                  {isTranslating && translateProgress && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Translating {translateProgress.done} of {translateProgress.total} fields
+                        </span>
+                        <span className="font-medium">
+                          {translateProgress.total > 0
+                            ? Math.round((translateProgress.done / translateProgress.total) * 100)
+                            : 0}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{
+                            width: `${translateProgress.total > 0 ? (translateProgress.done / translateProgress.total) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                      {translateProgress.label && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          Working on: {translateProgress.label}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Result */}
                   {translateResult && (
                     <div className={`rounded-md p-3 text-sm ${
                       translateResult.success 
-                        ? "bg-green-50 text-green-700 border border-green-200" 
+                        ? translateResult.partial
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-green-50 text-green-700 border border-green-200" 
                         : "bg-red-50 text-red-700 border border-red-200"
                     }`}>
                       {translateResult.message}
