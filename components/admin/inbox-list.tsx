@@ -195,13 +195,13 @@ export function InboxList({
   }
 
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]" style={{ height: "calc(100vh - 180px)" }}>
       {/* Inquiry List */}
-      <Card className="p-3 sm:p-4">
-        <h2 className="mb-3 text-lg font-semibold sm:mb-4 sm:text-xl">
+      <Card className="flex flex-col overflow-hidden p-3 sm:p-4">
+        <h2 className="mb-3 flex-none text-lg font-semibold sm:mb-4 sm:text-xl">
           Inquiries
         </h2>
-        <div className="space-y-2">
+        <div className="flex-1 space-y-2 overflow-y-auto pr-1">
           {localInquiries.length === 0 ? (
             <p className="text-xs text-muted-foreground sm:text-sm">
               No inquiries yet
@@ -258,10 +258,10 @@ export function InboxList({
       </Card>
 
       {/* Message Thread */}
-      <Card className="flex flex-col p-3 sm:p-4">
+      <Card className="flex min-h-0 flex-col overflow-hidden p-3 sm:p-4">
         {selectedInquiry ? (
           <>
-            <div className="mb-3 border-b pb-3 sm:mb-4 sm:pb-4">
+            <div className="mb-3 flex-none border-b pb-3 sm:mb-4 sm:pb-4">
               <h2 className="text-lg font-semibold sm:text-xl">
                 {selectedInquiry.customer_name}
               </h2>
@@ -296,7 +296,7 @@ export function InboxList({
             </div>
 
             {/* Messages */}
-            <div className="mb-3 flex-1 space-y-2 overflow-y-auto sm:mb-4 sm:space-y-3">
+            <div className="mb-3 min-h-0 flex-1 space-y-2 overflow-y-auto sm:mb-4 sm:space-y-3">
               {loading ? (
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Loading messages...
@@ -402,7 +402,7 @@ export function InboxList({
             </div>
 
             {/* Send Message */}
-            <div className="flex gap-2">
+            <div className="flex flex-none gap-2 border-t pt-3 sm:pt-4">
               <Textarea
                 placeholder="Type your message..."
                 value={newMessage}
