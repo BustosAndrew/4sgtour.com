@@ -211,26 +211,42 @@ export function InboxList({
               <button
                 key={inquiry.id}
                 onClick={() => setSelectedInquiry(inquiry)}
-                className={`w-full rounded-lg border p-2 text-left transition-colors hover:bg-accent sm:p-3 ${
+                className={`w-full rounded-lg border p-2 text-left transition-all sm:p-3 ${
                   selectedInquiry?.id === inquiry.id
-                    ? "border-primary bg-accent"
-                    : ""
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card hover:border-primary/50 hover:bg-primary/5"
                 }`}
               >
                 <div className="mb-1 flex items-start justify-between gap-2">
-                  <p className="text-sm font-medium sm:text-base">
+                  <p className={`text-sm font-medium sm:text-base ${
+                    selectedInquiry?.id === inquiry.id
+                      ? "text-primary-foreground"
+                      : "text-foreground"
+                  }`}>
                     {inquiry.customer_name}
                   </p>
                   <Badge
-                    className={`text-xs ${getStatusColor(inquiry.status)}`}
+                    className={`text-xs ${
+                      selectedInquiry?.id === inquiry.id
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : getStatusColor(inquiry.status)
+                    }`}
                   >
                     {inquiry.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground sm:text-sm">
+                <p className={`text-xs sm:text-sm ${
+                  selectedInquiry?.id === inquiry.id
+                    ? "text-primary-foreground/80"
+                    : "text-muted-foreground"
+                }`}>
                   {inquiry.trip_title}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className={`mt-1 text-xs ${
+                  selectedInquiry?.id === inquiry.id
+                    ? "text-primary-foreground/70"
+                    : "text-muted-foreground"
+                }`}>
                   {formatDistanceToNow(new Date(inquiry.created_at), {
                     addSuffix: true,
                   })}
