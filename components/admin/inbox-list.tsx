@@ -195,13 +195,13 @@ export function InboxList({
   }
 
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]" style={{ height: "calc(100vh - 180px)" }}>
       {/* Inquiry List */}
-      <Card className="p-3 sm:p-4">
-        <h2 className="mb-3 text-lg font-semibold sm:mb-4 sm:text-xl">
+      <Card className="flex flex-col overflow-hidden p-3 sm:p-4">
+        <h2 className="mb-3 flex-none text-lg font-semibold sm:mb-4 sm:text-xl">
           Inquiries
         </h2>
-        <div className="space-y-2">
+        <div className="flex-1 space-y-2 overflow-y-auto pr-1">
           {localInquiries.length === 0 ? (
             <p className="text-xs text-muted-foreground sm:text-sm">
               No inquiries yet
@@ -211,26 +211,42 @@ export function InboxList({
               <button
                 key={inquiry.id}
                 onClick={() => setSelectedInquiry(inquiry)}
-                className={`w-full rounded-lg border p-2 text-left transition-colors hover:bg-accent sm:p-3 ${
+                className={`w-full rounded-lg border p-2 text-left transition-all sm:p-3 ${
                   selectedInquiry?.id === inquiry.id
-                    ? "border-primary bg-accent"
-                    : ""
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card hover:border-primary/50 hover:bg-primary/5"
                 }`}
               >
                 <div className="mb-1 flex items-start justify-between gap-2">
-                  <p className="text-sm font-medium sm:text-base">
+                  <p className={`text-sm font-medium sm:text-base ${
+                    selectedInquiry?.id === inquiry.id
+                      ? "text-primary-foreground"
+                      : "text-foreground"
+                  }`}>
                     {inquiry.customer_name}
                   </p>
                   <Badge
-                    className={`text-xs ${getStatusColor(inquiry.status)}`}
+                    className={`text-xs ${
+                      selectedInquiry?.id === inquiry.id
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : getStatusColor(inquiry.status)
+                    }`}
                   >
                     {inquiry.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground sm:text-sm">
+                <p className={`text-xs sm:text-sm ${
+                  selectedInquiry?.id === inquiry.id
+                    ? "text-primary-foreground/80"
+                    : "text-muted-foreground"
+                }`}>
                   {inquiry.trip_title}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className={`mt-1 text-xs ${
+                  selectedInquiry?.id === inquiry.id
+                    ? "text-primary-foreground/70"
+                    : "text-muted-foreground"
+                }`}>
                   {formatDistanceToNow(new Date(inquiry.created_at), {
                     addSuffix: true,
                   })}
@@ -242,10 +258,10 @@ export function InboxList({
       </Card>
 
       {/* Message Thread */}
-      <Card className="flex flex-col p-3 sm:p-4">
+      <Card className="flex min-h-0 flex-col overflow-hidden p-3 sm:p-4">
         {selectedInquiry ? (
           <>
-            <div className="mb-3 border-b pb-3 sm:mb-4 sm:pb-4">
+            <div className="mb-3 flex-none border-b pb-3 sm:mb-4 sm:pb-4">
               <h2 className="text-lg font-semibold sm:text-xl">
                 {selectedInquiry.customer_name}
               </h2>
@@ -280,7 +296,7 @@ export function InboxList({
             </div>
 
             {/* Messages */}
-            <div className="mb-3 flex-1 space-y-2 overflow-y-auto sm:mb-4 sm:space-y-3">
+            <div className="mb-3 min-h-0 flex-1 space-y-2 overflow-y-auto sm:mb-4 sm:space-y-3">
               {loading ? (
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Loading messages...
@@ -386,7 +402,7 @@ export function InboxList({
             </div>
 
             {/* Send Message */}
-            <div className="flex gap-2">
+            <div className="flex flex-none gap-2 border-t pt-3 sm:pt-4">
               <Textarea
                 placeholder="Type your message..."
                 value={newMessage}
