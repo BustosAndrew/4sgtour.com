@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from '@/lib/i18n/provider'
+import { PaymentConsent } from '@/components/payment-consent'
 
 // Initialize stripe once, outside of component
 let stripePromise: Promise<Stripe | null> | null = null
@@ -630,23 +631,18 @@ export function StripeCheckout({
         </div>
       </div>
 
-      {paymentMethod === 'sms' && (
-        <label className="flex items-start gap-3 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={smsConsent}
-            onChange={(e) => setSmsConsent(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-[#3D5A80] cursor-pointer"
-          />
-          <span className="text-sm text-muted-foreground leading-snug">
-            {t('smsConsentLabel')}
-          </span>
-        </label>
-      )}
+      {/* SMS consent handled inside PaymentConsent (below) */}
 
       {smsError && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-3 text-sm rounded">
           {smsError}
+        </div>
+      )}
+
+      {/* Compliance consent block for SMS payments */}
+      {paymentMethod === 'sms' && (
+        <div className="mb-4">
+          <PaymentConsent onSmsConsentChange={(v) => setSmsConsent(v)} />
         </div>
       )}
 

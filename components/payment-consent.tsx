@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 interface PaymentConsentProps {
   businessName?: string
+  onSmsConsentChange?: (value: boolean) => void
 }
 
 /**
@@ -16,6 +17,7 @@ interface PaymentConsentProps {
  */
 export function PaymentConsent({
   businessName = '4 Seasons Golf Tour',
+  onSmsConsentChange,
 }: PaymentConsentProps) {
   const [smsConsent, setSmsConsent] = useState(false)
   const [termsConsent, setTermsConsent] = useState(false)
@@ -27,7 +29,10 @@ export function PaymentConsent({
         <input
           type="checkbox"
           checked={smsConsent}
-          onChange={(e) => setSmsConsent(e.target.checked)}
+          onChange={(e) => {
+            setSmsConsent(e.target.checked)
+            onSmsConsentChange?.(e.target.checked)
+          }}
           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-2 border-[#274C77] text-[#274C77] focus:ring-2 focus:ring-[#274C77] focus:ring-offset-1"
         />
         <span className="text-xs leading-relaxed text-foreground sm:text-sm">
