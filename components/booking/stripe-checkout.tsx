@@ -181,7 +181,8 @@ export function StripeCheckout({
 
   // Calculate amounts based on payment type (deposit or full)
   const depositOnlyAmount = packagePrice * (depositPercentage / 100)
-  const paymentAmount = paymentType === 'full' ? packagePrice : depositOnlyAmount
+  const paymentAmount =
+    paymentType === 'full' ? packagePrice : depositOnlyAmount
   const cardFee = paymentAmount * 0.04
   const cardTotal = paymentAmount + cardFee
 
@@ -323,7 +324,11 @@ export function StripeCheckout({
           <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{checkoutParams.paymentType === 'full' ? t('fullPayment') : t('deposit')}</span>
+              <span>
+                {checkoutParams.paymentType === 'full'
+                  ? t('fullPayment')
+                  : t('deposit')}
+              </span>
               <span>${paymentAmount.toFixed(2)}</span>
             </div>
             {checkoutParams.paymentMethod === 'card' && (
@@ -427,7 +432,9 @@ export function StripeCheckout({
             }`}
           >
             <div className="text-left">
-              <div className="font-medium">{t('payDeposit', { percentage: depositPercentage })}</div>
+              <div className="font-medium">
+                {t('payDeposit', { percentage: depositPercentage })}
+              </div>
               <div className="text-sm text-muted-foreground">
                 {t('payDepositDescription')}
               </div>
@@ -464,9 +471,13 @@ export function StripeCheckout({
           {t('paymentMethod')}
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
-          {paymentType === 'full' 
-            ? t('fullPaymentRequired', { amount: `$${packagePrice.toFixed(2)}` })
-            : t('depositRequired', { amount: `$${depositOnlyAmount.toFixed(2)}` })}
+          {paymentType === 'full'
+            ? t('fullPaymentRequired', {
+                amount: `$${packagePrice.toFixed(2)}`,
+              })
+            : t('depositRequired', {
+                amount: `$${depositOnlyAmount.toFixed(2)}`,
+              })}
         </p>
 
         {/* Auto-charge disclaimer - only show for deposit payments */}
@@ -564,7 +575,7 @@ export function StripeCheckout({
         <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
         <div className="text-sm space-y-1">
           <div className="flex justify-between">
-            <span>{t('trip')}</span>
+            {/* <span>{t('trip')}</span> */}
             <span className="font-medium">{tripTitle}</span>
           </div>
           <div className="flex justify-between">
@@ -611,7 +622,9 @@ export function StripeCheckout({
             </div>
           )}
           <div className="flex justify-between text-[#3D5A80] font-medium">
-            <span>{paymentType === 'full' ? t('totalDue') : t('depositDue')}</span>
+            <span>
+              {paymentType === 'full' ? t('totalDue') : t('depositDue')}
+            </span>
             <span>${paymentAmount.toFixed(2)}</span>
           </div>
         </div>

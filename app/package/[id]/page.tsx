@@ -6,6 +6,7 @@ import {
   TripImageGallery,
   RoomImageSection,
 } from '@/components/trip-image-gallery'
+import { PaymentConsent } from '@/components/payment-consent'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
@@ -72,7 +73,7 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
   const totalPrice = inquiry.total_price || 0
   const depositAmount = (totalPrice * configuredDepositPercentage) / 100
   const remainderAmount = totalPrice - depositAmount
-  
+
   // Determine if we should show payment options (deposit vs full)
   // Only show options when deposit percentage is less than 100%
   const showPaymentOptions = configuredDepositPercentage < 100 && !isPaid
@@ -103,9 +104,15 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
       {/* Payment Options Description - show when options are available */}
       {showPaymentOptions && (
         <p className="text-sm text-muted-foreground">
-          Choose to pay a {configuredDepositPercentage}% deposit now or the full amount.
+          Choose to pay a {configuredDepositPercentage}% deposit now or the full
+          amount.
         </p>
       )}
+
+      {/* Compliance consent (SMS opt-in + Terms/Privacy). Both are
+          optional — they do not gate the Pay button — but must be
+          presented per carrier compliance requirements. */}
+      {!isPaid && <PaymentConsent />}
 
       {/* Deposit Payment Option */}
       {showPaymentOptions && (
@@ -118,10 +125,17 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
               {configuredDepositPercentage}% Deposit
             </h3>
             <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              ${depositAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              $
+              {depositAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Remaining ${remainderAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} due later
+              Remaining $
+              {remainderAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}{' '}
+              due later
             </p>
           </div>
 
@@ -138,7 +152,9 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
             </a>
           ) : (
             <div className="rounded-lg bg-amber-50 p-4 text-center">
-              <p className="font-semibold text-amber-700">Payment Link Pending</p>
+              <p className="font-semibold text-amber-700">
+                Payment Link Pending
+              </p>
               <p className="mt-1 text-sm text-amber-600">
                 A payment link will be sent to you shortly.
               </p>
@@ -158,7 +174,8 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
               Full Payment
             </h3>
             <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              ${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              $
+              {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               Pay the complete package price today
@@ -178,7 +195,9 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
             </a>
           ) : (
             <div className="rounded-lg bg-muted p-4 text-center">
-              <p className="font-semibold text-muted-foreground">Full Payment Link Pending</p>
+              <p className="font-semibold text-muted-foreground">
+                Full Payment Link Pending
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Contact us to pay the full amount.
               </p>
@@ -208,7 +227,9 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
             {configuredDepositPercentage < 100 && (
               <p className="mt-1 text-sm text-muted-foreground">
                 Total: $
-                {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                {totalPrice.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                })}
               </p>
             )}
           </div>
@@ -236,7 +257,9 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
             </a>
           ) : (
             <div className="rounded-lg bg-amber-50 p-4 text-center">
-              <p className="font-semibold text-amber-700">Payment Link Pending</p>
+              <p className="font-semibold text-amber-700">
+                Payment Link Pending
+              </p>
               <p className="mt-1 text-sm text-amber-600">
                 A payment link will be sent to you shortly.
               </p>
