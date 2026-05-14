@@ -1,4 +1,5 @@
 import { generateText } from 'ai'
+import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
     } = await req.json()
 
     if (!text || !targetLanguage) {
-      return Response.json(
+      return NextResponse.json(
         { error: 'Missing required fields: text and targetLanguage' },
         { status: 400 },
       )
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     // placeholder-looking output).
     const source = typeof text === 'string' ? text : String(text ?? '')
     if (!source.trim()) {
-      return Response.json({ translation: '' })
+      return NextResponse.json({ translation: '' })
     }
 
     // Map language codes to full names for better translation context
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     // No-op: same source/target → echo back. Avoids a useless AI call
     // that could introduce subtle rewording or placeholders.
     if (sourceLanguage === targetLanguage) {
-      return Response.json({ translation: source })
+      return NextResponse.json({ translation: source })
     }
 
     // Build context-aware prompt based on field type
@@ -82,12 +83,12 @@ STRICT OUTPUT RULES:
       console.warn(
         `[translate] Skipping placeholder-looking translation (${sourceLang} → ${targetLang}): ${translated.slice(0, 80)}`,
       )
-      return Response.json({ translation: null })
+      return NextResponse.json({ translation: null })
     }
 
-    return Response.json({ translation: translated })
+    return NextResponse.json({ translation: translated })
   } catch (error) {
     console.error('Translation error:', error)
-    return Response.json({ error: 'Translation failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Translation failed' }, { status: 500 })
   }
 }
