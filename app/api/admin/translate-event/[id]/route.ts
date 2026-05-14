@@ -405,13 +405,83 @@ export async function POST(
             }
           }
 
-          // Compact sparse array fields
+          // For array fields, fill any missing indices with the source
+          // text so multi-paragraph / multi-line content keeps its full
+          // structure even when one entry's translation was dropped by
+          // the model. This guarantees the saved translation has the
+          // same length as the source and that no paragraphs disappear.
           for (const { key } of ARRAY_FIELDS) {
             const targetArrayKey = `${key}${targetSuffix}`
-            if (Array.isArray(updates[targetArrayKey])) {
-              updates[targetArrayKey] = (updates[targetArrayKey] as (string | undefined)[]).filter(
-                (t) => typeof t === "string" && t.length > 0,
-              )
+            const sourceArr = event[`${key}${sourceSuffix}`]
+            if (!Array.isArray(sourceArr) || sourceArr.length === 0) continue
+            const targetArr = (updates[targetArrayKey] as (string | undefined)[] | undefined) || []
+            const filled: string[] = []
+            for (let i = 0; i < sourceArr.length; i++) {
+              const src = sourceArr[i]
+              if (!isNonEmpty(src)) continue
+              const translated = targetArr[i]
+              if (typeof translated === "string" && translated.length > 0) {
+                filled.push(translated)
+              } else {
+                // Fall back to source so structure is preserved.
+                filled.push(src)
+              }
+            }
+            if (filled.length > 0) {
+              updates[targetArrayKey] = filled
+            } else {
+              delete updates[targetArrayKey]
+            }
+          }
+
+          // For simple fields, fall back to source text if the model
+          // dropped the translation entirely (otherwise the column would
+          // just not get updated, leaving stale or missing content).
+          for (const { key } of SIMPLE_FIELDS) {
+            const targetField = `${key}${targetSuffix}`
+            const sourceVal = event[`${key}${sourceSuffix}`]
+            if (!isNonEmpty(sourceVal)) continue
+            const translated = updates[targetField]
+            if (typeof translated !== "string" || translated.length === 0) {
+              updates[targetField] = sourceVal
+            }
+          }
+
+          // Same fallback for itinerary day + pricing tier title/content.
+          if (itineraryDays?.length) {
+            for (const day of itineraryDays) {
+              const dayUpdates = itineraryDayUpdates.get(day.id) || {}
+              for (const field of ["title", "content"] as const) {
+                const targetField = `${field}${targetSuffix}`
+                const sourceVal = day[`${field}${sourceSuffix}`]
+                if (!isNonEmpty(sourceVal)) continue
+                if (
+                  typeof dayUpdates[targetField] !== "string" ||
+                  dayUpdates[targetField].length === 0
+                ) {
+                  dayUpdates[targetField] = sourceVal
+                }
+              }
+              if (Object.keys(dayUpdates).length > 0) {
+                itineraryDayUpdates.set(day.id, dayUpdates)
+              }
+            }
+          }
+          if (pricingTiers?.length) {
+            for (const tier of pricingTiers) {
+              const tierUpdates = pricingTierUpdates.get(tier.id) || {}
+              const targetField = `name${targetSuffix}`
+              const sourceVal = tier[`name${sourceSuffix}`]
+              if (!isNonEmpty(sourceVal)) continue
+              if (
+                typeof tierUpdates[targetField] !== "string" ||
+                tierUpdates[targetField].length === 0
+              ) {
+                tierUpdates[targetField] = sourceVal
+              }
+              if (Object.keys(tierUpdates).length > 0) {
+                pricingTierUpdates.set(tier.id, tierUpdates)
+              }
             }
           }
         }
