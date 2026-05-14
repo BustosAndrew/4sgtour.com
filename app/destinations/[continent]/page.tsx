@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { TripCard } from '@/components/trip-card'
@@ -33,6 +34,38 @@ const CONTINENT_KEYS: Record<string, string> = {
   europe: 'europe',
   'north-america': 'northAmerica',
   'south-america': 'latinAmerica',
+}
+
+export async function generateMetadata({
+  params,
+}: ContinentTripsPageProps): Promise<Metadata> {
+  const { continent: continentSlug } = await params
+  const continentName = CONTINENT_NAMES[continentSlug]
+
+  if (!continentName) {
+    return { title: 'Destination Not Found | 4 Seasons Golf Tour' }
+  }
+
+  return {
+    title: `Golf Trips in ${continentName} | 4 Seasons Golf Tour`,
+    description: `Discover the best golf courses and trips in ${continentName}. Book your dream golf vacation with 4 Seasons Golf Tour and experience world-class destinations.`,
+    openGraph: {
+      title: `Golf Trips in ${continentName} | 4 Seasons Golf Tour`,
+      description: `Discover the best golf courses and trips in ${continentName}. Book your dream golf vacation with 4 Seasons Golf Tour.`,
+      images: CONTINENT_IMAGES[continentSlug]
+        ? [CONTINENT_IMAGES[continentSlug]]
+        : undefined,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Golf Trips in ${continentName} | 4 Seasons Golf Tour`,
+      description: `Discover the best golf courses and trips in ${continentName}.`,
+      images: CONTINENT_IMAGES[continentSlug]
+        ? [CONTINENT_IMAGES[continentSlug]]
+        : undefined,
+    },
+  }
 }
 
 export default async function ContinentTripsPage({

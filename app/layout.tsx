@@ -9,9 +9,50 @@ import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '4 Seasons Golf Tour',
+  metadataBase: new URL('https://4sgtour.com'),
+  title: {
+    default: '4 Seasons Golf Tour',
+    template: '%s | 4 Seasons Golf Tour',
+  },
   description:
     'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations, exclusive packages, and personalized service for an unforgettable golfing experience.',
+  keywords: [
+    'golf vacation',
+    'golf tour',
+    'golf travel',
+    'golf packages',
+    'golf destinations',
+    'luxury golf',
+    'golf trips',
+  ],
+  authors: [{ name: '4 Seasons Golf Tour' }],
+  creator: '4 Seasons Golf Tour',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://4sgtour.com',
+    siteName: '4 Seasons Golf Tour',
+    title: '4 Seasons Golf Tour',
+    description:
+      'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '4 Seasons Golf Tour',
+    description:
+      'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   generator: 'v0.app',
 }
 

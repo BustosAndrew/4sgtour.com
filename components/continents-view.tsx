@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -96,10 +97,12 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} }: C
             >
               {/* Background image */}
               <div className="absolute inset-0 overflow-hidden">
-                <img
+                <Image
                   src={continent.image || '/placeholder.svg'}
                   alt={continent.displayName || continent.name.replace('\n', ' ')}
-                  className="h-full w-full scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  fill
+                  className="scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  sizes="(max-width: 1024px) 100vw, 20vw"
                 />
                 {/* Dark overlay that lightens on hover */}
                 <div
@@ -165,13 +168,15 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} }: C
                 className="group block overflow-hidden border border-[#d9d9d9] bg-white transition-all duration-300 hover:shadow-lg"
               >
                 <div className="relative h-64 overflow-hidden">
-                  <img
+                  <Image
                     src={
                       destination.image_url ||
                       `/placeholder.svg?height=400&width=600&query=golf+course+${destination.name || '/placeholder.svg'}`
                     }
                     alt={getLocalizedField(destination, 'name') || ''}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
                 <div className="p-6">
