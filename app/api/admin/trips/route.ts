@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
 import { headers } from "next/headers"
+import { stripe } from "@/lib/stripe"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -123,12 +124,67 @@ export async function POST(request: Request) {
         participants_per_booking: pkg.participants_per_booking,
       }))
 
-      const { error: packagesError } = await supabase
+      const { data: insertedPackages, error: packagesError } = await supabase
         .from("packages")
         .insert(packagesData)
+        .select()
 
       if (packagesError) {
         console.error("[v0] Error creating packages:", packagesError)
+      }
+
+      // Generate Stripe configuration for each package
+      if (insertedPackages && insertedPackages.length > 0 && stripe) {
+        const depositPercentage = body.deposit_percentage ?? 30
+        
+        for (const pkg of insertedPackages) {
+          try {
+            // Create Stripe Product
+            const product = await stripe.products.create({
+              name: `${title} - ${pkg.name}`,
+              description: pkg.description || `${pkg.name} package for ${title}`,
+              metadata: {
+                trip_id: tripData.id,
+                package_id: pkg.id,
+                package_name: pkg.name,
+              },
+            })
+
+            // Create Stripe Price (deposit amount)
+            const depositAmount = Math.round(pkg.price * (depositPercentage / 100) * 100) // Convert to cents
+            const price = await stripe.prices.create({
+              product: product.id,
+              unit_amount: depositAmount,
+              currency: 'usd',
+              metadata: {
+                trip_id: tripData.id,
+                package_id: pkg.id,
+                deposit_percentage: depositPercentage.toString(),
+                full_price: pkg.price.toString(),
+              },
+            })
+
+            // Update package with Stripe IDs
+            await supabase
+              .from("packages")
+              .update({
+                stripe_product_id: product.id,
+                stripe_price_id: price.id,
+              })
+              .eq("id", pkg.id)
+
+            console.log(`[v0] Created Stripe config for package ${pkg.name}: product=${product.id}, price=${price.id}`)
+          } catch (stripeError: any) {
+            console.error(`[v0] Error creating Stripe config for package ${pkg.id}:`, stripeError.message)
+            // Don't fail the whole request if Stripe fails - trip is still created
+          }
+        }
+
+        // Enable stripe payment for the trip
+        await supabase
+          .from("trips")
+          .update({ stripe_payment_enabled: true })
+          .eq("id", tripData.id)
       }
     }
 
