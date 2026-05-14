@@ -303,7 +303,23 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                     )}
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
-                    {inquiry.trip?.slug && (
+                    {(inquiry as any).is_custom_package && (
+                      <a
+                        href={`/package/${inquiry.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="View Custom Trip Page"
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          View Custom Trip
+                        </Button>
+                      </a>
+                    )}
+                    {inquiry.trip?.slug && !(inquiry as any).is_custom_package && (
                       <a
                         href={`/trips/${inquiry.trip.slug}/book`}
                         target="_blank"

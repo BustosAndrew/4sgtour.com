@@ -872,6 +872,21 @@ export function AdminCourses({
                                   </div>
                                 </div>
                                 <div className="flex gap-1">
+                                  <a
+                                    href={`/tournaments/${tournament.slug}/${event.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-[#274C77] hover:text-[#274C77]/80"
+                                      title="View Event"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                    </Button>
+                                  </a>
                                   <Button
                                     size="icon"
                                     variant="ghost"
