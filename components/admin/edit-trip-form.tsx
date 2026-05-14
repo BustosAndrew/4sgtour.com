@@ -507,7 +507,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       updated.push({
         id: `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
         name,
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         is_included: value,
       })
     }
