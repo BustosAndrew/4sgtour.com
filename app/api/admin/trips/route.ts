@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { autoTranslateTrip, autoTranslatePackages, autoTranslateNamedRows } from "@/lib/auto-translate"
-import { headers } from "next/headers"
 import { stripe } from "@/lib/stripe"
 
 export async function POST(request: Request) {
@@ -204,7 +202,6 @@ export async function POST(request: Request) {
       const { error: golfCoursesError } = await supabase
         .from("trip_golf_courses")
         .insert(golfCoursesData)
-        .select()
 
       if (golfCoursesError) {
         console.error("[v0] Error creating golf courses:", golfCoursesError)
@@ -300,83 +297,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Trigger auto-translation in the background (non-blocking)
-    // Always translate from English if available, otherwise from Korean
-    const hasEnglishContent = title && title.trim()
-    const hasKoreanContent = title_ko && title_ko.trim()
-    
-    if (hasEnglishContent || hasKoreanContent) {
-      const headersList = await headers()
-      const host = headersList.get("host") || "localhost:3000"
-      const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-      const baseUrl = `${protocol}://${host}`
-      
-      // Prioritize English as source - if English content exists, use it
-      const useEnglishAsSource = hasEnglishContent
-      
-      // Don't await - let it run in background
-      autoTranslateTrip(
-        baseUrl,
-        tripData.id,
-        useEnglishAsSource
-          ? { title, description, location, refund_policy, overview_content, highlights }
-          : { title: title_ko, description: description_ko, location: location_ko, refund_policy: refund_policy_ko, overview_content: overview_content_ko, highlights: highlights_ko },
-        useEnglishAsSource ? "en" : "ko",
-        supabase
-      ).catch(err => console.error("[v0] Background translation error:", err))
-      
-      // Also translate packages if they were created
-      const { data: insertedPackages } = await supabase
-        .from("packages")
-        .select("id, name, description")
-        .eq("trip_id", tripData.id)
-      
-      if (insertedPackages && insertedPackages.length > 0) {
-        autoTranslatePackages(
-          baseUrl,
-          insertedPackages,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background package translation error:", err))
-      }
-
-      // Translate related option tables (golf courses, meals, transport, services, add-ons)
-      const sourceLang = useEnglishAsSource ? "en" : "ko"
-      const [
-        { data: insertedGolfCourses },
-        { data: insertedMealOptions },
-        { data: insertedTransportOptions },
-        { data: insertedServiceOptions },
-        { data: insertedAddOns },
-      ] = await Promise.all([
-        supabase.from("trip_golf_courses").select("*").eq("trip_id", tripData.id),
-        supabase.from("trip_meal_options").select("*").eq("trip_id", tripData.id),
-        supabase.from("trip_transportation_options").select("*").eq("trip_id", tripData.id),
-        supabase.from("trip_service_options").select("*").eq("trip_id", tripData.id),
-        supabase.from("add_ons").select("*").eq("trip_id", tripData.id),
-      ])
-
-      if (insertedGolfCourses?.length) {
-        autoTranslateNamedRows(baseUrl, "trip_golf_courses", insertedGolfCourses, "course_name", sourceLang, supabase)
-          .catch(err => console.error("[v0] Background golf course translation error:", err))
-      }
-      if (insertedMealOptions?.length) {
-        autoTranslateNamedRows(baseUrl, "trip_meal_options", insertedMealOptions, "name", sourceLang, supabase)
-          .catch(err => console.error("[v0] Background meal option translation error:", err))
-      }
-      if (insertedTransportOptions?.length) {
-        autoTranslateNamedRows(baseUrl, "trip_transportation_options", insertedTransportOptions, "name", sourceLang, supabase)
-          .catch(err => console.error("[v0] Background transport option translation error:", err))
-      }
-      if (insertedServiceOptions?.length) {
-        autoTranslateNamedRows(baseUrl, "trip_service_options", insertedServiceOptions, "name", sourceLang, supabase)
-          .catch(err => console.error("[v0] Background service option translation error:", err))
-      }
-      if (insertedAddOns?.length) {
-        autoTranslateNamedRows(baseUrl, "add_ons", insertedAddOns, "name", sourceLang, supabase)
-          .catch(err => console.error("[v0] Background add-on translation error:", err))
-      }
-    }
+    // Translation is now triggered exclusively from the admin "Translate" dialog
+    // (POST /api/admin/translate-trip/[id]). We intentionally do NOT auto-translate
+    // on create or update — admins must explicitly run translation per trip.
 
     return NextResponse.json(tripData, { status: 201 })
   } catch (error) {
