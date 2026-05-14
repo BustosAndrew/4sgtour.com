@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { TripCard } from '@/components/trip-card'
@@ -9,6 +10,44 @@ import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 interface DestinationTripsPageProps {
   params: Promise<{ continent: string; destination: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: DestinationTripsPageProps): Promise<Metadata> {
+  const { destination: destinationSlug } = await params
+  const supabase = await createClient()
+
+  const { data: destination } = await supabase
+    .from('destinations')
+    .select('name, description, image_url')
+    .eq('slug', destinationSlug)
+    .single()
+
+  if (!destination) {
+    return { title: 'Destination Not Found | 4 Seasons Golf Tour' }
+  }
+
+  const description =
+    destination.description ||
+    `Discover golf trips to ${destination.name}. Find the best golf packages and book your dream vacation with 4 Seasons Golf Tour.`
+
+  return {
+    title: `Golf Trips to ${destination.name} | 4 Seasons Golf Tour`,
+    description: description.slice(0, 160),
+    openGraph: {
+      title: `Golf Trips to ${destination.name} | 4 Seasons Golf Tour`,
+      description: description.slice(0, 160),
+      images: destination.image_url ? [destination.image_url] : undefined,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Golf Trips to ${destination.name} | 4 Seasons Golf Tour`,
+      description: description.slice(0, 160),
+      images: destination.image_url ? [destination.image_url] : undefined,
+    },
+  }
 }
 
 export default async function DestinationTripsPage({

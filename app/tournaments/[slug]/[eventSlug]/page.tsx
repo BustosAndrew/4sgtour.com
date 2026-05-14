@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { EventDetailView } from '@/components/event-detail-view'
@@ -7,6 +8,55 @@ import { getServerLocale } from '@/lib/i18n/server'
 
 interface EventPageProps {
   params: Promise<{ slug: string; eventSlug: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: EventPageProps): Promise<Metadata> {
+  const { slug, eventSlug } = await params
+  const supabase = await createClient()
+
+  const { data: tournament } = await supabase
+    .from('tournaments')
+    .select('id, title')
+    .eq('slug', slug)
+    .single()
+
+  if (!tournament) {
+    return { title: 'Event Not Found | 4 Seasons Golf Tour' }
+  }
+
+  const { data: event } = await supabase
+    .from('tournament_events')
+    .select('title, description, image, location')
+    .eq('tournament_id', tournament.id)
+    .eq('slug', eventSlug)
+    .single()
+
+  if (!event) {
+    return { title: 'Event Not Found | 4 Seasons Golf Tour' }
+  }
+
+  const description =
+    event.description ||
+    `Join us for ${event.title} at ${event.location || tournament.title}. Book your tickets with 4 Seasons Golf Tour.`
+
+  return {
+    title: `${event.title} | ${tournament.title} | 4 Seasons Golf Tour`,
+    description: description.slice(0, 160),
+    openGraph: {
+      title: `${event.title} | ${tournament.title} | 4 Seasons Golf Tour`,
+      description: description.slice(0, 160),
+      images: event.image ? [event.image] : undefined,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${event.title} | ${tournament.title}`,
+      description: description.slice(0, 160),
+      images: event.image ? [event.image] : undefined,
+    },
+  }
 }
 
 export default async function EventPage({ params }: EventPageProps) {

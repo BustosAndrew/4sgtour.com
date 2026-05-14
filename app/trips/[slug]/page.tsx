@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { AnimatedHr } from '@/components/ui/animated-hr'
@@ -16,6 +17,44 @@ import type { Locale } from '@/lib/i18n/config'
 
 interface TripPageProps {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: TripPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('title, description, location, courses_photo_url')
+    .eq('slug', slug)
+    .single()
+
+  if (!trip) {
+    return { title: 'Trip Not Found | 4 Seasons Golf Tour' }
+  }
+
+  const description =
+    trip.description ||
+    `Explore ${trip.title} in ${trip.location}. Book your golf vacation with 4 Seasons Golf Tour.`
+
+  return {
+    title: `${trip.title} | 4 Seasons Golf Tour`,
+    description: description.slice(0, 160),
+    openGraph: {
+      title: `${trip.title} | 4 Seasons Golf Tour`,
+      description: description.slice(0, 160),
+      images: trip.courses_photo_url ? [trip.courses_photo_url] : undefined,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${trip.title} | 4 Seasons Golf Tour`,
+      description: description.slice(0, 160),
+      images: trip.courses_photo_url ? [trip.courses_photo_url] : undefined,
+    },
+  }
 }
 
 export default async function TripPage({ params }: TripPageProps) {
