@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
-import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
+import { autoTranslateTrip, autoTranslatePackages, autoTranslateNamedRows } from "@/lib/auto-translate"
 import { headers } from "next/headers"
 
 export async function PATCH(
@@ -302,6 +302,43 @@ export async function PATCH(
           supabase
         ).catch(err => console.error("[v0] Background package translation error:", err))
       }
+    }
+
+    // Translate related option tables (golf courses, meals, transport, services, add-ons)
+    const sourceLang = useEnglishAsSource ? "en" : "ko"
+    const [
+      { data: updatedGolfCourses },
+      { data: updatedMealOptions },
+      { data: updatedTransportOptions },
+      { data: updatedServiceOptions },
+      { data: updatedAddOns },
+    ] = await Promise.all([
+      supabase.from("trip_golf_courses").select("*").eq("trip_id", id),
+      supabase.from("trip_meal_options").select("*").eq("trip_id", id),
+      supabase.from("trip_transportation_options").select("*").eq("trip_id", id),
+      supabase.from("trip_service_options").select("*").eq("trip_id", id),
+      supabase.from("add_ons").select("*").eq("trip_id", id),
+    ])
+
+    if (updatedGolfCourses?.length) {
+      autoTranslateNamedRows(baseUrl, "trip_golf_courses", updatedGolfCourses, "course_name", sourceLang, supabase)
+        .catch(err => console.error("[v0] Background golf course translation error:", err))
+    }
+    if (updatedMealOptions?.length) {
+      autoTranslateNamedRows(baseUrl, "trip_meal_options", updatedMealOptions, "name", sourceLang, supabase)
+        .catch(err => console.error("[v0] Background meal option translation error:", err))
+    }
+    if (updatedTransportOptions?.length) {
+      autoTranslateNamedRows(baseUrl, "trip_transportation_options", updatedTransportOptions, "name", sourceLang, supabase)
+        .catch(err => console.error("[v0] Background transport option translation error:", err))
+    }
+    if (updatedServiceOptions?.length) {
+      autoTranslateNamedRows(baseUrl, "trip_service_options", updatedServiceOptions, "name", sourceLang, supabase)
+        .catch(err => console.error("[v0] Background service option translation error:", err))
+    }
+    if (updatedAddOns?.length) {
+      autoTranslateNamedRows(baseUrl, "add_ons", updatedAddOns, "name", sourceLang, supabase)
+        .catch(err => console.error("[v0] Background add-on translation error:", err))
     }
   }
 
