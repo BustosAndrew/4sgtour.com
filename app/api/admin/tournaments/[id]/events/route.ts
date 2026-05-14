@@ -143,7 +143,11 @@ export async function POST(
         event_id: eventData.id,
         display_order: idx + 1,
         title: day.title,
+        title_ko: day.title_ko || null,
+        title_de: day.title_de || null,
         content: day.content || null,
+        content_ko: day.content_ko || null,
+        content_de: day.content_de || null,
       }))
 
       const { error: itineraryError } = await supabase
@@ -178,6 +182,8 @@ export async function POST(
       const pricingData = pricing_tiers.map((tier: any, idx: number) => ({
         event_id: eventData.id,
         name: tier.name,
+        name_ko: tier.name_ko || null,
+        name_de: tier.name_de || null,
         price: tier.price || null,
         display_order: idx,
         show_from_price: tier.show_from_price ?? false,
