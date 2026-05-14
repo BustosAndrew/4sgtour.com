@@ -136,9 +136,13 @@ export async function POST(request: Request) {
       const golfCoursesData = golfCourses.map((course: any) => ({
         trip_id: tripData.id,
         course_name: course.course_name,
+        course_name_ko: course.course_name_ko || null,
+        course_name_de: course.course_name_de || null,
         max_rounds: Number(course.max_rounds),
         num_holes: Number(course.num_holes) || 18,
         description: course.description || null,
+        description_ko: course.description_ko || null,
+        description_de: course.description_de || null,
       }))
 
       const { error: golfCoursesError } = await supabase
@@ -175,7 +179,11 @@ export async function POST(request: Request) {
       const mealOptionsData = mealOptions.map((meal: any) => ({
         trip_id: tripData.id,
         name: meal.name,
+        name_ko: meal.name_ko || null,
+        name_de: meal.name_de || null,
         description: meal.description || null,
+        description_ko: meal.description_ko || null,
+        description_de: meal.description_de || null,
         is_included: meal.is_included || false,
       }))
 
@@ -193,7 +201,11 @@ export async function POST(request: Request) {
         (transport: any) => ({
           trip_id: tripData.id,
           name: transport.name,
+          name_ko: transport.name_ko || null,
+          name_de: transport.name_de || null,
           description: transport.description || null,
+          description_ko: transport.description_ko || null,
+          description_de: transport.description_de || null,
           is_included: transport.is_included || false,
         }),
       )
@@ -214,7 +226,11 @@ export async function POST(request: Request) {
       const serviceOptionsData = serviceOptions.map((service: any) => ({
         trip_id: tripData.id,
         name: service.name,
+        name_ko: service.name_ko || null,
+        name_de: service.name_de || null,
         description: service.description || null,
+        description_ko: service.description_ko || null,
+        description_de: service.description_de || null,
         is_included: service.is_included || false,
       }))
 

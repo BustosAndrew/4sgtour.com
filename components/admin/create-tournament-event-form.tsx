@@ -28,7 +28,11 @@ type ItineraryDay = {
   id: string
   display_order: number
   title: string
+  title_ko: string
+  title_de: string
   content: string
+  content_ko: string
+  content_de: string
 }
 
 type GalleryImage = {
@@ -41,6 +45,8 @@ type GalleryImage = {
 type PricingTier = {
   id: string
   name: string
+  name_ko: string
+  name_de: string
   price: string
   display_order: number
   show_from_price: boolean
@@ -124,14 +130,14 @@ export function CreateTournamentEventForm({
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
 
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([
-    { id: "1", display_order: 1, title: "", content: "" },
+    { id: "1", display_order: 1, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" },
   ])
 
   const [gallery, setGallery] = useState<GalleryImage[]>([])
   const [hotelGallery, setHotelGallery] = useState<GalleryImage[]>([])
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([
-    { id: "1", name: "", price: "", display_order: 0, show_from_price: false, booking_url: "" },
+    { id: "1", name: "", name_ko: "", name_de: "", price: "", display_order: 0, show_from_price: false, booking_url: "" },
   ])
 
   const handlePhotoUpload = async (
@@ -190,7 +196,7 @@ export function CreateTournamentEventForm({
     const nextOrder = itinerary.length + 1
     setItinerary((prev) => [
       ...prev,
-      { id: Date.now().toString(), display_order: nextOrder, title: "", content: "" },
+      { id: Date.now().toString(), display_order: nextOrder, title: "", title_ko: "", title_de: "", content: "", content_ko: "", content_de: "" },
     ])
   }
 
@@ -218,7 +224,7 @@ export function CreateTournamentEventForm({
   const addPricingTier = () => {
     setPricingTiers((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: "", price: "", display_order: prev.length, show_from_price: false, booking_url: "" },
+      { id: Date.now().toString(), name: "", name_ko: "", name_de: "", price: "", display_order: prev.length, show_from_price: false, booking_url: "" },
     ])
   }
 
@@ -399,9 +405,24 @@ const handleSubmit = async (e: React.FormEvent) => {
           excludes_de: germanData.excludes_de ? germanData.excludes_de.split("\n").filter(Boolean) : null,
           price: formData.price || null,
           image: imageUrl || null,
-          itinerary: itinerary.filter((d) => d.title.trim()),
+          itinerary: itinerary.filter((d) => d.title.trim()).map((d) => ({
+            title: d.title,
+            title_ko: d.title_ko || null,
+            title_de: d.title_de || null,
+            content: d.content || null,
+            content_ko: d.content_ko || null,
+            content_de: d.content_de || null,
+          })),
           gallery: [...gallery, ...hotelGallery],
-          pricing_tiers: pricingTiers.filter((t) => t.name.trim()),
+          pricing_tiers: pricingTiers.filter((t) => t.name.trim()).map((t) => ({
+            name: t.name,
+            name_ko: t.name_ko || null,
+            name_de: t.name_de || null,
+            price: t.price || null,
+            display_order: t.display_order,
+            show_from_price: t.show_from_price,
+            booking_url: t.booking_url || null,
+          })),
         }),
       })
 
