@@ -166,6 +166,7 @@ export function CreateTripForm() {
 
   const [showFromPrice, setShowFromPrice] = useState(false)
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
+  const [depositPercentage, setDepositPercentage] = useState(30)
   
   // Package translations
   const [packageTranslations, setPackageTranslations] = useState({
@@ -185,13 +186,21 @@ export function CreateTripForm() {
     {
       id: "caddy",
       name: "Caddy",
+      name_ko: "",
+      name_de: "",
       description: "",
+      description_ko: "",
+      description_de: "",
       is_included: false,
     },
     {
       id: "golf-cart",
       name: "Golf Cart",
+      name_ko: "",
+      name_de: "",
       description: "",
+      description_ko: "",
+      description_de: "",
       is_included: false,
     },
   ])
@@ -613,6 +622,11 @@ export function CreateTripForm() {
       {
         id: `course-${Date.now()}`,
         course_name: "",
+        course_name_ko: "",
+        course_name_de: "",
+        description: "",
+        description_ko: "",
+        description_de: "",
         max_rounds: "5",
         num_holes: "18",
       },
@@ -642,8 +656,12 @@ export function CreateTripForm() {
       {
         id: crypto.randomUUID(),
         name: "",
+        name_ko: "",
+        name_de: "",
         description: "",
-        is_included: false, // Updated to include is_included
+        description_ko: "",
+        description_de: "",
+        is_included: false,
       },
     ])
   }
@@ -671,8 +689,12 @@ export function CreateTripForm() {
       {
         id: crypto.randomUUID(),
         name: "",
+        name_ko: "",
+        name_de: "",
         description: "",
-        is_included: false, // Updated to include is_included
+        description_ko: "",
+        description_de: "",
+        is_included: false,
       },
     ])
   }
