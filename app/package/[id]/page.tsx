@@ -12,6 +12,8 @@ import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { Calendar, DollarSign, Clock, User, Mail, Phone } from 'lucide-react'
 import type { Metadata } from 'next'
+import { getServerLocale } from '@/lib/i18n/server'
+import { getLocalizedField } from '@/lib/i18n/get-localized-field'
 
 // Prevent indexing of private package pages
 export const metadata: Metadata = {
@@ -33,6 +35,7 @@ interface PackagePageProps {
 export default async function PrivatePackagePage({ params }: PackagePageProps) {
   const { id } = await params
   const supabase = await createClient()
+  const locale = await getServerLocale()
 
   // Fetch the custom package inquiry
   const { data: inquiry, error } = await supabase
@@ -46,7 +49,9 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
     notFound()
   }
 
-  // Fetch the linked trip with all relations (if it exists)
+  // Fetch the linked trip with all relations (if it exists).
+  // Pull translation columns so the page can render content in the
+  // viewer's selected language (en / ko / de) with English fallback.
   let trip: any = null
   if (inquiry.trip_id) {
     const { data: tripData } = await supabase
@@ -54,12 +59,12 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
       .select(
         `
         *,
-        packages(id, name, description, price, price_per_extra_night),
+        packages(id, name, name_ko, name_de, description, description_ko, description_de, price, price_per_extra_night),
         trip_images(id, image_url, display_order),
-        trip_golf_courses(id, course_name, max_rounds, num_holes, description),
-        trip_meal_options(id, name, description, is_included),
-        trip_transportation_options(id, name, description, is_included),
-        trip_service_options(id, name, description, is_included)
+        trip_golf_courses(id, course_name, course_name_ko, course_name_de, max_rounds, num_holes, description, description_ko, description_de),
+        trip_meal_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included),
+        trip_transportation_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included),
+        trip_service_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included)
       `,
       )
       .eq('id', inquiry.trip_id)
@@ -78,7 +83,8 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
   // Only show options when deposit percentage is less than 100%
   const showPaymentOptions = configuredDepositPercentage < 100 && !isPaid
 
-  // Trip data
+  // Trip data — localize text fields based on the viewer's selected
+  // locale, falling back to English when a translation is missing.
   const mainImage = trip?.courses_photo_url || null
   const tripImages =
     trip?.trip_images?.sort(
@@ -87,16 +93,33 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
   const additionalImages =
     tripImages.length > 0 ? tripImages.map((img: any) => img.image_url) : []
   const roomImage = trip?.room_photo_url || null
-  const tripTitle = trip?.title || inquiry.trip_title
-  const tripLocation = trip?.location || null
+
+  const tripTitle =
+    (trip ? (getLocalizedField(trip, 'title', locale) as string) : '') ||
+    inquiry.trip_title
+  const tripLocation = trip
+    ? (getLocalizedField(trip, 'location', locale) as string) || null
+    : null
   const tripOverview =
-    trip?.overview_content ||
-    trip?.description ||
+    (trip
+      ? (getLocalizedField(trip, 'overview_content', locale) as string)
+      : '') ||
+    (trip ? (getLocalizedField(trip, 'description', locale) as string) : '') ||
     inquiry.custom_package_description ||
     ''
-  const tripRefundPolicy = trip?.refund_policy || null
-  const tripHighlights: string[] = trip?.highlights || []
-  const tripPackages = trip?.packages || []
+  const tripRefundPolicy = trip
+    ? (getLocalizedField(trip, 'refund_policy', locale) as string) || null
+    : null
+  const tripHighlights: string[] = trip
+    ? (getLocalizedField(trip, 'highlights', locale, true) as string[])
+    : []
+  const tripPackages = (trip?.packages || []).map((pkg: any) => ({
+    ...pkg,
+    name: (getLocalizedField(pkg, 'name', locale) as string) || pkg.name,
+    description:
+      (getLocalizedField(pkg, 'description', locale) as string) ||
+      pkg.description,
+  }))
 
   // Payment section JSX (shared between mobile and desktop)
   const paymentSection = (
