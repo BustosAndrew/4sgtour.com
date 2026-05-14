@@ -208,9 +208,11 @@ export function SiteHeader({
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger className="inline-flex items-center gap-1.5 cursor-pointer outline-none" disabled={isPending}>
                 <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                  <img
+                  <Image
                     src={currentFlag.flag || '/placeholder.svg'}
                     alt={currentFlag.alt}
+                    width={16}
+                    height={16}
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -253,9 +255,11 @@ export function SiteHeader({
                     }
                   >
                     <div className="flex h-4 w-4 items-center justify-center rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={localeFlags[locale].flag || '/placeholder.svg'}
                         alt={localeFlags[locale].alt}
+                        width={16}
+                        height={16}
                         className="h-full w-full object-cover"
                       />
                     </div>
@@ -394,9 +398,11 @@ export function SiteHeader({
                         } transition-colors disabled:opacity-50`}
                       >
                         <div className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden">
-                          <img
+                          <Image
                             src={localeFlags[locale].flag || '/placeholder.svg'}
                             alt={localeFlags[locale].alt}
+                            width={20}
+                            height={20}
                             className="h-full w-full object-cover"
                           />
                         </div>
