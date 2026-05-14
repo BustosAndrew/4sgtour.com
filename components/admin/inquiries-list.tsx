@@ -23,7 +23,6 @@ interface InquiryWithPayment extends Inquiry {
   is_fully_paid?: boolean
   trip?: { title: string; slug: string } | null
   custom_package_title?: string | null
-  is_custom_package?: boolean
 }
 
 interface InquiriesListProps {
