@@ -51,6 +51,7 @@ type PricingTier = {
   price: string
   display_order: number
   booking_url: string
+  show_from_price?: boolean
 }
 
 type TournamentEvent = {

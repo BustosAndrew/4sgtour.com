@@ -142,9 +142,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     continent: trip.continent || "",
     price_regular: trip.price_regular || 0,
     max_guests: trip.max_guests?.toString() || "20",
-  max_days: (trip.max_nights || trip.max_days)?.toString() || "",
-  min_days_advance: trip.min_days_advance?.toString() || "0",
-  min_days: (trip.min_nights || trip.min_days)?.toString() || "1",
+    max_days: trip.max_days?.toString() || "",
+    min_days_advance: trip.min_days_advance?.toString() || "0",
+    min_days: trip.min_days?.toString() || "1",
   })
   const [highlights, setHighlights] = useState<string[]>(trip.highlights || [])
   const [highlights_ko, setHighlights_ko] = useState<string[]>(trip.highlights_ko || [])
@@ -447,7 +447,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         description: "",
         description_ko: "",
         description_de: "",
-        price: 0,
         is_included: false,
       },
     ])
@@ -474,7 +473,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         description: "",
         description_ko: "",
         description_de: "",
-        price: 0,
         is_included: false,
       },
     ])
@@ -509,7 +507,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       updated.push({
         id: `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
         name,
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         is_included: value,
       })
     }

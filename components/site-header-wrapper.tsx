@@ -9,7 +9,7 @@ import de from "@/messages/de.json"
 
 const messages: Record<string, typeof en> = { en, ko, de }
 
-export async function SiteHeaderWrapper() {
+async function SiteHeaderAsync() {
   const supabase = await createClient()
   const currentLocale = await getServerLocale()
 
@@ -81,4 +81,10 @@ export async function SiteHeaderWrapper() {
       currentLocale={currentLocale}
     />
   )
+}
+
+// Wrapper to fix TypeScript async component error
+export function SiteHeaderWrapper() {
+  // @ts-expect-error Async Server Component
+  return <SiteHeaderAsync />
 }

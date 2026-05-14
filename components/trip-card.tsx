@@ -13,7 +13,7 @@ import { useTranslations, useLocale } from "@/lib/i18n/provider"
 import { getLocalizedField } from "@/lib/i18n/get-localized-field"
 
 interface TripCardProps {
-  trip: Trip & { images?: Array<{ image_url: string }> }
+  trip: Trip & { images?: Array<{ image_url: string }>; packages?: any[] }
   isFavorite?: boolean
 }
 

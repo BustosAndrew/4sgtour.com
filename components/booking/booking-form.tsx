@@ -47,6 +47,7 @@ interface Trip {
   min_days?: number
   min_days_advance?: number
   max_guests?: number | null
+  deposit_percentage?: number | null
   courses_photo_url?: string | null
   room_photo_url?: string | null
   images?: Array<{

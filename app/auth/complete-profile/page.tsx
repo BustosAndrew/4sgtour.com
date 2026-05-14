@@ -38,10 +38,10 @@ export default async function CompleteProfilePage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#fffff8]">
       <SiteHeaderWrapper />
       <CompleteProfileForm user={user} />
       <SiteFooter />
-    </>
+    </div>
   )
 }
