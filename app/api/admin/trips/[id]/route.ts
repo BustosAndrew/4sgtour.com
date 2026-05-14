@@ -55,8 +55,16 @@ export async function PATCH(
   if ('highlights_ko' in body) updateData.highlights_ko = body.highlights_ko
   if ('overview_content_ko' in body) updateData.overview_content_ko = body.overview_content_ko
 
-  // German is always auto-translated, never manually set from the form
-  // So we don't include _de fields here - they'll be set by autoTranslateTrip
+  // Only update German fields if they were explicitly provided in the request.
+  // The admin edit form lets users type German directly and the translate
+  // dialog writes _de fields too. Without these passthroughs the PATCH would
+  // silently discard any German content the admin entered.
+  if ('title_de' in body) updateData.title_de = body.title_de
+  if ('description_de' in body) updateData.description_de = body.description_de
+  if ('refund_policy_de' in body) updateData.refund_policy_de = body.refund_policy_de
+  if ('location_de' in body) updateData.location_de = body.location_de
+  if ('highlights_de' in body) updateData.highlights_de = body.highlights_de
+  if ('overview_content_de' in body) updateData.overview_content_de = body.overview_content_de
 
   const { error } = await supabase
     .from("trips")
@@ -75,10 +83,18 @@ export async function PATCH(
     // Insert new packages (filter out ones with empty names)
     const validPackages = body.packages.filter((pkg: any) => pkg.name?.trim())
     if (validPackages.length > 0) {
+      // Carry through any localized name/description fields the form
+      // submits. Without these the delete-and-reinsert cycle silently
+      // wipes every Korean/German package translation each time an admin
+      // hits Save.
       const packagesToInsert = validPackages.map((pkg: any) => ({
         trip_id: id,
         name: pkg.name,
+        name_ko: pkg.name_ko || null,
+        name_de: pkg.name_de || null,
         description: pkg.description || null,
+        description_ko: pkg.description_ko || null,
+        description_de: pkg.description_de || null,
         price: pkg.price || 0,
         price_per_extra_night: pkg.price_per_extra_night || null,
         availability: pkg.availability || "unlimited",
@@ -105,7 +121,11 @@ export async function PATCH(
       const addOnsToInsert = validAddOns.map((addOn: any) => ({
         trip_id: id,
         name: addOn.name,
+        name_ko: addOn.name_ko || null,
+        name_de: addOn.name_de || null,
         description: addOn.description || null,
+        description_ko: addOn.description_ko || null,
+        description_de: addOn.description_de || null,
         price: addOn.price || 0,
         price_type: addOn.price_type || "per_participant",
         availability: addOn.availability || "unlimited",
