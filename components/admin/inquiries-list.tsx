@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Mail, DollarSign, MessageSquare, Trash2, CheckCircle, ExternalLink } from "lucide-react"
+import { Calendar, Mail, DollarSign, MessageSquare, Trash2, CheckCircle, ExternalLink, Languages } from "lucide-react"
+import { TranslateDialog } from "@/components/admin/translate-dialog"
 import { differenceInDays } from "date-fns"
 import {
   Dialog,
@@ -36,6 +37,10 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiryToDelete, setInquiryToDelete] = useState<InquiryWithPayment | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [filter, setFilter] = useState<FilterType>("all")
+  const [translateTarget, setTranslateTarget] = useState<{
+    tripId: string
+    name: string
+  } | null>(null)
 
   useEffect(() => {
     fetchInquiries()
@@ -304,20 +309,41 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
                     {(inquiry as any).is_custom_package && (
-                      <a
-                        href={`/package/${inquiry.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title="View Custom Trip Page"
+                      <>
+                        <a
+                          href={`/package/${inquiry.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          View Custom Trip
-                        </Button>
-                      </a>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="View Custom Trip Page"
+                          >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View Custom Trip
+                          </Button>
+                        </a>
+                        {inquiry.trip_id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Translate Custom Trip"
+                            onClick={() =>
+                              setTranslateTarget({
+                                tripId: inquiry.trip_id!,
+                                name:
+                                  inquiry.custom_package_title ||
+                                  inquiry.trip_title ||
+                                  "Custom Trip",
+                              })
+                            }
+                          >
+                            <Languages className="mr-2 h-4 w-4" />
+                            Translate
+                          </Button>
+                        )}
+                      </>
                     )}
                     {inquiry.trip?.slug && !(inquiry as any).is_custom_package && (
                       <a
@@ -388,6 +414,19 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {translateTarget && (
+        <TranslateDialog
+          open={!!translateTarget}
+          onOpenChange={(open) => {
+            if (!open) setTranslateTarget(null)
+          }}
+          itemType="trip"
+          itemId={translateTarget.tripId}
+          itemName={translateTarget.name}
+          availableSourceLanguages={["en", "ko"]}
+        />
+      )}
     </>
   )
 }
