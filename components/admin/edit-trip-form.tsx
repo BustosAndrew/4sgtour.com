@@ -447,7 +447,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         description: "",
         description_ko: "",
         description_de: "",
-        price: 0,
         is_included: false,
       },
     ])
@@ -474,7 +473,6 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         description: "",
         description_ko: "",
         description_de: "",
-        price: 0,
         is_included: false,
       },
     ])
