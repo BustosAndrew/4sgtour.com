@@ -18,7 +18,6 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
-  Loader2,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -674,68 +673,13 @@ export function AdminCourses({
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:self-end">
-                  <div className="flex items-center gap-3 text-sm">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={translateLanguages.ko}
-                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, ko: e.target.checked }))}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                      <span>Korean</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={translateLanguages.de}
-                        onChange={(e) => setTranslateLanguages(prev => ({ ...prev, de: e.target.checked }))}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                      <span>German</span>
-                    </label>
-                  </div>
-                  <Button
-                    onClick={handleTranslateAll}
-                    disabled={isTranslating || (!translateLanguages.ko && !translateLanguages.de)}
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                    >
-                    {isTranslating ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Languages className="mr-2 h-4 w-4" />
-                    )}
-                    {isTranslating ? "Translating..." : "Translate All"}
-                  </Button>
-                  <Link
-                    href="/admin/trips/new"
-                    className="w-full sm:w-auto"
-                  >
+                <div className="flex justify-end">
+                  <Link href="/admin/trips/new" className="w-full sm:w-auto">
                     <Button className="w-full bg-[#274C77] text-white hover:bg-[#274C77]/90 sm:w-auto">
                       + Add Course
                     </Button>
                   </Link>
                 </div>
-                {translateProgress && (
-                  <div className="w-full space-y-2">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>{translateProgress.message}</span>
-                      <span>{translateProgress.completed}/{translateProgress.total}</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div 
-                        className="h-full bg-[#274C77] transition-all duration-300"
-                        style={{ width: `${(translateProgress.completed / translateProgress.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-                {translateResult && !translateProgress && (
-                  <p className={`text-sm ${translateResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
-                    {translateResult}
-                  </p>
-                )}
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
@@ -841,67 +785,11 @@ export function AdminCourses({
                 </p>
               </div>
 
-              <div className="mb-4 flex flex-col gap-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-gray-600">
-                    {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} with{" "}
-                    {localTournaments.reduce((acc, t) => acc + t.tournament_events.length, 0)} total events
-                  </p>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex items-center gap-3 text-sm">
-                      <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={translateTournamentsLanguages.ko}
-                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, ko: e.target.checked }))}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <span>Korean</span>
-                      </label>
-                      <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={translateTournamentsLanguages.de}
-                          onChange={(e) => setTranslateTournamentsLanguages(prev => ({ ...prev, de: e.target.checked }))}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <span>German</span>
-                      </label>
-                    </div>
-                    <Button
-                      onClick={handleTranslateTournaments}
-                      disabled={isTranslatingTournaments || (!translateTournamentsLanguages.ko && !translateTournamentsLanguages.de)}
-                      variant="outline"
-                      className="w-full sm:w-auto"
-                    >
-                      {isTranslatingTournaments ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Languages className="mr-2 h-4 w-4" />
-                      )}
-                      {isTranslatingTournaments ? "Translating..." : "Translate All Events"}
-                    </Button>
-                  </div>
-                </div>
-                {translateTournamentsProgress && (
-                  <div className="w-full space-y-2">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>{translateTournamentsProgress.message}</span>
-                      <span>{translateTournamentsProgress.completed}/{translateTournamentsProgress.total}</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div 
-                        className="h-full bg-[#274C77] transition-all duration-300"
-                        style={{ width: `${(translateTournamentsProgress.completed / translateTournamentsProgress.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-                {translateTournamentsResult && !translateTournamentsProgress && (
-                  <p className={`text-sm ${translateTournamentsResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
-                    {translateTournamentsResult}
-                  </p>
-                )}
+              <div className="mb-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
+                <p className="text-sm text-gray-600">
+                  {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} with{" "}
+                  {localTournaments.reduce((acc, t) => acc + t.tournament_events.length, 0)} total events
+                </p>
               </div>
 
               <div className="space-y-4">

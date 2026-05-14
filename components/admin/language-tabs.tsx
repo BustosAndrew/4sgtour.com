@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Languages, Loader2, Sparkles } from "lucide-react"
 
-type Language = "en" | "ko"
+type Language = "en" | "ko" | "de"
 
 type TranslationField = {
   field: string
@@ -21,6 +21,19 @@ interface LanguageTabsProps {
   isTranslating: boolean
   hasEnglishContent: boolean
   children: React.ReactNode
+  languages?: Language[]
+}
+
+const LANGUAGE_NAMES: Record<Language, string> = {
+  en: "English",
+  ko: "Korean",
+  de: "German",
+}
+
+const LANGUAGE_LABELS: Record<Language, { short: string; desc: string }> = {
+  en: { short: "EN", desc: "Editing English content (primary language)" },
+  ko: { short: "KO", desc: "Editing Korean translation" },
+  de: { short: "DE", desc: "Editing German translation" },
 }
 
 export function LanguageTabs({
@@ -30,24 +43,25 @@ export function LanguageTabs({
   isTranslating,
   hasEnglishContent,
   children,
+  languages = ["en", "ko", "de"],
 }: LanguageTabsProps) {
+  const visibleLanguages = languages.filter((lang) => lang !== activeLanguage)
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Tabs value={activeLanguage} onValueChange={(v) => onLanguageChange(v as Language)}>
-          <TabsList className="grid w-[200px] grid-cols-2">
-            <TabsTrigger value="en" className="flex items-center gap-2">
-              <span className="text-xs">EN</span>
-              English
-            </TabsTrigger>
-            <TabsTrigger value="ko" className="flex items-center gap-2">
-              <span className="text-xs">KO</span>
-              Korean
-            </TabsTrigger>
+          <TabsList className={`grid w-fit grid-cols-${languages.length}`}>
+            {languages.map((lang) => (
+              <TabsTrigger key={lang} value={lang} className="flex items-center gap-2">
+                <span className="text-xs">{LANGUAGE_LABELS[lang].short}</span>
+                {LANGUAGE_NAMES[lang]}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
 
-        {activeLanguage === "ko" && hasEnglishContent && (
+        {activeLanguage !== "en" && hasEnglishContent && (
           <Button
             type="button"
             variant="outline"
@@ -74,11 +88,7 @@ export function LanguageTabs({
       <div className="rounded-lg border bg-muted/30 p-1">
         <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
           <Languages className="h-4 w-4" />
-          {activeLanguage === "en" ? (
-            <span>Editing English content (primary language)</span>
-          ) : (
-            <span>Editing Korean translation</span>
-          )}
+          <span>{LANGUAGE_LABELS[activeLanguage].desc}</span>
         </div>
       </div>
 
@@ -90,24 +100,32 @@ export function LanguageTabs({
 // Hook for managing translations in forms
 export function useTranslations<T extends Record<string, unknown>>(
   initialEnglish: T,
-  initialKorean: Partial<T> = {}
+  initialKorean: Partial<T> = {},
+  initialGerman: Partial<T> = {}
 ) {
   const [activeLanguage, setActiveLanguage] = useState<Language>("en")
   const [englishData, setEnglishData] = useState<T>(initialEnglish)
   const [koreanData, setKoreanData] = useState<Partial<T>>(initialKorean)
+  const [germanData, setGermanData] = useState<Partial<T>>(initialGerman)
   const [isTranslating, setIsTranslating] = useState(false)
 
-  const currentData = activeLanguage === "en" ? englishData : { ...englishData, ...koreanData }
+  const currentData = activeLanguage === "en" 
+    ? englishData 
+    : activeLanguage === "ko"
+      ? { ...englishData, ...koreanData }
+      : { ...englishData, ...germanData }
 
   const updateField = (field: keyof T, value: T[keyof T]) => {
     if (activeLanguage === "en") {
       setEnglishData((prev) => ({ ...prev, [field]: value }))
-    } else {
+    } else if (activeLanguage === "ko") {
       setKoreanData((prev) => ({ ...prev, [field]: value }))
+    } else {
+      setGermanData((prev) => ({ ...prev, [field]: value }))
     }
   }
 
-  const autoTranslate = async (fieldsToTranslate: TranslationField[]) => {
+  const autoTranslate = async (fieldsToTranslate: TranslationField[], targetLanguage: Language) => {
     setIsTranslating(true)
     try {
       const response = await fetch("/api/translate/batch", {
@@ -115,14 +133,18 @@ export function useTranslations<T extends Record<string, unknown>>(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fields: fieldsToTranslate,
-          targetLanguage: "ko",
+          targetLanguage,
         }),
       })
 
       if (!response.ok) throw new Error("Translation failed")
 
       const { translations } = await response.json()
-      setKoreanData((prev) => ({ ...prev, ...translations }))
+      if (targetLanguage === "ko") {
+        setKoreanData((prev) => ({ ...prev, ...translations }))
+      } else {
+        setGermanData((prev) => ({ ...prev, ...translations }))
+      }
       return translations
     } catch (error) {
       console.error("Translation error:", error)
@@ -139,6 +161,8 @@ export function useTranslations<T extends Record<string, unknown>>(
     setEnglishData,
     koreanData,
     setKoreanData,
+    germanData,
+    setGermanData,
     currentData,
     updateField,
     isTranslating,

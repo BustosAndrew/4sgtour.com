@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface EditTripFormProps {
   trip: {
@@ -1264,6 +1265,29 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               </p>
             </div>
 
+            {/* Language Tabs for Packages */}
+            <div className="flex items-center gap-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <Tabs value={activeLang} onValueChange={(v) => setActiveLang(v as Lang)}>
+                <TabsList className="grid w-fit grid-cols-3">
+                  <TabsTrigger value="en" className="text-sm">
+                    English
+                  </TabsTrigger>
+                  <TabsTrigger value="ko" className="text-sm">
+                    Korean
+                  </TabsTrigger>
+                  <TabsTrigger value="de" className="text-sm">
+                    German
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                {activeLang === "en" && "Editing English content"}
+                {activeLang === "ko" && "Editing Korean translation"}
+                {activeLang === "de" && "Editing German translation"}
+              </p>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div>
                 <Label className="text-base font-medium text-foreground">
@@ -1440,17 +1464,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                       </div>
                       <div>
                         <Label className="text-base text-foreground">
-                          Package Details
+                          Package Details {activeLang === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLang === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                         </Label>
                         <Textarea
-                          value={pkg.description || ""}
-                          onChange={(e) =>
+                          value={activeLang === "en" ? (pkg.description || "") : activeLang === "ko" ? (pkg.description_ko || "") : (pkg.description_de || "")}
+                          onChange={(e) => {
+                            const fieldName = activeLang === "en" ? "description" : activeLang === "ko" ? "description_ko" : "description_de"
                             handlePackageChange(
                               packages.findIndex((p) => p.id === pkg.id),
-                              "description",
+                              fieldName,
                               e.target.value,
                             )
-                          }
+                          }}
                           placeholder="What's included in this package..."
                           rows={2}
                         />
@@ -1540,17 +1565,18 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         </div>
                         <div>
                           <Label className="text-base text-foreground">
-                            Package Details
+                            Package Details {activeLang === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLang === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                           </Label>
                           <Textarea
-                            value={pkg.description || ""}
-                            onChange={(e) =>
+                            value={activeLang === "en" ? (pkg.description || "") : activeLang === "ko" ? (pkg.description_ko || "") : (pkg.description_de || "")}
+                            onChange={(e) => {
+                              const fieldName = activeLang === "en" ? "description" : activeLang === "ko" ? "description_ko" : "description_de"
                               handlePackageChange(
                                 packages.findIndex((p) => p.id === pkg.id),
-                                "description",
+                                fieldName,
                                 e.target.value,
                               )
-                            }
+                            }}
                             placeholder="Package description (optional)"
                             rows={2}
                           />
@@ -1631,6 +1657,29 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <p className="text-sm text-muted-foreground">
                 Configure golf courses, meals, transportation, and service
                 options like Caddy and Golf Cart (all optional)
+              </p>
+            </div>
+
+            {/* Language Tabs for Booking Options */}
+            <div className="flex items-center gap-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <Tabs value={activeLang} onValueChange={(v) => setActiveLang(v as Lang)}>
+                <TabsList className="grid w-fit grid-cols-3">
+                  <TabsTrigger value="en" className="text-sm">
+                    English
+                  </TabsTrigger>
+                  <TabsTrigger value="ko" className="text-sm">
+                    Korean
+                  </TabsTrigger>
+                  <TabsTrigger value="de" className="text-sm">
+                    German
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                {activeLang === "en" && "Editing English content"}
+                {activeLang === "ko" && "Editing Korean translation"}
+                {activeLang === "de" && "Editing German translation"}
               </p>
             </div>
 

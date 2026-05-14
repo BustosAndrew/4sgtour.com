@@ -91,7 +91,7 @@ export function CreateTripForm() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   // Language state
-  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko">("en")
+  const [activeLanguage, setActiveLanguage] = useState<"en" | "ko" | "de">("en")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -121,6 +121,8 @@ export function CreateTripForm() {
     overview_content_de: "",
     refund_policy_de: "",
     location_de: "",
+    premium_package_description_de: "",
+    upgrade_package_description_de: "",
   })
   const [highlights, setHighlights] = useState<string[]>([])
   const [highlightsKo, setHighlightsKo] = useState<string[]>([])
@@ -147,6 +149,14 @@ export function CreateTripForm() {
 
   const [showFromPrice, setShowFromPrice] = useState(false)
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
+  
+  // Package translations
+  const [packageTranslations, setPackageTranslations] = useState({
+    premium_ko: "",
+    upgrade_ko: "",
+    premium_de: "",
+    upgrade_de: "",
+  })
 
   const [golfCourses, setGolfCourses] = useState<GolfCourse[]>([])
   // Changed to arrays to allow multiple options
@@ -459,30 +469,39 @@ export function CreateTripForm() {
           ...(koreanData.refund_policy_ko?.trim() && { refund_policy_ko: koreanData.refund_policy_ko }),
           ...(koreanData.location_ko?.trim() && { location_ko: koreanData.location_ko }),
           ...(highlightsKo.some((h) => h.trim()) && { highlights_ko: highlightsKo.filter((h) => h.trim() !== "") }),
-          // German is auto-translated, don't send from form
-          // Removed price_regular from submission
+          // Only send German if user explicitly entered it
+          ...(germanData.title_de?.trim() && { title_de: germanData.title_de }),
+          ...(germanData.description_de?.trim() && { description_de: germanData.description_de }),
+          ...(germanData.overview_content_de?.trim() && { overview_content_de: germanData.overview_content_de }),
+          ...(germanData.refund_policy_de?.trim() && { refund_policy_de: germanData.refund_policy_de }),
+          ...(germanData.location_de?.trim() && { location_de: germanData.location_de }),
+          ...(highlightsDe.some((h) => h.trim()) && { highlights_de: highlightsDe.filter((h) => h.trim() !== "") }),
           max_guests: Number(formData.max_guests),
           max_days: formData.max_days ? Number(formData.max_days) : null,
           min_days_advance: formData.min_days_advance
             ? Number(formData.min_days_advance)
             : 0,
-          // is_all_inclusive: formData.is_all_inclusive, Removed is_all_inclusive
-          // Added min_days to the submission
           min_days: Number(formData.min_days),
           courses_photo_url: coursePhotos[0] || null,
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           highlights: highlights.filter((h) => h.trim() !== ""),
-  packages: packages.map((pkg) => ({
-    name: pkg.name,
-    description: pkg.description,
-    price: Number(pkg.price),
-    price_per_extra_night: pkg.price_per_extra_night ? Number(pkg.price_per_extra_night) : null,
-    availability: pkg.availability,
-    quantity: pkg.quantity ? Number(pkg.quantity) : null,
-    participants_per_booking: Number(pkg.participants_per_booking),
-  })),
+          packages: packages.map((pkg) => ({
+            name: pkg.name,
+            description: pkg.description,
+            ...(packageTranslations[`${pkg.name.toLowerCase()}_ko` as keyof typeof packageTranslations]?.trim() && { 
+              description_ko: packageTranslations[`${pkg.name.toLowerCase()}_ko` as keyof typeof packageTranslations]
+            }),
+            ...(packageTranslations[`${pkg.name.toLowerCase()}_de` as keyof typeof packageTranslations]?.trim() && { 
+              description_de: packageTranslations[`${pkg.name.toLowerCase()}_de` as keyof typeof packageTranslations]
+            }),
+            price: Number(pkg.price),
+            price_per_extra_night: pkg.price_per_extra_night ? Number(pkg.price_per_extra_night) : null,
+            availability: pkg.availability,
+            quantity: pkg.quantity ? Number(pkg.quantity) : null,
+            participants_per_booking: Number(pkg.participants_per_booking),
+          })),
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
             max_rounds: Number(course.max_rounds),
@@ -794,52 +813,61 @@ export function CreateTripForm() {
             {/* Language Tabs */}
             <div className="flex items-center gap-3">
               <Languages className="h-5 w-5 text-muted-foreground" />
-              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko")}>
-                <TabsList className="grid w-[200px] grid-cols-2">
+              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko" | "de")}>
+                <TabsList className="grid w-fit grid-cols-3">
                   <TabsTrigger value="en" className="text-sm">
                     English
                   </TabsTrigger>
                   <TabsTrigger value="ko" className="text-sm">
                     Korean
                   </TabsTrigger>
+                  <TabsTrigger value="de" className="text-sm">
+                    German
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
               <p className="text-xs text-muted-foreground">
-                {activeLanguage === "en" ? "Editing English content" : "Editing Korean translation"}
+                {activeLanguage === "en" && "Editing English content"}
+                {activeLanguage === "ko" && "Editing Korean translation"}
+                {activeLanguage === "de" && "Editing German translation"}
               </p>
             </div>
 
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base text-foreground">
-                  Trip Title * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Trip Title * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
                 <Input
                   id="title"
-                  value={activeLanguage === "en" ? formData.title : koreanData.title_ko}
+                  value={activeLanguage === "en" ? formData.title : activeLanguage === "ko" ? koreanData.title_ko : germanData.title_de}
                   onChange={(e) =>
                     activeLanguage === "en"
                       ? setFormData({ ...formData, title: e.target.value })
-                      : setKoreanData({ ...koreanData, title_ko: e.target.value })
+                      : activeLanguage === "ko"
+                        ? setKoreanData({ ...koreanData, title_ko: e.target.value })
+                        : setGermanData({ ...germanData, title_de: e.target.value })
                   }
-                  placeholder={activeLanguage === "en" ? "St. Andrews Golf Experience" : "세인트 앤드루스 골프 체험"}
+                  placeholder={activeLanguage === "en" ? "St. Andrews Golf Experience" : activeLanguage === "ko" ? "세인트 앤드루스 골프 체험" : "St. Andrews Golf Experience"}
                   required={activeLanguage === "en"}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-base text-foreground">
-                  Location * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Location * {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
                 <Input
                   id="location"
-                  value={activeLanguage === "en" ? formData.location : koreanData.location_ko}
+                  value={activeLanguage === "en" ? formData.location : activeLanguage === "ko" ? koreanData.location_ko : germanData.location_de}
                   onChange={(e) =>
                     activeLanguage === "en"
                       ? setFormData({ ...formData, location: e.target.value })
-                      : setKoreanData({ ...koreanData, location_ko: e.target.value })
+                      : activeLanguage === "ko"
+                        ? setKoreanData({ ...koreanData, location_ko: e.target.value })
+                        : setGermanData({ ...germanData, location_de: e.target.value })
                   }
-                  placeholder={activeLanguage === "en" ? "St. Andrews, Scotland" : "스코틀랜드, 세인트 앤드루스"}
+                  placeholder={activeLanguage === "en" ? "St. Andrews, Scotland" : activeLanguage === "ko" ? "스코틀랜드, 세인트 앤드루스" : "St. Andrews, Scotland"}
                   required={activeLanguage === "en"}
                 />
               </div>
@@ -870,17 +898,19 @@ export function CreateTripForm() {
                 htmlFor="overview_content"
                 className="text-base text-foreground"
               >
-                Detailed Overview (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                Detailed Overview (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
               </Label>
               <Textarea
                 id="overview_content"
-                value={activeLanguage === "en" ? formData.overview_content : koreanData.overview_content_ko}
+                value={activeLanguage === "en" ? formData.overview_content : activeLanguage === "ko" ? koreanData.overview_content_ko : germanData.overview_content_de}
                 onChange={(e) =>
                   activeLanguage === "en"
                     ? setFormData({ ...formData, overview_content: e.target.value })
-                    : setKoreanData({ ...koreanData, overview_content_ko: e.target.value })
+                    : activeLanguage === "ko"
+                      ? setKoreanData({ ...koreanData, overview_content_ko: e.target.value })
+                      : setGermanData({ ...germanData, overview_content_de: e.target.value })
                 }
-                placeholder={activeLanguage === "en" ? "Provide a detailed overview shown on the trip detail page..." : "여행 상세 페이지에 표시될 자세한 개요를 제공하세요..."}
+                placeholder={activeLanguage === "en" ? "Provide a detailed overview shown on the trip detail page..." : activeLanguage === "ko" ? "여행 상세 페이지에 표시될 자세한 개요를 제공하세요..." : "Provide a detailed overview shown on the trip detail page..."}
                 rows={8}
               />
               <p className="text-xs text-muted-foreground">
@@ -893,17 +923,19 @@ export function CreateTripForm() {
                 htmlFor="refund_policy"
                 className="text-base text-foreground"
               >
-                Refund Policy (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                Refund Policy (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
               </Label>
               <Textarea
                 id="refund_policy"
-                value={activeLanguage === "en" ? formData.refund_policy : koreanData.refund_policy_ko}
+                value={activeLanguage === "en" ? formData.refund_policy : activeLanguage === "ko" ? koreanData.refund_policy_ko : germanData.refund_policy_de}
                 onChange={(e) =>
                   activeLanguage === "en"
                     ? setFormData({ ...formData, refund_policy: e.target.value })
-                    : setKoreanData({ ...koreanData, refund_policy_ko: e.target.value })
+                    : activeLanguage === "ko"
+                      ? setKoreanData({ ...koreanData, refund_policy_ko: e.target.value })
+                      : setGermanData({ ...germanData, refund_policy_de: e.target.value })
                 }
-                placeholder={activeLanguage === "en" ? "Enter the refund policy specific to this trip..." : "이 여행에 대한 환불 정책을 입력하세요..."}
+                placeholder={activeLanguage === "en" ? "Enter the refund policy specific to this trip..." : activeLanguage === "ko" ? "이 여행에 대한 환불 정책을 입력하세요..." : "Enter the refund policy specific to this trip..."}
                 rows={4}
               />
             </div>
@@ -911,9 +943,9 @@ export function CreateTripForm() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-base text-foreground">
-                  Highlights (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}
+                  Highlights (Optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                 </Label>
-                {activeLanguage === "en" && (
+                {(activeLanguage === "en" || activeLanguage === "ko" || activeLanguage === "de") && (
                   <Button
                     type="button"
                     onClick={addHighlight}
@@ -1224,6 +1256,29 @@ export function CreateTripForm() {
               </p>
             </div>
 
+            {/* Language Tabs for Packages */}
+            <div className="flex items-center gap-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko" | "de")}>
+                <TabsList className="grid w-fit grid-cols-3">
+                  <TabsTrigger value="en" className="text-sm">
+                    English
+                  </TabsTrigger>
+                  <TabsTrigger value="ko" className="text-sm">
+                    Korean
+                  </TabsTrigger>
+                  <TabsTrigger value="de" className="text-sm">
+                    German
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                {activeLanguage === "en" && "Editing English content"}
+                {activeLanguage === "ko" && "Editing Korean translation"}
+                {activeLanguage === "de" && "Editing German translation"}
+              </p>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div>
                 <Label className="text-base font-medium text-foreground">
@@ -1318,13 +1373,19 @@ export function CreateTripForm() {
 
                     <div className="space-y-2">
                       <Label className="text-base text-foreground">
-                        Package Details (optional)
+                        Package Details (optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                       </Label>
                       <Textarea
-                        value={pkg.description}
-                        onChange={(e) =>
-                          updatePackage(pkg.id, "description", e.target.value)
-                        }
+                        value={activeLanguage === "en" ? pkg.description : activeLanguage === "ko" ? packageTranslations.premium_ko : packageTranslations.premium_de}
+                        onChange={(e) => {
+                          if (activeLanguage === "en") {
+                            updatePackage(pkg.id, "description", e.target.value)
+                          } else if (activeLanguage === "ko") {
+                            setPackageTranslations({ ...packageTranslations, premium_ko: e.target.value })
+                          } else {
+                            setPackageTranslations({ ...packageTranslations, premium_de: e.target.value })
+                          }
+                        }}
                         placeholder="What's included in this package..."
                         rows={3}
                       />
@@ -1450,13 +1511,19 @@ export function CreateTripForm() {
 
                       <div className="space-y-2">
                         <Label className="text-base text-foreground">
-                          Package Details (optional)
+                          Package Details (optional) {activeLanguage === "ko" && <span className="text-xs text-muted-foreground">(Korean)</span>}{activeLanguage === "de" && <span className="text-xs text-muted-foreground">(German)</span>}
                         </Label>
                         <Textarea
-                          value={pkg.description}
-                          onChange={(e) =>
-                            updatePackage(pkg.id, "description", e.target.value)
-                          }
+                          value={activeLanguage === "en" ? pkg.description : activeLanguage === "ko" ? packageTranslations.upgrade_ko : packageTranslations.upgrade_de}
+                          onChange={(e) => {
+                            if (activeLanguage === "en") {
+                              updatePackage(pkg.id, "description", e.target.value)
+                            } else if (activeLanguage === "ko") {
+                              setPackageTranslations({ ...packageTranslations, upgrade_ko: e.target.value })
+                            } else {
+                              setPackageTranslations({ ...packageTranslations, upgrade_de: e.target.value })
+                            }
+                          }}
                           placeholder="What's included in this package..."
                           rows={3}
                         />
@@ -1589,6 +1656,29 @@ export function CreateTripForm() {
               <p className="text-sm text-muted-foreground">
                 Configure golf courses, meals, transportation, and service
                 options like Caddy and Golf Cart (all optional)
+              </p>
+            </div>
+
+            {/* Language Tabs for Booking Options */}
+            <div className="flex items-center gap-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <Tabs value={activeLanguage} onValueChange={(v) => setActiveLanguage(v as "en" | "ko" | "de")}>
+                <TabsList className="grid w-fit grid-cols-3">
+                  <TabsTrigger value="en" className="text-sm">
+                    English
+                  </TabsTrigger>
+                  <TabsTrigger value="ko" className="text-sm">
+                    Korean
+                  </TabsTrigger>
+                  <TabsTrigger value="de" className="text-sm">
+                    German
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                {activeLanguage === "en" && "Editing English content"}
+                {activeLanguage === "ko" && "Editing Korean translation"}
+                {activeLanguage === "de" && "Editing German translation"}
               </p>
             </div>
 
