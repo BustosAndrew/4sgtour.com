@@ -67,6 +67,8 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <head>
+        <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://p.typekit.net" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           href="https://p.typekit.net/p.css?s=1&k=rzv4yqs&ht=tk&f=44872.44874.48600.52429.52432.52434.52435&a=165152875&app=typekit&e=css"
