@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from '@/lib/i18n/provider'
 
 interface PaymentConsentProps {
   businessName?: string
@@ -19,6 +20,8 @@ export function PaymentConsent({
   businessName = '4 Seasons Golf Tour',
   onSmsConsentChange,
 }: PaymentConsentProps) {
+  const t = useTranslations('checkout')
+  const tFooter = useTranslations('footer')
   const [smsConsent, setSmsConsent] = useState(false)
   const [termsConsent, setTermsConsent] = useState(false)
 
@@ -36,16 +39,7 @@ export function PaymentConsent({
           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-2 border-[#274C77] text-[#274C77] focus:ring-2 focus:ring-[#274C77] focus:ring-offset-1"
         />
         <span className="text-xs leading-relaxed text-foreground sm:text-sm">
-          By checking, you are allowing to receive{' '}
-          <strong className="font-semibold">
-            transactional/informational SMS
-          </strong>{' '}
-          communications regarding account notifications, customer care, etc,
-          from <strong className="font-semibold">{businessName}</strong>.
-          Messages frequency may vary. Message and data rates may apply,{' '}
-          <strong className="font-semibold">
-            reply HELP for help or STOP to opt-out.
-          </strong>
+          {t('smsConsentLabel')}
         </span>
       </label>
 
@@ -58,24 +52,25 @@ export function PaymentConsent({
           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-2 border-[#274C77] text-[#274C77] focus:ring-2 focus:ring-[#274C77] focus:ring-offset-1"
         />
         <span className="text-xs leading-relaxed text-foreground sm:text-sm">
-          By checking, I accept{' '}
+          {t('termsConsentLabel')}
           <Link
             href="/terms"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#274C77] underline underline-offset-2 hover:text-[#1a3a5c]"
           >
-            Terms of Service
-          </Link>{' '}
-          &amp;{' '}
+            {t('termsOfService')}
+          </Link>
+          {' & '}
           <Link
             href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#274C77] underline underline-offset-2 hover:text-[#1a3a5c]"
           >
-            Privacy Policy.
+            {tFooter('privacyPolicy')}
           </Link>
+          {'.'}
         </span>
       </label>
     </div>
