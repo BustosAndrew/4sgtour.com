@@ -22,6 +22,8 @@ interface InquiryWithPayment extends Inquiry {
   amount_paid?: number | null
   is_fully_paid?: boolean
   trip?: { title: string; slug: string } | null
+  custom_package_title?: string | null
+  is_custom_package?: boolean
 }
 
 interface InquiriesListProps {
@@ -308,7 +310,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                     )}
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
-                    {(inquiry as any).is_custom_package && (
+                    {inquiry.is_custom_package && (
                       <>
                         <a
                           href={`/package/${inquiry.id}`}
@@ -345,7 +347,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         )}
                       </>
                     )}
-                    {inquiry.trip?.slug && !(inquiry as any).is_custom_package && (
+                    {inquiry.trip?.slug && !inquiry.is_custom_package && (
                       <a
                         href={`/trips/${inquiry.trip.slug}/book`}
                         target="_blank"
