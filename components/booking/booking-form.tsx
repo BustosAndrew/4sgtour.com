@@ -532,7 +532,9 @@ export function BookingForm({
         .filter(([_, rounds]) => rounds > 0)
         .map(([courseId, rounds]) => {
           const course = golfCourses.find((c: any) => c.id === courseId)
-          return course ? `${course.course_name} (${rounds} rounds)` : null
+          return course
+            ? `${getLocalizedField(course, 'course_name', locale as any)} (${rounds} rounds)`
+            : null
         })
         .filter(Boolean)
 
@@ -540,32 +542,42 @@ export function BookingForm({
         includedMealIds.length > 0
           ? `${mealOptions
               .filter((meal: any) => meal.is_included)
-              .map((meal: any) => meal.name)
+              .map((meal: any) => getLocalizedField(meal, 'name', locale as any))
               .join(', ')} (Included)`
           : (() => {
               const selectedMealOption = mealOptions.find(
                 (meal: any) => String(meal.id) === selectedMeal,
               )
               if (!selectedMealOption) return 'None'
+              const localizedName = getLocalizedField(
+                selectedMealOption,
+                'name',
+                locale as any,
+              )
               return selectedMealOption.is_included
-                ? `${selectedMealOption.name} (Included)`
-                : selectedMealOption.name
+                ? `${localizedName} (Included)`
+                : localizedName
             })()
 
       const transportOptionName =
         includedTransportIds.length > 0
           ? `${transportationOptions
               .filter((t: any) => t.is_included)
-              .map((t: any) => t.name)
+              .map((t: any) => getLocalizedField(t, 'name', locale as any))
               .join(', ')} (Included)`
           : (() => {
               const selectedTransportOption = transportationOptions.find(
                 (transport: any) => String(transport.id) === selectedTransport,
               )
               if (!selectedTransportOption) return 'None'
+              const localizedName = getLocalizedField(
+                selectedTransportOption,
+                'name',
+                locale as any,
+              )
               return selectedTransportOption.is_included
-                ? `${selectedTransportOption.name} (Included)`
-                : selectedTransportOption.name
+                ? `${localizedName} (Included)`
+                : localizedName
             })()
 
       const customerName =
@@ -856,7 +868,9 @@ export function BookingForm({
       .filter(([_, rounds]) => rounds > 0)
       .map(([courseId, rounds]) => {
         const course = golfCourses.find((c: any) => c.id === courseId)
-        return course ? `${course.course_name} (${rounds} rounds)` : null
+        return course
+          ? `${getLocalizedField(course, 'course_name', locale as any)} (${rounds} rounds)`
+          : null
       })
       .filter(Boolean) as string[]
 
@@ -864,17 +878,21 @@ export function BookingForm({
       includedMealIds.length > 0
         ? mealOptions
             .filter((meal: any) => meal.is_included)
-            .map((meal: any) => meal.name)
+            .map((meal: any) => getLocalizedField(meal, 'name', locale as any))
             .join(', ')
-        : selectedMealOption?.name || ''
+        : selectedMealOption
+          ? (getLocalizedField(selectedMealOption, 'name', locale as any) as string)
+          : ''
 
     const transportOptionName =
       includedTransportIds.length > 0
         ? transportationOptions
             .filter((t: any) => t.is_included)
-            .map((t: any) => t.name)
+            .map((t: any) => getLocalizedField(t, 'name', locale as any))
             .join(', ')
-        : selectedTransportOption?.name || ''
+        : selectedTransportOption
+          ? (getLocalizedField(selectedTransportOption, 'name', locale as any) as string)
+          : ''
 
     return {
       startDate,
@@ -1439,7 +1457,7 @@ export function BookingForm({
                                 )
                               }}
                               className="flex h-9 w-9 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
-                              aria-label={`Decrease rounds for ${course.course_name}`}
+                              aria-label={`Decrease rounds for ${getLocalizedField(course, 'course_name', locale as any)}`}
                             >
                               <Minus className="h-4 w-4" />
                             </button>
@@ -1456,7 +1474,7 @@ export function BookingForm({
                                 handleCourseRoundChange(course.id, 1, maxRounds)
                               }}
                               className="flex h-9 w-9 items-center justify-center border-2 border-gray-200 hover:bg-gray-50"
-                              aria-label={`Increase rounds for ${course.course_name}`}
+                              aria-label={`Increase rounds for ${getLocalizedField(course, 'course_name', locale as any)}`}
                             >
                               <Plus className="h-4 w-4" />
                             </button>

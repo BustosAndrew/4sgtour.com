@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
-import { autoTranslateTrip, autoTranslatePackages } from "@/lib/auto-translate"
-import { headers } from "next/headers"
 
 export async function PATCH(
   request: NextRequest,
@@ -262,48 +260,9 @@ export async function PATCH(
     }
   }
 
-  // Trigger auto-translation in the background (non-blocking)
-  // Always translate from English if available, otherwise from Korean
-  const hasEnglishContent = !!(body.title && body.title.trim())
-  const hasKoreanContent = !!('title_ko' in body && body.title_ko && body.title_ko.trim())
-
-  if (hasEnglishContent || hasKoreanContent) {
-    const headersList = await headers()
-    const host = headersList.get("host") || "localhost:3000"
-    const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-    const baseUrl = `${protocol}://${host}`
-
-    // Prioritize English as source; fall back to Korean if only Korean was provided
-    const useEnglishAsSource = hasEnglishContent
-
-    autoTranslateTrip(
-      baseUrl,
-      id,
-      useEnglishAsSource
-        ? { title: body.title, description: body.description, location: body.location, refund_policy: body.refund_policy, overview_content: body.overview_content, highlights: body.highlights }
-        : { title: body.title_ko, description: body.description_ko, location: body.location_ko, refund_policy: body.refund_policy_ko, overview_content: body.overview_content_ko, highlights: body.highlights_ko },
-      useEnglishAsSource ? "en" : "ko",
-      supabase
-    ).catch(err => console.error("[auto-translate] Background translation error:", err))
-    
-    // Also translate packages if they exist
-    if (body.packages && body.packages.length > 0) {
-      // Need to fetch the newly inserted package IDs
-      const { data: insertedPackages } = await supabase
-        .from("packages")
-        .select("id, name, description")
-        .eq("trip_id", id)
-      
-      if (insertedPackages && insertedPackages.length > 0) {
-        autoTranslatePackages(
-          baseUrl,
-          insertedPackages,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background package translation error:", err))
-      }
-    }
-  }
+  // Translation is now triggered exclusively from the admin "Translate" dialog
+  // (POST /api/admin/translate-trip/[id]). We intentionally do NOT auto-translate
+  // on update — admins must explicitly run translation per trip.
 
   return NextResponse.json({ success: true })
 }

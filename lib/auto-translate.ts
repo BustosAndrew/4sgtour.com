@@ -204,6 +204,87 @@ export async function autoTranslatePackages(
 }
 
 /**
+ * Auto-translate rows for a related trip table (golf courses, meal options,
+ * transportation options, service options, add-ons). Each row has a
+ * name-like field plus an optional description.
+ * Only fills in translations that are missing — never overwrites existing ones.
+ */
+export async function autoTranslateNamedRows(
+  baseUrl: string,
+  tableName: string,
+  rows: Array<{ id: string; [key: string]: any }>,
+  nameField: string,
+  sourceLanguage: "en" | "ko",
+  supabase: any,
+): Promise<void> {
+  if (!rows?.length) return
+  const targetLanguages = sourceLanguage === "en" ? ["ko", "de"] : ["en", "de"]
+  const sourceSuffix = sourceLanguage === "en" ? "" : `_${sourceLanguage}`
+
+  for (const row of rows) {
+    if (!row?.id) continue
+
+    for (const targetLang of targetLanguages) {
+      const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+      const updates: Record<string, any> = {}
+
+      const fieldsToTranslate: { field: string; text: string; fieldType: string }[] = []
+
+      const sourceName = row[`${nameField}${sourceSuffix}`]
+      const targetName = row[`${nameField}${targetSuffix}`]
+      if (
+        typeof sourceName === "string" &&
+        sourceName.trim() &&
+        !(typeof targetName === "string" && targetName.trim())
+      ) {
+        fieldsToTranslate.push({
+          field: `${nameField}${targetSuffix}`,
+          text: sourceName,
+          fieldType: "title",
+        })
+      }
+
+      const sourceDesc = row[`description${sourceSuffix}`]
+      const targetDesc = row[`description${targetSuffix}`]
+      if (
+        typeof sourceDesc === "string" &&
+        sourceDesc.trim() &&
+        !(typeof targetDesc === "string" && targetDesc.trim())
+      ) {
+        fieldsToTranslate.push({
+          field: `description${targetSuffix}`,
+          text: sourceDesc,
+          fieldType: "description",
+        })
+      }
+
+      if (fieldsToTranslate.length === 0) continue
+
+      const translations = await translateBatch(baseUrl, {
+        fields: fieldsToTranslate,
+        targetLanguage: targetLang,
+        sourceLanguage,
+      })
+      Object.assign(updates, translations)
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from(tableName)
+          .update(updates)
+          .eq("id", row.id)
+
+        if (error) {
+          console.error(
+            `[auto-translate] Error updating ${tableName} ${row.id} ${targetLang}:`,
+            error,
+          )
+        }
+      }
+    }
+  }
+}
+
+/**
  * Auto-translate tournament event itinerary days
  * Called after event create/update when itinerary days are created
  */

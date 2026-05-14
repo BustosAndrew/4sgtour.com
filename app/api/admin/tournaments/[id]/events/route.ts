@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { autoTranslateTournamentEvent, autoTranslateItineraryDays, autoTranslatePricingTiers } from "@/lib/auto-translate"
-import { headers } from "next/headers"
 
 export async function POST(
   request: Request,
@@ -199,59 +197,9 @@ export async function POST(
       }
     }
 
-    // Trigger auto-translation in the background (non-blocking)
-    // Always translate from English if available, otherwise from Korean
-    const hasEnglishContent = title && title.trim()
-    const hasKoreanContent = title_ko && title_ko.trim()
-    
-    if (hasEnglishContent || hasKoreanContent) {
-      const headersList = await headers()
-      const host = headersList.get("host") || "localhost:3000"
-      const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-      const baseUrl = `${protocol}://${host}`
-      
-      // Prioritize English as source - if English content exists, use it
-      const useEnglishAsSource = hasEnglishContent
-      
-      autoTranslateTournamentEvent(
-        baseUrl,
-        eventData.id,
-        useEnglishAsSource
-          ? { title, description, location, trip_highlights, travel_itinerary, includes, excludes }
-          : { title: title_ko, description: description_ko, location: location_ko, trip_highlights: trip_highlights_ko, travel_itinerary: travel_itinerary_ko, includes: includes_ko, excludes: excludes_ko },
-        useEnglishAsSource ? "en" : "ko",
-        supabase
-      ).catch(err => console.error("[v0] Background translation error:", err))
-
-      // Also translate itinerary days and pricing tiers
-      const { data: insertedItinerary } = await supabase
-        .from("tournament_event_itinerary_days")
-        .select("id, title, content")
-        .eq("event_id", eventData.id)
-
-      if (insertedItinerary && insertedItinerary.length > 0) {
-        autoTranslateItineraryDays(
-          baseUrl,
-          insertedItinerary,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background itinerary translation error:", err))
-      }
-
-      const { data: insertedPricingTiers } = await supabase
-        .from("tournament_event_pricing_tiers")
-        .select("id, name")
-        .eq("event_id", eventData.id)
-
-      if (insertedPricingTiers && insertedPricingTiers.length > 0) {
-        autoTranslatePricingTiers(
-          baseUrl,
-          insertedPricingTiers,
-          useEnglishAsSource ? "en" : "ko",
-          supabase
-        ).catch(err => console.error("[v0] Background pricing tier translation error:", err))
-      }
-    }
+    // Translation is now triggered exclusively from the admin "Translate" dialog
+    // for the corresponding event. We intentionally do NOT auto-translate on
+    // create — admins must explicitly run translation per event.
 
     return NextResponse.json(eventData, { status: 201 })
   } catch (error) {

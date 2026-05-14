@@ -1794,19 +1794,35 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
                         <Label className="text-base text-foreground">
-                          Course Name *
+                          Course Name {activeLang === "en" && "*"}
                         </Label>
                         <Input
-                          value={course.name}
+                          value={
+                            activeLang === "en"
+                              ? (course.name || "")
+                              : activeLang === "ko"
+                                ? (course.name_ko || "")
+                                : (course.name_de || "")
+                          }
                           onChange={(e) =>
                             handleGolfCourseChange(
                               index,
-                              "name",
+                              activeLang === "en"
+                                ? "name"
+                                : activeLang === "ko"
+                                  ? "name_ko"
+                                  : "name_de",
                               e.target.value,
                             )
                           }
-                          placeholder="e.g., Course A"
-                          required
+                          placeholder={
+                            activeLang === "en"
+                              ? "e.g., Course A"
+                              : activeLang === "ko"
+                                ? "예: 코스 A"
+                                : "z.B. Platz A"
+                          }
+                          required={activeLang === "en"}
                         />
                       </div>
                       <div>
@@ -1859,15 +1875,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         Course Details
                       </Label>
                       <Textarea
-                        value={course.description || ""}
+                        value={
+                          activeLang === "en"
+                            ? (course.description || "")
+                            : activeLang === "ko"
+                              ? (course.description_ko || "")
+                              : (course.description_de || "")
+                        }
                         onChange={(e) =>
                           handleGolfCourseChange(
                             index,
-                            "description",
+                            activeLang === "en"
+                              ? "description"
+                              : activeLang === "ko"
+                                ? "description_ko"
+                                : "description_de",
                             e.target.value,
                           )
                         }
-                        placeholder="Course description (optional)"
+                        placeholder={
+                          activeLang === "en"
+                            ? "Course description (optional)"
+                            : activeLang === "ko"
+                              ? "코스 설명 (선택사항)"
+                              : "Platzbeschreibung (optional)"
+                        }
                         rows={2}
                       />
                     </div>
@@ -1915,19 +1947,35 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <Label className="text-base text-foreground">
-                          Option Name *
+                          Option Name {activeLang === "en" && "*"}
                         </Label>
                         <Input
-                          value={meal.name}
+                          value={
+                            activeLang === "en"
+                              ? (meal.name || "")
+                              : activeLang === "ko"
+                                ? (meal.name_ko || "")
+                                : (meal.name_de || "")
+                          }
                           onChange={(e) =>
                             handleMealOptionChange(
                               index,
-                              "name",
+                              activeLang === "en"
+                                ? "name"
+                                : activeLang === "ko"
+                                  ? "name_ko"
+                                  : "name_de",
                               e.target.value,
                             )
                           }
-                          placeholder="e.g., Breakfast Included"
-                          required
+                          placeholder={
+                            activeLang === "en"
+                              ? "e.g., Breakfast Included"
+                              : activeLang === "ko"
+                                ? "예: 조식 포함"
+                                : "z.B. Frühstück inklusive"
+                          }
+                          required={activeLang === "en"}
                         />
                       </div>
                     </div>
@@ -1936,15 +1984,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         Description
                       </Label>
                       <Textarea
-                        value={meal.description || ""}
+                        value={
+                          activeLang === "en"
+                            ? (meal.description || "")
+                            : activeLang === "ko"
+                              ? (meal.description_ko || "")
+                              : (meal.description_de || "")
+                        }
                         onChange={(e) =>
                           handleMealOptionChange(
                             index,
-                            "description",
+                            activeLang === "en"
+                              ? "description"
+                              : activeLang === "ko"
+                                ? "description_ko"
+                                : "description_de",
                             e.target.value,
                           )
                         }
-                        placeholder="Meal option description"
+                        placeholder={
+                          activeLang === "en"
+                            ? "Meal option description"
+                            : activeLang === "ko"
+                              ? "식사 옵션 설명"
+                              : "Beschreibung der Mahlzeitoption"
+                        }
                         rows={2}
                       />
                     </div>
@@ -2009,19 +2073,35 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <Label className="text-base text-foreground">
-                          Option Name *
+                          Option Name {activeLang === "en" && "*"}
                         </Label>
                         <Input
-                          value={transport.name}
+                          value={
+                            activeLang === "en"
+                              ? (transport.name || "")
+                              : activeLang === "ko"
+                                ? (transport.name_ko || "")
+                                : (transport.name_de || "")
+                          }
                           onChange={(e) =>
                             handleTransportationOptionChange(
                               index,
-                              "name",
+                              activeLang === "en"
+                                ? "name"
+                                : activeLang === "ko"
+                                  ? "name_ko"
+                                  : "name_de",
                               e.target.value,
                             )
                           }
-                          placeholder="e.g., Private Car with Driver"
-                          required
+                          placeholder={
+                            activeLang === "en"
+                              ? "e.g., Private Car with Driver"
+                              : activeLang === "ko"
+                                ? "예: 기사가 있는 개인 차량"
+                                : "z.B. Privatauto mit Fahrer"
+                          }
+                          required={activeLang === "en"}
                         />
                       </div>
                     </div>
@@ -2030,15 +2110,31 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                         Description
                       </Label>
                       <Textarea
-                        value={transport.description || ""}
+                        value={
+                          activeLang === "en"
+                            ? (transport.description || "")
+                            : activeLang === "ko"
+                              ? (transport.description_ko || "")
+                              : (transport.description_de || "")
+                        }
                         onChange={(e) =>
                           handleTransportationOptionChange(
                             index,
-                            "description",
+                            activeLang === "en"
+                              ? "description"
+                              : activeLang === "ko"
+                                ? "description_ko"
+                                : "description_de",
                             e.target.value,
                           )
                         }
-                        placeholder="Transportation option description"
+                        placeholder={
+                          activeLang === "en"
+                            ? "Transportation option description"
+                            : activeLang === "ko"
+                              ? "교통편 옵션 설명"
+                              : "Beschreibung der Transportoption"
+                        }
                         rows={2}
                       />
                     </div>
