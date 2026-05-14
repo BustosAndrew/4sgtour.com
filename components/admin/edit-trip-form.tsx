@@ -1098,19 +1098,24 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             </div>
 
             {/* Language Tabs */}
-            <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
+            <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
               {(["en", "ko", "de"] as Lang[]).map((lang) => (
                 <button
                   key={lang}
                   type="button"
                   onClick={() => setActiveLang(lang)}
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition-colors sm:px-4 sm:py-1.5 sm:text-sm ${
                     activeLang === lang
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                  <span className="sm:hidden">
+                    {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                  </span>
                 </button>
               ))}
             </div>
@@ -1505,22 +1510,25 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             </div>
 
             {/* Language Tabs for Packages */}
-            <div className="flex items-center gap-3">
-              <Languages className="h-5 w-5 text-muted-foreground" />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Languages className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
               <Tabs value={activeLang} onValueChange={(v) => setActiveLang(v as Lang)}>
-                <TabsList className="grid w-fit grid-cols-3">
-                  <TabsTrigger value="en" className="text-sm">
-                    English
+                <TabsList className="grid w-fit grid-cols-3 h-8 sm:h-10">
+                  <TabsTrigger value="en" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">EN</span>
+                    <span className="hidden sm:inline">English</span>
                   </TabsTrigger>
-                  <TabsTrigger value="ko" className="text-sm">
-                    Korean
+                  <TabsTrigger value="ko" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">KO</span>
+                    <span className="hidden sm:inline">Korean</span>
                   </TabsTrigger>
-                  <TabsTrigger value="de" className="text-sm">
-                    German
+                  <TabsTrigger value="de" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">DE</span>
+                    <span className="hidden sm:inline">German</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 {activeLang === "en" && "Editing English content"}
                 {activeLang === "ko" && "Editing Korean translation"}
                 {activeLang === "de" && "Editing German translation"}
@@ -1900,22 +1908,25 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             </div>
 
             {/* Language Tabs for Booking Options */}
-            <div className="flex items-center gap-3">
-              <Languages className="h-5 w-5 text-muted-foreground" />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Languages className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
               <Tabs value={activeLang} onValueChange={(v) => setActiveLang(v as Lang)}>
-                <TabsList className="grid w-fit grid-cols-3">
-                  <TabsTrigger value="en" className="text-sm">
-                    English
+                <TabsList className="grid w-fit grid-cols-3 h-8 sm:h-10">
+                  <TabsTrigger value="en" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">EN</span>
+                    <span className="hidden sm:inline">English</span>
                   </TabsTrigger>
-                  <TabsTrigger value="ko" className="text-sm">
-                    Korean
+                  <TabsTrigger value="ko" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">KO</span>
+                    <span className="hidden sm:inline">Korean</span>
                   </TabsTrigger>
-                  <TabsTrigger value="de" className="text-sm">
-                    German
+                  <TabsTrigger value="de" className="text-xs px-2 sm:text-sm sm:px-3">
+                    <span className="sm:hidden">DE</span>
+                    <span className="hidden sm:inline">German</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 {activeLang === "en" && "Editing English content"}
                 {activeLang === "ko" && "Editing Korean translation"}
                 {activeLang === "de" && "Editing German translation"}
@@ -2378,7 +2389,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
 
         {currentStep === 4 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">Review & Submit</h2>
                 <p className="text-sm text-muted-foreground">
@@ -2386,19 +2397,24 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 </p>
               </div>
               {/* Language Tabs for Preview */}
-              <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+              <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
                 {(["en", "ko", "de"] as Lang[]).map((lang) => (
                   <button
                     key={lang}
                     type="button"
                     onClick={() => setActiveLang(lang)}
-                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition-colors sm:px-4 sm:py-1.5 sm:text-sm ${
                       activeLang === lang
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                    <span className="sm:hidden">
+                      {lang === "en" ? "EN" : lang === "ko" ? "KO" : "DE"}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {lang === "en" ? "English" : lang === "ko" ? "Korean" : "German"}
+                    </span>
                   </button>
                 ))}
               </div>
