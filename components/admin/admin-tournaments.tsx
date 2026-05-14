@@ -12,7 +12,6 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
-  Languages,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -59,67 +58,7 @@ export function AdminTournaments({
   const [localTournaments, setLocalTournaments] = useState<Tournament[]>(tournaments)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedTournaments, setExpandedTournaments] = useState<Set<string>>(new Set())
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [translateResult, setTranslateResult] = useState<string | null>(null)
-  const [translateProgress, setTranslateProgress] = useState<{ completed: number; total: number; message: string } | null>(null)
   const router = useRouter()
-
-  const handleTranslateAll = async () => {
-    if (isTranslating) return
-    setIsTranslating(true)
-    setTranslateResult(null)
-    setTranslateProgress(null)
-    try {
-      const response = await fetch("/api/admin/translate-all", {
-        method: "POST",
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Translation failed")
-      }
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-
-      if (!reader) {
-        throw new Error("No response body")
-      }
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = decoder.decode(value)
-        const lines = chunk.split("\n")
-        
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6))
-              if (data.type === "progress") {
-                setTranslateProgress({
-                  completed: data.completed,
-                  total: data.total,
-                  message: data.message
-                })
-              } else if (data.type === "complete") {
-                setTranslateResult(data.message)
-                setTranslateProgress(null)
-              }
-            } catch (e) {
-              // Ignore parse errors
-            }
-          }
-        }
-      }
-    } catch (error) {
-      setTranslateResult(`Error: ${error instanceof Error ? error.message : "Failed to connect to translation service"}`)
-    } finally {
-      setIsTranslating(false)
-      setTranslateProgress(null)
-    }
-  }
 
   const toggleTournamentExpanded = (tournamentId: string) => {
     setExpandedTournaments((prev) => {
@@ -245,40 +184,10 @@ export function AdminTournaments({
             </p>
           </div>
 
-          <div className="mb-4 flex flex-col gap-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-gray-600">
-                {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} (Masters, Ryder Cup, The Open, US Open)
-              </p>
-              <Button
-                onClick={handleTranslateAll}
-                disabled={isTranslating}
-                variant="outline"
-                className="w-full sm:w-auto"
-              >
-                <Languages className="mr-2 h-4 w-4" />
-                {isTranslating ? "Translating..." : "Translate All"}
-              </Button>
-            </div>
-            {translateProgress && (
-              <div className="w-full space-y-2">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>{translateProgress.message}</span>
-                  <span>{translateProgress.completed}/{translateProgress.total}</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div 
-                    className="h-full bg-[#274C77] transition-all duration-300"
-                    style={{ width: `${(translateProgress.completed / translateProgress.total) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            {translateResult && !translateProgress && (
-              <p className={`text-sm ${translateResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
-                {translateResult}
-              </p>
-            )}
+          <div className="mb-4 rounded-lg bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
+            <p className="text-sm text-gray-600">
+              {localTournaments.length} tournament{localTournaments.length !== 1 ? "s" : ""} (Masters, Ryder Cup, The Open, US Open)
+            </p>
           </div>
 
           <div className="space-y-4">
