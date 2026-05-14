@@ -121,67 +121,32 @@ export async function POST(
     supabase.from("trip_service_options").select("*").eq("trip_id", id),
   ])
 
-  const countNonEmpty = (...vals: unknown[]) =>
-    vals.reduce<number>(
-      (n, v) => (typeof v === "string" && v.trim().length > 0 ? n + 1 : n),
-      0,
-    )
-
-  // Pre-count every translatable field across all targets so the
-  // progress bar starts with a real total. This walks the same data
-  // the translation phase will, but does no AI work.
-  // DIRTY CHECKING: Skip fields that already have non-empty translations
+  // Pre-count every translatable field across all targets so the progress
+  // bar starts with a real total. We intentionally do NOT skip fields that
+  // already have translations — every source field with content is always
+  // retranslated so admins can re-run the dialog to repair stale or
+  // partial translations without having to clear the target fields first.
   let totalRequested = 0
-  let skippedAlreadyTranslated = 0
-  for (const targetLang of validTargets) {
-    const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+  for (const _targetLang of validTargets) {
     for (const fieldBase of Object.keys(TRIP_FIELDS)) {
       const sourceValue = trip[`${fieldBase}${sourceSuffix}`]
-      const targetValue = trip[`${fieldBase}${targetSuffix}`]
       if (typeof sourceValue === "string" && sourceValue.trim()) {
-        // Skip if target already has a non-empty translation
-        if (typeof targetValue === "string" && targetValue.trim()) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
+        totalRequested++
       }
     }
     for (const arrayField of TRIP_ARRAY_FIELDS) {
       const sourceArr = trip[`${arrayField}${sourceSuffix}`]
-      const targetArr = trip[`${arrayField}${targetSuffix}`]
       if (Array.isArray(sourceArr)) {
-        const nonEmptySourceCount = sourceArr.filter((t) => typeof t === "string" && t.trim().length > 0).length
-        // Skip if target array has same number of non-empty items
-        const targetNonEmptyCount = Array.isArray(targetArr) 
-          ? targetArr.filter((t) => typeof t === "string" && t.trim().length > 0).length 
-          : 0
-        if (targetNonEmptyCount >= nonEmptySourceCount && nonEmptySourceCount > 0) {
-          skippedAlreadyTranslated += nonEmptySourceCount
-        } else {
-          totalRequested += nonEmptySourceCount
-        }
+        totalRequested += sourceArr.filter(
+          (t) => typeof t === "string" && t.trim().length > 0,
+        ).length
       }
     }
     for (const pkg of packages || []) {
       const sourceName = pkg[`name${sourceSuffix}`]
-      const targetName = pkg[`name${targetSuffix}`]
-      if (typeof sourceName === "string" && sourceName.trim()) {
-        if (typeof targetName === "string" && targetName.trim()) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
+      if (typeof sourceName === "string" && sourceName.trim()) totalRequested++
       const sourceDesc = pkg[`description${sourceSuffix}`]
-      const targetDesc = pkg[`description${targetSuffix}`]
-      if (typeof sourceDesc === "string" && sourceDesc.trim()) {
-        if (typeof targetDesc === "string" && targetDesc.trim()) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
+      if (typeof sourceDesc === "string" && sourceDesc.trim()) totalRequested++
     }
     const tables: { rows: any[] | null; nameField: string }[] = [
       { rows: addOnsRes.data, nameField: "name" },
@@ -193,23 +158,9 @@ export async function POST(
     for (const { rows, nameField } of tables) {
       for (const row of rows || []) {
         const sourceName = row[`${nameField}${sourceSuffix}`]
-        const targetName = row[`${nameField}${targetSuffix}`]
-        if (typeof sourceName === "string" && sourceName.trim()) {
-          if (typeof targetName === "string" && targetName.trim()) {
-            skippedAlreadyTranslated++
-          } else {
-            totalRequested++
-          }
-        }
+        if (typeof sourceName === "string" && sourceName.trim()) totalRequested++
         const sourceDesc = row[`description${sourceSuffix}`]
-        const targetDesc = row[`description${targetSuffix}`]
-        if (typeof sourceDesc === "string" && sourceDesc.trim()) {
-          if (typeof targetDesc === "string" && targetDesc.trim()) {
-            skippedAlreadyTranslated++
-          } else {
-            totalRequested++
-          }
-        }
+        if (typeof sourceDesc === "string" && sourceDesc.trim()) totalRequested++
       }
     }
   }
@@ -232,7 +183,7 @@ export async function POST(
 
       send({ type: "start", total: totalRequested })
 
-      // Nothing to translate — either source has no content or all fields already translated
+      // Nothing translatable on the source side at all.
       if (totalRequested === 0) {
         const langNames: Record<string, string> = {
           en: "English",
@@ -240,30 +191,15 @@ export async function POST(
           de: "German",
         }
         const sourceName = langNames[sourceLanguage] ?? sourceLanguage
-        const targetNames = validTargets.map((l) => langNames[l]).join(" & ")
-        
-        if (skippedAlreadyTranslated > 0) {
-          send({
-            type: "complete",
-            success: true,
-            partial: false,
-            message: `All ${skippedAlreadyTranslated} field(s) already have ${targetNames} translations. No changes needed.`,
-            fieldsRequested: 0,
-            fieldsUpdated: 0,
-            fieldsSkipped: skippedAlreadyTranslated,
-            failedFields: [],
-          })
-        } else {
-          send({
-            type: "complete",
-            success: false,
-            partial: false,
-            message: `No ${sourceName} content found on this trip to translate. Please add content in ${sourceName} first.`,
-            fieldsRequested: 0,
-            fieldsUpdated: 0,
-            failedFields: [],
-          })
-        }
+        send({
+          type: "complete",
+          success: false,
+          partial: false,
+          message: `No ${sourceName} content found on this trip to translate. Please add content in ${sourceName} first.`,
+          fieldsRequested: 0,
+          fieldsUpdated: 0,
+          failedFields: [],
+        })
         controller.close()
         return
       }
@@ -354,10 +290,9 @@ export async function POST(
             const sourceField = `${fieldBase}${sourceSuffix}`
             const targetField = `${fieldBase}${targetSuffix}`
             const sourceValue = trip[sourceField]
-            const targetValue = trip[targetField]
             if (typeof sourceValue !== "string" || !sourceValue.trim()) continue
-            // DIRTY CHECK: Skip if target already has content
-            if (typeof targetValue === "string" && targetValue.trim()) continue
+            // No dirty checking — always retranslate so re-running the
+            // dialog can repair stale or partially-applied translations.
             const payload: FieldPayload = {
               field: targetField,
               text: sourceValue,
@@ -389,15 +324,7 @@ export async function POST(
 
           for (const arrayField of TRIP_ARRAY_FIELDS) {
             const sourceValue = trip[`${arrayField}${sourceSuffix}`]
-            const targetValue = trip[`${arrayField}${targetSuffix}`]
             if (!Array.isArray(sourceValue) || sourceValue.length === 0) continue
-            
-            // DIRTY CHECK: Skip if target array already has same number of items
-            const sourceNonEmpty = sourceValue.filter((t: string) => typeof t === "string" && t.trim().length > 0)
-            const targetNonEmpty = Array.isArray(targetValue) 
-              ? targetValue.filter((t: string) => typeof t === "string" && t.trim().length > 0)
-              : []
-            if (targetNonEmpty.length >= sourceNonEmpty.length && sourceNonEmpty.length > 0) continue
 
             const arrPayload: FieldPayload[] = sourceValue
               .map((text: string, i: number) => ({
@@ -429,28 +356,22 @@ export async function POST(
             for (const pkg of packages) {
               const fields: FieldPayload[] = []
               const sourceName = pkg[`name${sourceSuffix}`]
-              const targetName = pkg[`name${targetSuffix}`]
               const sourceDescription = pkg[`description${sourceSuffix}`]
-              const targetDescription = pkg[`description${targetSuffix}`]
-              
-              // DIRTY CHECK: Only translate fields that don't already have translations
+
+              // No dirty checking — always retranslate available source fields.
               if (typeof sourceName === "string" && sourceName.trim()) {
-                if (!(typeof targetName === "string" && targetName.trim())) {
-                  fields.push({
-                    field: `name${targetSuffix}`,
-                    text: sourceName,
-                    fieldType: "title",
-                  })
-                }
+                fields.push({
+                  field: `name${targetSuffix}`,
+                  text: sourceName,
+                  fieldType: "title",
+                })
               }
               if (typeof sourceDescription === "string" && sourceDescription.trim()) {
-                if (!(typeof targetDescription === "string" && targetDescription.trim())) {
-                  fields.push({
-                    field: `description${targetSuffix}`,
-                    text: sourceDescription,
-                    fieldType: "description",
-                  })
-                }
+                fields.push({
+                  field: `description${targetSuffix}`,
+                  text: sourceDescription,
+                  fieldType: "description",
+                })
               }
               if (fields.length === 0) continue
 
@@ -486,29 +407,23 @@ export async function POST(
             for (const row of rows) {
               const fields: FieldPayload[] = []
               const sourceName = row[`${nameField}${sourceSuffix}`]
-              const targetName = row[`${nameField}${targetSuffix}`]
-              
-              // DIRTY CHECK: Only translate fields that don't already have translations
+
+              // No dirty checking — always retranslate available source fields.
               if (typeof sourceName === "string" && sourceName.trim()) {
-                if (!(typeof targetName === "string" && targetName.trim())) {
-                  fields.push({
-                    field: `${nameField}${targetSuffix}`,
-                    text: sourceName,
-                    fieldType: "title",
-                  })
-                }
+                fields.push({
+                  field: `${nameField}${targetSuffix}`,
+                  text: sourceName,
+                  fieldType: "title",
+                })
               }
               if (descriptionField) {
                 const sourceDesc = row[`${descriptionField}${sourceSuffix}`]
-                const targetDesc = row[`${descriptionField}${targetSuffix}`]
                 if (typeof sourceDesc === "string" && sourceDesc.trim()) {
-                  if (!(typeof targetDesc === "string" && targetDesc.trim())) {
-                    fields.push({
-                      field: `${descriptionField}${targetSuffix}`,
-                      text: sourceDesc,
-                      fieldType: "description",
-                    })
-                  }
+                  fields.push({
+                    field: `${descriptionField}${targetSuffix}`,
+                    text: sourceDesc,
+                    fieldType: "description",
+                  })
                 }
               }
               if (!fields.length) continue
@@ -596,10 +511,9 @@ export async function POST(
 
         const targetNames = validTargets.map((l) => LANGUAGE_MAP[l].name).join(" & ")
         const partial = failedFields.length > 0
-        const skippedNote = skippedAlreadyTranslated > 0 ? ` (${skippedAlreadyTranslated} already translated)` : ""
         const message = partial
-          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}${skippedNote}. ${failedFields.length} field(s) could not be translated — try again.`
-          : `Translated ${totalApplied} fields to ${targetNames}${skippedNote}`
+          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}. ${failedFields.length} field(s) could not be translated — try again.`
+          : `Translated ${totalApplied} fields to ${targetNames}`
 
         send({
           type: "complete",
@@ -608,7 +522,6 @@ export async function POST(
           message,
           fieldsRequested: totalRequested,
           fieldsUpdated: totalApplied,
-          fieldsSkipped: skippedAlreadyTranslated,
           failedFields,
         })
       } catch (error: any) {
