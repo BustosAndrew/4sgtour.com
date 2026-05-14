@@ -1,4 +1,5 @@
 import { generateText, Output } from 'ai'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 type TranslationField = {
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     if (!fields || !targetLanguage || !Array.isArray(fields)) {
-      return Response.json(
+      return NextResponse.json(
         {
           error: 'Missing required fields: fields (array) and targetLanguage',
         },
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     )
 
     if (validFields.length === 0) {
-      return Response.json({ translations: {} })
+      return NextResponse.json({ translations: {} })
     }
 
     // Detect a no-op translation (same language). Just echo the source
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     if (sourceLanguage === targetLanguage) {
       const translations: Record<string, string> = {}
       for (const f of validFields) translations[f.field] = f.text
-      return Response.json({ translations })
+      return NextResponse.json({ translations })
     }
 
     // Build a JSON payload for the model. Using key/value pairs (rather
@@ -139,7 +140,7 @@ CRITICAL RULES:
         errorMessage.includes('429') ||
         errorCause.includes('429')
       ) {
-        return Response.json(
+        return NextResponse.json(
           {
             error:
               'AI Gateway rate limit exceeded. Please wait a moment and try again.',
@@ -157,7 +158,7 @@ CRITICAL RULES:
         errorMessage.includes('insufficient') ||
         errorCause.includes('insufficient')
       ) {
-        return Response.json(
+        return NextResponse.json(
           {
             error:
               'AI Gateway credits exhausted. Please refill your AI Gateway credits to continue translating.',
@@ -173,7 +174,7 @@ CRITICAL RULES:
         errorCause.includes('401') ||
         errorCause.includes('unauthorized')
       ) {
-        return Response.json(
+        return NextResponse.json(
           {
             error:
               'AI Gateway authentication failed. Please check your API key configuration.',
@@ -183,7 +184,7 @@ CRITICAL RULES:
         )
       }
 
-      return Response.json(
+      return NextResponse.json(
         {
           error: `Translation AI error: ${errorMessage || 'Unknown error'}`,
           code: 'AI_ERROR',
@@ -240,10 +241,10 @@ CRITICAL RULES:
       translations[f.field] = trimmed
     }
 
-    return Response.json({ translations, missingKeys })
+    return NextResponse.json({ translations, missingKeys })
   } catch (error) {
     console.error('Batch translation error:', error)
-    return Response.json(
+    return NextResponse.json(
       {
         error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         code: 'TRANSLATION_ERROR',
