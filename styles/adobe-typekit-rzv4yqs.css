@@ -7,7 +7,7 @@
       format('woff'),
     url('https://use.typekit.net/af/67fc8b/00000000000000007735c623/31/a?subset_id=2&fvd=n4&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 400;
   font-stretch: normal;
@@ -22,7 +22,7 @@
       format('woff'),
     url('https://use.typekit.net/af/47eb2c/00000000000000007735c61b/31/a?subset_id=2&fvd=i4&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: italic;
   font-weight: 400;
   font-stretch: normal;
@@ -37,7 +37,7 @@
       format('woff'),
     url('https://use.typekit.net/af/a3634f/00000000000000007735c628/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n6&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 600;
   font-stretch: normal;
@@ -52,7 +52,7 @@
       format('woff'),
     url('https://use.typekit.net/af/ab7c40/00000000000000007735c62d/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 700;
   font-stretch: normal;
@@ -67,7 +67,7 @@
       format('woff'),
     url('https://use.typekit.net/af/417c99/00000000000000007735c633/31/a?subset_id=2&fvd=i7&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: italic;
   font-weight: 700;
   font-stretch: normal;
@@ -82,7 +82,7 @@
       format('woff'),
     url('https://use.typekit.net/af/edbdba/00000000000000007756f666/31/a?subset_id=2&fvd=i4&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: italic;
   font-weight: 400;
   font-stretch: normal;
@@ -97,7 +97,7 @@
       format('woff'),
     url('https://use.typekit.net/af/c023e9/00000000000000007756f661/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 400;
   font-stretch: normal;
@@ -112,7 +112,7 @@
       format('woff'),
     url('https://use.typekit.net/af/9c8190/00000000000000007756f675/31/a?subset_id=2&fvd=n7&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 700;
   font-stretch: normal;
@@ -127,7 +127,7 @@
       format('woff'),
     url('https://use.typekit.net/af/a6c601/00000000000000007756f674/31/a?subset_id=2&fvd=i7&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: italic;
   font-weight: 700;
   font-stretch: normal;
@@ -142,7 +142,7 @@
       format('woff'),
     url('https://use.typekit.net/af/3be812/00000000000000007756f65c/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 700;
   font-stretch: normal;
@@ -157,7 +157,7 @@
       format('woff'),
     url('https://use.typekit.net/af/19f1ea/00000000000000007756f676/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n5&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 500;
   font-stretch: normal;
@@ -172,7 +172,7 @@
       format('woff'),
     url('https://use.typekit.net/af/bb178a/00000000000000007756f65e/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 400;
   font-stretch: normal;
@@ -187,7 +187,7 @@
       format('woff'),
     url('https://use.typekit.net/af/e58405/00000000000000007756f671/31/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n6&v=3')
       format('opentype');
-  font-display: auto;
+  font-display: swap;
   font-style: normal;
   font-weight: 600;
   font-stretch: normal;
