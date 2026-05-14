@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import {
   Upload,
   X,
@@ -635,16 +636,22 @@ export function EditTripForm({ trip }: EditTripFormProps) {
         headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
           title: formData.title,
-          // Only send Korean if user explicitly entered it, otherwise let auto-translate handle it
+          // Only send Korean/German if user explicitly entered it. Otherwise
+          // omit so prior auto-translations on the row aren't overwritten.
           ...(formData.title_ko?.trim() && { title_ko: formData.title_ko }),
+          ...(formData.title_de?.trim() && { title_de: formData.title_de }),
           description: formData.description,
           ...(formData.description_ko?.trim() && { description_ko: formData.description_ko }),
+          ...(formData.description_de?.trim() && { description_de: formData.description_de }),
           overview_content: formData.overview_content || null,
           ...(formData.overview_content_ko?.trim() && { overview_content_ko: formData.overview_content_ko }),
+          ...(formData.overview_content_de?.trim() && { overview_content_de: formData.overview_content_de }),
           refund_policy: formData.refund_policy || null,
           ...(formData.refund_policy_ko?.trim() && { refund_policy_ko: formData.refund_policy_ko }),
+          ...(formData.refund_policy_de?.trim() && { refund_policy_de: formData.refund_policy_de }),
           location: formData.location,
           ...(formData.location_ko?.trim() && { location_ko: formData.location_ko }),
+          ...(formData.location_de?.trim() && { location_de: formData.location_de }),
           continent: formData.continent,
           price_regular: Number(formData.price_regular),
           max_guests: Number(formData.max_guests),
@@ -657,8 +664,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       show_from_price: showFromPrice,
       deposit_percentage: depositPercentage,
       highlights: highlights.filter((h) => h.trim() !== ""),
-          // Only send Korean highlights if any were entered
+          // Only send Korean / German highlights if any were entered
           ...(highlights_ko.some((h) => h.trim()) && { highlights_ko: highlights_ko.filter((h) => h.trim() !== "") }),
+          ...(highlights_de.some((h) => h.trim()) && { highlights_de: highlights_de.filter((h) => h.trim() !== "") }),
           packages,
           golf_courses: golfCourses.map((course) => ({
             ...course,
@@ -761,15 +769,167 @@ export function EditTripForm({ trip }: EditTripFormProps) {
             } else if (event.type === "progress") {
               setTranslateProgress({ done: event.done, total: event.total, label: event.label || "" })
             } else if (event.type === "complete") {
-              const partial = event.applied < event.requested
+              // The server emits `fieldsRequested` / `fieldsUpdated` /
+              // `partial` / `message`. The previous code read `event.applied`
+              // / `event.requested` which were always undefined, so the
+              // dialog always claimed success and showed "translated
+              // undefined fields" — even when some German fields silently
+              // failed. Use the server-provided summary instead.
+              const applied =
+                typeof event.fieldsUpdated === "number" ? event.fieldsUpdated : 0
+              const requested =
+                typeof event.fieldsRequested === "number"
+                  ? event.fieldsRequested
+                  : applied
+              const partial = !!event.partial
               setTranslateResult({
-                success: true,
+                success: event.success ?? !partial,
                 partial,
-                message: partial
-                  ? `Translated ${event.applied} of ${event.requested} fields. Some fields may need manual review.`
-                  : `Successfully translated ${event.applied} fields.`,
+                message:
+                  event.message ||
+                  (partial
+                    ? `Translated ${applied} of ${requested} fields. Some fields may need manual review.`
+                    : `Successfully translated ${applied} fields.`),
               })
-              router.refresh()
+
+              // Pull the freshly translated content back into local form
+              // state. router.refresh() alone is not enough because every
+              // localized field above is held in useState() initialized
+              // from props ONLY on mount, so a server re-render does not
+              // repopulate the inputs. Without this sync the user keeps
+              // seeing empty German fields and assumes the translation
+              // didn't run.
+              try {
+                const supabase = createClient()
+                const [
+                  { data: freshTrip },
+                  { data: freshCourses },
+                  { data: freshMeals },
+                  { data: freshTransports },
+                  { data: freshServices },
+                  { data: freshPackages },
+                ] = await Promise.all([
+                  supabase.from("trips").select("*").eq("id", trip.id).single(),
+                  supabase
+                    .from("trip_golf_courses")
+                    .select("*")
+                    .eq("trip_id", trip.id)
+                    .order("created_at", { ascending: true }),
+                  supabase
+                    .from("trip_meal_options")
+                    .select("*")
+                    .eq("trip_id", trip.id)
+                    .order("created_at", { ascending: true }),
+                  supabase
+                    .from("trip_transportation_options")
+                    .select("*")
+                    .eq("trip_id", trip.id)
+                    .order("created_at", { ascending: true }),
+                  supabase
+                    .from("trip_service_options")
+                    .select("*")
+                    .eq("trip_id", trip.id)
+                    .order("created_at", { ascending: true }),
+                  supabase
+                    .from("packages")
+                    .select("*")
+                    .eq("trip_id", trip.id)
+                    .order("created_at", { ascending: true }),
+                ])
+
+                if (freshTrip) {
+                  setFormData((prev) => ({
+                    ...prev,
+                    title_ko: freshTrip.title_ko || prev.title_ko,
+                    title_de: freshTrip.title_de || prev.title_de,
+                    description_ko: freshTrip.description_ko || prev.description_ko,
+                    description_de: freshTrip.description_de || prev.description_de,
+                    overview_content_ko:
+                      freshTrip.overview_content_ko || prev.overview_content_ko,
+                    overview_content_de:
+                      freshTrip.overview_content_de || prev.overview_content_de,
+                    refund_policy_ko:
+                      freshTrip.refund_policy_ko || prev.refund_policy_ko,
+                    refund_policy_de:
+                      freshTrip.refund_policy_de || prev.refund_policy_de,
+                    location_ko: freshTrip.location_ko || prev.location_ko,
+                    location_de: freshTrip.location_de || prev.location_de,
+                  }))
+                  if (Array.isArray(freshTrip.highlights_ko) && freshTrip.highlights_ko.length > 0) {
+                    setHighlights_ko(freshTrip.highlights_ko)
+                  }
+                  if (Array.isArray(freshTrip.highlights_de) && freshTrip.highlights_de.length > 0) {
+                    setHighlights_de(freshTrip.highlights_de)
+                  }
+                }
+
+                if (freshCourses && freshCourses.length > 0) {
+                  setGolfCourses((prev) =>
+                    prev.map((c) => {
+                      const match = freshCourses.find(
+                        (fc: any) => fc.id === c.id || fc.course_name === c.name,
+                      )
+                      if (!match) return c
+                      return {
+                        ...c,
+                        name_ko: match.course_name_ko || c.name_ko,
+                        name_de: match.course_name_de || c.name_de,
+                        description_ko: match.description_ko || c.description_ko,
+                        description_de: match.description_de || c.description_de,
+                      }
+                    }),
+                  )
+                }
+
+                const mergeTranslations = (
+                  prev: any[],
+                  fresh: any[] | null | undefined,
+                ) => {
+                  if (!fresh || fresh.length === 0) return prev
+                  return prev.map((row) => {
+                    const match = fresh.find(
+                      (fr: any) => fr.id === row.id || fr.name === row.name,
+                    )
+                    if (!match) return row
+                    return {
+                      ...row,
+                      name_ko: match.name_ko || row.name_ko,
+                      name_de: match.name_de || row.name_de,
+                      description_ko: match.description_ko || row.description_ko,
+                      description_de: match.description_de || row.description_de,
+                    }
+                  })
+                }
+
+                setMealOptions((prev) => mergeTranslations(prev, freshMeals))
+                setTransportationOptions((prev) =>
+                  mergeTranslations(prev, freshTransports),
+                )
+                setServiceOptions((prev) => mergeTranslations(prev, freshServices))
+
+                if (freshPackages && freshPackages.length > 0) {
+                  setPackages((prev) =>
+                    prev.map((p) => {
+                      const match = freshPackages.find(
+                        (fp: any) => fp.id === p.id || fp.name === p.name,
+                      )
+                      if (!match) return p
+                      return {
+                        ...p,
+                        name_ko: match.name_ko || p.name_ko,
+                        name_de: match.name_de || p.name_de,
+                        description_ko: match.description_ko || p.description_ko,
+                        description_de: match.description_de || p.description_de,
+                      }
+                    }),
+                  )
+                }
+              } catch (syncErr) {
+                console.error(
+                  "[v0] Failed to sync translated fields back to form state:",
+                  syncErr,
+                )
+              }
             } else if (event.type === "error") {
               setTranslateResult({ success: false, message: event.error || "Translation failed" })
             }
