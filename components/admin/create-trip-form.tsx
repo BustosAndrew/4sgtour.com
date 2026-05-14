@@ -44,6 +44,11 @@ type Package = {
 type GolfCourse = {
   id: string
   course_name: string
+  course_name_ko: string
+  course_name_de: string
+  description: string
+  description_ko: string
+  description_de: string
   max_rounds: string
   num_holes: string
 }
@@ -51,21 +56,33 @@ type GolfCourse = {
 type MealOption = {
   id: string
   name: string
+  name_ko: string
+  name_de: string
   description: string
+  description_ko: string
+  description_de: string
   is_included: boolean
 }
 
 type TransportationOption = {
   id: string
   name: string
+  name_ko: string
+  name_de: string
   description: string
+  description_ko: string
+  description_de: string
   is_included: boolean
 }
 
 type ServiceOption = {
   id: string
   name: string
+  name_ko: string
+  name_de: string
   description: string
+  description_ko: string
+  description_de: string
   is_included: boolean
 }
 
@@ -504,22 +521,39 @@ export function CreateTripForm() {
           })),
           golfCourses: golfCourses.map((course) => ({
             course_name: course.course_name,
+            course_name_ko: course.course_name_ko || null,
+            course_name_de: course.course_name_de || null,
+            description: course.description || null,
+            description_ko: course.description_ko || null,
+            description_de: course.description_de || null,
             max_rounds: Number(course.max_rounds),
             num_holes: Number(course.num_holes) || 18,
           })),
           mealOptions: mealOptions.map((meal) => ({
             name: meal.name,
-            description: meal.description,
+            name_ko: meal.name_ko || null,
+            name_de: meal.name_de || null,
+            description: meal.description || null,
+            description_ko: meal.description_ko || null,
+            description_de: meal.description_de || null,
             is_included: meal.is_included,
           })),
           transportationOptions: transportationOptions.map((transport) => ({
             name: transport.name,
-            description: transport.description,
+            name_ko: transport.name_ko || null,
+            name_de: transport.name_de || null,
+            description: transport.description || null,
+            description_ko: transport.description_ko || null,
+            description_de: transport.description_de || null,
             is_included: transport.is_included,
           })),
           serviceOptions: serviceOptions.map((service) => ({
             name: service.name,
-            description: service.description,
+            name_ko: service.name_ko || null,
+            name_de: service.name_de || null,
+            description: service.description || null,
+            description_ko: service.description_ko || null,
+            description_de: service.description_de || null,
             is_included: service.is_included,
           })),
         }),

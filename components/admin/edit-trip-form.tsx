@@ -247,31 +247,74 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     return (trip.golf_courses || []).map((course: any) => ({
       id: course.id,
       name: course.course_name || course.name || "",
+      name_ko: course.course_name_ko || "",
+      name_de: course.course_name_de || "",
       description: course.description || "",
+      description_ko: course.description_ko || "",
+      description_de: course.description_de || "",
       max_rounds: course.max_rounds || 5,
       num_holes: course.num_holes || 18,
     }))
   })
-  const [mealOptions, setMealOptions] = useState(trip.meal_options || [])
-  const [transportationOptions, setTransportationOptions] = useState(
-    trip.transportation_options || [],
-  )
-  const [serviceOptions, setServiceOptions] = useState(
-    trip.service_options || [
+  const [mealOptions, setMealOptions] = useState(() => {
+    return (trip.meal_options || []).map((meal: any) => ({
+      id: meal.id,
+      name: meal.name || "",
+      name_ko: meal.name_ko || "",
+      name_de: meal.name_de || "",
+      description: meal.description || "",
+      description_ko: meal.description_ko || "",
+      description_de: meal.description_de || "",
+      is_included: meal.is_included || false,
+    }))
+  })
+  const [transportationOptions, setTransportationOptions] = useState(() => {
+    return (trip.transportation_options || []).map((transport: any) => ({
+      id: transport.id,
+      name: transport.name || "",
+      name_ko: transport.name_ko || "",
+      name_de: transport.name_de || "",
+      description: transport.description || "",
+      description_ko: transport.description_ko || "",
+      description_de: transport.description_de || "",
+      is_included: transport.is_included || false,
+    }))
+  })
+  const [serviceOptions, setServiceOptions] = useState(() => {
+    const defaultServices = [
       {
         id: `caddy-${Date.now()}`,
         name: "Caddy",
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         is_included: false,
       },
       {
         id: `golf-cart-${Date.now()}`,
         name: "Golf Cart",
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         is_included: false,
       },
-    ],
-  )
+    ]
+    if (!trip.service_options?.length) return defaultServices
+    return trip.service_options.map((service: any) => ({
+      id: service.id,
+      name: service.name || "",
+      name_ko: service.name_ko || "",
+      name_de: service.name_de || "",
+      description: service.description || "",
+      description_ko: service.description_ko || "",
+      description_de: service.description_de || "",
+      is_included: service.is_included || false,
+    }))
+  })
 
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -372,7 +415,11 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       {
         id: `new-${Date.now()}`,
         name: "",
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         num_holes: 18,
         max_rounds: 5,
       },
@@ -395,9 +442,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       {
         id: `new-${Date.now()}`,
         name: "",
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         price: 0,
-        is_included: false, // Added is_included field
+        is_included: false,
       },
     ])
   }
@@ -418,9 +469,13 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       {
         id: `new-${Date.now()}`,
         name: "",
+        name_ko: "",
+        name_de: "",
         description: "",
+        description_ko: "",
+        description_de: "",
         price: 0,
-        is_included: false, // Added is_included field
+        is_included: false,
       },
     ])
   }
@@ -606,10 +661,32 @@ export function EditTripForm({ trip }: EditTripFormProps) {
           golf_courses: golfCourses.map((course) => ({
             ...course,
             course_name: course.name,
+            course_name_ko: course.name_ko || null,
+            course_name_de: course.name_de || null,
+            description_ko: course.description_ko || null,
+            description_de: course.description_de || null,
           })),
-          meal_options: mealOptions,
-          transportation_options: transportationOptions,
-          service_options: serviceOptions,
+          meal_options: mealOptions.map((meal) => ({
+            ...meal,
+            name_ko: meal.name_ko || null,
+            name_de: meal.name_de || null,
+            description_ko: meal.description_ko || null,
+            description_de: meal.description_de || null,
+          })),
+          transportation_options: transportationOptions.map((transport) => ({
+            ...transport,
+            name_ko: transport.name_ko || null,
+            name_de: transport.name_de || null,
+            description_ko: transport.description_ko || null,
+            description_de: transport.description_de || null,
+          })),
+          service_options: serviceOptions.map((service) => ({
+            ...service,
+            name_ko: service.name_ko || null,
+            name_de: service.name_de || null,
+            description_ko: service.description_ko || null,
+            description_de: service.description_de || null,
+          })),
         }),
       })
 
