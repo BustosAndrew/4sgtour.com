@@ -124,67 +124,29 @@ export async function POST(
   const isNonEmpty = (v: unknown): v is string =>
     typeof v === "string" && v.trim().length > 0
 
-  // Pre-count work units across all targets so the progress bar
-  // starts with a real total.
-  // DIRTY CHECKING: Skip fields that already have non-empty translations
+  // Pre-count work units across all targets so the progress bar starts
+  // with a real total. We intentionally do NOT skip fields that already
+  // have translations — every source field with content is always
+  // retranslated so admins can re-run the dialog to repair stale or
+  // partial translations without having to clear target fields first.
   let totalRequested = 0
-  let skippedAlreadyTranslated = 0
-  for (const targetLang of validTargets) {
-    const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
+  for (const _targetLang of validTargets) {
     for (const { key } of SIMPLE_FIELDS) {
       const sourceValue = event[`${key}${sourceSuffix}`]
-      const targetValue = event[`${key}${targetSuffix}`]
-      if (isNonEmpty(sourceValue)) {
-        if (isNonEmpty(targetValue)) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
+      if (isNonEmpty(sourceValue)) totalRequested++
     }
     for (const { key } of ARRAY_FIELDS) {
       const sourceArr = event[`${key}${sourceSuffix}`]
-      const targetArr = event[`${key}${targetSuffix}`]
       if (Array.isArray(sourceArr)) {
-        const sourceNonEmpty = sourceArr.filter(isNonEmpty).length
-        const targetNonEmpty = Array.isArray(targetArr) ? targetArr.filter(isNonEmpty).length : 0
-        if (targetNonEmpty >= sourceNonEmpty && sourceNonEmpty > 0) {
-          skippedAlreadyTranslated += sourceNonEmpty
-        } else {
-          totalRequested += sourceNonEmpty
-        }
+        totalRequested += sourceArr.filter(isNonEmpty).length
       }
     }
     for (const day of itineraryDays || []) {
-      const sourceTitle = day[`title${sourceSuffix}`]
-      const targetTitle = day[`title${targetSuffix}`]
-      if (isNonEmpty(sourceTitle)) {
-        if (isNonEmpty(targetTitle)) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
-      const sourceContent = day[`content${sourceSuffix}`]
-      const targetContent = day[`content${targetSuffix}`]
-      if (isNonEmpty(sourceContent)) {
-        if (isNonEmpty(targetContent)) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
+      if (isNonEmpty(day[`title${sourceSuffix}`])) totalRequested++
+      if (isNonEmpty(day[`content${sourceSuffix}`])) totalRequested++
     }
     for (const tier of pricingTiers || []) {
-      const sourceName = tier[`name${sourceSuffix}`]
-      const targetName = tier[`name${targetSuffix}`]
-      if (isNonEmpty(sourceName)) {
-        if (isNonEmpty(targetName)) {
-          skippedAlreadyTranslated++
-        } else {
-          totalRequested++
-        }
-      }
+      if (isNonEmpty(tier[`name${sourceSuffix}`])) totalRequested++
     }
   }
 
@@ -205,33 +167,18 @@ export async function POST(
 
       send({ type: "start", total: totalRequested })
 
-      // Nothing to translate — either source has no content or all fields already translated
+      // Nothing translatable on the source side at all.
       if (totalRequested === 0) {
         const sourceName = LANGUAGE_NAMES[sourceLanguage] ?? sourceLanguage
-        const targetNames = validTargets.map((l) => LANGUAGE_NAMES[l] ?? l).join(" & ")
-        
-        if (skippedAlreadyTranslated > 0) {
-          send({
-            type: "complete",
-            success: true,
-            partial: false,
-            message: `All ${skippedAlreadyTranslated} field(s) already have ${targetNames} translations. No changes needed.`,
-            fieldsRequested: 0,
-            fieldsUpdated: 0,
-            fieldsSkipped: skippedAlreadyTranslated,
-            failedFields: [],
-          })
-        } else {
-          send({
-            type: "complete",
-            success: false,
-            partial: false,
-            message: `No ${sourceName} content found on this event to translate. Please add content in ${sourceName} first.`,
-            fieldsRequested: 0,
-            fieldsUpdated: 0,
-            failedFields: [],
-          })
-        }
+        send({
+          type: "complete",
+          success: false,
+          partial: false,
+          message: `No ${sourceName} content found on this event to translate. Please add content in ${sourceName} first.`,
+          fieldsRequested: 0,
+          fieldsUpdated: 0,
+          failedFields: [],
+        })
         controller.close()
         return
       }
@@ -329,10 +276,8 @@ export async function POST(
 
           for (const { key, fieldType } of SIMPLE_FIELDS) {
             const sourceVal = event[`${key}${sourceSuffix}`]
-            const targetVal = event[`${key}${targetSuffix}`]
             if (!isNonEmpty(sourceVal)) continue
-            // DIRTY CHECK: Skip if target already has content
-            if (isNonEmpty(targetVal)) continue
+            // No dirty checking — always retranslate.
             const fieldKey = `${key}${targetSuffix}`
             shortBatch.push({ field: fieldKey, text: sourceVal, fieldType })
             applyByKey.set(fieldKey, { kind: "simple", targetField: fieldKey })
@@ -340,13 +285,8 @@ export async function POST(
 
           for (const { key, fieldType, long } of ARRAY_FIELDS) {
             const sourceData = event[`${key}${sourceSuffix}`]
-            const targetData = event[`${key}${targetSuffix}`]
             if (!Array.isArray(sourceData) || sourceData.length === 0) continue
-            
-            // DIRTY CHECK: Skip if target array already has same number of items
-            const sourceNonEmpty = sourceData.filter(isNonEmpty)
-            const targetNonEmpty = Array.isArray(targetData) ? targetData.filter(isNonEmpty) : []
-            if (targetNonEmpty.length >= sourceNonEmpty.length && sourceNonEmpty.length > 0) continue
+            // No dirty checking — always retranslate.
 
             const items = sourceData
               .map((text: string, i: number) => ({ text, i }))
@@ -376,9 +316,8 @@ export async function POST(
           if (itineraryDays?.length) {
             for (const day of itineraryDays) {
               const daySourceTitle = day[`title${sourceSuffix}`]
-              const dayTargetTitle = day[`title${targetSuffix}`]
-              // DIRTY CHECK: Skip if target already has content
-              if (isNonEmpty(daySourceTitle) && !isNonEmpty(dayTargetTitle)) {
+              // No dirty checking — always retranslate.
+              if (isNonEmpty(daySourceTitle)) {
                 const k = `day_title_${day.id}`
                 shortBatch.push({ field: k, text: daySourceTitle, fieldType: "title" })
                 applyByKey.set(k, {
@@ -388,9 +327,8 @@ export async function POST(
                 })
               }
               const daySourceContent = day[`content${sourceSuffix}`]
-              const dayTargetContent = day[`content${targetSuffix}`]
-              // DIRTY CHECK: Skip if target already has content
-              if (isNonEmpty(daySourceContent) && !isNonEmpty(dayTargetContent)) {
+              // No dirty checking — always retranslate.
+              if (isNonEmpty(daySourceContent)) {
                 const k = `day_content_${day.id}`
                 applyByKey.set(k, {
                   kind: "itinerary_day",
@@ -408,9 +346,8 @@ export async function POST(
           if (pricingTiers?.length) {
             for (const tier of pricingTiers) {
               const tierSourceName = tier[`name${sourceSuffix}`]
-              const tierTargetName = tier[`name${targetSuffix}`]
-              // DIRTY CHECK: Skip if target already has content
-              if (isNonEmpty(tierSourceName) && !isNonEmpty(tierTargetName)) {
+              // No dirty checking — always retranslate.
+              if (isNonEmpty(tierSourceName)) {
                 const k = `tier_name_${tier.id}`
                 shortBatch.push({ field: k, text: tierSourceName, fieldType: "title" })
                 applyByKey.set(k, {
@@ -517,10 +454,9 @@ export async function POST(
 
         const targetNames = validTargets.map((l) => LANGUAGE_NAMES[l] ?? l).join(", ")
         const partial = failedFields.length > 0
-        const skippedNote = skippedAlreadyTranslated > 0 ? ` (${skippedAlreadyTranslated} already translated)` : ""
         const message = partial
-          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}${skippedNote}. ${failedFields.length} field(s) could not be translated — try again.`
-          : `Translated ${totalApplied} fields to ${targetNames}${skippedNote}`
+          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}. ${failedFields.length} field(s) could not be translated — try again.`
+          : `Translated ${totalApplied} fields to ${targetNames}`
 
         send({
           type: "complete",
@@ -529,7 +465,6 @@ export async function POST(
           message,
           fieldsRequested: totalRequested,
           fieldsUpdated: totalApplied,
-          fieldsSkipped: skippedAlreadyTranslated,
           failedFields,
         })
       } catch (error: any) {

@@ -574,6 +574,56 @@ export function CreateTripForm() {
         throw new Error(errorData.error || "Failed to create trip")
       }
 
+      // After a successful create, ALWAYS run translation for the other
+      // two languages from the English source. Admins use the create form
+      // to enter primarily English content, and the previously-required
+      // manual "Translate" click in step 4 was easy to forget — this
+      // guarantees every newly created trip ships with Korean and German
+      // populated. The translate route's no-dirty-check behavior also
+      // means it will safely overwrite anything the admin happened to
+      // type by hand if they chose to.
+      try {
+        const createdTrip = await response.json()
+        const newTripId = createdTrip?.id
+        if (newTripId) {
+          // Stream endpoint — we don't show progress UI here, just wait
+          // for the SSE stream to complete so the redirect lands on a
+          // fully-translated record.
+          const translateResp = await fetch(
+            `/api/admin/translate-trip/${newTripId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sourceLanguage: "en",
+                targetLanguages: ["ko", "de"],
+              }),
+            },
+          )
+
+          if (translateResp.ok && translateResp.body) {
+            // Drain the SSE stream so the redirect happens after the
+            // server has finished writing translations to the DB.
+            const reader = translateResp.body.getReader()
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+              const { done } = await reader.read()
+              if (done) break
+            }
+          } else if (!translateResp.ok) {
+            console.error(
+              "[v0] Auto-translate after create failed with status",
+              translateResp.status,
+            )
+          }
+        }
+      } catch (translateErr) {
+        // Don't block the redirect on translation problems — the trip
+        // itself was created successfully and the admin can re-run the
+        // translation from the edit page.
+        console.error("[v0] Auto-translate after create threw:", translateErr)
+      }
+
       window.location.href = "/admin"
     } catch (error) {
       console.error("[v0] Error creating trip:", error)

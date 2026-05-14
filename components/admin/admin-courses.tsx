@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  ExternalLink,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -717,6 +718,21 @@ export function AdminCourses({
                                           ${getTripDisplayPrice(trip).toFixed(2)}
                                         </span>
                                         <div className="flex gap-1">
+                                          <a
+                                            href={`/trips/${trip.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-8 w-8 text-white hover:bg-white/10"
+                                              title="View Trip"
+                                            >
+                                              <ExternalLink className="h-4 w-4" />
+                                            </Button>
+                                          </a>
                                           <Button
                                             size="icon"
                                             variant="ghost"
@@ -856,6 +872,21 @@ export function AdminCourses({
                                   </div>
                                 </div>
                                 <div className="flex gap-1">
+                                  <a
+                                    href={`/tournaments/${tournament.slug}/${event.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-[#274C77] hover:text-[#274C77]/80"
+                                      title="View Event"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                    </Button>
+                                  </a>
                                   <Button
                                     size="icon"
                                     variant="ghost"

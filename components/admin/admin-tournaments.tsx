@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  ExternalLink,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -292,6 +293,21 @@ export function AdminTournaments({
                             </div>
 
                             <div className="flex items-center gap-1">
+                              <a
+                                href={`/tournaments/${tournament.slug}/${event.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-gray-600 hover:bg-gray-100"
+                                  title="View Event"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              </a>
                               <Link href={`/admin/tournaments/${tournament.id}/events/${event.id}`}>
                                 <Button
                                   size="icon"

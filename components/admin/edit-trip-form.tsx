@@ -2529,19 +2529,44 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 </h3>
                 {packages.length > 0 ? (
                   <div className="space-y-4">
-                    {packages.map((pkg, idx) => (
+                    {packages.map((pkg, idx) => {
+                      const pkgName =
+                        activeLang === "en"
+                          ? pkg.name
+                          : activeLang === "ko"
+                            ? (pkg as any).name_ko
+                            : (pkg as any).name_de
+                      const pkgDescription =
+                        activeLang === "en"
+                          ? pkg.description
+                          : activeLang === "ko"
+                            ? (pkg as any).description_ko
+                            : (pkg as any).description_de
+                      return (
                       <div
                         key={pkg.id}
                         className="rounded border border-border bg-muted/20 p-4 text-sm"
                       >
                         <p className="mb-2 font-medium">
-                          {pkg.name || `Package ${idx + 1}`}
+                          {pkgName ? (
+                            pkgName
+                          ) : activeLang === "en" ? (
+                            `Package ${idx + 1}`
+                          ) : (
+                            <span className="italic text-muted-foreground">
+                              No {activeLang === "ko" ? "Korean" : "German"} translation
+                            </span>
+                          )}
                         </p>
-                        {pkg.description && (
+                        {pkgDescription ? (
                           <p className="mb-2 text-muted-foreground">
-                            {pkg.description}
+                            {pkgDescription}
                           </p>
-                        )}
+                        ) : activeLang !== "en" && pkg.description ? (
+                          <p className="mb-2 italic text-muted-foreground">
+                            No {activeLang === "ko" ? "Korean" : "German"} description translation
+                          </p>
+                        ) : null}
                         <div className="grid gap-2 md:grid-cols-2">
                           <div>
                             <span className="font-medium">Price:</span> $
@@ -2560,7 +2585,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
@@ -2576,19 +2602,44 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                 </h3>
                 {golfCourses.length > 0 ? (
                   <div className="space-y-4">
-                    {golfCourses.map((course, idx) => (
+                    {golfCourses.map((course, idx) => {
+                      const courseName =
+                        activeLang === "en"
+                          ? course.name
+                          : activeLang === "ko"
+                            ? (course as any).name_ko
+                            : (course as any).name_de
+                      const courseDescription =
+                        activeLang === "en"
+                          ? course.description
+                          : activeLang === "ko"
+                            ? (course as any).description_ko
+                            : (course as any).description_de
+                      return (
                       <div
                         key={course.id}
                         className="rounded border border-border bg-muted/20 p-4 text-sm"
                       >
                         <p className="mb-2 font-medium">
-                          {course.name || `Course ${idx + 1}`}
+                          {courseName ? (
+                            courseName
+                          ) : activeLang === "en" ? (
+                            `Course ${idx + 1}`
+                          ) : (
+                            <span className="italic text-muted-foreground">
+                              No {activeLang === "ko" ? "Korean" : "German"} translation
+                            </span>
+                          )}
                         </p>
-                        {course.description && (
+                        {courseDescription ? (
                           <p className="mb-2 text-muted-foreground">
-                            {course.description}
+                            {courseDescription}
                           </p>
-                        )}
+                        ) : activeLang !== "en" && course.description ? (
+                          <p className="mb-2 italic text-muted-foreground">
+                            No {activeLang === "ko" ? "Korean" : "German"} description translation
+                          </p>
+                        ) : null}
                         <div>
                           <span className="font-medium">Holes:</span>{" "}
                           {course.num_holes || 18} |{" "}
@@ -2596,7 +2647,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                           {course.max_rounds || 5}
                         </div>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
@@ -2609,21 +2661,48 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               <div className="rounded-lg border border-border p-6">
                 <h3 className="mb-4 text-lg font-semibold">Meal Options</h3>
                 <div className="space-y-4">
-                  {mealOptions.map((meal, idx) => (
+                  {mealOptions.map((meal, idx) => {
+                    const mealName =
+                      activeLang === "en"
+                        ? meal.name
+                        : activeLang === "ko"
+                          ? (meal as any).name_ko
+                          : (meal as any).name_de
+                    const mealDescription =
+                      activeLang === "en"
+                        ? meal.description
+                        : activeLang === "ko"
+                          ? (meal as any).description_ko
+                          : (meal as any).description_de
+                    return (
                     <div
                       key={meal.id}
                       className="rounded border border-border bg-muted/20 p-4 text-sm"
                     >
                       <p className="mb-2 font-medium">
-                        {meal.name} {meal.is_included && "(Included)"}
+                        {mealName ? (
+                          mealName
+                        ) : activeLang === "en" ? (
+                          `Meal Option ${idx + 1}`
+                        ) : (
+                          <span className="italic text-muted-foreground">
+                            No {activeLang === "ko" ? "Korean" : "German"} translation
+                          </span>
+                        )}
+                        {meal.is_included && " (Included)"}
                       </p>
-                      {meal.description && (
+                      {mealDescription ? (
                         <p className="text-muted-foreground">
-                          {meal.description}
+                          {mealDescription}
                         </p>
-                      )}
+                      ) : activeLang !== "en" && meal.description ? (
+                        <p className="italic text-muted-foreground">
+                          No {activeLang === "ko" ? "Korean" : "German"} description translation
+                        </p>
+                      ) : null}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 {mealOptions.length === 0 && (
                   <p className="text-sm text-muted-foreground">
@@ -2638,21 +2717,48 @@ export function EditTripForm({ trip }: EditTripFormProps) {
                   Transportation Options
                 </h3>
                 <div className="space-y-4">
-                  {transportationOptions.map((transport, idx) => (
+                  {transportationOptions.map((transport, idx) => {
+                    const transportName =
+                      activeLang === "en"
+                        ? transport.name
+                        : activeLang === "ko"
+                          ? (transport as any).name_ko
+                          : (transport as any).name_de
+                    const transportDescription =
+                      activeLang === "en"
+                        ? transport.description
+                        : activeLang === "ko"
+                          ? (transport as any).description_ko
+                          : (transport as any).description_de
+                    return (
                     <div
                       key={transport.id}
                       className="rounded border border-border bg-muted/20 p-4 text-sm"
                     >
                       <p className="mb-2 font-medium">
-                        {transport.name} {transport.is_included && "(Included)"}
+                        {transportName ? (
+                          transportName
+                        ) : activeLang === "en" ? (
+                          `Transportation Option ${idx + 1}`
+                        ) : (
+                          <span className="italic text-muted-foreground">
+                            No {activeLang === "ko" ? "Korean" : "German"} translation
+                          </span>
+                        )}
+                        {transport.is_included && " (Included)"}
                       </p>
-                      {transport.description && (
+                      {transportDescription ? (
                         <p className="text-muted-foreground">
-                          {transport.description}
+                          {transportDescription}
                         </p>
-                      )}
+                      ) : activeLang !== "en" && transport.description ? (
+                        <p className="italic text-muted-foreground">
+                          No {activeLang === "ko" ? "Korean" : "German"} description translation
+                        </p>
+                      ) : null}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 {transportationOptions.length === 0 && (
                   <p className="text-sm text-muted-foreground">

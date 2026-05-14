@@ -431,6 +431,47 @@ const handleSubmit = async (e: React.FormEvent) => {
         throw new Error(data.error || "Failed to create event")
       }
 
+      // After a successful create, auto-translate to Korean and German
+      // so every new event ships fully localized without a separate
+      // manual translate step.
+      try {
+        const createdEvent = await response.json()
+        const newEventId = createdEvent?.id
+        if (newEventId) {
+          const translateResp = await fetch(
+            `/api/admin/translate-event/${newEventId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sourceLanguage: "en",
+                targetLanguages: ["ko", "de"],
+              }),
+            },
+          )
+
+          if (translateResp.ok && translateResp.body) {
+            // Drain the SSE stream so the redirect happens after the
+            // server has finished writing translations to the DB.
+            const reader = translateResp.body.getReader()
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+              const { done } = await reader.read()
+              if (done) break
+            }
+          } else if (!translateResp.ok) {
+            console.error(
+              "[v0] Auto-translate after event create failed with status",
+              translateResp.status,
+            )
+          }
+        }
+      } catch (translateErr) {
+        // Don't block the redirect on translation problems — the event
+        // itself was created successfully and admin can re-run from edit.
+        console.error("[v0] Auto-translate after event create threw:", translateErr)
+      }
+
       router.push("/admin?tab=tournaments")
       router.refresh()
     } catch (error) {
