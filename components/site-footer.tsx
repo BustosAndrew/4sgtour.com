@@ -234,7 +234,6 @@ export function SiteFooter() {
                     4sgtour.com
                   </a>
                 </div>
-                </div>
               </div>
             </div>
           </div>
