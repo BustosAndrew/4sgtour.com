@@ -151,14 +151,14 @@ export function SiteFooter() {
                     href="tel:+4915152954627"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('phone')}: </span>
+                    <span className="text-white">{t('phone')}: </span>
                     +49 151 52954627
                   </a>
                   <a
                     href="mailto:info@4sgtour.de"
                     className="block uppercase hover:text-white"
                   >
-                    <span className="text-white/70 normal-case">{t('email')}: </span>
+                    <span className="text-white normal-case">{t('email')}: </span>
                     info@4sgtour.de
                   </a>
                   <a
@@ -167,7 +167,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('website')}: </span>
+                    <span className="text-white">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
@@ -218,14 +218,14 @@ export function SiteFooter() {
                     href="tel:+436644609184"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('phone')}: </span>
+                    <span className="text-white">{t('phone')}: </span>
                     +43 664 4609184
                   </a>
                   <a
                     href="mailto:info@4sgtour.at"
                     className="block uppercase hover:text-white"
                   >
-                    <span className="text-white/70 normal-case">{t('email')}: </span>
+                    <span className="text-white normal-case">{t('email')}: </span>
                     info@4sgtour.at
                   </a>
                   <a
@@ -234,7 +234,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('website')}: </span>
+                    <span className="text-white">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
