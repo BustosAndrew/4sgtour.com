@@ -106,51 +106,136 @@ export function SiteFooter() {
           </div>
 
           {/* Branch Sites */}
-          <div className="flex flex-col justify-center md:justify-start gap-6 h-fit">
-            <a
-              href="https://4sgtour.de"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center transition-opacity hover:opacity-80"
-            >
-              <div className="relative h-14 w-14 sm:h-16 sm:w-16">
-                <Image
-                  src="/images/cert-logo.png"
-                  alt={t('germany')}
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 640px) 4rem, 3.5rem"
-                />
-              </div>
-              <p
-                className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
-                style={{ fontFamily: 'var(--font-body)' }}
+          <div className="flex flex-col justify-center md:justify-start gap-8 h-fit">
+            {/* Germany Branch */}
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <a
+                href="https://4sgtour.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
               >
-                {renderBranchLabel(t('germany'))}
-              </p>
-            </a>
-            <a
-              href="https://4sgtour.at"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center transition-opacity hover:opacity-80"
-            >
-              <div className="relative h-14 w-14 sm:h-16 sm:w-16">
-                <Image
-                  src="/images/cert-logo.png"
-                  alt={t('austria')}
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 640px) 4rem, 3.5rem"
-                />
+                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt={t('germany')}
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 4rem, 3.5rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {renderBranchLabel(t('germany'))}
+                </p>
+              </a>
+
+              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+                <address className="not-italic">
+                  <span className="block font-semibold text-white">
+                    Hans-Krauß-Str. 4/6
+                  </span>
+                  <span className="block">71686 Remseck am Neckar</span>
+                  <span className="block">Germany</span>
+                </address>
+                <div>
+                  <span className="block font-semibold text-white">
+                    Davit Zacher
+                  </span>
+                  <span className="block text-white/70">{t('president')}</span>
+                </div>
+                <div className="space-y-1">
+                  <a
+                    href="tel:+4915152954627"
+                    className="block hover:text-white"
+                  >
+                    <span className="text-white/70">{t('phone')}: </span>
+                    +49 151 52954627
+                  </a>
+                  <a
+                    href="mailto:info@4sgtour.de"
+                    className="block uppercase hover:text-white"
+                  >
+                    info@4sgtour.de
+                  </a>
+                  <a
+                    href="https://www.4sgtour.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:text-white"
+                  >
+                    4sgtour.com
+                  </a>
+                </div>
               </div>
-              <p
-                className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
-                style={{ fontFamily: 'var(--font-body)' }}
+            </div>
+
+            {/* Austria Branch */}
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <a
+                href="https://4sgtour.at"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
               >
-                {renderBranchLabel(t('austria'))}
-              </p>
-            </a>
+                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt={t('austria')}
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 4rem, 3.5rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {renderBranchLabel(t('austria'))}
+                </p>
+              </a>
+
+              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+                <address className="not-italic">
+                  <span className="block font-semibold text-white">
+                    Feldweg 578A
+                  </span>
+                  <span className="block">6108 Scharnitz</span>
+                  <span className="block">Austria</span>
+                </address>
+                <div>
+                  <span className="block font-semibold text-white">
+                    Heesun Zacher
+                  </span>
+                  <span className="block text-white/70">{t('president')}</span>
+                </div>
+                <div className="space-y-1">
+                  <a
+                    href="tel:+436644609184"
+                    className="block hover:text-white"
+                  >
+                    <span className="text-white/70">{t('phone')}: </span>
+                    +43 664 4609184
+                  </a>
+                  <a
+                    href="mailto:info@4sgtour.at"
+                    className="block uppercase hover:text-white"
+                  >
+                    info@4sgtour.at
+                  </a>
+                  <a
+                    href="https://www.4sgtour.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:text-white"
+                  >
+                    4sgtour.com
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Column 3: Legal + Site Map */}
