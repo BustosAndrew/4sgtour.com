@@ -106,14 +106,14 @@ export function SiteFooter() {
           </div>
 
           {/* Column 2: Branch Sites (Germany & Austria) */}
-          <div className="flex flex-col items-center md:items-start gap-8">
+          <div className="flex flex-col items-center gap-8">
             {/* Germany Branch */}
-            <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex flex-col items-center gap-3">
               <a
                 href="https://4sgtour.de"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
               >
                 <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                   <Image
@@ -125,14 +125,14 @@ export function SiteFooter() {
                   />
                 </div>
                 <p
-                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {renderBranchLabel(t('germany'))}
                 </p>
               </a>
 
-              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[12px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Hans-Krauß-Str. 4/6
@@ -173,12 +173,12 @@ export function SiteFooter() {
             </div>
 
             {/* Austria Branch */}
-            <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex flex-col items-center gap-3">
               <a
                 href="https://4sgtour.at"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
               >
                 <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                   <Image
@@ -190,14 +190,14 @@ export function SiteFooter() {
                   />
                 </div>
                 <p
-                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {renderBranchLabel(t('austria'))}
                 </p>
               </a>
 
-              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[12px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Feldweg 578A
