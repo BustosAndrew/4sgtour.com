@@ -102,8 +102,13 @@ export function ContinentsView({ destinations, locale = 'en', messages = {} }: C
                   alt={continent.displayName || continent.name.replace('\n', ' ')}
                   fill
                   className="scale-100 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  quality={90}
+                  // Panels span 100vw on mobile, but on desktop the 5 panels
+                  // share the row and any one can grow to ~30vw on hover.
+                  // Bias the breakpoints toward the larger rendered size so
+                  // Next.js serves a high-resolution variant from
+                  // deviceSizes rather than a 640/750-wide thumbnail.
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
+                  quality={95}
                   priority
                 />
                 {/* Dark overlay that lightens on hover */}
