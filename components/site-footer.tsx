@@ -29,7 +29,7 @@ export function SiteFooter() {
   return (
     <footer className="bg-[#22333b] text-white">
       <div className="container py-26">
-        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-8">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_0.8fr_1fr] md:gap-x-10">
           {/* Column 1: Logo, Social Icons, Branch Sites */}
           <div>
             <div className="mb-6">
@@ -105,15 +105,15 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Branch Sites */}
-          <div className="flex flex-col justify-center md:justify-start gap-8 h-fit">
+          {/* Column 2: Branch Sites (Germany & Austria) */}
+          <div className="flex flex-col items-center gap-8">
             {/* Germany Branch */}
-            <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex flex-col items-center gap-3">
               <a
                 href="https://4sgtour.de"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
               >
                 <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                   <Image
@@ -125,14 +125,14 @@ export function SiteFooter() {
                   />
                 </div>
                 <p
-                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {renderBranchLabel(t('germany'))}
                 </p>
               </a>
 
-              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[14px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Hans-Krauß-Str. 4/6
@@ -151,13 +151,14 @@ export function SiteFooter() {
                     href="tel:+4915152954627"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('phone')}: </span>
+                    <span className="text-white">{t('phone')}: </span>
                     +49 151 52954627
                   </a>
                   <a
                     href="mailto:info@4sgtour.de"
                     className="block uppercase hover:text-white"
                   >
+                    <span className="text-white normal-case">{t('email')}: </span>
                     info@4sgtour.de
                   </a>
                   <a
@@ -166,6 +167,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
+                    <span className="text-white">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
@@ -173,12 +175,12 @@ export function SiteFooter() {
             </div>
 
             {/* Austria Branch */}
-            <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex flex-col items-center gap-3">
               <a
                 href="https://4sgtour.at"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center md:items-start transition-opacity hover:opacity-80"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
               >
                 <div className="relative h-14 w-14 sm:h-16 sm:w-16">
                   <Image
@@ -190,14 +192,14 @@ export function SiteFooter() {
                   />
                 </div>
                 <p
-                  className="mt-2 text-center md:text-left text-[9px] font-bold uppercase sm:text-[10px]"
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {renderBranchLabel(t('austria'))}
                 </p>
               </a>
 
-              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[14px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Feldweg 578A
@@ -216,13 +218,14 @@ export function SiteFooter() {
                     href="tel:+436644609184"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('phone')}: </span>
+                    <span className="text-white">{t('phone')}: </span>
                     +43 664 4609184
                   </a>
                   <a
                     href="mailto:info@4sgtour.at"
                     className="block uppercase hover:text-white"
                   >
+                    <span className="text-white normal-case">{t('email')}: </span>
                     info@4sgtour.at
                   </a>
                   <a
@@ -231,6 +234,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
+                    <span className="text-white">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
