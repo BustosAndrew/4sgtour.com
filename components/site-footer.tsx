@@ -160,6 +160,14 @@ export function SiteFooter() {
                   >
                     info@4sgtour.de
                   </a>
+                  <a
+                    href="https://www.4sgtour.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:text-white"
+                  >
+                    4sgtour.com
+                  </a>
                 </div>
               </div>
             </div>
@@ -217,6 +225,15 @@ export function SiteFooter() {
                   >
                     info@4sgtour.at
                   </a>
+                  <a
+                    href="https://www.4sgtour.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:text-white"
+                  >
+                    4sgtour.com
+                  </a>
+                </div>
                 </div>
               </div>
             </div>
