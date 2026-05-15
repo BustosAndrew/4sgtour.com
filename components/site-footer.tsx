@@ -103,7 +103,6 @@ export function SiteFooter() {
                 />
               </Link>
             </div>
-            </div>
           </div>
 
           {/* Column 2: Branch Sites (Germany & Austria) */}
