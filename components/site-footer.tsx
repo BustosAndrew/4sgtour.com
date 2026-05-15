@@ -158,6 +158,7 @@ export function SiteFooter() {
                     href="mailto:info@4sgtour.de"
                     className="block uppercase hover:text-white"
                   >
+                    <span className="text-white/70 normal-case">{t('email')}: </span>
                     info@4sgtour.de
                   </a>
                   <a
@@ -166,6 +167,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
+                    <span className="text-white/70">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
@@ -223,6 +225,7 @@ export function SiteFooter() {
                     href="mailto:info@4sgtour.at"
                     className="block uppercase hover:text-white"
                   >
+                    <span className="text-white/70 normal-case">{t('email')}: </span>
                     info@4sgtour.at
                   </a>
                   <a
@@ -231,6 +234,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="block hover:text-white"
                   >
+                    <span className="text-white/70">{t('website')}: </span>
                     4sgtour.com
                   </a>
                 </div>
