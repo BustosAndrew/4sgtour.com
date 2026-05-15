@@ -62,6 +62,9 @@
     "email": "Email",
     "germany": "4 Seasons Golf Tour Germany",
     "austria": "4 Seasons Golf Tour Austria",
+    "president": "President",
+    "mobile": "Mobile",
+    "phone": "Phone",
     "paymentMethods": "Payment Methods"
   },
   "contact": {
