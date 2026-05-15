@@ -132,7 +132,7 @@ export function SiteFooter() {
                 </p>
               </a>
 
-              <div className="text-center text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[14px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Hans-Krauß-Str. 4/6
@@ -199,7 +199,7 @@ export function SiteFooter() {
                 </p>
               </a>
 
-              <div className="text-center text-[12px] leading-relaxed text-white/80 space-y-2">
+              <div className="text-center text-[14px] leading-relaxed text-white/80 space-y-2">
                 <address className="not-italic">
                   <span className="block font-semibold text-white">
                     Feldweg 578A
