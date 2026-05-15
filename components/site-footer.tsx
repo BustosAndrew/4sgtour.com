@@ -208,7 +208,7 @@ export function SiteFooter() {
                     href="tel:+436644609184"
                     className="block hover:text-white"
                   >
-                    <span className="text-white/70">{t('mobile')}: </span>
+                    <span className="text-white/70">{t('phone')}: </span>
                     +43 664 4609184
                   </a>
                   <a
