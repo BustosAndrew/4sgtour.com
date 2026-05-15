@@ -29,7 +29,7 @@ export function SiteFooter() {
   return (
     <footer className="bg-[#22333b] text-white">
       <div className="container py-26">
-        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-8">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_0.8fr_1fr] md:gap-x-10">
           {/* Column 1: Logo, Social Icons, Branch Sites */}
           <div>
             <div className="mb-6">
@@ -103,10 +103,11 @@ export function SiteFooter() {
                 />
               </Link>
             </div>
+            </div>
           </div>
 
-          {/* Branch Sites */}
-          <div className="flex flex-col justify-center md:justify-start gap-8 h-fit">
+          {/* Column 2: Branch Sites (Germany & Austria) */}
+          <div className="flex flex-col items-center md:items-start gap-8">
             {/* Germany Branch */}
             <div className="flex flex-col items-center md:items-start gap-3">
               <a
