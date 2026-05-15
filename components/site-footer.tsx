@@ -129,28 +129,59 @@ export function SiteFooter() {
                 {renderBranchLabel(t('germany'))}
               </p>
             </a>
-            <a
-              href="https://4sgtour.at"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center transition-opacity hover:opacity-80"
-            >
-              <div className="relative h-14 w-14 sm:h-16 sm:w-16">
-                <Image
-                  src="/images/cert-logo.png"
-                  alt={t('austria')}
-                  fill
-                  className="object-contain"
-                  sizes="(min-width: 640px) 4rem, 3.5rem"
-                />
-              </div>
-              <p
-                className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
-                style={{ fontFamily: 'var(--font-body)' }}
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <a
+                href="https://4sgtour.at"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center transition-opacity hover:opacity-80"
               >
-                {renderBranchLabel(t('austria'))}
-              </p>
-            </a>
+                <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                  <Image
+                    src="/images/cert-logo.png"
+                    alt={t('austria')}
+                    fill
+                    className="object-contain"
+                    sizes="(min-width: 640px) 4rem, 3.5rem"
+                  />
+                </div>
+                <p
+                  className="mt-2 text-center text-[9px] font-bold uppercase sm:text-[10px]"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {renderBranchLabel(t('austria'))}
+                </p>
+              </a>
+
+              <div className="text-center md:text-left text-[12px] leading-relaxed text-white/80 space-y-2">
+                <address className="not-italic">
+                  <span className="block font-semibold text-white">
+                    Feldweg 578A
+                  </span>
+                  <span className="block">6108 Scharnitz, Austria</span>
+                </address>
+                <div>
+                  <span className="block font-semibold text-white">
+                    Heesun Zacher
+                  </span>
+                  <span className="block text-white/70">President</span>
+                </div>
+                <div className="space-y-1">
+                  <a
+                    href="tel:+436644609184"
+                    className="block hover:text-white"
+                  >
+                    +43 664 4609184
+                  </a>
+                  <a
+                    href="mailto:info@4sgtour.at"
+                    className="block uppercase hover:text-white"
+                  >
+                    info@4sgtour.at
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Column 3: Legal + Site Map */}
