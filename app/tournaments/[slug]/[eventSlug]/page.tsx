@@ -18,12 +18,16 @@ export async function generateMetadata({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, title')
+    .select('id, display_name')
     .eq('slug', slug)
     .single()
 
   if (!tournament) {
-    return { title: 'Event Not Found | 4 Seasons Golf Tour' }
+    return {
+      title: '4 Seasons Golf Tour',
+      description:
+        'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
+    }
   }
 
   const { data: event } = await supabase
@@ -34,26 +38,29 @@ export async function generateMetadata({
     .single()
 
   if (!event) {
-    return { title: 'Event Not Found | 4 Seasons Golf Tour' }
+    return {
+      title: `${tournament.display_name} | 4 Seasons Golf Tour`,
+      description: `Experience the ${tournament.display_name} with 4 Seasons Golf Tour.`,
+    }
   }
 
   const description =
-    event.description ||
-    `Join us for ${event.title} at ${event.location || tournament.title}. Book your tickets with 4 Seasons Golf Tour.`
+    (Array.isArray(event.description) ? event.description[0] : event.description) ||
+    `Join us for ${event.title} at ${event.location || tournament.display_name}. Book your tickets with 4 Seasons Golf Tour.`
 
   return {
-    title: `${event.title} | ${tournament.title} | 4 Seasons Golf Tour`,
-    description: description.slice(0, 160),
+    title: `${event.title} | ${tournament.display_name} | 4 Seasons Golf Tour`,
+    description: (typeof description === 'string' ? description : '').slice(0, 160),
     openGraph: {
-      title: `${event.title} | ${tournament.title} | 4 Seasons Golf Tour`,
-      description: description.slice(0, 160),
+      title: `${event.title} | ${tournament.display_name} | 4 Seasons Golf Tour`,
+      description: (typeof description === 'string' ? description : '').slice(0, 160),
       images: event.image ? [event.image] : undefined,
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${event.title} | ${tournament.title}`,
-      description: description.slice(0, 160),
+      title: `${event.title} | ${tournament.display_name}`,
+      description: (typeof description === 'string' ? description : '').slice(0, 160),
       images: event.image ? [event.image] : undefined,
     },
   }
@@ -67,7 +74,7 @@ export default async function EventPage({ params }: EventPageProps) {
   // Get tournament
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, slug, name, hero_image')
+    .select('id, slug, display_name, hero_image')
     .eq('slug', slug)
     .single()
 
