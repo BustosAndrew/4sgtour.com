@@ -18,7 +18,7 @@ export async function generateMetadata({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('display_name, description, hero_image, logo')
+    .select('display_name, hero_image, logo')
     .eq('slug', slug)
     .single()
 
@@ -30,9 +30,7 @@ export async function generateMetadata({
     }
   }
 
-  const description =
-    tournament.description ||
-    `Join us for ${tournament.display_name}. Experience world-class golf tournaments with 4 Seasons Golf Tour.`
+  const description = `Join us for ${tournament.display_name}. Experience world-class golf tournaments with 4 Seasons Golf Tour.`
 
   return {
     title: `${tournament.display_name} | 4 Seasons Golf Tour`,

@@ -74,7 +74,7 @@ export default async function EventPage({ params }: EventPageProps) {
   // Get tournament
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, slug, name, hero_image')
+    .select('id, slug, display_name, hero_image')
     .eq('slug', slug)
     .single()
 
