@@ -4,7 +4,7 @@ This repository contains the source for a golf trip booking platform built with 
 
 Live deployment
 
-- Vercel (project): https://vercel.com/bustosandrews-projects/v0-golf
+- Vercel (project): https://4sgtour.com
 
 Tech stack
 
