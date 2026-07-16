@@ -18,32 +18,34 @@ export async function generateMetadata({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('title, description, image_url')
+    .select('display_name, hero_image, logo')
     .eq('slug', slug)
     .single()
 
   if (!tournament) {
-    return { title: 'Tournament Not Found | 4 Seasons Golf Tour' }
+    return {
+      title: '4 Seasons Golf Tour',
+      description:
+        'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
+    }
   }
 
-  const description =
-    tournament.description ||
-    `Join us for ${tournament.title}. Experience world-class golf tournaments with 4 Seasons Golf Tour.`
+  const description = `Join us for ${tournament.display_name}. Experience world-class golf tournaments with 4 Seasons Golf Tour.`
 
   return {
-    title: `${tournament.title} | 4 Seasons Golf Tour`,
+    title: `${tournament.display_name} | 4 Seasons Golf Tour`,
     description: description.slice(0, 160),
     openGraph: {
-      title: `${tournament.title} | 4 Seasons Golf Tour`,
+      title: `${tournament.display_name} | 4 Seasons Golf Tour`,
       description: description.slice(0, 160),
-      images: tournament.image_url ? [tournament.image_url] : undefined,
+      images: tournament.hero_image ? [tournament.hero_image] : undefined,
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${tournament.title} | 4 Seasons Golf Tour`,
+      title: `${tournament.display_name} | 4 Seasons Golf Tour`,
       description: description.slice(0, 160),
-      images: tournament.image_url ? [tournament.image_url] : undefined,
+      images: tournament.hero_image ? [tournament.hero_image] : undefined,
     },
   }
 }
