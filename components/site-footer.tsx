@@ -140,12 +140,6 @@ export function SiteFooter() {
                   <span className="block">71686 Remseck am Neckar</span>
                   <span className="block">Germany</span>
                 </address>
-                <div>
-                  <span className="block font-semibold text-white">
-                    Davit Zacher
-                  </span>
-                  <span className="block text-white/70">{t('president')}</span>
-                </div>
                 <div className="space-y-1">
                   <a
                     href="tel:+4915152954627"
@@ -158,7 +152,9 @@ export function SiteFooter() {
                     href="mailto:info@4sgtour.de"
                     className="block uppercase hover:text-white"
                   >
-                    <span className="text-white normal-case">{t('email')}: </span>
+                    <span className="text-white normal-case">
+                      {t('email')}:{' '}
+                    </span>
                     info@4sgtour.de
                   </a>
                   <a
@@ -207,12 +203,6 @@ export function SiteFooter() {
                   <span className="block">6108 Scharnitz</span>
                   <span className="block">Austria</span>
                 </address>
-                <div>
-                  <span className="block font-semibold text-white">
-                    Heesun Zacher
-                  </span>
-                  <span className="block text-white/70">{t('president')}</span>
-                </div>
                 <div className="space-y-1">
                   <a
                     href="tel:+436644609184"
@@ -225,7 +215,9 @@ export function SiteFooter() {
                     href="mailto:info@4sgtour.at"
                     className="block uppercase hover:text-white"
                   >
-                    <span className="text-white normal-case">{t('email')}: </span>
+                    <span className="text-white normal-case">
+                      {t('email')}:{' '}
+                    </span>
                     info@4sgtour.at
                   </a>
                   <a
