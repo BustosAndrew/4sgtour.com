@@ -1,171 +1,192 @@
-# 4sgtour.com — Golf Trip Booking Platform
+# 4sgtour.com — 4 Seasons Golf Tour
 
-This repository contains the source for a golf trip booking platform built with Next.js (App Router), Supabase, and TypeScript. It powers a public trip browsing experience and a protected admin dashboard for managing trips, packages, and inquiries.
+Golf trip booking platform built with Next.js 16 (App Router), Supabase, and TypeScript. It powers
+a public browsing and booking experience — destinations, trips, and tournament events — with
+Stripe checkout, and a protected admin dashboard for managing trips, tournaments, inquiries, and
+customer messages.
 
-Live deployment
+## Deployments
 
-- Vercel (project): https://4sgtour.com
+| Site | Default language |
+| --- | --- |
+| https://4sgtour.com | English |
+| https://4sgtour.de (Germany branch) | German |
+| https://4sgtour.at (Austria branch) | German |
 
-Tech stack
+The `.de` and `.at` branch sites are separate deployments of the same product with `de` as their
+default locale. This repository has no domain-conditional logic — see
+[CLAUDE.md](CLAUDE.md#sister-sites-4sgtourde--4sgtourat) before changing locale defaults or
+message keys.
 
-- Next.js 16 (App Router, React 19)
-- TypeScript (strict)
-- Supabase (PostgreSQL with Row Level Security)
-- Tailwind CSS v4
-- Radix UI primitives for component building
-- Vercel Blob for image uploads
-- Resend for transactional emails
+## Tech stack
 
-Repository structure (high level)
+- Next.js 16 (App Router) + React 19, TypeScript strict
+- Supabase — Postgres, Auth, Row Level Security (`@supabase/ssr`)
+- Tailwind CSS v4 + shadcn/ui over Radix primitives
+- Stripe (checkout, webhooks, scheduled balance charges)
+- Resend (transactional email), Twilio (SMS payment links)
+- Vercel Blob (image uploads), Vercel Analytics, Vercel Cron
+- AI SDK v6 via the Vercel AI Gateway (content translation)
+- `next-intl` message files for UI copy across `en` / `ko` / `de`
 
-- app/ — Next.js App Router routes and server components
-- components/ — shared UI components (Radix wrappers in components/ui/)
-- lib/
-  - supabase/
-    - server.ts — server-side Supabase client (async createClient())
-    - client.ts — client-side Supabase client (singleton for browser)
-    - middleware.ts — authentication middleware for protected routes
-    - get-user-type.ts — helper to read profile.user_type
-  - types/database.ts — TypeScript types for Supabase tables
-- scripts/ — numbered SQL migration files (apply in Supabase SQL editor)
-- pages/api/ or app/api/ — API routes
-  - /api/admin/trips — POST used by admin to create trips (transactional)
-  - /api/inquiry — POST used by customers to submit inquiries (sends email via Resend)
-  - /api/upload — POST used to upload images to Vercel Blob
+## Getting started
 
-Key concepts and patterns
+Prerequisites: Node.js 20+, pnpm, a Supabase project, and a Stripe account.
 
-Server vs Client components
-
-- Default to Server Components: most UI is rendered on the server. Mark interactive or browser-only code with "use client".
-- Client components must never import the server Supabase client. Use the client-only `@/lib/supabase/client` in client components.
-
-Supabase client separation
-
-- Server-side client: `@/lib/supabase/server`
-  - Usage (server components / API routes / server actions):
-
-```typescript
-import { createClient } from '@/lib/supabase/server';
-const supabase = await createClient(); // async
+```powershell
+pnpm install
+pnpm dev      # http://localhost:3000
+pnpm build    # production build (also the type-check gate)
+pnpm start    # serve the production build
 ```
 
-- Client-side client: `@/lib/supabase/client`
-  - Usage (browser components only):
+There are no automated tests. `pnpm lint` is declared in `package.json` but is currently
+non-functional — eslint is not a dependency and there is no `eslint.config.*`. Use `pnpm build`
+or `npx tsc --noEmit` to validate changes.
 
-```typescript
-import { createClient } from '@/lib/supabase/client';
-const supabase = createClient(); // singleton
+### Environment variables
+
+Create `.env.local` (all `.env*` files are gitignored):
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (required) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (required) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role for cron jobs — server only, keep secret |
+| `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` | Absolute URLs in emails and Stripe redirects |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Local auth callback override |
+| `STRIPE_SECRET_KEY` | Stripe server key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe client key |
+| `STRIPE_WEBHOOK_SECRET` | Verifies `/api/stripe/webhook` signatures |
+| `RESEND_API_KEY` | Transactional email |
+| `ADMIN_EMAIL` / `SUPPORT_EMAIL` | Inquiry and support recipients |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | SMS payment links |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob uploads |
+| `CRON_SECRET` | Authenticates Vercel Cron requests |
+
+AI Gateway credentials are provided by Vercel at runtime; no key is read from `process.env` for
+translation.
+
+## Repository structure
+
+```
+app/            App Router routes, API route handlers, and Server Actions
+  actions/      Server Actions (Stripe checkout, SMS payment links, locale)
+  admin/        Admin dashboard (trips, tournaments, events)
+  api/          Route handlers — admin, stripe, cron, inquiry, messages, translate, upload
+components/     Shared components; admin/ for dashboard UI, ui/ for shadcn primitives
+hooks/          Client hooks
+lib/
+  supabase/     server.ts, client.ts, middleware.ts, get-user-type.ts
+  i18n/         locale config, server helpers, client provider, getLocalizedField
+  types/        hand-written database row types
+  stripe.ts     server-only Stripe instance
+  auto-translate.ts, run-with-concurrency.ts, continents.ts, tournament-data.ts
+messages/       en.json, ko.json, de.json — UI copy
+scripts/        numbered SQL migrations, applied by hand in the Supabase SQL editor
+proxy.ts        Next.js 16 middleware entry — auth session refresh + locale cookie
+vercel.json     Vercel Cron schedules
 ```
 
-Authentication & authorization
+## Key concepts
 
-- Middleware (`lib/supabase/middleware.ts`) protects `/admin`, `/bookings`, and `/dashboard` routes.
-- Profiles include a `user_type` field (values: `admin` | `regular`) used for server-side authorization checks.
-- Typical auth check pattern in server code:
+### Server vs client components
+
+Server Components are the default and query Supabase directly. Mark interactive or browser-only
+code `"use client"`. Client components must never import the server Supabase client.
 
 ```typescript
-const { data: { user } } await supabase.auth.getUser();
-if (!user) redirect('/auth/login');
-const userType = await getUserType();
-if (userType !== 'admin') redirect('/');
+// Server Components, Route Handlers, Server Actions
+import { createClient } from '@/lib/supabase/server'
+const supabase = await createClient()   // async
+
+// Client Components only
+import { createClient } from '@/lib/supabase/client'
+const supabase = createClient()          // browser singleton
 ```
 
-Database schema (overview)
+### Authentication and authorization
 
-Core tables (see `scripts/*.sql` for exact schema and RLS policies):
+`proxy.ts` refreshes the Supabase session and protects `/admin`, `/bookings`, and `/dashboard`
+from anonymous users. Role checks are **not** done in middleware — every admin page and
+`/api/admin/*` route re-checks `profiles.user_type` server-side via
+`getUserType()` from `@/lib/supabase/get-user-type`.
 
-- profiles — user metadata, includes `user_type` for role checks
-- trips — trip listings (continent, title, slug, base metadata)
-- packages — room/package options (ONLY packages have `price`)
-- trip_golf_courses — golf course options per trip
-- trip_meal_options / trip_transportation_options — add-on options
-- inquiries — booking inquiries (replaces old bookings table)
-- favorites — user-saved trips
+### Internationalization
 
-Common query pattern with joins
+Locale (`en` / `ko` / `de`) is chosen by the `NEXT_LOCALE` cookie; there are no `/[locale]` route
+segments. UI copy lives in `messages/*.json`. Database content is translated into suffixed columns
+on the same row (`title`, `title_ko`, `title_de`) and must be read through
+`getLocalizedField(row, 'title', locale)`, which falls back to the English column. Admin
+create/update routes call the helpers in `lib/auto-translate.ts` to fill translations via the AI
+Gateway.
+
+### Payments
+
+Stripe Checkout Sessions are created in Server Actions (`app/actions/stripe.ts`) and support card
+or ACH, deposit (`trips.deposit_percentage`) or full payment. `/api/stripe/webhook` is the only
+writer that confirms a `stripe_bookings` row. Two Vercel Cron jobs run daily: remaining-balance
+auto-charges (08:00 UTC) and payment reminders (09:00 UTC).
+
+### Database
+
+Core tables: `profiles`, `trips` (plus `trip_images`, `trip_golf_courses`, `trip_meal_options`,
+`trip_transportation_options`, `trip_service_options`), `packages`, `add_ons`, `inquiries`,
+`stripe_bookings`, `messages`, `favorites`, and the tournament tables (`tournaments`,
+`tournament_events`, `tournament_event_itinerary_days`, `tournament_event_pricing_tiers`,
+`tournament_event_gallery_images`). `destinations` is legacy.
+
+Only `packages` carry a price — golf courses, meals, transportation, and service options have
+descriptions and `is_included` flags. RLS is enabled everywhere: reads are mostly public, writes
+are admin-only.
+
+Fetch related data with nested selects:
 
 ```typescript
 const { data } = await supabase.from('trips').select(`
   *,
   packages(id, name, price),
   trip_golf_courses(course_name, max_rounds, description)
-`);
+`)
 ```
 
-Row Level Security (RLS)
+### Migrations
 
-- RLS is enabled on tables. Most reads are public; writes are admin-only. Migration SQL files in `scripts/` document policies.
+Schema changes are numbered SQL files in `scripts/`, applied manually in the Supabase SQL editor —
+there is no migration runner. Numbers have collided historically, so pick the next unused one.
+Every schema change also needs a matching update to `lib/types/database.ts`, which is hand-written
+rather than generated.
 
-Admin dashboard & trip creation
+## Routes
 
-- Multi-step trip creation form: `components/admin/create-trip-form.tsx` (4 steps with validation)
-- Image uploads go to `/api/upload` and store images in Vercel Blob
-- Trip creation endpoint `/api/admin/trips` creates trip and related packages/courses/meals/transport in a transaction
+**Public** — `/`, `/destinations`, `/destinations/[continent]`,
+`/destinations/[continent]/[destination]`, `/trips/[slug]`, `/trips/[slug]/book`, `/package/[id]`,
+`/tournaments`, `/tournaments/[slug]`, `/tournaments/[slug]/[eventSlug]`,
+`/tournaments/[slug]/[eventSlug]/tickets`, `/contact`, `/privacy`, `/terms`
 
-Development
+**Authenticated** — `/bookings`, `/favorites`, `/auth/*`, `/checkout/custom/success`
 
-Prerequisites
+**Admin** — `/admin`, `/admin/trips/new`, `/admin/trips/[id]`,
+`/admin/tournaments/[id]/events/[eventId]`
 
-- Node.js 20+
-- pnpm
-- Supabase project for database and storage
-- Vercel for deployment (optional)
+**API** — `/api/admin/*`, `/api/inquiry`, `/api/messages`, `/api/tournament-tickets`,
+`/api/upload`, `/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`
 
-Local development
+## Contributing
 
-1. Install dependencies
+- Prefer Server Components; use `@/lib/supabase/server` on the server and
+  `@/lib/supabase/client` in client code.
+- Formatting follows `.prettierrc.json` (no semicolons, single quotes, 80 columns); match the
+  surrounding file where older code differs.
+- Adding a trip or tournament field means touching three places: the create form, the edit form
+  (both in `components/admin/`), and the corresponding API route handler.
+- Put schema changes in `scripts/` and apply them to Supabase manually.
+- New remote image hosts go in `remotePatterns` in `next.config.js`, and any non-default `quality`
+  value must be listed in `images.qualities`.
 
-pnpm install
+See [CLAUDE.md](CLAUDE.md) for the full working guide, including known gotchas.
 
-2. Local dev server
+## Links
 
-pnpm dev
-
-3. Build for production
-
-pnpm build
-
-4. Lint
-
-pnpm lint
-
-Environment variables
-
-Create a .env.local file with at minimum the following (names may vary; check `lib/supabase` and README or docs in the code for exact names):
-
-- NEXT_PUBLIC_SUPABASE_URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY
-- SUPABASE_SERVICE_ROLE_KEY (only for server-side operations that require elevated privileges — keep secret)
-- RESEND_API_KEY (for sending emails)
-- VERCEL_BLOB_READ_KEY / VERCEL_BLOB_WRITE_KEY (if using Vercel Blob keys)
-- NEXTAUTH_URL / NEXTAUTH_SECRET (if present in codebase)
-
-Database migrations
-
-- Schema changes are authored as SQL files in `scripts/` (e.g., `035_*.sql`) — apply them in your Supabase project's SQL editor in order.
-- Migration files document schema evolution; review recent ones (notably `042` for package name changes) before altering the DB.
-
-Testing & CI
-
-- No automated tests are included by default. Use `pnpm lint` for static checks.
-
-API endpoints
-
-- POST /api/inquiry — accepts booking inquiries and sends email via Resend
-- POST /api/admin/trips — admin-only endpoint to create trips and related records
-- POST /api/upload — uploads images (admin-only)
-
-Contributing
-
-- Follow the repository conventions: prefer Server Components, use `@/lib/supabase/server` on the server and `@/lib/supabase/client` in client code.
-- Place schema migrations in `scripts/` and apply manually to Supabase.
-
-Helpful links
-
-- App (deployed): https://vercel.com/bustosandrews-projects/v0-golf
+- Vercel project: https://vercel.com/bustosandrews-projects/v0-golf
 - v0.app project editor: https://v0.app/chat/tXZzr9aQ0zz
-
-License
-
-- (Specify a license if applicable)

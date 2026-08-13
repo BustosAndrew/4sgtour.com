@@ -1,192 +1,155 @@
-# Golf Trip Booking Platform - AI Agent Instructions
+# 4sgtour.com — AI Agent Instructions
 
-## Architecture Overview
+Golf trip booking platform: public browsing/booking (trips + tournament events) with Stripe
+checkout, plus a protected admin dashboard. Next.js 16 App Router, React Server Components by
+default. See [CLAUDE.md](../CLAUDE.md) at the repo root for the fuller guide.
 
-This is a Next.js 16 (App Router) golf trip booking platform with Supabase backend, featuring a public-facing trip browsing experience and a protected admin dashboard. The app uses React Server Components by default with selective client components.
+## Stack
 
-**Key Stack:**
+- Next.js 16 (App Router) + React 19, TypeScript strict
+- Supabase (Postgres + Auth + RLS) via `@supabase/ssr`
+- Tailwind CSS v4 (no `tailwind.config` — theme lives in `app/globals.css`), shadcn/ui + Radix
+- Stripe, Resend, Twilio, Vercel Blob, Vercel Cron
+- AI SDK v6 through the Vercel AI Gateway for translations
+- Path alias `@/*` → project root
 
-- Next.js 16 with App Router (React 19)
-- Supabase (PostgreSQL with Row Level Security)
-- TypeScript with strict mode, `ignoreBuildErrors: true` in next.config
-- Tailwind CSS v4 with Radix UI components
-- Path alias: `@/*` maps to project root
+## Commands
 
-## Critical Patterns
+```powershell
+pnpm dev          # dev server on :3000
+pnpm build        # production build — the real correctness gate
+npx tsc --noEmit  # type check only
+```
 
-### Server vs Client Components
+`pnpm lint` is broken: eslint is not installed and there is no `eslint.config.*`. There are no
+tests. Type errors **do** fail the build (`ignoreBuildErrors` is not set).
 
-- **Default to Server Components** - all pages/components are server-rendered unless marked `"use client"`
-- **Client components** (`"use client"`) are used for:
-  - Interactive UI (carousels, forms, buttons with state)
-  - Browser-only features (favorites, navigation)
-  - All Radix UI wrapper components in `components/ui/`
-- Server components can directly query Supabase using `createClient()` from `@/lib/supabase/server`
-- Never import server-side Supabase client in client components
+## Critical patterns
 
-### Supabase Client Architecture
+### Server vs client components
 
-**TWO separate client implementations - never mix them:**
+Default to Server Components, which query Supabase directly. Add `"use client"` only for
+interactivity, browser APIs, or Radix wrappers (everything in `components/ui/`).
 
-1. **Server-side:** `@/lib/supabase/server` - for Server Components, API routes, Server Actions
+### Two Supabase clients — never mix them
 
-   \`\`\`typescript
-   import { createClient } from '@/lib/supabase/server';
-   const supabase = await createClient(); // Note: async
-   \`\`\`
+```typescript
+// Server Components, Route Handlers, Server Actions
+import { createClient } from '@/lib/supabase/server'
+const supabase = await createClient()   // async, cookie-bound
 
-2. **Client-side:** `@/lib/supabase/client` - for Client Components only
-   \`\`\`typescript
-   import { createClient } from '@/lib/supabase/client';
-   const supabase = createClient(); // Singleton pattern
-   \`\`\`
+// Client Components only
+import { createClient } from '@/lib/supabase/client'
+const supabase = createClient()          // browser singleton
+```
 
-### Authentication & Authorization
+Cron routes are the exception: they construct a service-role client with `@supabase/supabase-js`
+to bypass RLS.
 
-- **Auth flow:** Middleware (`lib/supabase/middleware.ts`) redirects unauthenticated users from `/admin`, `/bookings`, `/dashboard`
-- **User roles:** "admin" | "regular" stored in `profiles.user_type`
-- **Auth check pattern:**
+### Auth and authorization
 
-  \`\`\`typescript
-  const {
-  data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/auth/login');
+`proxy.ts` is the middleware entry point in Next.js 16 (not `middleware.ts`). It refreshes the
+Supabase session, redirects anonymous users away from `/admin`, `/bookings`, `/dashboard`, and
+seeds the `NEXT_LOCALE` cookie. It does **not** check roles — every admin page and
+`/api/admin/*` route must re-check server-side:
 
-  const userType = await getUserType(); // from @/lib/supabase/get-user-type
-  if (userType !== 'admin') redirect('/');
-  \`\`\`
+```typescript
+const { data: { user } } = await supabase.auth.getUser()
+if (!user) redirect('/auth/login')
+const userType = await getUserType()   // '@/lib/supabase/get-user-type'
+if (userType !== 'admin') redirect('/')
+```
 
-### Database Schema & Relationships
+`getUserType()` fails closed — it returns `'regular'` on missing profiles, RLS denials, and
+thrown errors — so a non-admin result is not evidence the user is signed out.
 
-**Core tables:**
+### Internationalization
 
-- `profiles` - user metadata, user_type field for authorization
-- `trips` - golf trip listings with continent, pricing, photos (courses/rooms)
-- `packages` - room type packages (Premium/Upgrade) linked to trips - ONLY packages have prices
-- `trip_golf_courses` - golf course options per trip (course_name, max_rounds, description)
-- `trip_meal_options` / `trip_transportation_options` - booking add-ons (name, description, is_included)
-- `inquiries` - customer booking inquiries (replaces old `bookings` table)
-- `favorites` - user-saved trips
+Locales are `en | ko | de`, selected by the `NEXT_LOCALE` cookie. There are **no `/[locale]`
+route segments**.
 
-**Query pattern with joins:**
+- UI copy: `messages/{en,ko,de}.json`, namespaced. Server: `getServerTranslations(namespace)`
+  from `@/lib/i18n/server`. Client: `I18nProvider` from `@/lib/i18n/provider`. All three files
+  must stay key-compatible.
+- DB content: translations live in suffixed columns on the same row (`title`, `title_ko`,
+  `title_de`). Always read via `getLocalizedField(row, 'title', locale)`, which falls back to the
+  English column — never read `_ko`/`_de` columns directly.
+- Admin create/update routes call `lib/auto-translate.ts`, which fans out to `/api/translate` and
+  `/api/translate/batch` (AI Gateway, `openai/gpt-5-mini`). Wrap fan-out in
+  `runWithConcurrency()` to respect rate limits, and skip persisting a `null` translation.
 
-\`\`\`typescript
-const { data } = await supabase.from('trips').select(`    *,
-    packages(id, name, price),
-    trip_golf_courses(course_name, max_rounds, description)
- `);
-\`\`\`
+**Sister sites:** 4sgtour.de and 4sgtour.at are separate deployments of this product whose default
+locale is `de`. This repo has no domain-conditional logic, so locale-default and message-key
+changes must be carried over manually. Never treat German as an optional secondary locale. Build
+absolute URLs as `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`.
 
-**RLS (Row Level Security):** All tables have RLS enabled. Most are public-readable, admin-only writable. Check `scripts/*.sql` for policies.
+### Payments
 
-## Development Workflow
+Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit via
+`trips.deposit_percentage`, or full payment). `/api/stripe/webhook` handles
+`checkout.session.completed` / `.expired` and is the only writer that confirms a `stripe_bookings`
+row. Two Vercel Cron jobs (`vercel.json`) run daily and authenticate with `Bearer ${CRON_SECRET}`:
+`/api/cron/charge-remaining-balance` (08:00 UTC) and `/api/cron/send-payment-reminders`
+(09:00 UTC). Admin-created custom bookings can be paid via a Twilio SMS link
+(`app/actions/send-payment-link.ts`).
 
-### Running the App
+### Database
 
-\`\`\`powershell
-pnpm dev # Start dev server (default port 3000)
-pnpm build # Production build
-pnpm lint # ESLint check
-\`\`\`
+Active tables: `profiles`, `trips`, `trip_images`, `trip_golf_courses`, `trip_meal_options`,
+`trip_transportation_options`, `trip_service_options`, `packages`, `add_ons`, `inquiries`,
+`stripe_bookings`, `messages`, `favorites`, `tournaments`, `tournament_events`,
+`tournament_event_itinerary_days`, `tournament_event_pricing_tiers`,
+`tournament_event_gallery_images`. `destinations` is legacy.
 
-### Database Migrations
+Row types in `lib/types/database.ts` are hand-written, not generated — update them with every
+migration. Fetch related data with nested selects:
 
-- **All schema changes** go in numbered SQL files in `scripts/` (e.g., `035_*.sql`)
-- Execute migrations manually in Supabase SQL Editor
-- Migration files document the schema evolution - review recent ones for current structure
-- Notable: Package names are now "Premium" and "Upgrade" (script 042)
+```typescript
+const { data } = await supabase.from('trips').select(`
+  *,
+  packages(id, name, price),
+  trip_golf_courses(course_name, max_rounds, description)
+`)
+```
 
-### Admin Dashboard
+RLS is on everywhere (public reads, admin-only writes), so an empty result is more often a policy
+issue than a query bug.
 
-- Multi-step trip creation form (`components/admin/create-trip-form.tsx`) - 4 steps with validation
-- Photo uploads use `/api/upload` route → Vercel Blob storage
-- Trip creation sends to `/api/admin/trips` (POST) - creates trip + related packages/courses/meals/transport in transaction
+### Migrations
 
-## Common Patterns & Conventions
+Numbered SQL files in `scripts/`, applied by hand in the Supabase SQL editor. No migration runner,
+no local Supabase. Numbers have collided historically — pick the next unused number, and don't
+assume ordering is total.
 
-### Styling
+## Conventions
 
-- **Font:** Playfair Display (serif) used throughout for brand consistency
-- **Custom components:** `AnimatedButton` (color sweep hover effect), `AnimatedHr` (expanding line)
-- All UI components from `components/ui/` built on Radix primitives
-- Tailwind utility-first with custom animations via `tailwindcss-animate`
+- Prettier (`.prettierrc.json`): no semicolons, single quotes, trailing commas, 2-space indent,
+  80 columns. Older files predate this — match the file you're editing.
+- Log with a `[v0]` or `[feature-name]` prefix for grepping Vercel logs.
+- Add UI primitives with `npx shadcn@latest add` so they land in `components/ui/`.
+- `next/image` only. New remote hosts go in `remotePatterns` in `next.config.js`; any non-default
+  `quality` value must be listed in `images.qualities` or Next 16 silently falls back to 75.
 
-### URL Structure
+## Gotchas
 
-- `/` - Homepage with featured trips
-- `/destinations` - Browse by continent
-- `/destinations/[continent]` - Trips filtered by continent
-- `/trips/[slug]` - Trip detail page (slug generated from title + timestamp)
-- `/admin` - Admin dashboard (protected route)
-- `/bookings` - User's inquiry history
+1. Only `packages` have prices. Golf courses, meals, transportation, and service options carry
+   descriptions and `is_included` flags — never prices.
+2. `trips.continent` is current; `trips.destination_id` is nullable legacy. Filter on `continent`.
+3. Trip slugs append a timestamp, so they aren't derivable from a title.
+4. `/api/upload` requires authentication but deliberately not admin — don't "fix" it.
+5. Adding a trip/tournament field means editing three places: the create form, the edit form (both
+   in `components/admin/`, 2400+ and 3000+ lines), and the API route handler. Miss one and the
+   field silently fails to persist.
+6. Migration `034` renamed the role to `basic`, but the code still compares against `'regular'`.
+   Check the actual `profiles.user_type` values before changing either side.
+7. `.env*` is gitignored — pull secrets from Vercel.
 
-### Type Definitions
+## Environment variables
 
-- `lib/types/database.ts` - all Supabase table types
-- Key types: `Trip`, `Profile`, `Package`, `UserType`, `BookingStatus`
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL`,
+`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`,
+`RESEND_API_KEY`, `ADMIN_EMAIL`, `SUPPORT_EMAIL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
+`TWILIO_PHONE_NUMBER`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`.
 
-### API Routes
-
-- `/api/admin/trips` - POST to create trip (admin-only)
-- `/api/inquiry` - POST to submit booking inquiry (sends email via Resend)
-- `/api/upload` - POST for image uploads (admin-only, returns Vercel Blob URL)
-
-### External Integrations
-
-**Resend (Email Service):**
-
-- Used in `/api/inquiry` to send booking inquiry notifications to admin
-- Requires `RESEND_API_KEY` and `ADMIN_EMAIL` environment variables
-- Email sent from "Golf Trips <noreply@yourdomain.com>" to admin
-- Plain text format with inquiry details (customer info, booking details, pricing)
-
-**Twilio Verify (Phone Authentication):**
-
-- Integrated via Supabase Auth for phone verification during signup
-- Two-step signup flow in `components/auth/sign-up-form.tsx`:
-  1. User enters name, email, password, and phone number
-  2. Supabase sends OTP via SMS (using Twilio Verify under the hood)
-  3. User verifies phone with 6-digit code
-  4. Account created with `phone_verified: true` in user metadata
-- Phone format: E.164 format required (e.g., +12345678900)
-- Auth flow: `signInWithOtp` → `verifyOtp` → `signUp` with verified phone
-- Configured in Supabase dashboard (Phone Auth providers)
-
-## Environment Variables
-
-Required for production:
-
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `RESEND_API_KEY` - Resend API key for email notifications
-- `ADMIN_EMAIL` - Email address to receive booking inquiries
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token (for image uploads)
-
-## Important Gotchas
-
-1. **TypeScript errors ignored in build** - `ignoreBuildErrors: true` allows deployment with type errors
-2. **Slug uniqueness** - trip slugs append timestamp to prevent collisions
-3. **Package names** - use "Premium" (required) and "Upgrade" (optional) per script 042
-4. **Image optimization disabled** - `images: { unoptimized: true }` in next.config
-5. **Auth in API routes** - always check `user` AND `userType` for admin endpoints
-6. **Continent field** - trips have both `destination_id` (nullable, legacy) and `continent` (text field, current)
-7. **Pricing** - ONLY packages have prices. Golf courses, meals, and transportation do NOT have prices (just is_included flag for meals/transport)
-8. **Email from address** - Currently hardcoded as "noreply@yourdomain.com", needs domain verification in Resend
-
-## File Organization
-
-- `app/` - Next.js pages & API routes (App Router)
-- `components/` - React components (shared + feature-specific)
-  - `admin/` - admin dashboard components
-  - `ui/` - Radix UI wrappers (all client components)
-- `lib/` - utilities, Supabase clients, type definitions
-- `scripts/` - database migration SQL files (numbered sequence)
-- `public/images/` - static assets
-
-## When Editing
-
-- **Adding database fields:** Create new numbered SQL script, update TypeScript types in `lib/types/database.ts`
-- **New admin features:** Check `getUserType()` and RLS policies, add API route in `app/api/admin/`
-- **New UI components:** Follow Radix pattern in `components/ui/`, mark `"use client"` if interactive
-- **Trip data changes:** Update both create/edit forms in `components/admin/` AND the API route handler
+AI Gateway credentials come from Vercel at runtime; no key is read from `process.env`.
