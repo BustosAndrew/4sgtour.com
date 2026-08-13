@@ -425,10 +425,41 @@ export function SiteFooter() {
             </div>
           </div>
         </div>
-        {/* Divider line and back to top button */}
+        {/* Divider line, accreditations and back to top button */}
         <div className="mt-12 pt-8">
           <div className="w-16 h-0.5 bg-white mb-6"></div>
-          <BackToTopButton />
+          <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between md:gap-10">
+            <BackToTopButton />
+
+            {/* Accreditations & memberships */}
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:justify-end">
+              <Image
+                src="/images/ggta-founding-member.png"
+                alt="Global Golf Travel Association — Verified Founding Member"
+                width={900}
+                height={900}
+                className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+              />
+
+              <div className="flex h-16 items-center rounded-md bg-white px-3 sm:h-[72px]">
+                <Image
+                  src="/images/iagto-member.png"
+                  alt="Member of IAGTO — International Association of Golf Tour Operators"
+                  width={3066}
+                  height={1660}
+                  className="h-auto w-[96px] object-contain sm:w-[108px]"
+                />
+              </div>
+
+              <Image
+                src="/images/european-tour-destinations-white.png"
+                alt="European Tour Destinations"
+                width={2382}
+                height={579}
+                className="h-auto w-[150px] object-contain sm:w-[175px]"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </footer>
