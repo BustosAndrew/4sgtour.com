@@ -27,3 +27,8 @@ yarn-error.log*
 next-env.d.ts
 
 .DS_Store
+
+# pnpm 11 build-script approvals — local only.
+# Vercel resolves pnpm 9 from lockfileVersion 9.0, and pnpm 9 rejects a
+# pnpm-workspace.yaml with no `packages:` field ("packages field missing or empty").
+pnpm-workspace.yaml
