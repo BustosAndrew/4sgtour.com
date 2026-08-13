@@ -427,7 +427,7 @@ export function SiteFooter() {
         </div>
         {/* Divider line, accreditations and back to top button */}
         <div className="mt-12 pt-8">
-          <div className="w-16 h-0.5 bg-white mb-6"></div>
+          <div className="w-16 h-0.5 bg-white mb-6 md:hidden"></div>
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between md:gap-10">
             <BackToTopButton />
 
