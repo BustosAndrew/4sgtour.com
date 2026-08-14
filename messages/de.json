@@ -239,6 +239,22 @@
       "backToLogin": "Zurück zur Anmeldung",
       "checkEmail": "Überprüfen Sie Ihre E-Mail",
       "emailSent": "Wir haben Ihnen einen Link zum Zurücksetzen des Passworts gesendet. Bitte überprüfen Sie Ihre E-Mail und folgen Sie den Anweisungen."
+    },
+    "updatePassword": {
+      "title": "Neues Passwort festlegen",
+      "subtitle": "Wählen Sie ein neues Passwort für Ihr Konto.",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "updatePassword": "Passwort ändern",
+      "updating": "Wird geändert...",
+      "verifying": "Ihr Link wird überprüft...",
+      "passwordsNotMatch": "Die Passwörter stimmen nicht überein",
+      "successTitle": "Passwort geändert",
+      "successMessage": "Ihr Passwort wurde geändert. Sie sind jetzt angemeldet.",
+      "continue": "Weiter",
+      "linkExpired": "Link abgelaufen",
+      "linkExpiredMessage": "Dieser Link zum Zurücksetzen des Passworts ist nicht mehr gültig. Fordern Sie einen neuen an.",
+      "requestNewLink": "Neuen Link anfordern"
     }
   },
   "common": {

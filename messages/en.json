@@ -239,6 +239,22 @@
       "backToLogin": "Back to Login",
       "checkEmail": "Check Your Email",
       "emailSent": "We've sent you a password reset link. Please check your email and follow the instructions to reset your password."
+    },
+    "updatePassword": {
+      "title": "Set a New Password",
+      "subtitle": "Choose a new password for your account.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updatePassword": "Update Password",
+      "updating": "Updating...",
+      "verifying": "Verifying your link...",
+      "passwordsNotMatch": "Passwords do not match",
+      "successTitle": "Password Updated",
+      "successMessage": "Your password has been changed. You are now signed in.",
+      "continue": "Continue",
+      "linkExpired": "Link Expired",
+      "linkExpiredMessage": "This password reset link is no longer valid. Request a new one to try again.",
+      "requestNewLink": "Request a New Link"
     }
   },
   "common": {

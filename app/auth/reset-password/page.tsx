@@ -26,8 +26,13 @@ export default function ResetPasswordPage() {
     setError(null)
 
     try {
+      // Route through /auth/callback so the recovery code is exchanged for a
+      // session before the user lands on the update form.
+      const baseUrl =
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+        window.location.origin
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${baseUrl}/auth/callback?redirect=${encodeURIComponent('/auth/update-password')}`,
       })
       if (error) throw error
       setIsSuccess(true)
