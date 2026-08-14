@@ -93,9 +93,12 @@ sync automation, no domain-conditional logic:
 
 | Site | Repo | Local path | Default locale |
 | --- | --- | --- | --- |
-| 4sgtour.com | `BustosAndrew/v0-golf` | `~/Documents/GitHub/v0-golf` | `en` |
+| 4sgtour.com | `BustosAndrew/4sgtour.com` | `~/Documents/GitHub/v0-golf` | `en` |
 | 4sgtour.de | `BustosAndrew/4sgtour-de` | `~/Documents/GitHub/4sgtour-de` | `de` |
 | 4sgtour.at | `BustosAndrew/4sgtour-at` | `~/Documents/GitHub/4sgtour-at` | `de` |
+
+The GitHub repo behind 4sgtour.com was renamed from `v0-golf` to `4sgtour.com`; the local folder
+is still `v0-golf`, and `v0-golf` below always means that checkout.
 
 The three are meant to stay in sync, but **never propagate a change on your own**. Make and verify
 the change in the repo you were asked to work in, then **ask the user whether it should also go to
