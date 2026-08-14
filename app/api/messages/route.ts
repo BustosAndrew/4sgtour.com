@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { getSiteUrl } from "@/lib/site-url"
+import { getFromEmail, getAdminEmail, getSupportEmail } from "@/lib/site-email"
 
 export async function GET(request: Request) {
   const supabase = await createClient()
@@ -93,10 +94,7 @@ export async function POST(request: Request) {
     // Send email notification
     try {
       const resend = new Resend(process.env.RESEND_API_KEY)
-      const supportEmail =
-        process.env.SUPPORT_EMAIL ||
-        process.env.ADMIN_EMAIL ||
-        "support@example.com"
+      const supportEmail = getSupportEmail()
       const siteUrl = getSiteUrl()
 
       // Get inquiry details for context
@@ -167,7 +165,7 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+            from: getFromEmail(),
             replyTo: supportEmail,
             to: inquiryContext.customer_email,
             subject: `New Message: ${inquiryContext.trip_title}`,
@@ -176,7 +174,7 @@ export async function POST(request: Request) {
           })
         } else {
           // Customer sent message -> notify admin
-          const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com"
+          const adminEmail = getAdminEmail()
 
           const emailHtml = `
 <!DOCTYPE html>
@@ -230,7 +228,7 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+            from: getFromEmail(),
             replyTo: inquiryContext.customer_email,
             to: adminEmail,
             subject: `New Customer Message: ${inquiryContext.trip_title}`,

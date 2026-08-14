@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
+import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -207,7 +208,7 @@ Best regards,
 
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       to: booking.customer_email,
       subject: `Payment Confirmed: Remaining Balance for ${booking.booking_details?.trip_title || 'Your Golf Trip'}`,
       text: customerEmailContent,
@@ -218,7 +219,7 @@ Best regards,
   }
 
   // Also notify admin
-  const adminEmail = process.env.ADMIN_EMAIL || 'info@4sgtour.com'
+  const adminEmail = getAdminEmail()
   const adminEmailContent = `
 REMAINING BALANCE CHARGED
 
@@ -240,7 +241,7 @@ This booking is now fully paid.
 
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       to: adminEmail,
       subject: `Remaining Balance Charged: ${booking.customer_name} - ${booking.booking_details?.trip_title || 'Golf Trip'}`,
       text: adminEmailContent,
@@ -252,7 +253,7 @@ This booking is now fully paid.
 
 async function sendPaymentFailedEmail(booking: any, errorMessage: string) {
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const adminEmail = process.env.ADMIN_EMAIL || 'info@4sgtour.com'
+  const adminEmail = getAdminEmail()
 
   const adminEmailContent = `
 PAYMENT FAILED - ACTION REQUIRED
@@ -276,7 +277,7 @@ Please contact the customer to arrange alternative payment.
 
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       to: adminEmail,
       subject: `URGENT: Payment Failed - ${booking.customer_name}`,
       text: adminEmailContent,

@@ -1,5 +1,6 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
+import { getFromEmail, getAdminEmail } from "@/lib/site-email"
 
 // Helper function to cancel pending payments and notify customers when a trip is deleted/cancelled
 export async function cancelPendingPaymentsForTrip(tripId: string, tripTitle?: string) {
@@ -84,7 +85,7 @@ Best regards,
 
       try {
         await resend.emails.send({
-          from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+          from: getFromEmail(),
           to: booking.customer_email,
           subject: `Trip Cancelled: ${tripTitle || bookingDetails.trip_title || "Your Golf Trip"}`,
           text: customerEmailContent,
@@ -104,7 +105,7 @@ Best regards,
 
   // Notify admin about cancelled payments
   if (results.cancelled > 0) {
-    const adminEmail = process.env.ADMIN_EMAIL || "info@4sgtour.com"
+    const adminEmail = getAdminEmail()
     const adminEmailContent = `
 TRIP CANCELLED - PAYMENTS CANCELLED
 
@@ -125,7 +126,7 @@ Please follow up with customers regarding deposit refunds.
 
     try {
       await resend.emails.send({
-        from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+        from: getFromEmail(),
         to: adminEmail,
         subject: `Trip Cancelled: ${results.cancelled} Payment(s) Cancelled`,
         text: adminEmailContent,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { createClient } from "@/lib/supabase/server"
+import { getFromEmail, getAdminEmail } from "@/lib/site-email"
 
 export async function POST(request: Request) {
   try {
@@ -122,9 +123,9 @@ This inquiry was submitted through the tournament tickets form.
     `.trim()
 
     await resend.emails.send({
-      from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+      from: getFromEmail(),
       replyTo: email,
-      to: "info@4sgtour.com",
+      to: getAdminEmail(),
       subject: `Tournament Ticket Inquiry: ${eventTitle}`,
       html: emailHtml,
       text: textContent,

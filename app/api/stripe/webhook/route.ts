@@ -5,6 +5,7 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
+import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -216,7 +217,7 @@ async function sendBookingConfirmationEmails(
   booking: any,
 ) {
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const adminEmail = process.env.ADMIN_EMAIL || 'info@4sgtour.com'
+  const adminEmail = getAdminEmail()
   const isGuest = metadata.is_guest === 'true'
   const amountPaid = session.amount_total
     ? (session.amount_total / 100).toFixed(2)
@@ -270,7 +271,7 @@ Best regards,
   // Send customer email
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       to: metadata.customer_email,
       subject: `Booking Confirmed: ${metadata.trip_title}`,
       text: customerEmailContent,
@@ -334,7 +335,7 @@ Booking ID: ${booking?.id || 'N/A'}
   // Send admin email
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       replyTo: metadata.customer_email,
       to: adminEmail,
       subject: `New Booking: ${metadata.trip_title} - ${metadata.customer_name}`,
@@ -439,12 +440,12 @@ Thank you for choosing 4 Seasons Golf Tour!
 ---
 4 Seasons Golf Tour
 Website: ${getSiteUrl()}
-Email: ${process.env.ADMIN_EMAIL || 'info@4sgtour.com'}
+Email: ${getAdminEmail()}
   `.trim()
 
   try {
     await resend.emails.send({
-      from: '4 Seasons Golf Tour <noreply@4sgtour.com>',
+      from: getFromEmail(),
       to: metadata.customer_email,
       subject: `Invoice: ${metadata.trip_title} - Payment Confirmed`,
       text: invoiceContent,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { createClient } from "@/lib/supabase/server"
+import { getFromEmail, getAdminEmail } from "@/lib/site-email"
 
 export async function POST(request: Request) {
   try {
@@ -94,10 +95,10 @@ Inquiry ID: ${inquiry?.id || "N/A"}
     `.trim()
 
     // Send email
-    const adminEmail = process.env.ADMIN_EMAIL || "info@4sgtour.com"
+    const adminEmail = getAdminEmail()
 
     await resend.emails.send({
-      from: "4 Seasons Golf Tour <noreply@4sgtour.com>",
+      from: getFromEmail(),
       replyTo: customerEmail,
       to: adminEmail,
       subject: `New Inquiry: ${tripTitle}`,
