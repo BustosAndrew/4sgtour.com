@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getSiteUrl } from "@/lib/site-url"
 import twilio from "twilio"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://4sgtour.com"
+    const appUrl = getSiteUrl()
 
     // Calculate the target date (5 days from now)
     const targetDate = new Date()

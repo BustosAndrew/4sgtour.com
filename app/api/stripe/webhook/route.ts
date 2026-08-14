@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
+import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -255,7 +256,7 @@ We noticed you booked as a guest. Create an account to:
 - Communicate directly with our team
 - Access exclusive member benefits
 
-Sign up here: ${process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'}/auth/sign-up
+Sign up here: ${getSiteUrl()}/auth/sign-up
 `
     : ''
 }
@@ -437,7 +438,7 @@ Thank you for choosing 4 Seasons Golf Tour!
 
 ---
 4 Seasons Golf Tour
-Website: ${process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'}
+Website: ${getSiteUrl()}
 Email: ${process.env.ADMIN_EMAIL || 'info@4sgtour.com'}
   `.trim()
 

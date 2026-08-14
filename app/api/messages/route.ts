@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { getSiteUrl } from "@/lib/site-url"
 
 export async function GET(request: Request) {
   const supabase = await createClient()
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
         process.env.SUPPORT_EMAIL ||
         process.env.ADMIN_EMAIL ||
         "support@example.com"
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com"
+      const siteUrl = getSiteUrl()
 
       // Get inquiry details for context
       const { data: inquiry } = await supabase

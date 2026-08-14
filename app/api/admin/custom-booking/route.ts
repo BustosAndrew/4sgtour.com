@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getUserType } from '@/lib/supabase/get-user-type'
 import { autoTranslateTrip, autoTranslatePackages } from '@/lib/auto-translate'
+import { getSiteUrl } from '@/lib/site-url'
 import { headers } from 'next/headers'
 import Twilio from 'twilio'
 
@@ -315,7 +316,7 @@ export async function POST(request: Request) {
     const depositAmountDollars = depositAmountCents / 100
     const fullAmountCents = Math.round(totalPrice * 100)
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'
+    const appUrl = getSiteUrl()
 
     // Create deposit payment session
     const session = await stripe.checkout.sessions.create({

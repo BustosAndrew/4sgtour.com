@@ -2,6 +2,7 @@
 
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 
 interface SendPaymentLinkParams {
@@ -117,7 +118,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'
+  const appUrl = getSiteUrl()
 
   // Create a HOSTED checkout session (produces a shareable URL)
   const session = await stripe.checkout.sessions.create({
