@@ -1,4 +1,19 @@
 {
+  "metadata": {
+    "title": "4 Seasons Golf Tour",
+    "titleTemplate": "%s | 4 Seasons Golf Tour",
+    "description": "4 Seasons Golf Tour와 함께 완벽한 골프 여행을 예약하세요. 최고의 골프 여행지와 독점 패키지, 맞춤형 서비스로 잊지 못할 골프 경험을 선사합니다.",
+    "shortDescription": "4 Seasons Golf Tour와 함께 완벽한 골프 여행을 예약하세요. 전 세계 최고의 골프 여행지를 만나보세요.",
+    "keywords": [
+      "골프 여행",
+      "골프 투어",
+      "해외 골프",
+      "골프 패키지",
+      "골프 여행지",
+      "럭셔리 골프",
+      "골프 예약"
+    ]
+  },
   "hero": {
     "subtitle": "프리미엄 골프여행",
     "title": "4 Seasons Golf Tour",

@@ -6,60 +6,63 @@ import { Analytics } from '@vercel/analytics/next'
 import { ErrorHandler } from '@/components/error-handler'
 import { I18nProvider } from '@/lib/i18n/provider'
 import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
-import { defaultLocale, openGraphLocales } from '@/lib/i18n/config'
+import { openGraphLocales } from '@/lib/i18n/config'
 import { getSiteUrl } from '@/lib/site-url'
 import './globals.css'
 
-// Each of the three sites is its own deployment, so the canonical origin has
-// to come from the environment rather than a hard-coded domain.
-const siteUrl = getSiteUrl()
+type MetadataMessages = {
+  title: string
+  titleTemplate: string
+  description: string
+  shortDescription: string
+  keywords: string[]
+}
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: '4 Seasons Golf Tour',
-    template: '%s | 4 Seasons Golf Tour',
-  },
-  description:
-    'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations, exclusive packages, and personalized service for an unforgettable golfing experience.',
-  keywords: [
-    'golf vacation',
-    'golf tour',
-    'golf travel',
-    'golf packages',
-    'golf destinations',
-    'luxury golf',
-    'golf trips',
-  ],
-  authors: [{ name: '4 Seasons Golf Tour' }],
-  creator: '4 Seasons Golf Tour',
-  openGraph: {
-    type: 'website',
-    locale: openGraphLocales[defaultLocale],
-    url: siteUrl,
-    siteName: '4 Seasons Golf Tour',
-    title: '4 Seasons Golf Tour',
-    description:
-      'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '4 Seasons Golf Tour',
-    description:
-      'Book your perfect golf vacation with 4 Seasons Golf Tour. Explore top golf destinations worldwide.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+// Built per request rather than as a static export: the canonical origin comes
+// from the environment (each of the three sites is its own deployment) and the
+// copy comes from the visitor's locale.
+export async function generateMetadata(): Promise<Metadata> {
+  const siteUrl = getSiteUrl()
+  const locale = await getServerLocale()
+  const messages = await getServerMessages(locale)
+  const m = messages.metadata as MetadataMessages
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: m.title,
+      template: m.titleTemplate,
+    },
+    description: m.description,
+    keywords: m.keywords,
+    authors: [{ name: '4 Seasons Golf Tour' }],
+    creator: '4 Seasons Golf Tour',
+    openGraph: {
+      type: 'website',
+      locale: openGraphLocales[locale],
+      url: siteUrl,
+      siteName: '4 Seasons Golf Tour',
+      title: m.title,
+      description: m.shortDescription,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: m.title,
+      description: m.shortDescription,
+    },
+    robots: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
-  },
-  generator: 'v0.app',
+    generator: 'v0.app',
+  }
 }
 
 export default async function RootLayout({
