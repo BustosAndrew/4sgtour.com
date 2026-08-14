@@ -574,14 +574,17 @@ export function CreateTripForm() {
         throw new Error(errorData.error || "Failed to create trip")
       }
 
-      // After a successful create, ALWAYS run translation for the other
-      // two languages from the English source. Admins use the create form
-      // to enter primarily English content, and the previously-required
+      // After a successful create, run translation for the other two
+      // languages from the English source. Admins use the create form to
+      // enter primarily English content, and the previously-required
       // manual "Translate" click in step 4 was easy to forget — this
       // guarantees every newly created trip ships with Korean and German
-      // populated. The translate route's no-dirty-check behavior also
-      // means it will safely overwrite anything the admin happened to
-      // type by hand if they chose to.
+      // populated.
+      //
+      // `force` is deliberately left off: the translate route fills in
+      // only the fields that have no translation yet, so anything the
+      // admin typed by hand in Korean or German on the create form is
+      // kept rather than being overwritten by the model.
       try {
         const createdTrip = await response.json()
         const newTripId = createdTrip?.id
@@ -597,6 +600,7 @@ export function CreateTripForm() {
               body: JSON.stringify({
                 sourceLanguage: "en",
                 targetLanguages: ["ko", "de"],
+                force: false,
               }),
             },
           )

@@ -2,6 +2,14 @@ import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { runWithConcurrency } from "@/lib/run-with-concurrency"
+import {
+  countUnits,
+  createShouldTranslate,
+  createStaleCheck,
+  parseDirtyCheckOptions,
+  suffixFor,
+  type ShouldTranslate,
+} from "@/lib/translation-dirty"
 
 // Translation jobs fan out into many AI Gateway calls (per language,
 // per add-on table, per row). The default function timeout is too
@@ -62,6 +70,11 @@ export async function POST(
 
   const { sourceLanguage, targetLanguages } = body || {}
 
+  // `force` is the admin "Retranslate everything" repair switch;
+  // `changedFields` is the per-language diff the edit form got back from
+  // its save, so only fields whose source text actually moved get redone.
+  const { force, changedFields } = parseDirtyCheckOptions(body)
+
   if (!sourceLanguage || !targetLanguages?.length) {
     return new Response(
       JSON.stringify({ error: "Source language and target languages are required" }),
@@ -121,46 +134,86 @@ export async function POST(
     supabase.from("trip_service_options").select("*").eq("trip_id", id),
   ])
 
-  // Pre-count every translatable field across all targets so the progress
-  // bar starts with a real total. We intentionally do NOT skip fields that
-  // already have translations — every source field with content is always
-  // retranslated so admins can re-run the dialog to repair stale or
-  // partial translations without having to clear the target fields first.
+  // One predicate per target language, shared by the pre-count below and
+  // the execution pass further down. Both MUST ask the same question about
+  // the same field — counting one set and translating another is what
+  // leaves the progress bar stranded short of 100%.
+  const shouldTranslateFor = new Map<string, ShouldTranslate>()
+  for (const targetLang of validTargets) {
+    shouldTranslateFor.set(
+      targetLang,
+      createShouldTranslate({
+        force,
+        stale: createStaleCheck(changedFields, sourceLanguage, targetLang),
+      }),
+    )
+  }
+
+  // Child rows get their base field name qualified with the table, so a
+  // change to the trip's own `description` cannot mark every package
+  // description stale as well.
+  const CHILD_TABLES: { rows: any[] | null; nameField: string; table: string }[] = [
+    { rows: addOnsRes.data, nameField: "name", table: "add_ons" },
+    { rows: golfCoursesRes.data, nameField: "course_name", table: "trip_golf_courses" },
+    { rows: mealOptionsRes.data, nameField: "name", table: "trip_meal_options" },
+    { rows: transportRes.data, nameField: "name", table: "trip_transportation_options" },
+    { rows: serviceRes.data, nameField: "name", table: "trip_service_options" },
+  ]
+
+  // Pre-count the work the run will actually do. Fields that already carry
+  // a good translation are counted separately so the "nothing to do" case
+  // can tell "no source content" apart from "already up to date".
   let totalRequested = 0
-  for (const _targetLang of validTargets) {
+  let skippedUpToDate = 0
+  for (const targetLang of validTargets) {
+    const targetSuffix = suffixFor(targetLang)
+    const should = shouldTranslateFor.get(targetLang)!
+
+    const count = (base: string, sourceValue: unknown, targetValue: unknown) => {
+      const units = countUnits(sourceValue)
+      if (units === 0) return
+      if (should(base, sourceValue, targetValue)) totalRequested += units
+      else skippedUpToDate += units
+    }
+
     for (const fieldBase of Object.keys(TRIP_FIELDS)) {
-      const sourceValue = trip[`${fieldBase}${sourceSuffix}`]
-      if (typeof sourceValue === "string" && sourceValue.trim()) {
-        totalRequested++
-      }
+      count(
+        fieldBase,
+        trip[`${fieldBase}${sourceSuffix}`],
+        trip[`${fieldBase}${targetSuffix}`],
+      )
     }
     for (const arrayField of TRIP_ARRAY_FIELDS) {
-      const sourceArr = trip[`${arrayField}${sourceSuffix}`]
-      if (Array.isArray(sourceArr)) {
-        totalRequested += sourceArr.filter(
-          (t) => typeof t === "string" && t.trim().length > 0,
-        ).length
-      }
+      count(
+        arrayField,
+        trip[`${arrayField}${sourceSuffix}`],
+        trip[`${arrayField}${targetSuffix}`],
+      )
     }
     for (const pkg of packages || []) {
-      const sourceName = pkg[`name${sourceSuffix}`]
-      if (typeof sourceName === "string" && sourceName.trim()) totalRequested++
-      const sourceDesc = pkg[`description${sourceSuffix}`]
-      if (typeof sourceDesc === "string" && sourceDesc.trim()) totalRequested++
+      count(
+        "packages.name",
+        pkg[`name${sourceSuffix}`],
+        pkg[`name${targetSuffix}`],
+      )
+      count(
+        "packages.description",
+        pkg[`description${sourceSuffix}`],
+        pkg[`description${targetSuffix}`],
+      )
     }
-    const tables: { rows: any[] | null; nameField: string }[] = [
-      { rows: addOnsRes.data, nameField: "name" },
-      { rows: golfCoursesRes.data, nameField: "course_name" },
-      { rows: mealOptionsRes.data, nameField: "name" },
-      { rows: transportRes.data, nameField: "name" },
-      { rows: serviceRes.data, nameField: "name" },
-    ]
-    for (const { rows, nameField } of tables) {
+    for (const { rows, nameField, table } of CHILD_TABLES) {
       for (const row of rows || []) {
-        const sourceName = row[`${nameField}${sourceSuffix}`]
-        if (typeof sourceName === "string" && sourceName.trim()) totalRequested++
-        const sourceDesc = row[`description${sourceSuffix}`]
-        if (typeof sourceDesc === "string" && sourceDesc.trim()) totalRequested++
+        count(
+          `${table}.${nameField}`,
+          row[`${nameField}${sourceSuffix}`],
+          row[`${nameField}${targetSuffix}`],
+        )
+        count(
+          `${table}.description`,
+          row[`description${sourceSuffix}`],
+          row[`description${targetSuffix}`],
+        )
       }
     }
   }
@@ -183,7 +236,9 @@ export async function POST(
 
       send({ type: "start", total: totalRequested })
 
-      // Nothing translatable on the source side at all.
+      // Nothing to do — either there is no source content, or (with dirty
+      // checking on) every field is already translated. Those are very
+      // different situations for the admin, so say which one it is.
       if (totalRequested === 0) {
         const langNames: Record<string, string> = {
           en: "English",
@@ -191,13 +246,17 @@ export async function POST(
           de: "German",
         }
         const sourceName = langNames[sourceLanguage] ?? sourceLanguage
+        const upToDate = skippedUpToDate > 0
         send({
           type: "complete",
-          success: false,
+          success: upToDate,
           partial: false,
-          message: `No ${sourceName} content found on this trip to translate. Please add content in ${sourceName} first.`,
+          message: upToDate
+            ? `Everything is already translated — nothing changed since the last run. Tick "Retranslate everything" to redo all ${skippedUpToDate} field(s).`
+            : `No ${sourceName} content found on this trip to translate. Please add content in ${sourceName} first.`,
           fieldsRequested: 0,
           fieldsUpdated: 0,
+          skipped: skippedUpToDate,
           failedFields: [],
         })
         controller.close()
@@ -283,6 +342,7 @@ export async function POST(
         for (const targetLang of validTargets) {
           const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
           const langName = LANGUAGE_MAP[targetLang].name
+          const should = shouldTranslateFor.get(targetLang)!
 
           const shortFields: FieldPayload[] = []
           const longFields: FieldPayload[] = []
@@ -290,9 +350,7 @@ export async function POST(
             const sourceField = `${fieldBase}${sourceSuffix}`
             const targetField = `${fieldBase}${targetSuffix}`
             const sourceValue = trip[sourceField]
-            if (typeof sourceValue !== "string" || !sourceValue.trim()) continue
-            // No dirty checking — always retranslate so re-running the
-            // dialog can repair stale or partially-applied translations.
+            if (!should(fieldBase, sourceValue, trip[targetField])) continue
             const payload: FieldPayload = {
               field: targetField,
               text: sourceValue,
@@ -325,6 +383,15 @@ export async function POST(
           for (const arrayField of TRIP_ARRAY_FIELDS) {
             const sourceValue = trip[`${arrayField}${sourceSuffix}`]
             if (!Array.isArray(sourceValue) || sourceValue.length === 0) continue
+            // Arrays are rewritten whole, so they are skipped whole too.
+            if (
+              !should(
+                arrayField,
+                sourceValue,
+                trip[`${arrayField}${targetSuffix}`],
+              )
+            )
+              continue
 
             const arrPayload: FieldPayload[] = sourceValue
               .map((text: string, i: number) => ({
@@ -353,20 +420,28 @@ export async function POST(
           for (const targetLang of validTargets) {
             const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
             const langName = LANGUAGE_MAP[targetLang].name
+            const should = shouldTranslateFor.get(targetLang)!
             for (const pkg of packages) {
               const fields: FieldPayload[] = []
               const sourceName = pkg[`name${sourceSuffix}`]
               const sourceDescription = pkg[`description${sourceSuffix}`]
 
-              // No dirty checking — always retranslate available source fields.
-              if (typeof sourceName === "string" && sourceName.trim()) {
+              if (
+                should("packages.name", sourceName, pkg[`name${targetSuffix}`])
+              ) {
                 fields.push({
                   field: `name${targetSuffix}`,
                   text: sourceName,
                   fieldType: "title",
                 })
               }
-              if (typeof sourceDescription === "string" && sourceDescription.trim()) {
+              if (
+                should(
+                  "packages.description",
+                  sourceDescription,
+                  pkg[`description${targetSuffix}`],
+                )
+              ) {
                 fields.push({
                   field: `description${targetSuffix}`,
                   text: sourceDescription,
@@ -404,12 +479,18 @@ export async function POST(
           for (const targetLang of validTargets) {
             const targetSuffix = targetLang === "en" ? "" : `_${targetLang}`
             const langName = LANGUAGE_MAP[targetLang].name
+            const should = shouldTranslateFor.get(targetLang)!
             for (const row of rows) {
               const fields: FieldPayload[] = []
               const sourceName = row[`${nameField}${sourceSuffix}`]
 
-              // No dirty checking — always retranslate available source fields.
-              if (typeof sourceName === "string" && sourceName.trim()) {
+              if (
+                should(
+                  `${table}.${nameField}`,
+                  sourceName,
+                  row[`${nameField}${targetSuffix}`],
+                )
+              ) {
                 fields.push({
                   field: `${nameField}${targetSuffix}`,
                   text: sourceName,
@@ -418,7 +499,13 @@ export async function POST(
               }
               if (descriptionField) {
                 const sourceDesc = row[`${descriptionField}${sourceSuffix}`]
-                if (typeof sourceDesc === "string" && sourceDesc.trim()) {
+                if (
+                  should(
+                    `${table}.description`,
+                    sourceDesc,
+                    row[`${descriptionField}${targetSuffix}`],
+                  )
+                ) {
                   fields.push({
                     field: `${descriptionField}${targetSuffix}`,
                     text: sourceDesc,
@@ -511,9 +598,13 @@ export async function POST(
 
         const targetNames = validTargets.map((l) => LANGUAGE_MAP[l].name).join(" & ")
         const partial = failedFields.length > 0
+        const skippedNote =
+          skippedUpToDate > 0
+            ? ` ${skippedUpToDate} field(s) were already up to date and were skipped.`
+            : ""
         const message = partial
-          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}. ${failedFields.length} field(s) could not be translated — try again.`
-          : `Translated ${totalApplied} fields to ${targetNames}`
+          ? `Translated ${totalApplied}/${totalRequested} fields to ${targetNames}. ${failedFields.length} field(s) could not be translated — try again.${skippedNote}`
+          : `Translated ${totalApplied} fields to ${targetNames}.${skippedNote}`
 
         send({
           type: "complete",
@@ -522,6 +613,7 @@ export async function POST(
           message,
           fieldsRequested: totalRequested,
           fieldsUpdated: totalApplied,
+          skipped: skippedUpToDate,
           failedFields,
         })
       } catch (error: any) {

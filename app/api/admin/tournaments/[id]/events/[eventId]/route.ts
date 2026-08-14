@@ -1,6 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
+import { diffLocalizedFields } from "@/lib/translation-dirty"
+
+// Base names of the event columns that carry translations. Used to report
+// which fields an admin actually changed so the translate route can redo
+// just those instead of the whole record.
+const TRANSLATABLE_EVENT_FIELDS = [
+  "title",
+  "location",
+  "duration",
+  "description",
+  "trip_highlights",
+  "travel_itinerary",
+  "includes",
+  "excludes",
+]
 
 export async function GET(
   _request: Request,
@@ -120,6 +135,30 @@ export async function PATCH(
     if ('excludes_ko' in body) updateData.excludes_ko = excludes_ko ?? null
     if ('excludes_de' in body) updateData.excludes_de = excludes_de ?? null
 
+    // Read the stored row before writing so we can tell the client which
+    // translatable fields actually changed, and in which language. The
+    // edit form hands that back to the translate route, which then redoes
+    // only the fields whose source text moved — a save that only touched
+    // a price or a date costs no AI calls at all.
+    const { data: storedEvent } = await supabase
+      .from("tournament_events")
+      .select(
+        TRANSLATABLE_EVENT_FIELDS.flatMap((field) => [
+          field,
+          `${field}_ko`,
+          `${field}_de`,
+        ]).join(", "),
+      )
+      .eq("id", eventId)
+      .eq("tournament_id", tournamentId)
+      .single()
+
+    const changedFields = diffLocalizedFields(
+      storedEvent as Record<string, any> | null,
+      updateData,
+      TRANSLATABLE_EVENT_FIELDS,
+    )
+
     // Update the event
     const { data: eventData, error: eventError } = await supabase
       .from("tournament_events")
@@ -208,7 +247,10 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json(eventData)
+    // `changedFields` rides along with the saved row: the edit form uses
+    // it to translate only what moved, and callers that just want the row
+    // can keep ignoring it.
+    return NextResponse.json({ ...eventData, changedFields })
   } catch (error) {
     console.error("Error updating event:", error)
     return NextResponse.json(

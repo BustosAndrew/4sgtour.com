@@ -1,6 +1,19 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
+import { diffLocalizedFields } from "@/lib/translation-dirty"
+
+// Base names of the trip columns that carry translations. Used to report
+// which fields an admin actually changed so the translate route can redo
+// just those instead of the whole record.
+const TRANSLATABLE_TRIP_FIELDS = [
+  "title",
+  "description",
+  "location",
+  "refund_policy",
+  "overview_content",
+  "highlights",
+]
 
 export async function PATCH(
   request: NextRequest,
@@ -65,6 +78,29 @@ export async function PATCH(
   if ('location_de' in body) updateData.location_de = body.location_de
   if ('highlights_de' in body) updateData.highlights_de = body.highlights_de
   if ('overview_content_de' in body) updateData.overview_content_de = body.overview_content_de
+
+  // Read the stored row before writing so we can tell the client which
+  // translatable fields actually changed, and in which language. The edit
+  // form hands that back to the translate route, which then redoes only
+  // the fields whose source text moved — a save that only touched a price
+  // costs no AI calls at all.
+  const { data: storedTrip } = await supabase
+    .from("trips")
+    .select(
+      TRANSLATABLE_TRIP_FIELDS.flatMap((field) => [
+        field,
+        `${field}_ko`,
+        `${field}_de`,
+      ]).join(", "),
+    )
+    .eq("id", id)
+    .single()
+
+  const changedFields = diffLocalizedFields(
+    storedTrip as Record<string, any> | null,
+    updateData,
+    TRANSLATABLE_TRIP_FIELDS,
+  )
 
   const { error } = await supabase
     .from("trips")
@@ -280,11 +316,11 @@ export async function PATCH(
     }
   }
 
-  // Translation is now triggered exclusively from the admin "Translate" dialog
-  // (POST /api/admin/translate-trip/[id]). We intentionally do NOT auto-translate
-  // on update — admins must explicitly run translation per trip.
-
-  return NextResponse.json({ success: true })
+  // This route never calls the AI itself. It reports which translatable
+  // fields changed and lets the caller decide: the edit form follows a
+  // save with a translate run scoped to exactly these fields, and the
+  // "Translate" dialog can still be run manually at any time.
+  return NextResponse.json({ success: true, changedFields })
 }
 
 export async function DELETE(

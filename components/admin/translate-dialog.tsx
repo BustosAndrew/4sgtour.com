@@ -49,12 +49,16 @@ export function TranslateDialog({
     availableSourceLanguages[0] || "en",
   )
   const [targetLanguages, setTargetLanguages] = useState<Language[]>([])
+  // Repair mode. Off by default so a normal run only fills in what is
+  // missing; on, every field is retranslated even if it already reads fine.
+  const [force, setForce] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
   const [progress, setProgress] = useState<ProgressState | null>(null)
   const [result, setResult] = useState<{
     success: boolean
     partial?: boolean
     message: string
+    updated?: number
   } | null>(null)
 
   const allLanguages: Language[] = ["en", "ko", "de"]
@@ -95,7 +99,7 @@ export function TranslateDialog({
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceLanguage, targetLanguages }),
+        body: JSON.stringify({ sourceLanguage, targetLanguages, force }),
       })
 
       // Non-stream errors (auth/validation) come back as JSON.
@@ -158,8 +162,10 @@ export function TranslateDialog({
               success: !!event.success,
               partial: !!event.partial,
               message: event.message || "Translation complete.",
+              updated: event.fieldsUpdated ?? 0,
             })
-            if (event.success) onSuccess?.()
+            // Only worth re-reading the record if something was written.
+            if (event.success && (event.fieldsUpdated ?? 0) > 0) onSuccess?.()
           } else if (event.type === "error") {
             completed = true
             setResult({
@@ -193,8 +199,14 @@ export function TranslateDialog({
     setResult(null)
     setProgress(null)
     setTargetLanguages([])
+    setForce(false)
     onOpenChange(false)
   }
+
+  // A run that wrote nothing (everything was already up to date) should
+  // leave the Translate button in place, so ticking "Retranslate
+  // everything" and going again does not need the dialog reopened.
+  const nothingWritten = !!result?.success && (result.updated ?? 0) === 0
 
   const percent =
     progress && progress.total > 0
@@ -265,6 +277,29 @@ export function TranslateDialog({
             </div>
           </div>
 
+          {/* Repair mode */}
+          <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={force}
+                onChange={(e) => setForce(e.target.checked)}
+                disabled={isTranslating}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 text-[#274C77] focus:ring-[#274C77] disabled:cursor-not-allowed"
+              />
+              <span className="text-sm">
+                <span className="font-medium text-gray-700">
+                  Retranslate everything
+                </span>
+                <span className="block text-xs text-gray-500">
+                  Normally only missing or outdated fields are translated.
+                  Tick this to redo every field — use it to repair bad or
+                  partial translations.
+                </span>
+              </span>
+            </label>
+          </div>
+
           {/* Progress */}
           {isTranslating && progress && (
             <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
@@ -333,7 +368,7 @@ export function TranslateDialog({
           <Button variant="outline" onClick={handleClose} disabled={isTranslating}>
             {result?.success ? "Done" : "Cancel"}
           </Button>
-          {!result?.success && (
+          {(!result?.success || nothingWritten) && (
             <Button
               onClick={handleTranslate}
               disabled={isTranslating || targetLanguages.length === 0}

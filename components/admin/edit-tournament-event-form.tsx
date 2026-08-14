@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { translateChangedFields } from "@/lib/translate-changed-fields"
 
 type Lang = "en" | "ko" | "de"
 
@@ -220,6 +221,9 @@ export function EditTournamentEventForm({
   // Translation state
   const [translateSource, setTranslateSource] = useState<"en" | "ko" | "de">("en")
   const [translateTargets, setTranslateTargets] = useState<("en" | "ko" | "de")[]>([])
+  // Repair mode. Off by default so a normal run only fills in what is
+  // missing; on, every field is retranslated even if it already reads fine.
+  const [translateForce, setTranslateForce] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
   const [translateResult, setTranslateResult] = useState<{ success: boolean; partial?: boolean; message: string } | null>(null)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number; label: string } | null>(null)
@@ -345,6 +349,7 @@ export function EditTournamentEventForm({
         body: JSON.stringify({
           sourceLanguage: translateSource,
           targetLanguages: translateTargets,
+          force: translateForce,
         }),
       })
       
@@ -561,6 +566,14 @@ export function EditTournamentEventForm({
         const data = await response.json()
         throw new Error(data.error || "Failed to update event")
       }
+
+      // Refresh the translations for the fields this save actually
+      // changed. Nothing translatable edited → no AI call at all.
+      const saved = await response.json().catch(() => null)
+      await translateChangedFields({
+        endpoint: `/api/admin/translate-event/${event.id}`,
+        changedFields: saved?.changedFields,
+      })
 
       router.push("/admin?tab=tournaments")
       router.refresh()
@@ -1367,6 +1380,27 @@ export function EditTournamentEventForm({
                     </div>
                   </div>
                   
+                  {/* Repair mode */}
+                  <div className="rounded-md border border-border bg-muted/40 p-3">
+                    <label className="flex cursor-pointer items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={translateForce}
+                        onChange={(e) => setTranslateForce(e.target.checked)}
+                        disabled={isTranslating}
+                        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-border disabled:cursor-not-allowed"
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium">Retranslate everything</span>
+                        <span className="block text-xs text-muted-foreground">
+                          Normally only missing or outdated fields are
+                          translated. Tick this to redo every field — use it to
+                          repair bad or partial translations.
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+
                   {/* Translate Button */}
                   <Button
                     type="button"

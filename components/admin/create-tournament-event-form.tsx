@@ -434,6 +434,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       // After a successful create, auto-translate to Korean and German
       // so every new event ships fully localized without a separate
       // manual translate step.
+      //
+      // `force` is deliberately left off: the translate route fills in
+      // only the fields that have no translation yet, so anything the
+      // admin typed by hand in Korean or German on the create form is
+      // kept rather than being overwritten by the model.
       try {
         const createdEvent = await response.json()
         const newEventId = createdEvent?.id
@@ -446,6 +451,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               body: JSON.stringify({
                 sourceLanguage: "en",
                 targetLanguages: ["ko", "de"],
+                force: false,
               }),
             },
           )
