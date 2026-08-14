@@ -9,6 +9,11 @@ destinations, trips, and tournament events; Stripe checkout for bookings; a prot
 dashboard for managing trips, tournaments, inquiries, and messages. Originally scaffolded with
 v0.app, deployed on Vercel at https://4sgtour.com.
 
+> **This repo has two siblings.** The same product also ships as `4sgtour-de` and `4sgtour-at`
+> (both at `~/Documents/GitHub/`). After finishing a change here, **ask** whether it should also be
+> applied to them — never propagate on your own. See
+> [Sister sites](#sister-sites-4sgtourde--4sgtourat--three-repos-one-product).
+
 ## Commands
 
 ```powershell
@@ -89,29 +94,84 @@ Locales are `en | ko | de` ([lib/i18n/config.ts](lib/i18n/config.ts)), selected 
 - New translatable DB content needs: the `_ko`/`_de` columns (migration), a
   `getLocalizedField` call at every read site, and a hook into the auto-translate helpers.
 
-### Sister sites (4sgtour.de / 4sgtour.at)
+### Sister sites (4sgtour.de / 4sgtour.at) — three repos, one product
 
-Two additional deployments of this same site exist for the German and Austrian branches:
-**4sgtour.de** and **4sgtour.at**. They are identical to 4sgtour.com except that their default
-locale is `de` rather than `en`.
+This product ships as **three separate repositories and three separate Vercel deployments** that
+are otherwise the same codebase:
 
-This repository contains **no domain-conditional logic** — `defaultLocale` is a hard-coded `'en'`
-in [lib/i18n/config.ts](lib/i18n/config.ts) and [proxy.ts](proxy.ts) seeds `NEXT_LOCALE=en`. The
-`.de`/`.at` sites are maintained as separate deployments; the only references to them here are the
-branch links and `info@4sgtour.de` / `info@4sgtour.at` addresses in
-[components/site-footer.tsx](components/site-footer.tsx).
+| Site | Repo | Local path (this machine) | Default locale |
+| --- | --- | --- | --- |
+| 4sgtour.com | `BustosAndrew/v0-golf` | `~/Documents/GitHub/v0-golf` | `en` |
+| 4sgtour.de | `BustosAndrew/4sgtour-de` | `~/Documents/GitHub/4sgtour-de` | `de` |
+| 4sgtour.at | `BustosAndrew/4sgtour-at` | `~/Documents/GitHub/4sgtour-at` | `de` |
 
-Consequences when working here:
+They are **not** a monorepo, and there is no sync automation, no shared package, and no
+domain-conditional logic. Each repo is a full copy that drifts unless changes are copied by hand.
 
-- Changes to locale defaults, `messages/*.json` keys, or `getLocalizedField` behavior must be
-  carried over to the `.de`/`.at` deployments — they will not pick them up automatically.
+#### Ask before applying a change to the other two repos
+
+The three repos are meant to stay in sync, but **never propagate a change on your own**. Not every
+change belongs on all three sites, and the user decides which do.
+
+Workflow:
+
+1. Make and verify the change in the repo you were asked to work in — only that repo.
+2. **Ask the user whether the change should also be applied to the other two**, and wait for an
+   answer. Ask once the change is done, not before starting.
+3. If they say yes, apply it to the other checkouts, adapting the per-site values below.
+   Re-apply the edit in each repo rather than copying whole files — a blind file copy clobbers
+   the intentional per-site differences.
+4. Type-check or build each repo you touched (`npx tsc --noEmit`) — the copies are not identical,
+   so a clean build in one does not prove a clean build in another.
+5. Commit in each repo separately with the same message. Only push when the user asks.
+
+This applies to everything: code, migrations in `scripts/`, `messages/*.json` keys, config, and
+these AI docs. When the answer is no, the repos have deliberately diverged — note it rather than
+"fixing" it on a later pass.
+
+#### The only intentional per-site differences
+
+Everything else should stay byte-identical. Never "fix" these to match:
+
+| What | 4sgtour.com (`v0-golf`) | 4sgtour.de / 4sgtour.at |
+| --- | --- | --- |
+| `defaultLocale` in [lib/i18n/config.ts](lib/i18n/config.ts) | `'en'` | `'de'` |
+| `NEXT_LOCALE` cookie seeded in [proxy.ts](proxy.ts) | `'en'` | `'de'` |
+| `images.unoptimized` in [next.config.js](next.config.js) | absent | `true` |
+| [vercel.json](vercel.json) (Vercel Cron) | present | **absent** — the cron routes exist but nothing schedules them |
+| git remote / Vercel project | `v0-golf` | `4sgtour-de`, `4sgtour-at` |
+
+`4sgtour-de` and `4sgtour-at` are identical to each other; they differ only in remote and
+deployment. Environment variables (`NEXT_PUBLIC_APP_URL`, Stripe keys, `CRON_SECRET`, …) are set
+per Vercel project, not in the code.
+
+**Do not add `vercel.json` to the `.de`/`.at` repos** as part of a sync. The daily jobs
+(`/api/cron/charge-remaining-balance`, `/api/cron/send-payment-reminders`) write to Supabase and
+charge cards; running them from three deployments against a shared database would double- or
+triple-charge bookings. Cron changes belong in this repo only — ask before changing that.
+
+The `.de`/`.at` checkouts also lag on a few older non-locale commits (e.g. `metadataBase` and the
+OpenGraph `url` in [app/layout.tsx](app/layout.tsx), `app/not-found.tsx`). Treat that as drift to
+be fixed when you touch those files, not as intentional divergence.
+
+#### Locale and URL rules that follow from this
+
 - Never drop or rename a `de` message key or a `_de` database column on the assumption German is
-  a secondary locale; it is the primary locale for two of the three sites.
+  a secondary locale — it is the primary locale for two of the three sites.
 - Absolute URLs follow `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`. Keep that
   pattern for new links so each deployment resolves to its own domain; a bare `4sgtour.com`
-  string will send `.de`/`.at` users to the wrong site. Note that `metadataBase` in
-  [app/layout.tsx](app/layout.tsx) and the Resend `from:` address
-  (`noreply@4sgtour.com`) are still hard-coded.
+  string sends `.de`/`.at` users to the wrong site. Note that `metadataBase` in
+  [app/layout.tsx](app/layout.tsx) and the Resend `from:` address (`noreply@4sgtour.com`) are
+  still hard-coded.
+- [components/site-footer.tsx](components/site-footer.tsx) is the same in all three repos: it
+  carries the branch links and the `info@4sgtour.de` / `info@4sgtour.at` addresses.
+
+#### Keeping these docs in sync
+
+`CLAUDE.md` and [.github/copilot-instructions.md](.github/copilot-instructions.md) exist in all
+three repos and follow the same ask-first rule. Each repo's copy describes itself as the current
+repo, so if the user does want a docs change carried over, update the wording rather than pasting
+this file verbatim.
 
 ### Auto-translation
 
@@ -219,6 +279,10 @@ and don't assume ordering is total. Schema changes require a new script *and* a 
 8. **Secrets are not committed.** `.env*` is gitignored; the local `.env` holds only the public
    Supabase/site values plus `BLOB_READ_WRITE_TOKEN` and `RESEND_API_KEY`. Pull the rest from
    Vercel.
+9. **Ask before syncing a change to the sibling repos.** `v0-golf`, `4sgtour-de`, and
+   `4sgtour-at` are independent checkouts with no sync automation, so nothing propagates by
+   itself — but the user decides which changes belong on all three. Finish the change in the
+   repo you were asked to work in, then ask.
 
 ## Environment variables
 

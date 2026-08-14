@@ -4,6 +4,10 @@ Golf trip booking platform: public browsing/booking (trips + tournament events) 
 checkout, plus a protected admin dashboard. Next.js 16 App Router, React Server Components by
 default. See [CLAUDE.md](../CLAUDE.md) at the repo root for the fuller guide.
 
+> **Three repos, one product.** This is the 4sgtour.com repo (`v0-golf`). The same codebase also
+> ships as `4sgtour-de` and `4sgtour-at` (both at `~/Documents/GitHub/`). **Ask before applying a
+> change here to either sibling** — see [Three-repo workflow](#three-repo-workflow).
+
 ## Stack
 
 - Next.js 16 (App Router) + React 19, TypeScript strict
@@ -78,10 +82,44 @@ route segments**.
   `/api/translate/batch` (AI Gateway, `openai/gpt-5-mini`). Wrap fan-out in
   `runWithConcurrency()` to respect rate limits, and skip persisting a `null` translation.
 
-**Sister sites:** 4sgtour.de and 4sgtour.at are separate deployments of this product whose default
-locale is `de`. This repo has no domain-conditional logic, so locale-default and message-key
-changes must be carried over manually. Never treat German as an optional secondary locale. Build
-absolute URLs as `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`.
+Never treat German as an optional secondary locale — it is the default for two of the three sites
+(below). Build absolute URLs as `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`; a bare
+`4sgtour.com` string sends `.de`/`.at` users to the wrong site.
+
+### Three-repo workflow
+
+The product ships as three independent repos and three Vercel deployments — not a monorepo, no
+sync automation, no domain-conditional logic:
+
+| Site | Repo | Local path | Default locale |
+| --- | --- | --- | --- |
+| 4sgtour.com | `BustosAndrew/v0-golf` | `~/Documents/GitHub/v0-golf` | `en` |
+| 4sgtour.de | `BustosAndrew/4sgtour-de` | `~/Documents/GitHub/4sgtour-de` | `de` |
+| 4sgtour.at | `BustosAndrew/4sgtour-at` | `~/Documents/GitHub/4sgtour-at` | `de` |
+
+The three are meant to stay in sync, but **never propagate a change on your own**. Make and verify
+the change in the repo you were asked to work in, then **ask the user whether it should also go to
+the other two** and wait for an answer. This covers code, `scripts/` migrations, `messages/*.json`
+keys, config, and these AI docs alike.
+
+If they say yes: re-apply the edit in each repo rather than copying whole files (a blind copy
+clobbers the per-site differences below), type-check each one (`npx tsc --noEmit`), and commit in
+each repo separately with the same message. If they say no, the repos have deliberately diverged —
+note it instead of "fixing" it later.
+
+The only intentional differences, which must never be "fixed" to match:
+
+- `defaultLocale` in `lib/i18n/config.ts` — `'en'` on `.com`, `'de'` on `.de`/`.at`
+- the `NEXT_LOCALE` cookie seeded in `proxy.ts` — same split
+- `images.unoptimized: true` in `next.config.js` — `.de`/`.at` only
+- `vercel.json` — this repo only; the cron routes exist in all three but are scheduled only here.
+  **Never add `vercel.json` to `.de`/`.at`**: the daily jobs charge cards against a shared
+  database, so three schedules would multiply charges.
+- git remote / Vercel project
+
+Env vars are configured per Vercel project, not in code. The `.de`/`.at` checkouts also lag on a
+few older non-locale commits (`metadataBase` and the OpenGraph `url` in `app/layout.tsx`,
+`app/not-found.tsx`) — that is drift to fix when you touch those files, not divergence to keep.
 
 ### Payments
 
