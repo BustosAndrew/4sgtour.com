@@ -441,7 +441,7 @@ export function SiteFooter() {
                 className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
               />
 
-              <div className="flex h-16 items-center rounded-md bg-white px-3 sm:h-[72px]">
+              <div className="flex h-16 items-center rounded-md px-3 sm:h-[72px]">
                 <Image
                   src="/images/iagto-member.png"
                   alt="Member of IAGTO — International Association of Golf Tour Operators"
