@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-
-const BASE_URL = 'https://4sgtour.com'
+import { getSiteUrl } from '@/lib/site-url'
 
 export default async function sitemap() {
+  // Each site must advertise its own URLs; a fixed domain would tell search
+  // engines that the .de/.at content lives on 4sgtour.com.
+  const BASE_URL = getSiteUrl()
   const supabase = await createClient()
 
   // Static pages

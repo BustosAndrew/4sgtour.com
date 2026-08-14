@@ -69,6 +69,15 @@ Cron routes are the exception: they build a service-role client directly with
   `NEXT_LOCALE` cookie.
 - Middleware redirects anonymous users away from `/admin`, `/bookings`, `/dashboard`, and
   redirects signed-in users away from `/auth/login` and `/auth/sign-up`.
+- OAuth and password-recovery links both land on `/auth/callback`, which exchanges the code for a
+  session and then forwards to the `redirect` query param. Password reset therefore points at
+  `/auth/callback?redirect=/auth/update-password`, **not** straight at `/auth/update-password` —
+  sent directly, that page would load with no session and no way to set a password.
+- Callback origins are derived from the request (`requestUrl.origin`, `window.location.origin`),
+  so no per-site code is needed — but every origin must be in the Supabase project's **Redirect
+  URLs** allow-list (Authentication → URL Configuration). All three sites share one Supabase
+  project whose Site URL is `https://4sgtour.com`; an origin missing from the allow-list silently
+  falls back to that, dropping `.de`/`.at` users on the wrong site mid-login.
 - Middleware only checks *authentication*. Every admin page and `/api/admin/*` route must
   re-check the role server-side:
 
@@ -142,30 +151,57 @@ Everything else should stay byte-identical. Never "fix" these to match:
 | `NEXT_LOCALE` cookie seeded in [proxy.ts](proxy.ts) | `'en'` | `'de'` |
 | `images.unoptimized` in [next.config.js](next.config.js) | absent | `true` |
 | [vercel.json](vercel.json) (Vercel Cron) | present | **absent** — the cron routes exist but nothing schedules them |
+| `Sitemap:` line in [public/robots.txt](public/robots.txt) | `4sgtour.com` | each site's own domain |
 | git remote / Vercel project | `v0-golf` | `4sgtour-de`, `4sgtour-at` |
 
-`4sgtour-de` and `4sgtour-at` are identical to each other; they differ only in remote and
-deployment. Environment variables (`NEXT_PUBLIC_APP_URL`, Stripe keys, `CRON_SECRET`, …) are set
-per Vercel project, not in the code.
+Apart from those, the three repos are byte-identical — deliberately, so a change can be moved
+between them as a patch (`git diff` here, `git apply` there) instead of being retyped.
+`4sgtour-de` and `4sgtour-at` are identical to each other. Environment variables
+(`NEXT_PUBLIC_SITE_URL`, Stripe keys, `CRON_SECRET`, …) are set per Vercel project, not in code.
 
-**Do not add `vercel.json` to the `.de`/`.at` repos** as part of a sync. The daily jobs
-(`/api/cron/charge-remaining-balance`, `/api/cron/send-payment-reminders`) write to Supabase and
-charge cards; running them from three deployments against a shared database would double- or
-triple-charge bookings. Cron changes belong in this repo only — ask before changing that.
+**Never add `vercel.json` to the `.de`/`.at` repos.** This is the single most damaging sync
+mistake available. Both daily jobs query `stripe_bookings` with **no site filter** — they process
+every booking from all three sites, because all three share one Supabase project. Neither job
+takes a lock: [charge-remaining-balance](app/api/cron/charge-remaining-balance/route.ts) selects
+rows with `remaining_balance_charged = false`, calls `stripe.paymentIntents.create()`, and only
+then marks the row; `send-payment-reminders` does the same around `payment_reminder_sent_at`.
+Three deployments firing at 08:00 UTC would each read the same unmarked rows before any of them
+wrote, and **charge each customer up to three times**. Cron belongs in this repo only.
 
-The `.de`/`.at` checkouts also lag on a few older non-locale commits (e.g. `metadataBase` and the
-OpenGraph `url` in [app/layout.tsx](app/layout.tsx), `app/not-found.tsx`). Treat that as drift to
-be fixed when you touch those files, not as intentional divergence.
+Known consequence, not a bug to fix casually: because cron runs only here, balance-charge and
+reminder emails to `.de`/`.at` customers are sent from `noreply@4sgtour.com` with `4sgtour.com`
+links. Fixing it properly needs a site/origin column on `stripe_bookings` (there is none today)
+so the job can pick the right domain per booking.
 
-#### Locale and URL rules that follow from this
+#### Absolute URLs and email addresses come from helpers
+
+Never hard-code a domain or an address. Two helpers derive everything from the deployment:
+
+- [lib/site-url.ts](lib/site-url.ts) — `getSiteUrl()` returns `NEXT_PUBLIC_APP_URL ||
+  NEXT_PUBLIC_SITE_URL || 'https://4sgtour.com'`, without a trailing slash. Used by Stripe return
+  URLs, email links, `metadataBase`, the OpenGraph `url`, and [app/sitemap.ts](app/sitemap.ts).
+- [lib/site-email.ts](lib/site-email.ts) — `getFromEmail()`, `getAdminEmail()`,
+  `getSupportEmail()`, derived from `getSiteUrl()`'s hostname, so each site sends as
+  `noreply@<its own domain>` and notifies `info@<its own domain>`.
+  `RESEND_FROM_EMAIL` / `ADMIN_EMAIL` / `SUPPORT_EMAIL` override.
+
+Two traps that follow:
+
+1. **`NEXT_PUBLIC_*` is inlined at build time.** Setting or changing one of these in Vercel does
+   nothing until the project is redeployed — it is not read at runtime. This affects canonical
+   URLs, OpenGraph tags, Stripe return URLs and email senders.
+2. **Resend rejects a `from:` on an unverified domain.** `4sgtour.de` and `4sgtour.at` are
+   verified as of 2026-08-14. If a new domain is added, verify it in Resend first or set
+   `RESEND_FROM_EMAIL` to a verified address on that project.
+
+#### Locale rules that follow from this
 
 - Never drop or rename a `de` message key or a `_de` database column on the assumption German is
   a secondary locale — it is the primary locale for two of the three sites.
-- Absolute URLs follow `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`. Keep that
-  pattern for new links so each deployment resolves to its own domain; a bare `4sgtour.com`
-  string sends `.de`/`.at` users to the wrong site. Note that `metadataBase` in
-  [app/layout.tsx](app/layout.tsx) and the Resend `from:` address (`noreply@4sgtour.com`) are
-  still hard-coded.
+- Page metadata is localized: [app/layout.tsx](app/layout.tsx) uses `generateMetadata()` reading
+  the `metadata` namespace from `messages/*.json`, and the OpenGraph locale follows the
+  *visitor's* locale via `openGraphLocales` in [lib/i18n/config.ts](lib/i18n/config.ts) — not the
+  site default. New metadata copy needs keys in all three message files.
 - [components/site-footer.tsx](components/site-footer.tsx) is the same in all three repos: it
   carries the branch links and the `info@4sgtour.de` / `info@4sgtour.at` addresses.
 
@@ -208,9 +244,11 @@ Public: `/`, `/destinations`, `/destinations/[continent]`,
 `/package/[id]`, `/tournaments`, `/tournaments/[slug]`, `/tournaments/[slug]/[eventSlug]`,
 `/tournaments/[slug]/[eventSlug]/tickets`, `/contact`, `/privacy`, `/terms`
 
-Authenticated: `/bookings`, `/favorites`, `/auth/*`, `/checkout/custom/success`
+Authenticated: `/bookings`, `/favorites`, `/auth/*` (`login`, `sign-up`, `callback`,
+`complete-profile`, `reset-password`, `update-password`), `/checkout/custom/success`
 
-Admin: `/admin`, `/admin/trips/new`, `/admin/trips/[id]`,
+Admin: `/admin`, `/admin/trips/new`, `/admin/trips/[id]`, `/admin/tournaments`,
+`/admin/tournaments/[id]`, `/admin/tournaments/[id]/events/new`,
 `/admin/tournaments/[id]/events/[eventId]`
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,

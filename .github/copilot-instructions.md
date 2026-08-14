@@ -83,8 +83,30 @@ route segments**.
   `runWithConcurrency()` to respect rate limits, and skip persisting a `null` translation.
 
 Never treat German as an optional secondary locale — it is the default for two of the three sites
-(below). Build absolute URLs as `process.env.NEXT_PUBLIC_APP_URL || 'https://4sgtour.com'`; a bare
-`4sgtour.com` string sends `.de`/`.at` users to the wrong site.
+(below). Page metadata is localized too: `app/layout.tsx` uses `generateMetadata()` over the
+`metadata` namespace in `messages/*.json`, with the OpenGraph locale following the visitor's
+locale via `openGraphLocales` in `lib/i18n/config.ts`.
+
+### Never hard-code a domain or an email address
+
+Two helpers derive both from the running deployment — use them for anything absolute:
+
+- `getSiteUrl()` (`lib/site-url.ts`) — `NEXT_PUBLIC_APP_URL || NEXT_PUBLIC_SITE_URL ||
+  'https://4sgtour.com'`, no trailing slash. Backs Stripe return URLs, email links,
+  `metadataBase`, the OpenGraph `url` and `app/sitemap.ts`.
+- `getFromEmail()` / `getAdminEmail()` / `getSupportEmail()` (`lib/site-email.ts`) — derived from
+  that hostname, so each site sends as `noreply@<its own domain>`. `RESEND_FROM_EMAIL`,
+  `ADMIN_EMAIL`, `SUPPORT_EMAIL` override.
+
+`NEXT_PUBLIC_*` values are **inlined at build time** — changing one in Vercel does nothing until
+that project redeploys. And Resend rejects a `from:` on an unverified domain (`.de`/`.at` are
+verified as of 2026-08-14).
+
+Auth callbacks derive their origin from the request, so they need no per-site code — but every
+origin must be in the shared Supabase project's Redirect URLs allow-list, or it silently falls
+back to the Site URL (`https://4sgtour.com`). Password reset points at
+`/auth/callback?redirect=/auth/update-password` so the recovery code is exchanged for a session
+before the form loads.
 
 ### Three-repo workflow
 
@@ -116,22 +138,30 @@ The only intentional differences, which must never be "fixed" to match:
 - the `NEXT_LOCALE` cookie seeded in `proxy.ts` — same split
 - `images.unoptimized: true` in `next.config.js` — `.de`/`.at` only
 - `vercel.json` — this repo only; the cron routes exist in all three but are scheduled only here.
-  **Never add `vercel.json` to `.de`/`.at`**: the daily jobs charge cards against a shared
-  database, so three schedules would multiply charges.
+  **Never add `vercel.json` to `.de`/`.at`.** Both jobs query `stripe_bookings` with no site
+  filter (all three sites share one Supabase project) and take no lock — they select unmarked
+  rows, charge or send, and mark afterwards. Three schedules firing at 08:00 UTC would charge
+  each customer up to three times.
+- the `Sitemap:` line in `public/robots.txt` — each site points at its own domain
 - git remote / Vercel project
 
-Env vars are configured per Vercel project, not in code. The `.de`/`.at` checkouts also lag on a
-few older non-locale commits (`metadataBase` and the OpenGraph `url` in `app/layout.tsx`,
-`app/not-found.tsx`) — that is drift to fix when you touch those files, not divergence to keep.
+Env vars are configured per Vercel project, not in code. Apart from the items above the three
+repos are byte-identical, deliberately — a change can be moved between them as a patch
+(`git diff` in one, `git apply` in the other) rather than retyped. If a file looks like it has
+drifted, check whether the difference is only formatting before treating it as real: run both
+versions through the shared `.prettierrc.json` and compare.
 
 ### Payments
 
 Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit via
 `trips.deposit_percentage`, or full payment). `/api/stripe/webhook` handles
 `checkout.session.completed` / `.expired` and is the only writer that confirms a `stripe_bookings`
-row. Two Vercel Cron jobs (`vercel.json`) run daily and authenticate with `Bearer ${CRON_SECRET}`:
-`/api/cron/charge-remaining-balance` (08:00 UTC) and `/api/cron/send-payment-reminders`
-(09:00 UTC). Admin-created custom bookings can be paid via a Twilio SMS link
+row. Two Vercel Cron jobs (`vercel.json`, this repo only — see above) run daily and authenticate
+with `Bearer ${CRON_SECRET}`: `/api/cron/charge-remaining-balance` (08:00 UTC) and
+`/api/cron/send-payment-reminders` (09:00 UTC). Both process bookings from all three sites, so
+their mail to `.de`/`.at` customers is sent from `noreply@4sgtour.com` with `4sgtour.com` links;
+fixing that needs a site/origin column on `stripe_bookings`, which does not exist yet.
+Admin-created custom bookings can be paid via a Twilio SMS link
 (`app/actions/send-payment-link.ts`).
 
 ### Database
