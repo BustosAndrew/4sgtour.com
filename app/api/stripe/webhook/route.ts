@@ -130,6 +130,10 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         trip_id: metadata.trip_id,
         package_id: metadata.package_id,
         user_id: metadata.user_id || null,
+        // Recorded on the session when checkout started, so a booking made on
+        // 4sgtour.de is still attributed to .de even though the webhook and
+        // the cron jobs run on the .com deployment.
+        site_url: metadata.site_url || null,
         stripe_checkout_session_id: sessionId,
         stripe_payment_intent_id: session.payment_intent as string,
         stripe_customer_id: stripeCustomerId,

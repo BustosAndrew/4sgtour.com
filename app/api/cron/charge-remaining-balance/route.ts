@@ -208,7 +208,7 @@ Best regards,
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(booking.site_url),
       to: booking.customer_email,
       subject: `Payment Confirmed: Remaining Balance for ${booking.booking_details?.trip_title || 'Your Golf Trip'}`,
       text: customerEmailContent,
@@ -219,7 +219,7 @@ Best regards,
   }
 
   // Also notify admin
-  const adminEmail = getAdminEmail()
+  const adminEmail = getAdminEmail(booking.site_url)
   const adminEmailContent = `
 REMAINING BALANCE CHARGED
 
@@ -241,7 +241,7 @@ This booking is now fully paid.
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(booking.site_url),
       to: adminEmail,
       subject: `Remaining Balance Charged: ${booking.customer_name} - ${booking.booking_details?.trip_title || 'Golf Trip'}`,
       text: adminEmailContent,
@@ -253,7 +253,7 @@ This booking is now fully paid.
 
 async function sendPaymentFailedEmail(booking: any, errorMessage: string) {
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const adminEmail = getAdminEmail()
+  const adminEmail = getAdminEmail(booking.site_url)
 
   const adminEmailContent = `
 PAYMENT FAILED - ACTION REQUIRED
@@ -277,7 +277,7 @@ Please contact the customer to arrange alternative payment.
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(booking.site_url),
       to: adminEmail,
       subject: `URGENT: Payment Failed - ${booking.customer_name}`,
       text: adminEmailContent,

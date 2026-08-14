@@ -339,6 +339,7 @@ export async function POST(request: Request) {
       customer_email: customerEmail,
       payment_method_types: ['card', 'us_bank_account'],
       metadata: {
+        site_url: appUrl,
         is_custom_package: 'true',
         trip_id: tripData.id,
         custom_package_name: title,
@@ -387,6 +388,7 @@ export async function POST(request: Request) {
         customer_email: customerEmail,
         payment_method_types: ['card', 'us_bank_account'],
         metadata: {
+          site_url: appUrl,
           is_custom_package: 'true',
           trip_id: tripData.id,
           custom_package_name: title,
@@ -407,6 +409,7 @@ export async function POST(request: Request) {
 
     // ── 10. Create inquiry record linked to the trip ──────────────────
     const inquiryData: Record<string, any> = {
+      site_url: appUrl,
       trip_id: tripData.id,
       trip_title: title,
       customer_name: customerName,

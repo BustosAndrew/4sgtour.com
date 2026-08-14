@@ -1,31 +1,39 @@
 import { getSiteUrl } from './site-url'
 
 /**
- * Bare domain of the current deployment, e.g. `4sgtour.de`.
+ * Bare domain of a site URL, e.g. `4sgtour.de`.
+ *
+ * Falls back to the running deployment's own domain when `siteUrl` is missing
+ * or unparseable — which is what rows created before migration 053 look like.
  */
-function siteDomain(): string {
-  try {
-    return new URL(getSiteUrl()).hostname.replace(/^www\./, '')
-  } catch {
-    return '4sgtour.com'
+function siteDomain(siteUrl?: string | null): string {
+  for (const candidate of [siteUrl, getSiteUrl()]) {
+    if (!candidate) continue
+    try {
+      return new URL(candidate).hostname.replace(/^www\./, '')
+    } catch {
+      // try the next candidate
+    }
   }
+  return '4sgtour.com'
 }
 
 /**
  * `from:` address for transactional mail sent through Resend.
  *
- * Defaults to `noreply@<this site's domain>` so the German and Austrian
- * deployments don't sign their mail as 4sgtour.com.
+ * Pass `siteUrl` when sending on behalf of a site other than the one running
+ * the code — the cron jobs run only on the .com deployment but send mail for
+ * bookings made on all three sites.
  *
  * IMPORTANT: Resend will reject a `from:` on a domain that isn't verified in
- * the Resend dashboard. If 4sgtour.de / 4sgtour.at are not verified there,
- * set RESEND_FROM_EMAIL on those Vercel projects to a verified address.
+ * the Resend dashboard. If a new domain is added, set RESEND_FROM_EMAIL on
+ * that Vercel project to a verified address until the domain is verified.
  */
-export function getFromEmail(): string {
-  return (
-    process.env.RESEND_FROM_EMAIL ||
-    `4 Seasons Golf Tour <noreply@${siteDomain()}>`
-  )
+export function getFromEmail(siteUrl?: string | null): string {
+  if (!siteUrl && process.env.RESEND_FROM_EMAIL) {
+    return process.env.RESEND_FROM_EMAIL
+  }
+  return `4 Seasons Golf Tour <noreply@${siteDomain(siteUrl)}>`
 }
 
 /**
@@ -33,13 +41,19 @@ export function getFromEmail(): string {
  * in customer email. Receiving needs no Resend verification, only that the
  * mailbox exists.
  */
-export function getAdminEmail(): string {
-  return process.env.ADMIN_EMAIL || `info@${siteDomain()}`
+export function getAdminEmail(siteUrl?: string | null): string {
+  if (!siteUrl && process.env.ADMIN_EMAIL) {
+    return process.env.ADMIN_EMAIL
+  }
+  return `info@${siteDomain(siteUrl)}`
 }
 
 /**
  * Address customers are told to reply to. Falls back to the admin address.
  */
-export function getSupportEmail(): string {
-  return process.env.SUPPORT_EMAIL || getAdminEmail()
+export function getSupportEmail(siteUrl?: string | null): string {
+  if (!siteUrl && process.env.SUPPORT_EMAIL) {
+    return process.env.SUPPORT_EMAIL
+  }
+  return getAdminEmail(siteUrl)
 }

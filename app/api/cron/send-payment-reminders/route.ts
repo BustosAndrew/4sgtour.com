@@ -68,7 +68,10 @@ export async function GET(request: Request) {
           
           if (inquiry.is_custom_package && inquiry.id) {
             // Link to custom package page
-            const packagePageUrl = `${appUrl}/package/${inquiry.id}`
+            // This cron only runs on the .com deployment, so link to the site
+            // the customer actually booked on. Older rows have no site_url and
+            // fall back to this deployment, i.e. today's behaviour.
+            const packagePageUrl = `${inquiry.site_url || appUrl}/package/${inquiry.id}`
             messageBody = `4 Seasons Golf Tour: Reminder - Your remaining balance of $${remainderAmount.toFixed(
               2
             )} for "${packageName}" is due in 5 days (${new Date(targetDateString).toLocaleDateString()}). View details and pay: ${packagePageUrl} Reply STOP to opt out.`

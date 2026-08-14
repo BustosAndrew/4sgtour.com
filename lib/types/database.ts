@@ -112,6 +112,8 @@ export interface AddOn {
 
 export interface Inquiry {
   id: string
+  /** Origin site, e.g. https://4sgtour.de. Null for rows predating migration 053. */
+  site_url: string | null
   trip_id: string | null
   trip_title: string
   customer_name: string
@@ -144,6 +146,8 @@ export interface Inquiry {
 
 export interface StripeBooking {
   id: string
+  /** Origin site, e.g. https://4sgtour.de. Null for rows predating migration 053. */
+  site_url: string | null
   trip_id: string | null
   package_id: string | null
   user_id: string | null

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { createClient } from "@/lib/supabase/server"
 import { getFromEmail, getAdminEmail } from "@/lib/site-email"
+import { getSiteUrl } from "@/lib/site-url"
 
 export async function POST(request: Request) {
   try {
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
     const { data: inquiry, error: dbError } = await supabase
       .from("inquiries")
       .insert({
+        site_url: getSiteUrl(),
         trip_id: tripId,
         trip_title: tripTitle,
         customer_name: customerName || "Guest",

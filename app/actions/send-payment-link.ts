@@ -135,6 +135,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       setup_future_usage: 'off_session',
     },
     metadata: {
+      site_url: appUrl,
       trip_id: tripId,
       trip_title: tripTitle,
       package_id: packageId,
@@ -172,6 +173,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       trip_id: tripId,
       package_id: packageId,
       user_id: user?.id || null,
+      site_url: appUrl,
       stripe_checkout_session_id: session.id,
       customer_name: customerName,
       customer_email: customerEmail,
@@ -212,6 +214,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
 
   // Save inquiry with payment link info
   const { error: inquiryError } = await supabase.from('inquiries').insert({
+    site_url: appUrl,
     trip_id: tripId,
     trip_title: tripTitle,
     customer_name: customerName,

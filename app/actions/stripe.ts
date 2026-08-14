@@ -2,6 +2,7 @@
 
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/site-url'
 
 interface CheckoutSessionParams {
   packageId: string
@@ -169,6 +170,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
         }),
     customer_email: customerEmail,
     metadata: {
+      site_url: getSiteUrl(),
       trip_id: tripId,
       trip_title: tripTitle,
       package_id: packageId,
@@ -209,6 +211,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
       trip_id: tripId,
       package_id: packageId,
       user_id: user?.id || null,
+      site_url: getSiteUrl(),
       stripe_checkout_session_id: session.id,
       customer_name: customerName,
       customer_email: customerEmail,
