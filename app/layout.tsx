@@ -6,10 +6,16 @@ import { Analytics } from '@vercel/analytics/next'
 import { ErrorHandler } from '@/components/error-handler'
 import { I18nProvider } from '@/lib/i18n/provider'
 import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
+import { defaultLocale, openGraphLocales } from '@/lib/i18n/config'
+import { getSiteUrl } from '@/lib/site-url'
 import './globals.css'
 
+// Each of the three sites is its own deployment, so the canonical origin has
+// to come from the environment rather than a hard-coded domain.
+const siteUrl = getSiteUrl()
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://4sgtour.com'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: '4 Seasons Golf Tour',
     template: '%s | 4 Seasons Golf Tour',
@@ -29,8 +35,8 @@ export const metadata: Metadata = {
   creator: '4 Seasons Golf Tour',
   openGraph: {
     type: 'website',
-    locale: 'en_US',
-    url: 'https://4sgtour.com',
+    locale: openGraphLocales[defaultLocale],
+    url: siteUrl,
     siteName: '4 Seasons Golf Tour',
     title: '4 Seasons Golf Tour',
     description:
