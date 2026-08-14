@@ -433,14 +433,6 @@ export function SiteFooter() {
 
             {/* Accreditations & memberships */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:justify-end">
-              <Image
-                src="/images/ggta-founding-member.png"
-                alt="Global Golf Travel Association — Verified Founding Member"
-                width={900}
-                height={900}
-                className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
-              />
-
               <div className="flex h-16 items-center rounded-md px-3 sm:h-[72px]">
                 <Image
                   src="/images/iagto-member.png"
@@ -450,6 +442,14 @@ export function SiteFooter() {
                   className="h-auto w-[96px] object-contain sm:w-[108px]"
                 />
               </div>
+
+              <Image
+                src="/images/ggta-founding-member.png"
+                alt="Global Golf Travel Association — Verified Founding Member"
+                width={900}
+                height={900}
+                className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+              />
 
               <Image
                 src="/images/european-tour-destinations-white.png"
