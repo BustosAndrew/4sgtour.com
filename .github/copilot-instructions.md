@@ -96,7 +96,13 @@ Two helpers derive both from the running deployment — use them for anything ab
   `metadataBase`, the OpenGraph `url` and `app/sitemap.ts`.
 - `getFromEmail()` / `getAdminEmail()` / `getSupportEmail()` (`lib/site-email.ts`) — derived from
   that hostname, so each site sends as `noreply@<its own domain>`. `RESEND_FROM_EMAIL`,
-  `ADMIN_EMAIL`, `SUPPORT_EMAIL` override.
+  `ADMIN_EMAIL`, `SUPPORT_EMAIL` override. Each accepts an optional site URL
+  (`getFromEmail(booking.site_url)`) for code mailing on behalf of another site — the cron jobs
+  do this; any new background job must too.
+
+`stripe_bookings.site_url` / `inquiries.site_url` (nullable, migration `053`) record the origin
+site. Set them on every new creation path, and pass the value through Stripe session metadata
+when the webhook is the writer — it always runs on `.com` and cannot infer the origin otherwise.
 
 `NEXT_PUBLIC_*` values are **inlined at build time** — changing one in Vercel does nothing until
 that project redeploys. And Resend rejects a `from:` on an unverified domain (`.de`/`.at` are
@@ -159,8 +165,8 @@ Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit v
 row. Two Vercel Cron jobs (`vercel.json`, this repo only — see above) run daily and authenticate
 with `Bearer ${CRON_SECRET}`: `/api/cron/charge-remaining-balance` (08:00 UTC) and
 `/api/cron/send-payment-reminders` (09:00 UTC). Both process bookings from all three sites, so
-their mail to `.de`/`.at` customers is sent from `noreply@4sgtour.com` with `4sgtour.com` links;
-fixing that needs a site/origin column on `stripe_bookings`, which does not exist yet.
+they resolve the sender and links from each row's `site_url` (migration `053`) rather than from
+their own deployment — pass it through as `getFromEmail(booking.site_url)`.
 Admin-created custom bookings can be paid via a Twilio SMS link
 (`app/actions/send-payment-link.ts`).
 

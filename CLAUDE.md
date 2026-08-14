@@ -168,10 +168,11 @@ then marks the row; `send-payment-reminders` does the same around `payment_remin
 Three deployments firing at 08:00 UTC would each read the same unmarked rows before any of them
 wrote, and **charge each customer up to three times**. Cron belongs in this repo only.
 
-Known consequence, not a bug to fix casually: because cron runs only here, balance-charge and
-reminder emails to `.de`/`.at` customers are sent from `noreply@4sgtour.com` with `4sgtour.com`
-links. Fixing it properly needs a site/origin column on `stripe_bookings` (there is none today)
-so the job can pick the right domain per booking.
+Because cron runs only here, it must not assume its own domain is the customer's. Both
+`stripe_bookings` and `inquiries` carry a nullable `site_url` (migration `053`) recorded at
+creation, and the jobs resolve the sender and links from that per row — see below. Rows created
+before `053` have `site_url = null` and fall back to the running deployment, which is exactly the
+old behaviour.
 
 #### Absolute URLs and email addresses come from helpers
 
@@ -184,6 +185,10 @@ Never hard-code a domain or an address. Two helpers derive everything from the d
   `getSupportEmail()`, derived from `getSiteUrl()`'s hostname, so each site sends as
   `noreply@<its own domain>` and notifies `info@<its own domain>`.
   `RESEND_FROM_EMAIL` / `ADMIN_EMAIL` / `SUPPORT_EMAIL` override.
+  Each takes an **optional site URL** — `getFromEmail(booking.site_url)` — for code sending on
+  behalf of a site other than the one running it. That is only the cron jobs today, but any new
+  background job that mails a customer must pass the row's `site_url` too, or `.de`/`.at`
+  customers get `.com` mail. An unparseable or null argument falls back to the deployment.
 
 Two traps that follow:
 
@@ -263,6 +268,12 @@ Tables in active use: `profiles`, `trips`, `trip_images`, `trip_golf_courses`,
 `tournaments`, `tournament_events`, `tournament_event_itinerary_days`,
 `tournament_event_pricing_tiers`, `tournament_event_gallery_images`.
 
+`stripe_bookings.site_url` and `inquiries.site_url` (nullable, migration `053`) record which of
+the three sites the row came from. Set them at **every** new creation path — the checkout action,
+the SMS payment link, the admin custom booking, the inquiry route — and carry the value through
+Stripe session metadata when the row is written by the webhook, which always runs on `.com`.
+A row without it silently reverts to `.com` branding for that customer.
+
 TypeScript row types live in [lib/types/database.ts](lib/types/database.ts) and are hand-written —
 they are not generated from the schema, so update them alongside every migration.
 
@@ -285,8 +296,12 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. Schema changes require a new script *and* a matching edit to
-`lib/types/database.ts`.
+and don't assume ordering is total. `053` is the highest so far. Schema changes require a new
+script *and* a matching edit to `lib/types/database.ts`.
+
+The script is applied by hand, so **a migration and the code that depends on it deploy
+separately**. When new code writes a new column, the SQL has to be run *before* that code ships,
+or every insert fails. Say so explicitly when handing over a migration.
 
 ## Conventions
 
