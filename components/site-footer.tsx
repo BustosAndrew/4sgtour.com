@@ -432,19 +432,19 @@ export function SiteFooter() {
             <BackToTopButton />
 
             {/* Accreditations & memberships */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:justify-end">
-              <div className="flex h-16 items-center rounded-md px-3 sm:h-[72px]">
+            <div className="grid w-fit grid-cols-3 items-center justify-items-center gap-x-3 gap-y-6 sm:gap-x-0 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-x-8">
+              <div className="flex h-16 w-full items-center justify-center rounded-md sm:h-[72px] md:w-auto md:px-3">
                 <Image
                   src="/images/iagto-member.png"
                   alt="Member of IAGTO — International Association of Golf Tour Operators"
                   width={3066}
                   height={1660}
-                  className="h-auto w-[96px] object-contain sm:w-[108px]"
+                  className="h-auto w-full max-w-[96px] object-contain sm:max-w-[108px] md:w-[108px]"
                 />
               </div>
 
               <Image
-                src="/images/ggta-founding-member.png"
+                src="/images/ggta.png"
                 alt="Global Golf Travel Association — Verified Founding Member"
                 width={900}
                 height={900}
@@ -452,11 +452,11 @@ export function SiteFooter() {
               />
 
               <Image
-                src="/images/european-tour-destinations-white.png"
+                src="/images/eutour.png"
                 alt="European Tour Destinations"
                 width={2382}
                 height={579}
-                className="h-auto w-[150px] object-contain sm:w-[175px]"
+                className="h-auto w-full max-w-[150px] object-contain sm:max-w-[175px] md:w-[175px]"
               />
             </div>
           </div>
