@@ -1,11 +1,24 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { getSiteUrl } from '@/lib/site-url'
+
+// The sitemap runs five queries to build a list that changes at most a
+// few times a day, so it is cached rather than rebuilt per crawler hit.
+//
+// This deliberately does NOT use `@/lib/supabase/server`: that client
+// reads cookies, and touching cookies opts the route out of static
+// rendering entirely, which would leave `revalidate` doing nothing. The
+// sitemap only ever reads public, RLS-readable rows and has no session,
+// so a plain anon client is both sufficient and cacheable.
+export const revalidate = 86400
 
 export default async function sitemap() {
   // Each site must advertise its own URLs; a fixed domain would tell search
   // engines that the .de/.at content lives on 4sgtour.com.
   const BASE_URL = getSiteUrl()
-  const supabase = await createClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 
   // Static pages
   const staticPages = [

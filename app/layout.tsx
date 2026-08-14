@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { ErrorHandler } from '@/components/error-handler'
 import { I18nProvider } from '@/lib/i18n/provider'
 import { getServerLocale, getServerMessages } from '@/lib/i18n/server'
-import { openGraphLocales } from '@/lib/i18n/config'
+import { openGraphLocales, pickClientMessages } from '@/lib/i18n/config'
 import { getSiteUrl } from '@/lib/site-url'
 import './globals.css'
 
@@ -73,6 +73,11 @@ export default async function RootLayout({
   const locale = await getServerLocale()
   const messages = await getServerMessages(locale)
 
+  // Only the namespaces client components read cross into the RSC
+  // payload. Server Components keep using getServerTranslations(), which
+  // still sees the full bundle.
+  const clientMessages = pickClientMessages(messages)
+
   return (
     <html lang={locale}>
       <head>
@@ -91,7 +96,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <I18nProvider locale={locale} messages={messages}>
+        <I18nProvider locale={locale} messages={clientMessages}>
           <ErrorHandler />
           {children}
         </I18nProvider>

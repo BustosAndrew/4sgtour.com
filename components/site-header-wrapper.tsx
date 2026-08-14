@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
 import { differenceInCalendarDays, format } from "date-fns"
-import { getServerLocale } from "@/lib/i18n/server"
-import type { Locale } from "@/lib/i18n/config"
-import en from "@/messages/en.json"
-import ko from "@/messages/ko.json"
-import de from "@/messages/de.json"
+import { getServerLocale, getServerMessages } from "@/lib/i18n/server"
 
-const messages: Record<string, typeof en> = { en, ko, de }
+// This component renders on every page. It used to statically import all
+// three message files (~149 KB of JSON) just to read a few `nav` strings,
+// which had to be parsed on every cold start; `getServerMessages` loads
+// only the visitor's locale.
 
 async function SiteHeaderAsync() {
   const supabase = await createClient()
@@ -32,38 +31,40 @@ async function SiteHeaderAsync() {
         userType = profile.user_type
       }
 
-      // Fetch next trip data
+      // Fetch next trip data. Previously this pulled every inquiry ever
+      // filed under the customer's email and picked the nearest one in
+      // JS; the database can do that with an index and hand back a
+      // single row.
       const customerEmail = profile?.email || user.email
       if (customerEmail) {
+        const today = new Date().toISOString().split("T")[0]
         const { data: inquiries } = await supabase
           .from("inquiries")
           .select("start_date, status")
           .eq("customer_email", customerEmail)
+          .gte("start_date", today)
+          // A null status is not a cancellation — `.neq()` alone would
+          // drop those rows, since NULL <> 'cancelled' is NULL in SQL.
+          .or("status.is.null,status.neq.cancelled")
+          .order("start_date", { ascending: true })
+          .limit(1)
 
-        if (inquiries && inquiries.length > 0) {
-          const now = new Date()
-          const upcoming = inquiries
-            .filter((inq) => inq.start_date && inq.status !== "cancelled")
-            .map((inq) => {
-              const start = new Date(inq.start_date as string)
-              return { start, daysUntil: differenceInCalendarDays(start, now) }
-            })
-            .filter((item) => item.daysUntil >= 0)
+        const nearestInquiry = inquiries?.[0]
+        if (nearestInquiry?.start_date) {
+          const start = new Date(nearestInquiry.start_date as string)
+          const daysUntil = differenceInCalendarDays(start, new Date())
 
-          if (upcoming.length > 0) {
-            const nearest = upcoming.reduce(
-              (min, item) => (item.daysUntil < min.daysUntil ? item : min),
-              upcoming[0]
-            )
-            const navMessages = (messages[currentLocale] ?? en).nav
-            if (nearest.daysUntil === 0) {
+          if (daysUntil >= 0) {
+            const messages = await getServerMessages(currentLocale)
+            const navMessages = messages.nav
+            if (daysUntil === 0) {
               tripMessage = navMessages.tripStartsToday
-            } else if (nearest.daysUntil === 1) {
+            } else if (daysUntil === 1) {
               tripMessage = navMessages.nextTripInOneDay
             } else {
-              tripMessage = navMessages.nextTripInDays.replace("{days}", String(nearest.daysUntil))
+              tripMessage = navMessages.nextTripInDays.replace("{days}", String(daysUntil))
             }
-            tripDateLabel = format(nearest.start, "MMM d, yyyy")
+            tripDateLabel = format(start, "MMM d, yyyy")
           }
         }
       }

@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserType } from '@/lib/supabase/get-user-type'
 import { autoTranslateTrip, autoTranslatePackages } from '@/lib/auto-translate'
 import { getSiteUrl } from '@/lib/site-url'
-import { headers } from 'next/headers'
 import Twilio from 'twilio'
 
 export async function POST(request: Request) {
@@ -261,15 +260,15 @@ export async function POST(request: Request) {
     const hasKoreanContent = title_ko && title_ko.trim()
 
     if (hasEnglishContent || hasKoreanContent) {
-      const headersList = await headers()
-      const host = headersList.get('host') || 'localhost:3000'
-      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-      const baseUrl = `${protocol}://${host}`
-
       const useEnglishAsSource = hasEnglishContent
 
-      autoTranslateTrip(
-        baseUrl,
+      // Awaited rather than left floating. These used to be fire-and-
+      // forget promises, but on Fluid Compute the instance can be frozen
+      // once the response is sent, so work still in flight is liable to
+      // be killed part-way — leaving a trip half-translated. Now that the
+      // model is called in-process (no self-HTTP round-trips) this costs
+      // far less wall-clock than the fan-out version did.
+      await autoTranslateTrip(
         tripData.id,
         useEnglishAsSource
           ? {
@@ -290,7 +289,7 @@ export async function POST(request: Request) {
             },
         useEnglishAsSource ? 'en' : 'ko',
         supabase,
-      ).catch((err) => console.error('[v0] Background translation error:', err))
+      ).catch((err) => console.error('[v0] Translation error:', err))
 
       const { data: insertedPackages } = await supabase
         .from('packages')
@@ -298,13 +297,12 @@ export async function POST(request: Request) {
         .eq('trip_id', tripData.id)
 
       if (insertedPackages && insertedPackages.length > 0) {
-        autoTranslatePackages(
-          baseUrl,
+        await autoTranslatePackages(
           insertedPackages,
           useEnglishAsSource ? 'en' : 'ko',
           supabase,
         ).catch((err) =>
-          console.error('[v0] Background package translation error:', err),
+          console.error('[v0] Package translation error:', err),
         )
       }
     }

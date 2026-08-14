@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
-import { headers } from "next/headers"
+
 import { runWithConcurrency } from "@/lib/run-with-concurrency"
+import { translateFields } from "@/lib/translate-text"
 import {
   countUnits,
   createShouldTranslate,
@@ -91,11 +92,6 @@ export async function POST(
       { status: 400, headers: { "Content-Type": "application/json" } },
     )
   }
-
-  const headersList = await headers()
-  const host = headersList.get("host") || "localhost:3000"
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  const baseUrl = `${protocol}://${host}`
 
   const [{ data: event, error: eventErr }, { data: itineraryDays }, { data: pricingTiers }] =
     await Promise.all([
@@ -246,31 +242,17 @@ export async function POST(
       ): Promise<{ translations: Record<string, string>; failed: string[] }> => {
         if (fields.length === 0) return { translations: {}, failed: [] }
 
-        const doFetch = async (chunk: FieldPayload[]) => {
-          const response = await fetch(`${baseUrl}/api/translate/batch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fields: chunk,
-              targetLanguage: targetLang,
-              sourceLanguage,
-            }),
+        // Called in-process. This used to POST to `${baseUrl}/api/translate/batch`,
+        // which spent a whole extra function invocation (plus its cold start
+        // and middleware pass) per batch to run code already in this bundle.
+        // `translateFields` throws a TranslationError carrying the same
+        // `status`/`code` the HTTP path used to surface.
+        const doFetch = async (chunk: FieldPayload[]) =>
+          translateFields({
+            fields: chunk,
+            targetLanguage: targetLang,
+            sourceLanguage,
           })
-          if (!response.ok) {
-            let errPayload: any = null
-            try {
-              errPayload = await response.json()
-            } catch {}
-            throw Object.assign(new Error(errPayload?.error || "Translation failed"), {
-              status: response.status,
-              code: errPayload?.code,
-            })
-          }
-          return (await response.json()) as {
-            translations?: Record<string, string>
-            missingKeys?: string[]
-          }
-        }
 
         const first = await doFetch(fields)
         const translations: Record<string, string> = { ...(first.translations || {}) }

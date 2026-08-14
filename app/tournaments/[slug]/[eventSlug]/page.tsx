@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { EventDetailView } from '@/components/event-detail-view'
@@ -10,17 +11,45 @@ interface EventPageProps {
   params: Promise<{ slug: string; eventSlug: string }>
 }
 
+// generateMetadata and the page component each used to run this pair of
+// queries, so an event page cost four sequential round-trips per request.
+// Supabase calls are not deduped the way `fetch` is; React's `cache()`
+// collapses them to one pair per request.
+const getTournament = cache(async (slug: string) => {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('tournaments')
+    .select('id, slug, display_name, hero_image')
+    .eq('slug', slug)
+    .single()
+
+  return data
+})
+
+const getEvent = cache(async (tournamentId: string, eventSlug: string) => {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('tournament_events')
+    .select(`
+      *,
+      tournament_event_itinerary_days(id, display_order, title, title_ko, title_de, content, content_ko, content_de),
+      tournament_event_gallery_images(id, image_url, display_order, gallery_type),
+      tournament_event_pricing_tiers(id, name, name_ko, name_de, price, display_order, booking_url)
+    `)
+    .eq('tournament_id', tournamentId)
+    .eq('slug', eventSlug)
+    .single()
+
+  return data
+})
+
 export async function generateMetadata({
   params,
 }: EventPageProps): Promise<Metadata> {
   const { slug, eventSlug } = await params
-  const supabase = await createClient()
-
-  const { data: tournament } = await supabase
-    .from('tournaments')
-    .select('id, display_name')
-    .eq('slug', slug)
-    .single()
+  const tournament = await getTournament(slug)
 
   if (!tournament) {
     return {
@@ -30,12 +59,7 @@ export async function generateMetadata({
     }
   }
 
-  const { data: event } = await supabase
-    .from('tournament_events')
-    .select('title, description, image, location')
-    .eq('tournament_id', tournament.id)
-    .eq('slug', eventSlug)
-    .single()
+  const event = await getEvent(tournament.id, eventSlug)
 
   if (!event) {
     return {
@@ -68,32 +92,17 @@ export async function generateMetadata({
 
 export default async function EventPage({ params }: EventPageProps) {
   const { slug, eventSlug } = await params
-  const supabase = await createClient()
   const locale = await getServerLocale()
 
-  // Get tournament
-  const { data: tournament } = await supabase
-    .from('tournaments')
-    .select('id, slug, display_name, hero_image')
-    .eq('slug', slug)
-    .single()
+  // Both already fetched during generateMetadata — served from the
+  // per-request cache rather than queried again.
+  const tournament = await getTournament(slug)
 
   if (!tournament) {
     notFound()
   }
 
-  // Get event with all related data including translations
-  const { data: event } = await supabase
-    .from('tournament_events')
-    .select(`
-      *,
-      tournament_event_itinerary_days(id, display_order, title, title_ko, title_de, content, content_ko, content_de),
-      tournament_event_gallery_images(id, image_url, display_order, gallery_type),
-      tournament_event_pricing_tiers(id, name, name_ko, name_de, price, display_order, booking_url)
-    `)
-    .eq('tournament_id', tournament.id)
-    .eq('slug', eventSlug)
-    .single()
+  const event = await getEvent(tournament.id, eventSlug)
 
   if (!event) {
     notFound()

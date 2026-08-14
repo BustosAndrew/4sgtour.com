@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { AnimatedHr } from '@/components/ui/animated-hr'
@@ -19,17 +20,34 @@ interface TripPageProps {
   params: Promise<{ slug: string }>
 }
 
+// Next calls generateMetadata and the page component separately, and a
+// Supabase query is not deduped the way `fetch` is — so this page used to
+// hit the database twice per request for the same row. React's `cache()`
+// collapses them into one round-trip per request.
+const getTrip = cache(async (slug: string) => {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('trips')
+    .select(
+      `
+      *,
+      destination:destinations!left(name, name_ko, name_de, country),
+      packages(id, name, name_ko, name_de, description, description_ko, description_de, price),
+      trip_images(id, image_url, display_order)
+    `,
+    )
+    .eq('slug', slug)
+    .single()
+
+  return data
+})
+
 export async function generateMetadata({
   params,
 }: TripPageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: trip } = await supabase
-    .from('trips')
-    .select('title, description, location, courses_photo_url')
-    .eq('slug', slug)
-    .single()
+  const trip = await getTrip(slug)
 
   if (!trip) {
     return { title: 'Trip Not Found | 4 Seasons Golf Tour' }
@@ -59,22 +77,12 @@ export async function generateMetadata({
 
 export default async function TripPage({ params }: TripPageProps) {
   const { slug } = await params
-  const supabase = await createClient()
   const t = await getServerTranslations('tripDetails')
   const locale = await getServerLocale()
 
-  const { data: trip, error } = await supabase
-    .from('trips')
-    .select(
-      `
-      *,
-      destination:destinations!left(name, name_ko, name_de, country),
-      packages(id, name, name_ko, name_de, description, description_ko, description_de, price),
-      trip_images(id, image_url, display_order)
-    `,
-    )
-    .eq('slug', slug)
-    .single()
+  // Already fetched during generateMetadata — served from the per-request
+  // cache rather than queried again.
+  const trip = await getTrip(slug)
 
   if (!trip || trip.is_custom) {
     notFound()

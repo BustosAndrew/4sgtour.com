@@ -3,6 +3,13 @@
  * Translates from the source language (en or ko) to all other languages (ko, de or en, de)
  */
 
+import { runWithConcurrency } from "./run-with-concurrency"
+import { translateFields, translateSingleText } from "./translate-text"
+
+// Max simultaneous AI Gateway requests, matching the admin translate
+// routes. Keeps a trip with many highlights from bursting into a 429.
+const AI_CONCURRENCY = 3
+
 interface TranslateFieldsParams {
   fields: { field: string; text: string; fieldType: string }[]
   targetLanguage: string
@@ -13,21 +20,18 @@ interface TranslationResult {
   [key: string]: string
 }
 
+// These two call the model in-process. They used to POST to
+// `${baseUrl}/api/translate` and `/api/translate/batch` — the app
+// HTTPS-ing itself — which cost an extra function invocation, cold start
+// and middleware pass for every single field. A trip with eight
+// highlights across two languages spent sixteen invocations on work that
+// was already sitting in the same bundle.
 async function translateBatch(
-  baseUrl: string,
   params: TranslateFieldsParams
 ): Promise<TranslationResult> {
   try {
-    const response = await fetch(`${baseUrl}/api/translate/batch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(params),
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      return data.translations || {}
-    }
+    const { translations } = await translateFields(params)
+    return translations
   } catch (error) {
     console.error("[auto-translate] Batch translation error:", error)
   }
@@ -35,28 +39,18 @@ async function translateBatch(
 }
 
 async function translateSingle(
-  baseUrl: string,
   text: string,
   targetLanguage: string,
   sourceLanguage: string,
   fieldType: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${baseUrl}/api/translate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text,
-        targetLanguage,
-        sourceLanguage,
-        fieldType,
-      }),
+    return await translateSingleText({
+      text,
+      targetLanguage,
+      sourceLanguage,
+      fieldType,
     })
-
-    if (response.ok) {
-      const data = await response.json()
-      return data.translation || null
-    }
   } catch (error) {
     console.error("[auto-translate] Single translation error:", error)
   }
@@ -68,7 +62,6 @@ async function translateSingle(
  * Called after trip create/update
  */
 export async function autoTranslateTrip(
-  baseUrl: string,
   tripId: string,
   sourceData: {
     title?: string
@@ -108,7 +101,7 @@ export async function autoTranslateTrip(
     }
 
     if (fieldsToTranslate.length > 0) {
-      const translations = await translateBatch(baseUrl, {
+      const translations = await translateBatch({
         fields: fieldsToTranslate,
         targetLanguage: targetLang,
         sourceLanguage,
@@ -122,7 +115,6 @@ export async function autoTranslateTrip(
       for (const highlight of sourceData.highlights) {
         if (highlight.trim()) {
           const translated = await translateSingle(
-            baseUrl,
             highlight,
             targetLang,
             sourceLanguage,
@@ -153,7 +145,6 @@ export async function autoTranslateTrip(
  * Called after trip create/update when packages have translatable content
  */
 export async function autoTranslatePackages(
-  baseUrl: string,
   packages: Array<{
     id: string
     name?: string
@@ -181,7 +172,7 @@ export async function autoTranslatePackages(
       }
 
     if (fieldsToTranslate.length > 0) {
-      const translations = await translateBatch(baseUrl, {
+      const translations = await translateBatch({
         fields: fieldsToTranslate,
         targetLanguage: targetLang,
         sourceLanguage,
@@ -210,7 +201,6 @@ export async function autoTranslatePackages(
  * Only fills in translations that are missing — never overwrites existing ones.
  */
 export async function autoTranslateNamedRows(
-  baseUrl: string,
   tableName: string,
   rows: Array<{ id: string; [key: string]: any }>,
   nameField: string,
@@ -260,7 +250,7 @@ export async function autoTranslateNamedRows(
 
       if (fieldsToTranslate.length === 0) continue
 
-      const translations = await translateBatch(baseUrl, {
+      const translations = await translateBatch({
         fields: fieldsToTranslate,
         targetLanguage: targetLang,
         sourceLanguage,
@@ -289,7 +279,6 @@ export async function autoTranslateNamedRows(
  * Called after event create/update when itinerary days are created
  */
 export async function autoTranslateItineraryDays(
-  baseUrl: string,
   itineraryDays: Array<{
     id: string
     title?: string
@@ -317,7 +306,7 @@ export async function autoTranslateItineraryDays(
       }
 
       if (fieldsToTranslate.length > 0) {
-        const translations = await translateBatch(baseUrl, {
+        const translations = await translateBatch({
           fields: fieldsToTranslate,
           targetLanguage: targetLang,
           sourceLanguage,
@@ -344,7 +333,6 @@ export async function autoTranslateItineraryDays(
  * Called after event create/update when pricing tiers are created
  */
 export async function autoTranslatePricingTiers(
-  baseUrl: string,
   pricingTiers: Array<{
     id: string
     name?: string
@@ -362,7 +350,7 @@ export async function autoTranslatePricingTiers(
       const suffix = targetLang === "en" ? "" : `_${targetLang}`
 
       if (tier.name) {
-        const translations = await translateBatch(baseUrl, {
+        const translations = await translateBatch({
           fields: [{ field: `name${suffix}`, text: tier.name, fieldType: "title" }],
           targetLanguage: targetLang,
           sourceLanguage,
@@ -390,7 +378,6 @@ export async function autoTranslatePricingTiers(
  * Note: description, trip_highlights, travel_itinerary, includes, excludes are stored as arrays in the DB
  */
 export async function autoTranslateTournamentEvent(
-  baseUrl: string,
   eventId: string,
   sourceData: {
     title?: string
@@ -421,7 +408,7 @@ export async function autoTranslateTournamentEvent(
     }
 
     if (fieldsToTranslate.length > 0) {
-      const translations = await translateBatch(baseUrl, {
+      const translations = await translateBatch({
         fields: fieldsToTranslate,
         targetLanguage: targetLang,
         sourceLanguage,
@@ -446,7 +433,6 @@ export async function autoTranslateTournamentEvent(
           for (const item of items) {
             if (item && item.trim()) {
               const translated = await translateSingle(
-                baseUrl,
                 item,
                 targetLang,
                 sourceLanguage,
