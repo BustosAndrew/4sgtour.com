@@ -1,7 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { Flag, LogOut, MessageSquare, Trophy, Home, FileText, X } from 'lucide-react'
+import {
+  Flag,
+  KeyRound,
+  LogOut,
+  MessageSquare,
+  Trophy,
+  Home,
+  FileText,
+  X,
+} from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -117,6 +126,19 @@ export function AdminSidebar({ userName, mobileMenuOpen, onMobileMenuClose }: Ad
         >
           <MessageSquare className="h-5 w-5" />
           Inbox
+        </Link>
+
+        <Link
+          href="/admin/api-access"
+          onClick={handleLinkClick}
+          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
+            pathname.startsWith('/admin/api-access')
+              ? 'bg-white/20'
+              : 'hover:bg-white/10'
+          }`}
+        >
+          <KeyRound className="h-5 w-5" />
+          API Access
         </Link>
 
         <button

@@ -186,3 +186,26 @@ export interface StripeBooking {
   created_at: string
   updated_at: string
 }
+
+/** Bearer token for third-party read access to /api/v1/*. Migration 054. */
+export interface ApiKey {
+  id: string
+  name: string
+  /** First characters of the key, for display only — the rest is unrecoverable. */
+  key_prefix: string
+  /** SHA-256 hex digest of the full key. Never sent to the client. */
+  key_hash: string
+  created_by: string | null
+  created_at: string
+  last_used_at: string | null
+  /** Non-null once revoked; every request using the key is then rejected. */
+  revoked_at: string | null
+  /**
+   * Whether this key may pass `include_custom=true` and receive custom
+   * (private, per-customer) trips. Migration 055; defaults to false.
+   */
+  allow_custom_trips: boolean
+}
+
+/** An api_keys row minus the secret material, safe to send to the admin UI. */
+export type ApiKeySummary = Omit<ApiKey, 'key_hash'>
