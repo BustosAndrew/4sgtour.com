@@ -149,6 +149,12 @@ The only intentional differences, which must never be "fixed" to match:
   rows, charge or send, and mark afterwards. Three schedules firing at 08:00 UTC would charge
   each customer up to three times.
 - the `Sitemap:` line in `public/robots.txt` — each site points at its own domain
+- the partner API — `/admin/api-access`, `/api/admin/api-keys`, `/api/v1/*`, `lib/api-keys.ts` and
+  migrations `054`/`055` exist in this repo only, by the user's explicit decision (2026-08-15).
+  All three sites share one Supabase project, so a key issued anywhere already reaches all three
+  deployments; one issuing surface is enough. Their `components/admin/admin-sidebar.tsx` is
+  otherwise byte-identical — it just omits the API Access `<Link>` and the `KeyRound` /
+  `usePathname` imports. Do not "restore" it.
 - git remote / Vercel project
 
 Env vars are configured per Vercel project, not in code. Apart from the items above the three
@@ -176,7 +182,7 @@ Active tables: `profiles`, `trips`, `trip_images`, `trip_golf_courses`, `trip_me
 `trip_transportation_options`, `trip_service_options`, `packages`, `add_ons`, `inquiries`,
 `stripe_bookings`, `messages`, `favorites`, `tournaments`, `tournament_events`,
 `tournament_event_itinerary_days`, `tournament_event_pricing_tiers`,
-`tournament_event_gallery_images`. `destinations` is legacy.
+`tournament_event_gallery_images`, `api_keys`. `destinations` is legacy.
 
 Row types in `lib/types/database.ts` are hand-written, not generated — update them with every
 migration. Fetch related data with nested selects:
@@ -196,7 +202,23 @@ issue than a query bug.
 
 Numbered SQL files in `scripts/`, applied by hand in the Supabase SQL editor. No migration runner,
 no local Supabase. Numbers have collided historically — pick the next unused number, and don't
-assume ordering is total.
+assume ordering is total. `055` is the highest; `054`/`055` were applied on 2026-08-15.
+
+### Partner API (this repo only)
+
+Read-only trips feed for third-party partners, authenticated with a key issued at **Admin → API
+Access**. Reference: `docs/partner-api.md`; partner-facing copy: `docs/partner-api-instructions.md`.
+
+- Keys are `4sg_live_<32 random bytes>`; only `sha256(key)` is stored, so the plaintext is shown
+  once and is unrecoverable. Revoking is a soft delete (`revoked_at`), effective next request.
+- The admin page and `/api/admin/api-keys` use the **cookie-bound** client so RLS backs up the
+  `getUserType()` check, and never select `key_hash` toward a browser. `authenticateApiKey()` and
+  `/api/v1/*` use the **service-role** client — the caller has no session, so RLS would hide every
+  row. Same exception the cron routes make.
+- Custom trips need **both** `api_keys.allow_custom_trips` (granted per key by an admin) and
+  `?include_custom=true` (per request). Otherwise the endpoint filters `.neq('is_custom', true)`
+  like the public pages; parameter without grant returns 403 `custom_trips_not_permitted`. Custom
+  trips are private per-customer itineraries — never widen this without asking.
 
 ## Conventions
 

@@ -134,9 +134,9 @@ export function AdminTournaments({
 
       {/* Sidebar - using shared AdminSidebar component */}
       <AdminSidebar
-        userName={userName}
         mobileMenuOpen={mobileMenuOpen}
         onMobileMenuClose={() => setMobileMenuOpen(false)}
+        activeTab="tournaments"
       />
 
       <main className="flex-1 bg-[#f4f3ee]">

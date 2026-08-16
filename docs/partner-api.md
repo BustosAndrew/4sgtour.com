@@ -62,11 +62,18 @@ carries `is_custom` so a caller can tell the two kinds apart either way.
 Withdrawing the grant (`PATCH /api/admin/api-keys/[id]`) takes effect on the
 next request, same as revoking.
 
-## Deploy order
+## Migration status
 
-Migrations are applied by hand in the Supabase SQL editor, so
-`scripts/054_add_api_keys.sql` and
-`scripts/055_add_allow_custom_trips_to_api_keys.sql` **must both be run before
-this code ships**. Until `api_keys` exists, key creation fails and every
-partner request returns 500; until `allow_custom_trips` exists, both fail on
-the missing column.
+Both `scripts/054_add_api_keys.sql` and
+`scripts/055_add_allow_custom_trips_to_api_keys.sql` were applied by hand in
+the Supabase SQL editor on **2026-08-15**, so the schema is live and the code
+can ship.
+
+They ran against the shared Supabase project, which means the `api_keys` table
+is visible to all three deployments even though only this repo has the code to
+use it. That is also why a key issued here works against `.de` and `.at` if
+those ever gain the endpoint — see the note in CLAUDE.md.
+
+Any future change here is a new numbered script, applied the same way, plus a
+matching edit to `lib/types/database.ts`. A migration and the code that needs
+it deploy separately, so run the SQL first.

@@ -5,14 +5,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
-  LogOut,
   Pencil,
   Trash2,
-  FileText,
-  Home,
   Menu,
-  X,
-  MessageSquare,
   Trophy,
   Languages,
   ChevronDown,
@@ -27,6 +22,7 @@ import Image from "next/image"
 import { InquiriesList } from "@/components/admin/inquiries-list"
 import { InboxList } from "@/components/admin/inbox-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { TranslateDialog } from "@/components/admin/translate-dialog"
 import { CreateCustomBookingForm } from "@/components/admin/create-custom-booking-form"
@@ -399,13 +395,6 @@ export function AdminCourses({
     setActiveTab("inbox")
   }
 
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/auth/login")
-    router.refresh()
-  }
-
   const handleDeleteTrip = async (trip: Trip, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -464,132 +453,13 @@ export function AdminCourses({
         />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[230px] transform bg-[#274C77] p-6 text-white transition-transform duration-300 lg:relative lg:translate-x-0 ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Close button for mobile */}
-        <button
-          onClick={() => setMobileMenuOpen(false)}
-          className="absolute right-4 top-4 text-white lg:hidden"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        <div className="mb-12 flex items-center gap-3">
-          <div className="text-white">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M24 4L8 12V24C8 34 15 42 24 44C33 42 40 34 40 24V12L24 4Z"
-                fill="currentColor"
-                opacity="0.3"
-              />
-              <circle cx="24" cy="20" r="4" fill="currentColor" />
-              <path d="M24 26L18 32H30L24 26Z" fill="currentColor" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-base font-semibold">4SG Tour</div>
-            <div className="text-xs">Customize Golf Journey</div>
-          </div>
-        </div>
-
-        <nav className="space-y-2">
-          <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-            <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10">
-              <Home className="h-5 w-5" />
-              <span className="font-medium">Home</span>
-            </button>
-          </Link>
-
-          <button
-            onClick={() => {
-              setActiveTab("courses")
-              setMobileMenuOpen(false)
-            }}
-            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "courses"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
-            }`}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            </svg>
-            <span className="font-medium">Courses</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("tournaments")
-              setMobileMenuOpen(false)
-            }}
-            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "tournaments"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
-            }`}
-          >
-            <Trophy className="h-5 w-5" />
-            <span className="font-medium">Tournaments</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("inquiries")
-              setMobileMenuOpen(false)
-            }}
-            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "inquiries"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
-            }`}
-          >
-            <FileText className="h-5 w-5" />
-            <span className="font-medium">Inquiries</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("inbox")
-              setMobileMenuOpen(false)
-            }}
-            className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
-              activeTab === "inbox"
-                ? "bg-white/20 text-white"
-                : "text-white hover:bg-white/10"
-            }`}
-          >
-            <MessageSquare className="h-5 w-5" />
-            <span className="font-medium">Inbox</span>
-          </button>
-
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-white/10"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="font-medium">Log Out</span>
-          </button>
-        </nav>
-      </aside>
+      {/* Sidebar - shared with every other admin page */}
+      <AdminSidebar
+        mobileMenuOpen={mobileMenuOpen}
+        onMobileMenuClose={() => setMobileMenuOpen(false)}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+      />
 
       <main className="flex-1 bg-[#f4f3ee]">
         <header className="border-b border-gray-300 bg-white px-4 py-4 sm:px-8 sm:py-6">

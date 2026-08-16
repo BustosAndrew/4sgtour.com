@@ -178,7 +178,6 @@ export function ApiAccess({
       )}
 
       <AdminSidebar
-        userName={userName}
         mobileMenuOpen={mobileMenuOpen}
         onMobileMenuClose={() => setMobileMenuOpen(false)}
       />

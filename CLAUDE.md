@@ -151,8 +151,15 @@ Everything else should stay byte-identical. Never "fix" these to match:
 | `NEXT_LOCALE` cookie seeded in [proxy.ts](proxy.ts) | `'en'` | `'de'` |
 | `images.unoptimized` in [next.config.js](next.config.js) | absent | `true` |
 | [vercel.json](vercel.json) (Vercel Cron) | present | **absent** — the cron routes exist but nothing schedules them |
+| Partner API (`/admin/api-access`, `/api/admin/api-keys`, `/api/v1/*`, `lib/api-keys.ts`, migrations `054`/`055`) | present | **absent** — and the API Access item is absent from their `admin-sidebar.tsx` too |
 | `Sitemap:` line in [public/robots.txt](public/robots.txt) | `4sgtour.com` | each site's own domain |
 | git remote / Vercel project | `v0-golf` | `4sgtour-de`, `4sgtour-at` |
+
+The partner API is `.com`-only by the user's explicit decision (2026-08-15), not by oversight:
+all three sites share one Supabase project, so a key issued anywhere already works against all
+three deployments and one issuing surface is enough. Their `admin-sidebar.tsx` is otherwise
+byte-identical to this repo's — it just omits the API Access `<Link>` and the `KeyRound` /
+`usePathname` imports. Do not "restore" it.
 
 Apart from those, the three repos are byte-identical — deliberately, so a change can be moved
 between them as a patch (`git diff` here, `git apply` there) instead of being retyped.
@@ -242,6 +249,28 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   `/api/cron/charge-remaining-balance` (08:00 UTC) and `/api/cron/send-payment-reminders`
   (09:00 UTC). Both authenticate with `Bearer ${CRON_SECRET}` and use the service-role client.
 
+### Partner API (4sgtour.com only)
+
+Read-only feed of recently published trips for third-party partners (built for Tiger Booking),
+authenticated with a key issued at **Admin → API Access**. Reference:
+[docs/partner-api.md](docs/partner-api.md); the partner-facing copy is
+[docs/partner-api-instructions.md](docs/partner-api-instructions.md).
+
+- Keys are `4sg_live_<32 random bytes>`; only `sha256(key)` is stored, so the plaintext is shown
+  once at creation and is unrecoverable. `key_prefix` is display-only.
+- Revoking is a soft delete (`revoked_at`) — the row stays so `last_used_at` and the audit trail
+  survive. Takes effect on the next request; nothing is cached.
+- Two different clients on purpose: the admin page and `/api/admin/api-keys` use the
+  **cookie-bound** client so RLS is a second gate after `getUserType()`, and never select
+  `key_hash` into anything reaching a browser. `authenticateApiKey()` and `/api/v1/*` use the
+  **service-role** client — the caller is a machine with no Supabase session, so RLS would hide
+  every row. Same exception the cron routes make.
+- **Custom trips need two gates**: `api_keys.allow_custom_trips` (granted per key by an admin)
+  *and* `?include_custom=true` (the partner opts in per request). Without the parameter the
+  endpoint filters `.neq('is_custom', true)`, matching the public pages; with the parameter but
+  without the grant it returns 403 `custom_trips_not_permitted` rather than silently falling back.
+  A custom trip is a private, per-customer itinerary — never widen this without asking.
+
 ### Routes
 
 Public: `/`, `/destinations`, `/destinations/[continent]`,
@@ -252,13 +281,16 @@ Public: `/`, `/destinations`, `/destinations/[continent]`,
 Authenticated: `/bookings`, `/favorites`, `/auth/*` (`login`, `sign-up`, `callback`,
 `complete-profile`, `reset-password`, `update-password`), `/checkout/custom/success`
 
-Admin: `/admin`, `/admin/trips/new`, `/admin/trips/[id]`, `/admin/tournaments`,
-`/admin/tournaments/[id]`, `/admin/tournaments/[id]/events/new`,
+Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
+`/admin/tournaments`, `/admin/tournaments/[id]`, `/admin/tournaments/[id]/events/new`,
 `/admin/tournaments/[id]/events/[eventId]`
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
-translate-*), `/api/inquiry`, `/api/messages`, `/api/tournament-tickets`, `/api/upload`,
-`/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`
+translate-*, api-keys), `/api/inquiry`, `/api/messages`, `/api/tournament-tickets`,
+`/api/upload`, `/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`
+
+Partner (this repo only, bearer-authenticated): `/api/v1/trips/latest` — see
+[Partner API](#partner-api-4sgtourcom-only).
 
 ### Database
 
@@ -266,7 +298,7 @@ Tables in active use: `profiles`, `trips`, `trip_images`, `trip_golf_courses`,
 `trip_meal_options`, `trip_transportation_options`, `trip_service_options`, `packages`,
 `add_ons`, `inquiries`, `stripe_bookings`, `messages`, `favorites`, `destinations` (legacy),
 `tournaments`, `tournament_events`, `tournament_event_itinerary_days`,
-`tournament_event_pricing_tiers`, `tournament_event_gallery_images`.
+`tournament_event_pricing_tiers`, `tournament_event_gallery_images`, `api_keys`.
 
 `stripe_bookings.site_url` and `inquiries.site_url` (nullable, migration `053`) record which of
 the three sites the row came from. Set them at **every** new creation path — the checkout action,
@@ -296,8 +328,9 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `053` is the highest so far. Schema changes require a new
-script *and* a matching edit to `lib/types/database.ts`.
+and don't assume ordering is total. `055` is the highest so far, and `054`/`055` were applied on
+2026-08-15. Schema changes require a new script *and* a matching edit to
+`lib/types/database.ts`.
 
 The script is applied by hand, so **a migration and the code that depends on it deploy
 separately**. When new code writes a new column, the SQL has to be run *before* that code ships,
