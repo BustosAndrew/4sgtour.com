@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
 
   // Set default locale cookie if not present
   if (!request.cookies.has('NEXT_LOCALE')) {
-    response.cookies.set('NEXT_LOCALE', 'en', {
+    response.cookies.set('NEXT_LOCALE', 'ko', {
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year
       sameSite: 'lax',

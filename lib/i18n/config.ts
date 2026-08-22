@@ -1,6 +1,6 @@
 export const locales = ['en', 'ko', 'de'] as const
 export type Locale = (typeof locales)[number]
-export const defaultLocale: Locale = 'en'
+export const defaultLocale: Locale = 'ko'
 
 // OpenGraph wants a language_TERRITORY tag rather than a bare language code.
 export const openGraphLocales: Record<Locale, string> = {
