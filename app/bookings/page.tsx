@@ -4,15 +4,16 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { BookingsContent } from "@/components/bookings/bookings-content"
 
-// Paid (or once-paid) bookings. 'pending' rows are checkouts that were opened
-// but not (yet) paid, and 'expired' ones were abandoned — neither is a booking.
-const VISIBLE_BOOKING_STATUSES = ["confirmed", "completed", "cancelled", "refunded"]
+// Paid (or once-paid) bookings, plus bank payments still clearing. 'pending'
+// rows are checkouts that were opened but not (yet) paid, and 'expired' /
+// 'failed' ones never completed — none of those is a booking.
+const VISIBLE_BOOKING_STATUSES = ["processing", "confirmed", "completed", "cancelled", "refunded"]
 
 const BOOKING_COLUMNS = `
   id, created_at, status, trip_id, trip_title, booking_details,
   total_price, total_package_price, total_paid, remaining_balance,
   remaining_balance_charged, auto_charge_date, trip_start_date,
-  stripe_checkout_session_id,
+  stripe_checkout_session_id, inquiry_id,
   trip:trips(slug)
 `
 

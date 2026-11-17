@@ -59,8 +59,10 @@ import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()          // browser singleton
 ```
 
-Cron routes are the exception: they build a service-role client directly with
-`@supabase/supabase-js` to bypass RLS.
+The exceptions use a **service-role** client that bypasses RLS: the cron routes and the Stripe
+webhook (built directly with `@supabase/supabase-js`), and the custom-package page and its
+checkout route (`createServiceClient()` from [lib/supabase/service.ts](lib/supabase/service.ts)) —
+see [Custom packages](#custom-packages).
 
 ### Auth & authorization
 
@@ -251,14 +253,70 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 - Saving a trip updates its `packages` rows **in place** (by id). Never go back to
   delete-and-reinsert: new ids null `stripe_bookings.package_id` (`ON DELETE SET NULL`) and
   break checkout for anyone mid-booking with "Package not found".
-- [app/api/stripe/webhook/route.ts](app/api/stripe/webhook/route.ts) handles
-  `checkout.session.completed` and `checkout.session.expired`, and is the only writer that
-  confirms a `stripe_bookings` row. Verify signatures with `STRIPE_WEBHOOK_SECRET`.
-- [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a payment link via
-  Twilio for admin-created custom bookings.
+- [app/api/stripe/webhook/route.ts](app/api/stripe/webhook/route.ts) is the only writer that
+  confirms a `stripe_bookings` row. Verify signatures with `STRIPE_WEBHOOK_SECRET`. The Stripe
+  endpoint must be subscribed to: `checkout.session.completed`, `checkout.session.expired`,
+  `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+  `payment_intent.succeeded`, `payment_intent.payment_failed`.
+- **US bank (ACH) payments settle days later.** `checkout.session.completed` then arrives with
+  `payment_status: 'unpaid'`: the row is written as `processing` (migration `058`) and the
+  customer is told it's clearing; `async_payment_succeeded` confirms it (re-running the normal
+  path), `async_payment_failed` marks it `failed` and emails both sides. Never treat
+  `completed` alone as paid. The balance cron's bank debits return `processing` too: it marks
+  the balance charged at once (so the next run can't debit again) and the webhook's
+  `payment_intent.*` handlers settle or re-open it. Cron charges carry a per-booking-per-day
+  idempotency key.
+- [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a hosted Stripe
+  payment link when a customer picks "SMS payment link" at checkout on a standard trip.
+- Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
+  are guests and `/bookings` requires signing in.
 - Vercel Cron ([vercel.json](vercel.json)) runs daily:
   `/api/cron/charge-remaining-balance` (08:00 UTC) and `/api/cron/send-payment-reminders`
   (09:00 UTC). Both authenticate with `Bearer ${CRON_SECRET}` and use the service-role client.
+
+### Custom packages
+
+Admin-built, per-customer trips (`trips.is_custom`) with one `inquiries` row
+(`is_custom_package`). Created at **Admin → Inquiries → Create custom booking**
+([app/api/admin/custom-booking](app/api/admin/custom-booking/route.ts)), edited at
+`/admin/trips/[id]`.
+
+- The customer is texted a link to **`/package/[id]`** (id = inquiry id) and pays there. That
+  page and `/api/package/[id]/checkout` read with the **service-role** client
+  ([lib/supabase/service.ts](lib/supabase/service.ts)): customers arrive signed out, and RLS only
+  lets admins read inquiries. The unguessable id is the credential. Select only the columns the
+  page shows ([lib/custom-package-server.ts](lib/custom-package-server.ts)).
+- **No Stripe session is created up front.** Each Pay button posts to
+  `/api/package/[id]/checkout`, which creates a fresh session from the inquiry's current
+  `total_price` / `deposit_percentage`. Stripe caps `expires_at` at 24 hours, and a pre-made
+  session kept charging the old price after an admin edit.
+- What has been paid comes from `stripe_bookings` rows linked by `inquiry_id` (migration `058`),
+  written by the webhook's custom-package branch — never from `inquiries.status`.
+  [lib/custom-package.ts](lib/custom-package.ts) `getCustomPackageState()` is the one place that
+  turns those rows into what the page offers.
+- `inquiries.balance_flow` is the admin's choice for the remaining balance: `auto_charge` (card
+  saved at deposit; the charge cron bills it on `remainder_due_date`) or `pay_link` (the page shows
+  "Pay remaining balance"). If a card wasn't actually saved, the page falls back to the button.
+- Packages paid through the old pre-created links have no linked rows; an inquiry marked
+  `converted` with a deposit under 100% is treated as deposit-paid (remainder payable, reminded
+  from the inquiry). Editing the price after a deposit recalculates the balance on the booking row.
+- Edits update child rows (packages, courses, meals, transport, services) **in place by id** so
+  their `_ko`/`_de` translations survive; never delete-and-reinsert them.
+
+### SMS (Twilio)
+
+- Every number sent to Twilio must be **E.164**. Collect phones with
+  [components/phone-input.tsx](components/phone-input.tsx) (country picker → E.164) and validate
+  server-side with `normalizeE164()` from [lib/phone.ts](lib/phone.ts) — it also drops trunk
+  prefixes (Korean `010-…` → `+8210…`). Background senders use `phoneForSms()`, which keeps
+  legacy non-E.164 values as they were.
+- Send the text **before** writing rows that depend on it, so a Twilio failure leaves nothing
+  behind (see the SMS payment link action, which also expires the unused Stripe session).
+- Texts are English-only by decision. Twilio's A2P campaign registration must be in English;
+  translated texts later need samples (with English translations) added to the campaign first.
+- Reminders ([send-payment-reminders](app/api/cron/send-payment-reminders/route.ts)) are driven
+  only by `stripe_bookings` with an outstanding balance — 5 days before `auto_charge_date` or
+  `remainder_due_date`.
 
 ### Partner API (4sgtour.com only)
 
@@ -290,7 +348,9 @@ Public: `/`, `/destinations`, `/destinations/[continent]`,
 `/tournaments/[slug]/[eventSlug]/tickets`, `/contact`, `/privacy`, `/terms`
 
 Authenticated: `/bookings`, `/favorites`, `/auth/*` (`login`, `sign-up`, `callback`,
-`complete-profile`, `reset-password`, `update-password`), `/checkout/custom/success`
+`complete-profile`, `reset-password`, `update-password`)
+
+Public, reached from Stripe: `/checkout/custom/success`
 
 Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 `/admin/tournaments`, `/admin/tournaments/[id]`, `/admin/tournaments/[id]/events/new`,
@@ -298,7 +358,8 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
 translate-*, api-keys), `/api/inquiry`, `/api/messages`, `/api/tournament-tickets`,
-`/api/upload`, `/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`
+`/api/upload`, `/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`,
+`/api/package/[id]/checkout` (custom-package payments, public)
 
 Partner (this repo only, bearer-authenticated): `/api/v1/trips/latest` — see
 [Partner API](#partner-api-4sgtourcom-only).
@@ -339,9 +400,11 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `057` is the highest so far. `054`/`055` were applied on
-2026-08-15; `056` (booking status/RLS) and `057` (block self-promotion to admin) were written on
-2026-11-16 and must be applied by hand — check before assuming they are live. Schema changes require a new script *and* a matching edit to
+and don't assume ordering is total. `058` is the highest so far. `054`/`055` were applied on
+2026-08-15; `056` (booking status/RLS), `057` (block self-promotion to admin) and `058` (custom
+package payments: `stripe_bookings.inquiry_id`, `inquiries.balance_flow`) were written on
+2026-11-16 and must be applied by hand — check before assuming they are live. `058` must run
+*before* the code that writes its columns is deployed. Schema changes require a new script *and* a matching edit to
 `lib/types/database.ts`.
 
 The script is applied by hand, so **a migration and the code that depends on it deploy

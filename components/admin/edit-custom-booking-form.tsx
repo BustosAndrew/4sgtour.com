@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/phone-input'
+import { isE164, normalizeE164 } from '@/lib/phone'
+import { formatCalendarDate, parseCalendarDate } from '@/lib/calendar-date'
+import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Calendar } from '@/components/ui/calendar'
@@ -162,6 +166,7 @@ export interface EditCustomBookingFormProps {
     deposit_percentage: number | null
     remainder_due_date: string | null
     payment_link: string | null
+    balance_flow?: string | null
   }
 }
 
@@ -316,13 +321,13 @@ export function EditCustomBookingForm({
     inquiry.customer_email || '',
   )
   const [customerPhone, setCustomerPhone] = useState(
-    inquiry.customer_phone || '',
+    normalizeE164(inquiry.customer_phone) || '',
   )
   const [startDate, setStartDate] = useState<Date | undefined>(
-    inquiry.start_date ? new Date(inquiry.start_date) : undefined,
+    inquiry.start_date ? parseCalendarDate(inquiry.start_date) : undefined,
   )
   const [endDate, setEndDate] = useState<Date | undefined>(
-    inquiry.end_date ? new Date(inquiry.end_date) : undefined,
+    inquiry.end_date ? parseCalendarDate(inquiry.end_date) : undefined,
   )
 
   // Step 5: Payment
@@ -331,8 +336,12 @@ export function EditCustomBookingForm({
   )
   const [remainderDueDate, setRemainderDueDate] = useState<Date | undefined>(
     inquiry.remainder_due_date
-      ? new Date(inquiry.remainder_due_date)
+      ? parseCalendarDate(inquiry.remainder_due_date)
       : undefined,
+  )
+  // How the balance is collected after the deposit — the admin's call.
+  const [balanceFlow, setBalanceFlow] = useState<BalanceFlow>(
+    getBalanceFlow(inquiry.balance_flow),
   )
 
   const premiumPkg = packages.find((p) => p.name === 'Premium')
@@ -585,7 +594,10 @@ export function EditCustomBookingForm({
       case 4:
         if (!customerName.trim()) errors.push('Customer name is required')
         if (!customerEmail.trim()) errors.push('Customer email is required')
-        if (!customerPhone.trim()) errors.push('Customer phone is required')
+        if (!isE164(customerPhone))
+          errors.push(
+            'Customer phone is required — choose the country and enter the number',
+          )
         if (customerEmail && !customerEmail.includes('@'))
           errors.push('Please enter a valid email')
         if (!startDate) errors.push('Start date is required')
@@ -625,7 +637,7 @@ export function EditCustomBookingForm({
         return !!(
           customerName.trim() &&
           customerEmail.trim() &&
-          customerPhone.trim() &&
+          isE164(customerPhone) &&
           startDate &&
           endDate
         )
@@ -702,6 +714,7 @@ export function EditCustomBookingForm({
           show_from_price: showFromPrice,
           highlights: highlights.filter((h) => h.trim() !== ''),
           packages: packages.map((pkg) => ({
+            id: pkg.id,
             name: pkg.name,
             description: pkg.description,
             price: Number(pkg.price),
@@ -713,21 +726,25 @@ export function EditCustomBookingForm({
             participants_per_booking: Number(pkg.participants_per_booking),
           })),
           golf_courses: golfCourses.map((course) => ({
+            id: course.id,
             course_name: course.course_name,
             max_rounds: Number(course.max_rounds),
             num_holes: Number(course.num_holes) || 18,
           })),
           meal_options: mealOptions.map((meal) => ({
+            id: meal.id,
             name: meal.name,
             description: meal.description,
             is_included: meal.is_included,
           })),
           transportation_options: transportationOptions.map((transport) => ({
+            id: transport.id,
             name: transport.name,
             description: transport.description,
             is_included: transport.is_included,
           })),
           service_options: serviceOptions.map((service) => ({
+            id: service.id,
             name: service.name,
             description: service.description,
             is_included: service.is_included,
@@ -739,9 +756,12 @@ export function EditCustomBookingForm({
           customerPhone,
           totalPrice,
           depositPercentage,
-          startDate: startDate?.toISOString(),
-          endDate: endDate?.toISOString(),
-          remainderDueDate: remainderDueDate?.toISOString(),
+          startDate: startDate ? formatCalendarDate(startDate) : undefined,
+          endDate: endDate ? formatCalendarDate(endDate) : undefined,
+          remainderDueDate: remainderDueDate
+            ? formatCalendarDate(remainderDueDate)
+            : undefined,
+          balanceFlow,
         }),
       })
 
@@ -749,6 +769,10 @@ export function EditCustomBookingForm({
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || 'Failed to update custom booking')
       }
+
+      // e.g. the price was lowered below what the customer already paid
+      const result = await response.json().catch(() => ({}))
+      if (result.warning) window.alert(result.warning)
 
       window.location.href = '/admin'
     } catch (error) {
@@ -2033,13 +2057,16 @@ export function EditCustomBookingForm({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="customerPhone">Phone Number *</Label>
-                <Input
+                <PhoneInput
                   id="customerPhone"
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
+                  value={inquiry.customer_phone || ''}
+                  onChange={(e164) => setCustomerPhone(e164 || '')}
+                  placeholder="10 1234 5678"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Choose the country, then the number as the customer would
+                  dial it locally.
+                </p>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -2122,16 +2149,23 @@ export function EditCustomBookingForm({
               </div>
             )}
 
-            {inquiry.payment_link && (
-              <div className="rounded-lg border border-border bg-muted/20 p-4">
-                <Label className="text-sm font-medium">
-                  Current Payment Link
-                </Label>
-                <p className="mt-1 text-sm text-muted-foreground break-all">
-                  {inquiry.payment_link}
-                </p>
-              </div>
-            )}
+            <div className="rounded-lg border border-border bg-muted/20 p-4">
+              <Label className="text-sm font-medium">
+                Customer&apos;s package page
+              </Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Where the customer pays. Changes you save here apply to it
+                straight away.
+              </p>
+              <a
+                href={`/package/${inquiry.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 block break-all text-sm text-primary underline"
+              >
+                /package/{inquiry.id}
+              </a>
+            </div>
           </div>
         )}
 
@@ -2255,6 +2289,9 @@ export function EditCustomBookingForm({
                     </PopoverContent>
                   </Popover>
                 </div>
+              )}
+              {depositPercentage < 100 && (
+                <BalanceFlowChoice value={balanceFlow} onChange={setBalanceFlow} />
               )}
             </div>
 
@@ -2382,6 +2419,12 @@ export function EditCustomBookingForm({
                           ? format(remainderDueDate, 'PPP')
                           : 'Not set'}
                       </div>
+                      <div>
+                        <span className="font-medium">Remaining Balance:</span>{' '}
+                        {balanceFlow === 'auto_charge'
+                          ? 'Charged automatically to the saved card'
+                          : 'Customer pays from their package page'}
+                      </div>
                     </>
                   )}
                 </div>
@@ -2436,6 +2479,55 @@ export function EditCustomBookingForm({
             {loading ? 'Saving Changes...' : 'Save Changes'}
           </Button>
         )}
+      </div>
+    </div>
+  )
+}
+
+/** How the remaining balance is collected after the deposit. */
+function BalanceFlowChoice({
+  value,
+  onChange,
+}: {
+  value: BalanceFlow
+  onChange: (value: BalanceFlow) => void
+}) {
+  const options: { value: BalanceFlow; title: string; description: string }[] = [
+    {
+      value: 'auto_charge',
+      title: 'Charge the saved card automatically',
+      description:
+        'The card or bank account used for the deposit is saved and charged on the due date. The customer is texted 5 days before. Applies to deposits paid after this is selected.',
+    },
+    {
+      value: 'pay_link',
+      title: 'Customer pays from their package page',
+      description:
+        'Nothing is saved. The package page shows a "Pay remaining balance" button, and the customer is texted 5 days before the due date.',
+    },
+  ]
+  return (
+    <div className="space-y-2">
+      <Label>Remaining balance *</Label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+            className={`rounded-lg border p-3 text-left transition-colors ${
+              value === option.value
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-primary/50'
+            }`}
+          >
+            <p className="text-sm font-medium">{option.title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {option.description}
+            </p>
+          </button>
+        ))}
       </div>
     </div>
   )

@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getUserType } from '@/lib/supabase/get-user-type'
-import { autoTranslateTrip, autoTranslatePackages } from '@/lib/auto-translate'
+import {
+  autoTranslateTrip,
+  autoTranslatePackages,
+  autoTranslateNamedRows,
+} from '@/lib/auto-translate'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
+import { normalizeE164 } from '@/lib/phone'
+import { toCalendarDate } from '@/lib/calendar-date'
+import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
 
 export async function POST(request: Request) {
   try {
@@ -76,6 +82,26 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 },
+      )
+    }
+
+    // Texts go out through Twilio, which needs E.164 (the form builds it
+    // from a country picker).
+    const phone = normalizeE164(customerPhone)
+    if (!phone) {
+      return NextResponse.json(
+        {
+          error:
+            'Customer phone must be a full international number, e.g. +82 10 1234 5678',
+        },
+        { status: 400 },
+      )
+    }
+
+    if (Number(depositPercentage) < 100 && !toCalendarDate(remainderDueDate)) {
+      return NextResponse.json(
+        { error: 'A remainder due date is required when taking a deposit' },
         { status: 400 },
       )
     }
@@ -307,187 +333,129 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 9. Calculate deposit & create Stripe checkout sessions ─────────
-    const totalPrice = pkgs[0].price
-    const depPct = depositPercentage || 100
-    const depositAmountCents = Math.round(((totalPrice * depPct) / 100) * 100)
-    const depositAmountDollars = depositAmountCents / 100
-    const fullAmountCents = Math.round(totalPrice * 100)
+    // Golf courses, meals, transport and services are shown to the customer
+    // on /package/[id], so translate them too (fills only missing columns).
+    // The admin form collects these in English only.
+    for (const [table, nameField] of [
+      ['trip_golf_courses', 'course_name'],
+      ['trip_meal_options', 'name'],
+      ['trip_transportation_options', 'name'],
+      ['trip_service_options', 'name'],
+    ] as const) {
+      const { data: rows } = await supabase
+        .from(table)
+        .select('*')
+        .eq('trip_id', tripData.id)
+      if (rows && rows.length > 0) {
+        await autoTranslateNamedRows(table, rows, nameField, 'en', supabase).catch(
+          (err) => console.error(`[custom-booking] ${table} translation error:`, err),
+        )
+      }
+    }
+
+    // ── 9. Payment terms ──────────────────────────────────────────────
+    // No Stripe session is created here. The customer pays from
+    // /package/[id], which creates a fresh session on demand
+    // (app/api/package/[id]/checkout): Stripe caps a session at 24 hours, and
+    // a pre-made one would keep charging the old price after an admin edit.
+    const totalPrice = Number(pkgs[0].price)
+    const depPct = Number(depositPercentage) || 100
+    const balanceFlow: BalanceFlow = getBalanceFlow(body.balanceFlow)
 
     const appUrl = getSiteUrl()
-
-    // Create deposit payment session
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${title} (${depPct === 100 ? 'Full Payment' : `${depPct}% Deposit`})`,
-              description: description || `Custom package for ${customerName}`,
-            },
-            unit_amount: depositAmountCents,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${appUrl}/bookings?success=true`,
-      cancel_url: `${appUrl}/trips`,
-      customer_email: customerEmail,
-      payment_method_types: ['card', 'us_bank_account'],
-      metadata: {
-        site_url: appUrl,
-        is_custom_package: 'true',
-        trip_id: tripData.id,
-        custom_package_name: title,
-        total_price: totalPrice.toString(),
-        deposit_percentage: depPct.toString(),
-        payment_type: 'deposit',
-        remainder_due_date: remainderDueDate || '',
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        start_date: startDate || '',
-        end_date: endDate || '',
-        created_by_admin: user.id,
-        payment_method: 'sms_link',
-      },
-      expires_at: Math.floor(Date.now() / 1000) + 86400 * 3,
-    })
-
-    if (!session.url) {
-      return NextResponse.json(
-        { error: 'Failed to create payment link' },
-        { status: 500 },
-      )
-    }
-
-    // Create full payment session if deposit percentage is less than 100%
-    let fullPaymentSession: { url: string | null; id: string } | null = null
-    if (depPct < 100) {
-      fullPaymentSession = await stripe.checkout.sessions.create({
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `${title} (Full Payment)`,
-                description: description || `Custom package for ${customerName}`,
-              },
-              unit_amount: fullAmountCents,
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${appUrl}/bookings?success=true`,
-        cancel_url: `${appUrl}/trips`,
-        customer_email: customerEmail,
-        payment_method_types: ['card', 'us_bank_account'],
-        metadata: {
-          site_url: appUrl,
-          is_custom_package: 'true',
-          trip_id: tripData.id,
-          custom_package_name: title,
-          total_price: totalPrice.toString(),
-          deposit_percentage: '100',
-          payment_type: 'full',
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
-          start_date: startDate || '',
-          end_date: endDate || '',
-          created_by_admin: user.id,
-          payment_method: 'sms_link',
-        },
-        expires_at: Math.floor(Date.now() / 1000) + 86400 * 3,
-      })
-    }
+    const inquiryId = crypto.randomUUID()
+    const packagePageUrl = `${appUrl}/package/${inquiryId}`
 
     // ── 10. Create inquiry record linked to the trip ──────────────────
     const inquiryData: Record<string, any> = {
+      id: inquiryId,
       site_url: appUrl,
       trip_id: tripData.id,
       trip_title: title,
       customer_name: customerName,
       customer_email: customerEmail,
-      customer_phone: customerPhone,
+      customer_phone: phone,
       package_name: 'Custom Package',
-      start_date: startDate
-        ? new Date(startDate).toISOString().split('T')[0]
-        : null,
-      end_date: endDate ? new Date(endDate).toISOString().split('T')[0] : null,
+      start_date: toCalendarDate(startDate),
+      end_date: toCalendarDate(endDate),
       add_ons: [],
       rounds: 0,
       additional_requests: description || '',
       total_price: totalPrice,
       guests: [],
       status: 'contacted',
-      payment_link: session.url,
-      stripe_session_id: session.id,
+      // The customer's page — where every payment starts. Kept here so the
+      // admin views and older code that read payment_link get a link that
+      // never expires.
+      payment_link: packagePageUrl,
       payment_link_sent_at: new Date().toISOString(),
       is_custom_package: true,
       custom_package_description: description || '',
-      remainder_due_date: remainderDueDate
-        ? new Date(remainderDueDate).toISOString().split('T')[0]
-        : null,
+      remainder_due_date: depPct < 100 ? toCalendarDate(remainderDueDate) : null,
       deposit_percentage: depPct,
+      balance_flow: depPct < 100 ? balanceFlow : null,
     }
 
-    // Add full payment link if available (for deposit < 100%)
-    if (fullPaymentSession?.url) {
-      inquiryData.remainder_payment_link = fullPaymentSession.url
-    }
-
-    const { data: inquiryRecord, error: inquiryError } = await supabase
+    const { error: inquiryError } = await supabase
       .from('inquiries')
       .insert(inquiryData)
-      .select()
-      .single()
 
     if (inquiryError) {
+      // Without the inquiry the customer has no page to pay from.
       console.error(
-        '[v0] Error creating inquiry for custom booking:',
+        '[custom-booking] Error creating inquiry for custom booking:',
         inquiryError,
       )
-    }
-
-    // ── 11. Send SMS via Twilio ───────────────────────────────────────
-    try {
-      const twilioClient = Twilio(
-        process.env.TWILIO_ACCOUNT_SID!,
-        process.env.TWILIO_AUTH_TOKEN!,
+      return NextResponse.json(
+        {
+          error: `The trip was saved, but the customer's package page could not be created: ${inquiryError.message}`,
+          tripId: tripData.id,
+        },
+        { status: 500 },
       )
-
-      // Link to the package page where customers can choose between deposit and full payment
-      const packagePageUrl = inquiryRecord 
-        ? `${appUrl}/package/${inquiryRecord.id}`
-        : session.url
-      
-      const paymentDescription =
-        depPct === 100
-          ? `full payment ($${totalPrice.toFixed(2)})`
-          : fullPaymentSession 
-            ? `${depPct}% deposit or full payment`
-            : `${depPct}% deposit ($${depositAmountDollars.toFixed(2)})`
-
-      await twilioClient.messages.create({
-        to: customerPhone,
-        from: process.env.TWILIO_PHONE_NUMBER!,
-        body: `4 Seasons Golf Tour: Your payment link for ${title} is ready. Complete your ${paymentDescription} here: ${packagePageUrl} Reply STOP to opt out.`,
-      })
-    } catch (smsError) {
-      console.error('[v0] Error sending SMS:', smsError)
     }
 
+    // ── 11. Text the customer their package page ──────────────────────
+    const paymentDescription =
+      depPct === 100
+        ? `full payment ($${totalPrice.toFixed(2)})`
+        : `${depPct}% deposit ($${((totalPrice * depPct) / 100).toFixed(2)}) or full payment`
+
+    let smsSent = false
+    let smsError: string | null = null
+    if (
+      !process.env.TWILIO_ACCOUNT_SID ||
+      !process.env.TWILIO_AUTH_TOKEN ||
+      !process.env.TWILIO_PHONE_NUMBER
+    ) {
+      smsError = 'Twilio is not configured on this deployment.'
+    } else {
+      try {
+        const twilioClient = Twilio(
+          process.env.TWILIO_ACCOUNT_SID,
+          process.env.TWILIO_AUTH_TOKEN,
+        )
+        await twilioClient.messages.create({
+          to: phone,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          body: `4 Seasons Golf Tour: Your custom package "${title}" is ready. Review it and complete your ${paymentDescription} here: ${packagePageUrl} Reply STOP to opt out.`,
+        })
+        smsSent = true
+      } catch (error: any) {
+        console.error('[custom-booking] Error sending SMS:', error)
+        smsError = error?.message || 'The text message could not be sent.'
+      }
+    }
+
+    // The admin is told whether the text went out; if not, the form shows
+    // the link to send another way.
     return NextResponse.json({
       success: true,
-      paymentLink: session.url,
-      fullPaymentLink: fullPaymentSession?.url || null,
-      sessionId: session.id,
+      packagePageUrl,
+      smsSent,
+      smsError,
       tripId: tripData.id,
-      inquiryId: inquiryRecord?.id,
+      inquiryId,
     })
   } catch (error) {
     console.error('[v0] Error creating custom booking:', error)

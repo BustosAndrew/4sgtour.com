@@ -1,6 +1,163 @@
 import { createClient } from '@/lib/supabase/server'
 import { getUserType } from '@/lib/supabase/get-user-type'
 import { type NextRequest, NextResponse } from 'next/server'
+import { normalizeE164 } from '@/lib/phone'
+import { toCalendarDate } from '@/lib/calendar-date'
+import { getBalanceFlow } from '@/lib/custom-package'
+
+// Translation columns are never written from here unless the form sends
+// them: child rows are updated in place by id, so their Korean/German
+// columns survive a Save. (This route used to delete and re-insert every
+// package, golf course, meal, transport and service option without those
+// columns — wiping their translations on every edit.)
+const TRIP_TRANSLATED_FIELDS = [
+  'title',
+  'description',
+  'refund_policy',
+  'location',
+  'highlights',
+  'overview_content',
+]
+
+/**
+ * Bring a trip's child rows in line with what the form submitted: update
+ * rows whose id already exists (only the listed base columns), insert the
+ * rest, delete the ones the admin removed. Inserts and updates happen before
+ * deletes, so a failure never leaves the trip empty.
+ */
+async function syncTripRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: string,
+  tripId: string,
+  submitted: any[],
+  toRow: (item: any) => Record<string, any>,
+) {
+  const { data: existing } = await supabase
+    .from(table)
+    .select('id')
+    .eq('trip_id', tripId)
+  const existingIds = new Set((existing || []).map((r: any) => r.id))
+
+  const kept = new Set<string>()
+  const toInsert: Record<string, any>[] = []
+  for (const item of submitted) {
+    const row = toRow(item)
+    if (item.id && existingIds.has(item.id)) {
+      kept.add(item.id)
+      const { error } = await supabase.from(table).update(row).eq('id', item.id)
+      if (error) console.error(`[custom-booking] Error updating ${table}:`, error)
+    } else {
+      toInsert.push({ ...row, trip_id: tripId })
+    }
+  }
+
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from(table).insert(toInsert)
+    if (error) console.error(`[custom-booking] Error inserting ${table}:`, error)
+  }
+
+  const removed = [...existingIds].filter((id) => !kept.has(id))
+  if (removed.length > 0) {
+    const { error } = await supabase.from(table).delete().in('id', removed)
+    if (error) console.error(`[custom-booking] Error deleting ${table}:`, error)
+  }
+}
+
+/**
+ * Once a deposit is in, the balance still owed lives on the stripe_bookings
+ * row (it is what the package page, the charge cron and the reminders use).
+ * Bring it in line with an edited price / due date / balance flow.
+ * Returns a message for the admin when something needs their attention.
+ */
+async function recalculateRecordedBalance(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  inquiryId: string,
+  next: { totalPrice: number; dueDate: string | null; balanceFlow: string | null },
+): Promise<string | null> {
+  const { data: rows, error } = await supabase
+    .from('stripe_bookings')
+    .select(
+      'id, status, total_paid, remaining_balance, remaining_balance_charged, remaining_balance_payment_intent_id, remainder_due_date, auto_charge_date, stripe_customer_id, stripe_payment_method_id, created_at',
+    )
+    .eq('inquiry_id', inquiryId)
+    .in('status', ['confirmed', 'completed', 'processing'])
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('[custom-booking] Error reading recorded payments:', error)
+    return null
+  }
+  if (!rows || rows.length === 0) return null // nothing paid yet
+
+  if (
+    rows.some(
+      (r) =>
+        r.status === 'processing' ||
+        (r.remaining_balance_payment_intent_id && !r.remaining_balance_charged),
+    )
+  ) {
+    return 'A bank payment for this package is still clearing, so the recorded balance was not changed. Save again once it has cleared.'
+  }
+
+  const paidCents = rows.reduce(
+    (sum, r) => sum + Math.round(Number(r.total_paid || 0) * 100),
+    0,
+  )
+  const totalCents = Math.round(next.totalPrice * 100)
+  const remainingCents = Math.max(0, totalCents - paidCents)
+  const target = rows[rows.length - 1]
+  const remaining = remainingCents / 100
+  const canAutoCharge =
+    next.balanceFlow === 'auto_charge' &&
+    !!next.dueDate &&
+    !!target.stripe_customer_id &&
+    !!target.stripe_payment_method_id
+
+  const update: Record<string, any> = {
+    total_price: next.totalPrice,
+    total_package_price: next.totalPrice,
+    remaining_balance: remaining,
+    remaining_balance_charged: remainingCents <= 0,
+    remainder_due_date: remainingCents > 0 ? next.dueDate : null,
+    auto_charge_date: remainingCents > 0 && canAutoCharge ? next.dueDate : null,
+    updated_at: new Date().toISOString(),
+  }
+  // A new due date (or a re-opened balance) deserves a new 5-day reminder.
+  if (
+    remainingCents > 0 &&
+    (next.dueDate !== target.remainder_due_date ||
+      Number(target.remaining_balance) !== remaining ||
+      target.remaining_balance_charged)
+  ) {
+    update.payment_reminder_sent_at = null
+  }
+
+  // Only the last row carries the balance; earlier ones are settled.
+  const { error: updateError } = await supabase
+    .from('stripe_bookings')
+    .update(update)
+    .eq('id', target.id)
+  if (updateError) {
+    console.error('[custom-booking] Error updating recorded balance:', updateError)
+    return `The booking was saved, but the recorded balance could not be updated: ${updateError.message}`
+  }
+  for (const row of rows.slice(0, -1)) {
+    if (Number(row.remaining_balance) > 0 && !row.remaining_balance_charged) {
+      await supabase
+        .from('stripe_bookings')
+        .update({ remaining_balance: 0, remaining_balance_charged: true, auto_charge_date: null })
+        .eq('id', row.id)
+    }
+  }
+
+  if (paidCents > totalCents) {
+    return `The customer has already paid $${(paidCents / 100).toFixed(2)}, which is $${((paidCents - totalCents) / 100).toFixed(2)} more than the new price. Nothing more will be collected; refund the difference in Stripe if needed.`
+  }
+  if (next.balanceFlow === 'auto_charge' && remainingCents > 0 && !canAutoCharge) {
+    return 'Auto-charge was chosen, but no reusable card was saved with the deposit, so the customer will pay the remaining balance from their package page instead.'
+  }
+  return null
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -24,6 +181,29 @@ export async function PATCH(
 
   const body = await request.json()
 
+  // Validate before writing anything
+  const phone =
+    body.customerPhone !== undefined ? normalizeE164(body.customerPhone) : null
+  if (body.inquiryId && !phone) {
+    return NextResponse.json(
+      {
+        error:
+          'Customer phone must be a full international number, e.g. +82 10 1234 5678',
+      },
+      { status: 400 },
+    )
+  }
+  if (
+    body.inquiryId &&
+    Number(body.depositPercentage) < 100 &&
+    !toCalendarDate(body.remainderDueDate)
+  ) {
+    return NextResponse.json(
+      { error: 'A remainder due date is required when taking a deposit' },
+      { status: 400 },
+    )
+  }
+
   // ── 1. Update trip record ──────────────────────────────────────────
   const updateData: Record<string, any> = {
     title: body.title,
@@ -44,14 +224,15 @@ export async function PATCH(
     updated_at: new Date().toISOString(),
   }
 
-  if ('title_ko' in body) updateData.title_ko = body.title_ko
-  if ('description_ko' in body) updateData.description_ko = body.description_ko
-  if ('refund_policy_ko' in body)
-    updateData.refund_policy_ko = body.refund_policy_ko
-  if ('location_ko' in body) updateData.location_ko = body.location_ko
-  if ('highlights_ko' in body) updateData.highlights_ko = body.highlights_ko
-  if ('overview_content_ko' in body)
-    updateData.overview_content_ko = body.overview_content_ko
+  // Korean and German only when the form sends them (German is the primary
+  // language of two of the three sites).
+  for (const field of TRIP_TRANSLATED_FIELDS) {
+    for (const suffix of ['_ko', '_de']) {
+      if (`${field}${suffix}` in body) {
+        updateData[`${field}${suffix}`] = body[`${field}${suffix}`]
+      }
+    }
+  }
 
   const { error: tripError } = await supabase
     .from('trips')
@@ -63,14 +244,15 @@ export async function PATCH(
     return NextResponse.json({ error: tripError.message }, { status: 500 })
   }
 
-  // ── 2. Update packages ─────────────────────────────────────────────
-  if (body.packages) {
-    await supabase.from('packages').delete().eq('trip_id', tripId)
-
-    const validPackages = body.packages.filter((pkg: any) => pkg.name?.trim())
-    if (validPackages.length > 0) {
-      const packagesToInsert = validPackages.map((pkg: any) => ({
-        trip_id: tripId,
+  // ── 2. Packages ────────────────────────────────────────────────────
+  // Updated in place: a deleted package nulls stripe_bookings.package_id.
+  if (Array.isArray(body.packages)) {
+    await syncTripRows(
+      supabase,
+      'packages',
+      tripId,
+      body.packages.filter((pkg: any) => pkg.name?.trim()),
+      (pkg) => ({
         name: pkg.name,
         description: pkg.description || null,
         price: pkg.price || 0,
@@ -78,37 +260,27 @@ export async function PATCH(
         availability: pkg.availability || 'unlimited',
         quantity: pkg.availability === 'limited' ? pkg.quantity : null,
         participants_per_booking: pkg.participants_per_booking || 1,
-      }))
-
-      const { error: pkgError } = await supabase
-        .from('packages')
-        .insert(packagesToInsert)
-      if (pkgError) console.error('Error updating packages:', pkgError)
-    }
-  }
-
-  // ── 3. Update golf courses ─────────────────────────────────────────
-  if (body.golf_courses) {
-    await supabase.from('trip_golf_courses').delete().eq('trip_id', tripId)
-
-    const validCourses = body.golf_courses.filter((c: any) =>
-      c.course_name?.trim(),
+      }),
     )
-    if (validCourses.length > 0) {
-      const { error } = await supabase.from('trip_golf_courses').insert(
-        validCourses.map((c: any) => ({
-          trip_id: tripId,
-          course_name: c.course_name,
-          description: c.description || null,
-          max_rounds: c.max_rounds || 5,
-          num_holes: c.num_holes || 18,
-        })),
-      )
-      if (error) console.error('Error updating golf courses:', error)
-    }
   }
 
-  // ── 4. Update course images ────────────────────────────────────────
+  // ── 3. Golf courses ────────────────────────────────────────────────
+  if (Array.isArray(body.golf_courses)) {
+    await syncTripRows(
+      supabase,
+      'trip_golf_courses',
+      tripId,
+      body.golf_courses.filter((c: any) => c.course_name?.trim()),
+      (c) => ({
+        course_name: c.course_name,
+        ...(c.description !== undefined && { description: c.description || null }),
+        max_rounds: c.max_rounds || 5,
+        num_holes: c.num_holes || 18,
+      }),
+    )
+  }
+
+  // ── 4. Course images ───────────────────────────────────────────────
   if (Array.isArray(body.course_images)) {
     await supabase.from('trip_images').delete().eq('trip_id', tripId)
 
@@ -127,93 +299,48 @@ export async function PATCH(
     }
   }
 
-  // ── 5. Update meal options ─────────────────────────────────────────
-  if (body.meal_options) {
-    await supabase.from('trip_meal_options').delete().eq('trip_id', tripId)
-
-    const valid = body.meal_options.filter((m: any) => m.name?.trim())
-    if (valid.length > 0) {
-      const { error } = await supabase.from('trip_meal_options').insert(
-        valid.map((m: any) => ({
-          trip_id: tripId,
-          name: m.name,
-          description: m.description || null,
-          is_included: m.is_included || false,
-        })),
+  // ── 5–7. Meal, transportation and service options ──────────────────
+  const optionRow = (o: any) => ({
+    name: o.name,
+    description: o.description || null,
+    is_included: o.is_included || false,
+  })
+  for (const [key, table] of [
+    ['meal_options', 'trip_meal_options'],
+    ['transportation_options', 'trip_transportation_options'],
+    ['service_options', 'trip_service_options'],
+  ] as const) {
+    if (Array.isArray(body[key])) {
+      await syncTripRows(
+        supabase,
+        table,
+        tripId,
+        body[key].filter((o: any) => o.name?.trim()),
+        optionRow,
       )
-      if (error) console.error('Error updating meal options:', error)
-    }
-  }
-
-  // ── 6. Update transportation options ───────────────────────────────
-  if (body.transportation_options) {
-    await supabase
-      .from('trip_transportation_options')
-      .delete()
-      .eq('trip_id', tripId)
-
-    const valid = body.transportation_options.filter((t: any) => t.name?.trim())
-    if (valid.length > 0) {
-      const { error } = await supabase
-        .from('trip_transportation_options')
-        .insert(
-          valid.map((t: any) => ({
-            trip_id: tripId,
-            name: t.name,
-            description: t.description || null,
-            is_included: t.is_included || false,
-          })),
-        )
-      if (error) console.error('Error updating transportation options:', error)
-    }
-  }
-
-  // ── 7. Update service options ──────────────────────────────────────
-  if (body.service_options) {
-    await supabase.from('trip_service_options').delete().eq('trip_id', tripId)
-
-    const valid = body.service_options.filter((s: any) => s.name?.trim())
-    if (valid.length > 0) {
-      const { error } = await supabase.from('trip_service_options').insert(
-        valid.map((s: any) => ({
-          trip_id: tripId,
-          name: s.name,
-          description: s.description || null,
-          is_included: s.is_included || false,
-        })),
-      )
-      if (error) console.error('Error updating service options:', error)
     }
   }
 
   // ── 8. Update inquiry record ───────────────────────────────────────
+  // Price and deposit changes reach the customer automatically: payments
+  // start from /package/[id], which creates a Stripe session from these
+  // values at the moment the customer pays.
   if (body.inquiryId) {
+    const depositPercentage = Number(body.depositPercentage) || 100
     const inquiryUpdate: Record<string, any> = {
       trip_title: body.title,
       customer_name: body.customerName,
       customer_email: body.customerEmail,
-      customer_phone: body.customerPhone,
+      customer_phone: phone,
       total_price: body.totalPrice,
-      deposit_percentage: body.depositPercentage,
+      deposit_percentage: depositPercentage,
       custom_package_description: body.description || '',
-    }
-
-    if (body.startDate) {
-      inquiryUpdate.start_date = new Date(body.startDate)
-        .toISOString()
-        .split('T')[0]
-    }
-    if (body.endDate) {
-      inquiryUpdate.end_date = new Date(body.endDate)
-        .toISOString()
-        .split('T')[0]
-    }
-    if (body.remainderDueDate) {
-      inquiryUpdate.remainder_due_date = new Date(body.remainderDueDate)
-        .toISOString()
-        .split('T')[0]
-    } else if (body.depositPercentage === 100) {
-      inquiryUpdate.remainder_due_date = null
+      start_date: toCalendarDate(body.startDate),
+      end_date: toCalendarDate(body.endDate),
+      remainder_due_date:
+        depositPercentage < 100 ? toCalendarDate(body.remainderDueDate) : null,
+      balance_flow:
+        depositPercentage < 100 ? getBalanceFlow(body.balanceFlow) : null,
     }
 
     const { error: inquiryError } = await supabase
@@ -223,6 +350,19 @@ export async function PATCH(
 
     if (inquiryError) {
       console.error('[v0] Error updating inquiry:', inquiryError)
+      return NextResponse.json(
+        { error: `Trip saved, but the booking details were not: ${inquiryError.message}` },
+        { status: 500 },
+      )
+    }
+
+    const warning = await recalculateRecordedBalance(supabase, body.inquiryId, {
+      totalPrice: Number(body.totalPrice) || 0,
+      dueDate: inquiryUpdate.remainder_due_date,
+      balanceFlow: inquiryUpdate.balance_flow,
+    })
+    if (warning) {
+      return NextResponse.json({ success: true, warning })
     }
   }
 

@@ -139,6 +139,11 @@ export interface Inquiry {
   custom_package_description: string | null
   deposit_percentage: number | null
   remainder_due_date: string | null
+  /**
+   * Custom packages: how the remaining balance is collected, chosen by the
+   * admin. Null (rows before migration 058) behaves as 'pay_link'.
+   */
+  balance_flow: 'auto_charge' | 'pay_link' | null
   payment_reminder_sent_at: string | null
   created_at: string
   updated_at: string
@@ -150,6 +155,8 @@ export interface StripeBooking {
   site_url: string | null
   trip_id: string | null
   package_id: string | null
+  /** Custom-package inquiry this payment belongs to. Migration 058. */
+  inquiry_id: string | null
   user_id: string | null
   stripe_checkout_session_id: string | null
   stripe_payment_intent_id: string | null
@@ -171,6 +178,7 @@ export interface StripeBooking {
     | 'failed'
     | 'refunded'
     | 'expired'
+    | 'cancelled'
   trip_start_date: string | null
   remaining_balance: number
   auto_charge_date: string | null

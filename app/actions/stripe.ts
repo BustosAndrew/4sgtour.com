@@ -3,6 +3,7 @@
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/site-url'
+import { normalizeE164 } from '@/lib/phone'
 import {
   BookingPriceError,
   resolveBookingPrice,
@@ -72,7 +73,6 @@ async function createTripCheckoutSessionInner(
     paymentType,
     customerName,
     customerEmail,
-    customerPhone,
     startDate,
     endDate,
     roomType,
@@ -81,6 +81,14 @@ async function createTripCheckoutSessionInner(
     transportOption,
     additionalRequests,
   } = params
+
+  // Stored for the booking-confirmation text (sent by the webhook via
+  // Twilio), so it must be E.164 — the payment screen builds it from the
+  // country picker.
+  const customerPhone = normalizeE164(params.customerPhone)
+  if (!customerPhone) {
+    return { ok: false, code: 'INVALID_PHONE' }
+  }
 
   const supabase = await createClient()
 

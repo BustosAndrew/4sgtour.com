@@ -141,6 +141,10 @@ export type CheckoutErrorCode =
   | 'PACKAGE_UNAVAILABLE'
   | 'TRIP_UNAVAILABLE'
   | 'INVALID_DATES'
+  /** Phone number isn't a valid international (E.164) number */
+  | 'INVALID_PHONE'
+  /** Twilio refused the text (bad number, opted out, carrier block) */
+  | 'SMS_FAILED'
   | 'CHECKOUT_FAILED'
 
 export type CheckoutFailure = { ok: false; code: CheckoutErrorCode }

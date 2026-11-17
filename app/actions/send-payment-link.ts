@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
+import { normalizeE164 } from '@/lib/phone'
 import {
   BookingPriceError,
   resolveBookingPrice,
@@ -67,7 +68,7 @@ async function sendPaymentLinkSmsInner(
     tripTitle,
     customerName,
     customerEmail,
-    customerPhone,
+
     startDate,
     endDate,
     roomType,
@@ -78,8 +79,18 @@ async function sendPaymentLinkSmsInner(
     guests,
   } = params
 
-  if (!customerPhone.trim()) {
-    throw new Error('Phone number is required to send a payment link')
+  // Twilio needs E.164. The payment screen builds it from the country picker;
+  // anything else is refused before a Stripe session or any row is created.
+  const toPhone = normalizeE164(params.customerPhone)
+  if (!toPhone) {
+    return { ok: false, code: 'INVALID_PHONE' }
+  }
+  if (
+    !process.env.TWILIO_ACCOUNT_SID ||
+    !process.env.TWILIO_AUTH_TOKEN ||
+    !process.env.TWILIO_PHONE_NUMBER
+  ) {
+    throw new Error('Twilio is not configured')
   }
 
   const supabase = await createClient()
@@ -158,7 +169,9 @@ async function sendPaymentLinkSmsInner(
   const session = await stripe.checkout.sessions.create({
     line_items: lineItems,
     mode: 'payment',
-    success_url: `${appUrl}/bookings?success=true`,
+    // Public page — /bookings requires signing in, and most customers paying
+    // from a text are guests.
+    success_url: `${appUrl}/checkout/custom/success`,
     cancel_url: `${appUrl}/trips`,
     customer_email: customerEmail,
     // Allow both payment methods on the hosted page
@@ -178,7 +191,7 @@ async function sendPaymentLinkSmsInner(
       user_id: user?.id || '',
       customer_name: customerName,
       customer_email: customerEmail,
-      customer_phone: customerPhone,
+      customer_phone: toPhone,
       start_date: startDate,
       end_date: endDate,
       room_type: roomType,
@@ -202,6 +215,30 @@ async function sendPaymentLinkSmsInner(
     throw new Error('Failed to create payment link')
   }
 
+  // Text the link BEFORE writing any rows. If Twilio refuses (bad number,
+  // the customer previously replied STOP, carrier block), nothing is left
+  // behind: the session is expired and the customer can fix the number and
+  // retry without creating duplicate bookings and inquiries.
+  const twilioClient = Twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN,
+  )
+  try {
+    await twilioClient.messages.create({
+      to: toPhone,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      body: isFullPayment
+        ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`
+        : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
+    })
+  } catch (smsError) {
+    console.error('[sms-link] Twilio refused the message:', smsError)
+    await stripe.checkout.sessions.expire(session.id).catch((err) => {
+      console.error('[sms-link] Could not expire unused session:', err)
+    })
+    return { ok: false, code: 'SMS_FAILED' }
+  }
+
   // Create a pending booking record in stripe_bookings
   const { error: bookingError } = await supabase
     .from('stripe_bookings')
@@ -213,7 +250,7 @@ async function sendPaymentLinkSmsInner(
       stripe_checkout_session_id: session.id,
       customer_name: customerName,
       customer_email: customerEmail,
-      customer_phone: customerPhone,
+      customer_phone: toPhone,
       deposit_amount: depositAmount / 100,
       total_package_price: totalPrice,
       total_price: totalPrice,
@@ -255,7 +292,7 @@ async function sendPaymentLinkSmsInner(
     trip_title: tripTitle,
     customer_name: customerName,
     customer_email: customerEmail,
-    customer_phone: customerPhone,
+    customer_phone: toPhone,
     package_name: packageName,
     start_date: startDate,
     end_date: endDate,
@@ -278,20 +315,6 @@ async function sendPaymentLinkSmsInner(
   if (inquiryError) {
     console.error('[v0] Error saving inquiry for SMS link:', inquiryError)
   }
-
-  // Send SMS via Twilio
-  const twilioClient = Twilio(
-    process.env.TWILIO_ACCOUNT_SID!,
-    process.env.TWILIO_AUTH_TOKEN!,
-  )
-
-  await twilioClient.messages.create({
-    to: customerPhone,
-    from: process.env.TWILIO_PHONE_NUMBER!,
-    body: isFullPayment
-      ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`
-      : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
-  })
 
   return { ok: true, amounts, depositPercentage }
 }

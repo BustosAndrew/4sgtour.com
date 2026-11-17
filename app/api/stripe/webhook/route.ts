@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
+import { phoneForSms } from '@/lib/phone'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -48,9 +49,31 @@ export async function POST(request: Request) {
       await handleCheckoutComplete(session)
       break
     }
+    // US bank (ACH) payments: `completed` arrives while the money is still
+    // clearing (payment_status 'unpaid'). The outcome comes days later.
+    case 'checkout.session.async_payment_succeeded': {
+      const session = event.data.object as Stripe.Checkout.Session
+      await handleCheckoutComplete(session) // payment_status is now 'paid'
+      break
+    }
+    case 'checkout.session.async_payment_failed': {
+      const session = event.data.object as Stripe.Checkout.Session
+      await handleCheckoutPaymentFailed(session)
+      break
+    }
     case 'checkout.session.expired': {
       const session = event.data.object as Stripe.Checkout.Session
       await handleCheckoutExpired(session)
+      break
+    }
+    // Remaining-balance charges made by the cron. A bank account debit
+    // returns 'processing' and settles here; card charges settle in the cron.
+    case 'payment_intent.succeeded': {
+      await handleBalanceChargeSucceeded(event.data.object as Stripe.PaymentIntent)
+      break
+    }
+    case 'payment_intent.payment_failed': {
+      await handleBalanceChargeFailed(event.data.object as Stripe.PaymentIntent)
       break
     }
     default:
@@ -64,13 +87,34 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   const metadata = session.metadata || {}
   const sessionId = session.id
 
-  console.log('[v0] Processing completed checkout:', sessionId)
+  // 'unpaid' = a bank payment that is still clearing. Record it as
+  // 'processing'; it is confirmed by async_payment_succeeded, which calls
+  // this function again with payment_status 'paid'.
+  const processing = session.payment_status === 'unpaid'
+
+  console.log(
+    `[v0] Processing ${processing ? 'pending bank payment for' : 'completed'} checkout:`,
+    sessionId,
+  )
 
   // Get payment intent to retrieve customer and payment method
   let stripeCustomerId: string | null = null
   let stripePaymentMethodId: string | null = null
 
-  if (session.payment_intent) {
+  // A bank payment reaches this function twice (processing, then paid).
+  // Reuse the Stripe customer saved the first time — creating a second one
+  // would leave the saved payment method attached to the first, and the
+  // balance auto-charge would fail.
+  const { data: savedRow } = await supabase
+    .from('stripe_bookings')
+    .select('stripe_customer_id, stripe_payment_method_id')
+    .eq('stripe_checkout_session_id', sessionId)
+    .limit(1)
+    .maybeSingle()
+  if (savedRow?.stripe_customer_id) {
+    stripeCustomerId = savedRow.stripe_customer_id
+    stripePaymentMethodId = savedRow.stripe_payment_method_id
+  } else if (session.payment_intent) {
     try {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         session.payment_intent as string,
@@ -108,11 +152,23 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     }
   }
 
+  // Custom packages are paid from /package/[id]; no pending row exists for
+  // them, so they get their own branch.
+  if (metadata.is_custom_package === 'true') {
+    await handleCustomPackagePayment(
+      session,
+      stripeCustomerId,
+      stripePaymentMethodId,
+      processing,
+    )
+    return
+  }
+
   // Update booking status with customer and payment method info
   const { data: booking, error: updateError } = await supabase
     .from('stripe_bookings')
     .update({
-      status: 'confirmed',
+      status: processing ? 'processing' : 'confirmed',
       stripe_payment_intent_id: session.payment_intent as string,
       stripe_customer_id: stripeCustomerId,
       stripe_payment_method_id: stripePaymentMethodId,
@@ -141,9 +197,16 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         customer_name: metadata.customer_name,
         customer_email: metadata.customer_email,
         customer_phone: metadata.customer_phone,
-        amount_cents: session.amount_total || 0,
+        // There is no amount_cents column, and these three are NOT NULL —
+        // the old insert named the former and omitted the latter, so this
+        // reconciliation path could never succeed.
+        deposit_amount: (session.amount_total || 0) / 100,
+        total_paid: (session.amount_total || 0) / 100,
+        total_package_price: metadata.total_price
+          ? parseFloat(metadata.total_price)
+          : (session.amount_total || 0) / 100,
         payment_method: metadata.payment_method,
-        status: 'confirmed',
+        status: processing ? 'processing' : 'confirmed',
         trip_title: metadata.trip_title,
         total_price: metadata.total_price
           ? parseFloat(metadata.total_price)
@@ -151,8 +214,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         deposit_percentage: metadata.deposit_percentage
           ? parseInt(metadata.deposit_percentage)
           : 30,
-        // Auto-charge fields from metadata
-        trip_start_date: metadata.start_date,
+        // Auto-charge fields from metadata ('' is not a valid DATE)
+        trip_start_date: metadata.start_date || null,
         remaining_balance: metadata.remaining_balance
           ? parseFloat(metadata.remaining_balance)
           : null,
@@ -176,6 +239,13 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     if (insertError) {
       console.error('[v0] Error creating booking record:', insertError)
     }
+  }
+
+  // A bank payment still clearing: tell the customer it's on its way, but
+  // don't confirm anything until Stripe says the money arrived.
+  if (processing) {
+    await sendPaymentProcessingEmails(metadata, session)
+    return
   }
 
   // Send confirmation emails
@@ -215,6 +285,480 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   }
 }
 
+/**
+ * A payment started from /package/[id] (see app/api/package/[id]/checkout).
+ * Deposit / full payments create the stripe_bookings row; a remainder
+ * payment settles the open balance on the existing row. The package page
+ * reads what has been paid from these rows via inquiry_id.
+ *
+ * Bank (ACH) payments arrive twice: first with `processing` true (money
+ * still clearing — the row is written as 'processing', or a remainder is
+ * marked by its payment intent id), then again from async_payment_succeeded
+ * with `processing` false, which confirms it.
+ */
+async function handleCustomPackagePayment(
+  session: Stripe.Checkout.Session,
+  stripeCustomerId: string | null,
+  stripePaymentMethodId: string | null,
+  processing: boolean,
+) {
+  const metadata = session.metadata || {}
+  const paymentIntentId = (session.payment_intent as string) || null
+  const amountPaid = (session.amount_total || 0) / 100
+  const paymentType = metadata.payment_type || 'deposit'
+  const now = new Date().toISOString()
+
+  const inquiryId = await findCustomInquiryId(metadata)
+
+  const title = metadata.custom_package_name || metadata.trip_title || 'Custom Package'
+  const totalPrice = parseFloat(metadata.total_price || '') || amountPaid
+  let booking: any = null
+
+  if (paymentType === 'remainder') {
+    // Already settled by an earlier delivery of this event?
+    if (paymentIntentId) {
+      const { data: settled } = await supabase
+        .from('stripe_bookings')
+        .select('id')
+        .eq('remaining_balance_payment_intent_id', paymentIntentId)
+        .eq('remaining_balance_charged', true)
+        .limit(1)
+      if (settled && settled.length > 0) {
+        console.log('[custom-package] Remainder already recorded:', session.id)
+        return
+      }
+    }
+
+    const { data: open } = await supabase
+      .from('stripe_bookings')
+      .select('*')
+      .eq('inquiry_id', inquiryId)
+      .in('status', ['confirmed', 'completed'])
+      .eq('remaining_balance_charged', false)
+      .gt('remaining_balance', 0)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (open && processing) {
+      // Mark the balance as being paid (the package page shows it as
+      // processing and offers no second payment) without settling it.
+      const { error } = await supabase
+        .from('stripe_bookings')
+        .update({ remaining_balance_payment_intent_id: paymentIntentId, updated_at: now })
+        .eq('id', open.id)
+      if (error) console.error('[custom-package] Error marking balance processing:', error)
+      await sendPaymentProcessingEmails(metadata, session)
+      return
+    }
+
+    if (open) {
+      const { data: updated, error } = await supabase
+        .from('stripe_bookings')
+        .update({
+          remaining_balance_charged: true,
+          remaining_balance_charged_at: now,
+          remaining_balance_payment_intent_id: paymentIntentId,
+          total_paid: Number(open.total_paid || 0) + amountPaid,
+          updated_at: now,
+        })
+        .eq('id', open.id)
+        .select()
+        .single()
+      if (error) {
+        console.error('[custom-package] Error settling balance:', error)
+      }
+      booking = updated || open
+    } else {
+      console.error(
+        '[custom-package] Remainder paid but no open balance found for inquiry',
+        inquiryId,
+      )
+    }
+  }
+
+  if (!booking) {
+    // Deposit / full payment (or an unmatched remainder, recorded so the
+    // money is never invisible to the admin).
+    const remaining =
+      paymentType === 'deposit'
+        ? Math.max(0, parseFloat(metadata.remaining_balance || '0') || 0)
+        : 0
+    const dueDate = metadata.remainder_due_date || null
+    // Auto-charge only when a reusable card was actually saved.
+    const autoChargeDate =
+      metadata.balance_flow === 'auto_charge' &&
+      remaining > 0 &&
+      dueDate &&
+      stripeCustomerId &&
+      stripePaymentMethodId
+        ? dueDate
+        : null
+    const status = processing ? 'processing' : 'confirmed'
+
+    const { data: existing } = await supabase
+      .from('stripe_bookings')
+      .select('id, status')
+      .eq('stripe_checkout_session_id', session.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (existing && (existing.status !== 'processing' || processing)) {
+      // Stripe retried an event we already handled.
+      console.log('[custom-package] Payment already recorded:', session.id)
+      return
+    }
+
+    if (existing) {
+      // A bank payment that was processing has now cleared.
+      const { data: confirmed, error } = await supabase
+        .from('stripe_bookings')
+        .update({
+          status: 'confirmed',
+          stripe_payment_intent_id: paymentIntentId,
+          stripe_customer_id: stripeCustomerId,
+          stripe_payment_method_id: stripePaymentMethodId,
+          auto_charge_date: autoChargeDate,
+          updated_at: now,
+        })
+        .eq('id', existing.id)
+        .select()
+        .single()
+      if (error) console.error('[custom-package] Error confirming payment:', error)
+      booking = confirmed
+    } else {
+      const { data: inserted, error } = await supabase
+        .from('stripe_bookings')
+        .insert({
+          trip_id: metadata.trip_id || null,
+          inquiry_id: inquiryId,
+          user_id: null,
+          site_url: metadata.site_url || null,
+          stripe_checkout_session_id: session.id,
+          stripe_payment_intent_id: paymentIntentId,
+          stripe_customer_id: stripeCustomerId,
+          stripe_payment_method_id: stripePaymentMethodId,
+          customer_name: metadata.customer_name || 'Customer',
+          customer_email:
+            metadata.customer_email || session.customer_details?.email || '',
+          customer_phone: metadata.customer_phone || null,
+          deposit_amount: amountPaid,
+          processing_fee: 0,
+          total_paid: amountPaid,
+          total_package_price: totalPrice,
+          total_price: totalPrice,
+          trip_title: title,
+          deposit_percentage: parseInt(metadata.deposit_percentage || '100') || 100,
+          payment_method: 'sms_link',
+          status,
+          trip_start_date: metadata.start_date || null,
+          remaining_balance: remaining,
+          remainder_due_date: remaining > 0 ? dueDate : null,
+          auto_charge_date: autoChargeDate,
+          remaining_balance_charged: remaining <= 0,
+          booking_details: {
+            trip_title: title,
+            package_name: title,
+            start_date: metadata.start_date || '',
+            end_date: metadata.end_date || '',
+            room_type: '',
+            golf_courses: [],
+            meal_option: '',
+            transport_option: '',
+            additional_requests: '',
+          },
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('[custom-package] Error recording payment:', error)
+      }
+      booking = inserted
+    }
+
+    if (metadata.balance_flow === 'auto_charge' && remaining > 0 && !autoChargeDate) {
+      console.error(
+        '[custom-package] Auto-charge requested but no reusable card/due date was saved; the customer can pay the balance from the package page.',
+        session.id,
+      )
+    }
+
+    if (processing) {
+      await sendPaymentProcessingEmails(metadata, session)
+      return
+    }
+  }
+
+  if (inquiryId) {
+    const { error } = await supabase
+      .from('inquiries')
+      .update({ status: 'converted', updated_at: now })
+      .eq('id', inquiryId)
+    if (error) {
+      console.error('[custom-package] Error updating inquiry status:', error)
+    }
+  }
+
+  await sendBookingConfirmationEmails(metadata, session, booking)
+  await sendInvoiceEmail(metadata, session)
+}
+
+/** Sessions from the package page carry inquiry_id; older ones only the trip id. */
+async function findCustomInquiryId(metadata: Record<string, string>) {
+  if (metadata.inquiry_id) return metadata.inquiry_id
+  if (!metadata.trip_id) return null
+  const { data } = await supabase
+    .from('inquiries')
+    .select('id')
+    .eq('trip_id', metadata.trip_id)
+    .eq('is_custom_package', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data?.id || null
+}
+
+/** A bank (ACH) checkout payment was returned / failed after processing. */
+async function handleCheckoutPaymentFailed(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata || {}
+  const paymentIntentId = (session.payment_intent as string) || null
+  const now = new Date().toISOString()
+
+  if (metadata.is_custom_package === 'true' && metadata.payment_type === 'remainder') {
+    // Un-mark the balance so the package page offers payment again.
+    if (paymentIntentId) {
+      const { error } = await supabase
+        .from('stripe_bookings')
+        .update({ remaining_balance_payment_intent_id: null, updated_at: now })
+        .eq('remaining_balance_payment_intent_id', paymentIntentId)
+        .eq('remaining_balance_charged', false)
+      if (error) console.error('[v0] Error clearing failed balance payment:', error)
+    }
+  } else {
+    const { error } = await supabase
+      .from('stripe_bookings')
+      .update({ status: 'failed', updated_at: now })
+      .eq('stripe_checkout_session_id', session.id)
+    if (error) console.error('[v0] Error marking bank payment failed:', error)
+  }
+
+  const inquiryId =
+    metadata.is_custom_package === 'true' ? await findCustomInquiryId(metadata) : null
+  const siteUrl = (metadata.site_url || getSiteUrl()).replace(/\/+$/, '')
+  const retry = inquiryId
+    ? `You can try again, with a card or another bank account, from your package page:\n${siteUrl}/package/${inquiryId}`
+    : `Please reply to this email or contact us and we'll help you complete your booking.`
+
+  await sendSimpleEmails(metadata.site_url, {
+    customerEmail: metadata.customer_email,
+    customerSubject: `Payment not completed: ${metadata.trip_title}`,
+    customerText: `Dear ${metadata.customer_name},
+
+Unfortunately your bank payment of $${((session.amount_total || 0) / 100).toFixed(2)} for ${metadata.trip_title} did not go through, so it has not been completed.
+
+${retry}
+
+Best regards,
+4 Seasons Golf Tour Team`,
+    adminSubject: `Bank payment FAILED: ${metadata.trip_title} - ${metadata.customer_name}`,
+    adminText: `BANK PAYMENT FAILED - ACTION REQUIRED
+
+The customer's bank (ACH) payment was returned after processing. Nothing was collected.
+
+Customer: ${metadata.customer_name}
+Email: ${metadata.customer_email}
+Phone: ${metadata.customer_phone}
+Trip: ${metadata.trip_title}
+Payment: ${getPaymentLabel(metadata)} - $${((session.amount_total || 0) / 100).toFixed(2)}
+Stripe Session: ${session.id}
+Payment Intent: ${paymentIntentId || 'n/a'}`,
+  })
+}
+
+/**
+ * A remaining-balance charge made by the charge cron settled. Card charges
+ * settle synchronously (the cron records them); a bank debit returns
+ * 'processing', which the cron records without remaining_balance_charged_at —
+ * this fills it in.
+ */
+async function handleBalanceChargeSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  if (paymentIntent.metadata?.type !== 'remaining_balance') return
+
+  const { data: booking } = await supabase
+    .from('stripe_bookings')
+    .select('*')
+    .eq('remaining_balance_payment_intent_id', paymentIntent.id)
+    .limit(1)
+    .maybeSingle()
+  if (!booking || booking.remaining_balance_charged_at) return // card: already recorded
+
+  const amount = paymentIntent.amount_received / 100
+  const now = new Date().toISOString()
+  const { error } = await supabase
+    .from('stripe_bookings')
+    .update({
+      remaining_balance_charged: true,
+      remaining_balance_charged_at: now,
+      total_paid: Number(booking.total_paid || 0) + amount,
+      updated_at: now,
+    })
+    .eq('id', booking.id)
+  if (error) console.error('[v0] Error recording settled balance charge:', error)
+
+  const trip = booking.booking_details?.trip_title || booking.trip_title || 'your golf trip'
+  await sendSimpleEmails(booking.site_url, {
+    customerEmail: booking.customer_email,
+    customerSubject: `Payment Confirmed: Remaining Balance for ${trip}`,
+    customerText: `Dear ${booking.customer_name},
+
+Your remaining balance of $${amount.toFixed(2)} for ${trip} has been received. Your trip is now fully paid — we look forward to seeing you soon.
+
+Best regards,
+4 Seasons Golf Tour Team`,
+    adminSubject: `Remaining Balance Received: ${booking.customer_name} - ${trip}`,
+    adminText: `REMAINING BALANCE RECEIVED (bank payment cleared)
+
+Customer: ${booking.customer_name}
+Email: ${booking.customer_email}
+Trip: ${trip}
+Amount: $${amount.toFixed(2)}
+Booking ID: ${booking.id}`,
+  })
+}
+
+/**
+ * A remaining-balance charge made by the charge cron failed after
+ * processing (bank debit returned). Re-open the balance, stop automatic
+ * retries, and tell the admin and the customer.
+ */
+async function handleBalanceChargeFailed(paymentIntent: Stripe.PaymentIntent) {
+  if (paymentIntent.metadata?.type !== 'remaining_balance') return
+
+  const { data: booking } = await supabase
+    .from('stripe_bookings')
+    .select('*')
+    .eq('remaining_balance_payment_intent_id', paymentIntent.id)
+    .limit(1)
+    .maybeSingle()
+  // Card declines fail inside the cron before the id is stored — the cron
+  // handles those itself.
+  if (!booking) return
+
+  const { error } = await supabase
+    .from('stripe_bookings')
+    .update({
+      remaining_balance_charged: false,
+      remaining_balance_charged_at: null,
+      remaining_balance_payment_intent_id: null,
+      // Don't keep re-debiting a bank account that bounced; the customer
+      // pays another way (package page for custom packages, or the admin).
+      auto_charge_date: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', booking.id)
+  if (error) console.error('[v0] Error reopening failed balance charge:', error)
+
+  const trip = booking.booking_details?.trip_title || booking.trip_title || 'your golf trip'
+  const siteUrl = (booking.site_url || getSiteUrl()).replace(/\/+$/, '')
+  const amount = `$${Number(booking.remaining_balance || 0).toFixed(2)}`
+  await sendSimpleEmails(booking.site_url, {
+    customerEmail: booking.customer_email,
+    customerSubject: `Action needed: remaining balance for ${trip}`,
+    customerText: `Dear ${booking.customer_name},
+
+The automatic payment of your remaining balance (${amount}) for ${trip} did not go through.
+
+${
+  booking.inquiry_id
+    ? `You can pay it with a card or another bank account here:\n${siteUrl}/package/${booking.inquiry_id}`
+    : `Please reply to this email or contact us so we can arrange payment.`
+}
+
+Best regards,
+4 Seasons Golf Tour Team`,
+    adminSubject: `Remaining balance FAILED: ${booking.customer_name} - ${trip}`,
+    adminText: `REMAINING BALANCE PAYMENT FAILED - ACTION REQUIRED
+
+The automatic bank debit for the remaining balance was returned. Automatic retries have been stopped for this booking.
+
+Customer: ${booking.customer_name}
+Email: ${booking.customer_email}
+Phone: ${booking.customer_phone}
+Trip: ${trip}
+Remaining balance: ${amount}
+Payment Intent: ${paymentIntent.id}
+Reason: ${paymentIntent.last_payment_error?.message || 'n/a'}
+Booking ID: ${booking.id}`,
+  })
+}
+
+/** A bank (ACH) payment Stripe accepted but which has not cleared yet. */
+async function sendPaymentProcessingEmails(
+  metadata: Record<string, string>,
+  session: Stripe.Checkout.Session,
+) {
+  const amount = `$${((session.amount_total || 0) / 100).toFixed(2)}`
+  await sendSimpleEmails(metadata.site_url, {
+    customerEmail: metadata.customer_email,
+    customerSubject: `Payment received, now processing: ${metadata.trip_title}`,
+    customerText: `Dear ${metadata.customer_name},
+
+Thank you — we've received your bank payment of ${amount} (${getPaymentLabel(metadata)}) for ${metadata.trip_title}.
+
+Bank transfers take up to 4 business days to clear. We'll email you as soon as it's confirmed; there's nothing else you need to do.
+
+Best regards,
+4 Seasons Golf Tour Team`,
+    adminSubject: `Bank payment processing: ${metadata.trip_title} - ${metadata.customer_name}`,
+    adminText: `BANK PAYMENT PROCESSING
+
+A bank (ACH) payment was submitted and is clearing (up to 4 business days). The booking is held as "processing" and will be confirmed automatically when it clears, or marked failed if it is returned.
+
+Customer: ${metadata.customer_name}
+Email: ${metadata.customer_email}
+Trip: ${metadata.trip_title}
+Payment: ${getPaymentLabel(metadata)} - ${amount}
+Stripe Session: ${session.id}`,
+  })
+}
+
+async function sendSimpleEmails(
+  siteUrl: string | null | undefined,
+  email: {
+    customerEmail?: string | null
+    customerSubject: string
+    customerText: string
+    adminSubject: string
+    adminText: string
+  },
+) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  if (email.customerEmail) {
+    try {
+      await resend.emails.send({
+        from: getFromEmail(siteUrl),
+        to: email.customerEmail,
+        subject: email.customerSubject,
+        text: email.customerText,
+      })
+    } catch (error) {
+      console.error('[v0] Error sending customer email:', error)
+    }
+  }
+  try {
+    await resend.emails.send({
+      from: getFromEmail(siteUrl),
+      to: getAdminEmail(siteUrl),
+      replyTo: email.customerEmail || undefined,
+      subject: email.adminSubject,
+      text: email.adminText,
+    })
+  } catch (error) {
+    console.error('[v0] Error sending admin email:', error)
+  }
+}
+
 // Standard trip checkouts carry `package_name`; admin-created custom packages
 // carry `custom_package_name` instead. Reading only the former printed
 // "Package: undefined" on every custom-package confirmation.
@@ -231,6 +775,7 @@ function getPackageName(metadata: Record<string, string>) {
 // a 30% deposit (trips can set their own deposit %, and customers can pay in
 // full).
 function getPaymentLabel(metadata: Record<string, string>) {
+  if (metadata.payment_type === 'remainder') return 'Remaining Balance'
   if (metadata.payment_type === 'full' || metadata.deposit_percentage === '100') {
     return 'Full Payment'
   }
@@ -250,6 +795,29 @@ async function sendBookingConfirmationEmails(
     : '0.00'
   const packageName = getPackageName(metadata)
   const paymentLabel = getPaymentLabel(metadata)
+  // Custom packages may have no dates or room type; don't print empty lines.
+  const travelDates =
+    metadata.start_date && metadata.end_date
+      ? `${metadata.start_date} to ${metadata.end_date}`
+      : metadata.start_date || ''
+  const tripLines = [
+    `Trip: ${metadata.trip_title}`,
+    `Package: ${packageName}`,
+    travelDates ? `Travel Dates: ${travelDates}` : '',
+    metadata.room_type ? `Room Type: ${metadata.room_type}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+  const paymentMethodLabel =
+    metadata.payment_method === 'ach'
+      ? 'Bank Transfer (ACH)'
+      : metadata.payment_method === 'card'
+        ? 'Credit/Debit Card'
+        : 'Online payment (card or bank)'
+  const nextSteps =
+    metadata.payment_type === 'remainder' || metadata.payment_type === 'full'
+      ? 'Your trip is now fully paid. Our team will be in touch to confirm the final details of your trip.'
+      : 'Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.'
 
   // Email to customer
   const customerEmailContent = `
@@ -260,20 +828,17 @@ Thank you for booking your golf trip with 4 Seasons Golf Tour!
 BOOKING CONFIRMATION
 ====================
 
-Trip: ${metadata.trip_title}
-Package: ${packageName}
-Travel Dates: ${metadata.start_date} to ${metadata.end_date}
-Room Type: ${metadata.room_type}
+${tripLines}
 
 Payment Details:
 - Amount Paid (${paymentLabel}): $${amountPaid}
-- Payment Method: ${metadata.payment_method === 'ach' ? 'Bank Transfer (ACH)' : 'Credit/Debit Card'}
+- Payment Method: ${paymentMethodLabel}
 
 ${metadata.additional_requests ? `Additional Requests:\n${metadata.additional_requests}\n` : ''}
 
 NEXT STEPS
 ==========
-Our team will be in touch within 24-48 hours to confirm the details of your trip and discuss the remaining balance.
+${nextSteps}
 
 ${
   isGuest
@@ -310,20 +875,30 @@ Best regards,
   }
 
   // Send booking confirmation SMS
+  const smsTo = phoneForSms(metadata.customer_phone)
   if (
-    metadata.customer_phone &&
+    smsTo &&
     process.env.TWILIO_ACCOUNT_SID &&
-    process.env.TWILIO_AUTH_TOKEN
+    process.env.TWILIO_AUTH_TOKEN &&
+    process.env.TWILIO_PHONE_NUMBER
   ) {
     try {
       const twilioClient = Twilio(
         process.env.TWILIO_ACCOUNT_SID,
         process.env.TWILIO_AUTH_TOKEN,
       )
+      const smsDates =
+        metadata.start_date && metadata.end_date
+          ? ` (${metadata.start_date} – ${metadata.end_date})`
+          : ''
+      const smsWhat =
+        metadata.payment_type === 'remainder'
+          ? `Your remaining balance for ${metadata.trip_title} has been received — your trip is fully paid!`
+          : `Your booking for ${metadata.trip_title}${smsDates} has been confirmed!`
       await twilioClient.messages.create({
-        to: metadata.customer_phone,
-        from: process.env.TWILIO_PHONE_NUMBER!,
-        body: `4 Seasons Golf Tour: Your booking for ${metadata.trip_title} (${metadata.start_date} – ${metadata.end_date}) has been confirmed! A confirmation email has been sent to ${metadata.customer_email}. Reply STOP to opt out.`,
+        to: smsTo,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        body: `4 Seasons Golf Tour: ${smsWhat} A confirmation email has been sent to ${metadata.customer_email}. Reply STOP to opt out.`,
       })
       console.log('[v0] Booking confirmation SMS sent')
     } catch (error) {
@@ -343,14 +918,11 @@ Customer Information:
 ${metadata.user_id ? `- User ID: ${metadata.user_id}` : ''}
 
 Booking Details:
-- Trip: ${metadata.trip_title}
-- Package: ${packageName}
-- Travel Dates: ${metadata.start_date} to ${metadata.end_date}
-- Room Type: ${metadata.room_type}
+${tripLines.replace(/^/gm, '- ')}
 
 Payment:
 - Amount Paid (${paymentLabel}): $${amountPaid}
-- Payment Method: ${metadata.payment_method === 'ach' ? 'ACH' : 'Card'}
+- Payment Method: ${paymentMethodLabel}
 - Stripe Session ID: ${session.id}
 - Payment Intent: ${session.payment_intent}
 
@@ -444,8 +1016,8 @@ BOOKING DETAILS
 --------------
 Trip: ${metadata.trip_title}
 Package: ${getPackageName(metadata)}
-Travel Dates: ${metadata.start_date} to ${metadata.end_date}
-Room Type: ${metadata.room_type}
+${metadata.start_date ? `Travel Dates: ${metadata.start_date}${metadata.end_date ? ` to ${metadata.end_date}` : ''}` : ''}
+${metadata.room_type ? `Room Type: ${metadata.room_type}` : ''}
 ${golfCourses.length > 0 ? `Golf Courses: ${golfCourses.join(', ')}` : ''}
 ${metadata.meal_option ? `Meals: ${metadata.meal_option}` : ''}
 ${metadata.transport_option ? `Transportation: ${metadata.transport_option}` : ''}

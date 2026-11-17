@@ -114,6 +114,12 @@ export async function GET(request: Request) {
             original_remaining_balance: String(booking.remaining_balance),
             processing_fee: String(processingFee / 100),
           },
+        }, {
+          // One charge per booking per day: a re-run (or a run whose DB
+          // update failed) gets the same PaymentIntent back from Stripe
+          // instead of charging again. A declined card still retries the
+          // next day under a new key.
+          idempotencyKey: `remaining-balance-${booking.id}-${today}`,
         })
 
         if (paymentIntent.status === 'succeeded') {
@@ -137,6 +143,26 @@ export async function GET(request: Request) {
 
           results.success.push(booking.id)
           console.log(`[v0] Successfully charged booking ${booking.id}`)
+        } else if (paymentIntent.status === 'processing') {
+          // A US bank account debit: accepted, settling over several days.
+          // Record it NOW so tomorrow's run doesn't debit the customer a
+          // second time. remaining_balance_charged_at stays null until the
+          // webhook's payment_intent.succeeded fills it in (and emails the
+          // customer); payment_intent.payment_failed re-opens the balance.
+          const { error: updateError } = await supabase
+            .from('stripe_bookings')
+            .update({
+              remaining_balance_charged: true,
+              remaining_balance_charged_at: null,
+              remaining_balance_payment_intent_id: paymentIntent.id,
+            })
+            .eq('id', booking.id)
+
+          if (updateError) {
+            console.error(`[v0] Error recording processing charge for ${booking.id}:`, updateError)
+          }
+          results.success.push(booking.id)
+          console.log(`[v0] Bank debit processing for booking ${booking.id}: ${paymentIntent.id}`)
         } else {
           console.error(`[v0] Payment intent status not succeeded: ${paymentIntent.status}`)
           results.failed.push({ id: booking.id, error: `Payment status: ${paymentIntent.status}` })

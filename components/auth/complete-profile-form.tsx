@@ -1,6 +1,7 @@
 'use client'
 
 import type React from 'react'
+import { buildE164 } from '@/lib/phone'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,9 +46,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
     setError(null)
 
     // Construct the full phone number with country code
-    const fullPhone = `${country.dialCode}${phone
-      .replace(/^\+/, '')
-      .replace(/\D/g, '')}`
+    const fullPhone = buildE164(country, phone) ?? ''
     const phoneRegex = /^\+[1-9]\d{1,14}$/
 
     if (!phoneRegex.test(fullPhone)) {
@@ -82,9 +81,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
     setError(null)
 
     try {
-      const fullPhone = `${country.dialCode}${phone
-        .replace(/^\+/, '')
-        .replace(/\D/g, '')}`
+      const fullPhone = buildE164(country, phone) ?? ''
       const supabase = createClient()
 
       // Verify the OTP
@@ -130,9 +127,7 @@ export function CompleteProfileForm({ user }: CompleteProfileFormProps) {
     setError(null)
 
     try {
-      const fullPhone = `${country.dialCode}${phone
-        .replace(/^\+/, '')
-        .replace(/\D/g, '')}`
+      const fullPhone = buildE164(country, phone) ?? ''
       const supabase = createClient()
 
       const { error: otpError } = await supabase.auth.signInWithOtp({

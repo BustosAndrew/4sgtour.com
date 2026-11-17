@@ -5,6 +5,10 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/phone-input'
+import { isE164 } from '@/lib/phone'
+import { formatCalendarDate } from '@/lib/calendar-date'
+import type { BalanceFlow } from '@/lib/custom-package'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Calendar } from '@/components/ui/calendar'
@@ -204,10 +208,16 @@ export function CreateCustomBookingForm({
   const [remainderDueDate, setRemainderDueDate] = useState<Date | undefined>(
     undefined,
   )
+  // How the balance is collected after the deposit — the admin's call.
+  const [balanceFlow, setBalanceFlow] = useState<BalanceFlow>('pay_link')
 
   // Success state
   const [showSuccess, setShowSuccess] = useState(false)
   const [packagePageUrl, setPackagePageUrl] = useState<string | null>(null)
+  const [smsResult, setSmsResult] = useState<{
+    sent: boolean
+    error: string | null
+  } | null>(null)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
   const premiumPkg = packages.find((p) => p.name === 'Premium')
@@ -489,7 +499,10 @@ export function CreateCustomBookingForm({
       case 4:
         if (!customerName.trim()) errors.push('Customer name is required')
         if (!customerEmail.trim()) errors.push('Customer email is required')
-        if (!customerPhone.trim()) errors.push('Customer phone is required')
+        if (!isE164(customerPhone))
+          errors.push(
+            'Customer phone is required — choose the country and enter the number',
+          )
         if (customerEmail && !customerEmail.includes('@'))
           errors.push('Please enter a valid email')
         if (!startDate) errors.push('Start date is required')
@@ -533,7 +546,7 @@ export function CreateCustomBookingForm({
         return !!(
           customerName.trim() &&
           customerEmail.trim() &&
-          customerPhone.trim() &&
+          isE164(customerPhone) &&
           startDate &&
           endDate
         )
@@ -638,11 +651,16 @@ export function CreateCustomBookingForm({
           customerName,
           customerEmail,
           customerPhone,
-          startDate: startDate?.toISOString(),
-          endDate: endDate?.toISOString(),
+          // yyyy-MM-dd of the day picked — toISOString() shifted these a
+          // day back for admins east of UTC (e.g. Korea)
+          startDate: startDate ? formatCalendarDate(startDate) : undefined,
+          endDate: endDate ? formatCalendarDate(endDate) : undefined,
           // Payment
           depositPercentage,
-          remainderDueDate: remainderDueDate?.toISOString(),
+          remainderDueDate: remainderDueDate
+            ? formatCalendarDate(remainderDueDate)
+            : undefined,
+          balanceFlow,
         }),
       })
 
@@ -652,7 +670,8 @@ export function CreateCustomBookingForm({
       }
 
       const data = await response.json()
-      setPackagePageUrl(data.paymentLink)
+      setPackagePageUrl(data.packagePageUrl || null)
+      setSmsResult({ sent: !!data.smsSent, error: data.smsError || null })
       setShowSuccess(true)
     } catch (error) {
       console.error('[v0] Error creating custom booking:', error)
@@ -675,16 +694,32 @@ export function CreateCustomBookingForm({
           <h2 className="text-2xl font-bold text-foreground">
             Custom Booking Created!
           </h2>
-          <p className="mt-2 text-muted-foreground">
-            The payment link has been sent to {customerName} via SMS.
-          </p>
+          {smsResult?.sent ? (
+            <p className="mt-2 text-muted-foreground">
+              {customerName} has been sent a text with a link to their package
+              page.
+            </p>
+          ) : (
+            <div className="mt-4 max-w-md rounded-lg border border-amber-200 bg-amber-50 p-4 text-left text-sm text-amber-800">
+              <p className="font-semibold">The text message was not sent.</p>
+              {smsResult?.error && (
+                <p className="mt-1 break-words">{smsResult.error}</p>
+              )}
+              <p className="mt-1">
+                Send {customerName} the link below another way (email,
+                messenger).
+              </p>
+            </div>
+          )}
 
           {packagePageUrl && (
             <div className="mt-6 w-full max-w-md">
-              <Label className="text-left block mb-2">Payment Link</Label>
+              <Label className="text-left block mb-2">
+                Customer&apos;s package page
+              </Label>
               <p className="text-xs text-muted-foreground mb-2 text-left">
-                This is the Stripe checkout link that was sent via SMS. You can
-                also share it manually.
+                The customer reviews the trip and pays here. The link does not
+                expire, and price changes you make later apply automatically.
               </p>
               <div className="flex items-center gap-2">
                 <Input
@@ -796,6 +831,8 @@ export function CreateCustomBookingForm({
                 setEndDate(undefined)
                 setDepositPercentage(30)
                 setRemainderDueDate(undefined)
+                setBalanceFlow('pay_link')
+                setSmsResult(null)
               }}
               className="bg-primary hover:bg-primary/90"
             >
@@ -2131,15 +2168,15 @@ export function CreateCustomBookingForm({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="customerPhone">Phone Number *</Label>
-                <Input
+                <PhoneInput
                   id="customerPhone"
-                  type="tel"
                   value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
+                  onChange={(e164) => setCustomerPhone(e164 || '')}
+                  placeholder="10 1234 5678"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Payment link will be sent via SMS to this number
+                  Choose the country, then the number as the customer would
+                  dial it locally. The package link is texted here.
                 </p>
               </div>
             </div>
@@ -2350,6 +2387,9 @@ export function CreateCustomBookingForm({
                   </Popover>
                 </div>
               )}
+              {depositPercentage < 100 && (
+                <BalanceFlowChoice value={balanceFlow} onChange={setBalanceFlow} />
+              )}
             </div>
 
             {/* Review Summary */}
@@ -2494,6 +2534,12 @@ export function CreateCustomBookingForm({
                           ? format(remainderDueDate, 'PPP')
                           : 'Not set'}
                       </div>
+                      <div>
+                        <span className="font-medium">Remaining Balance:</span>{' '}
+                        {balanceFlow === 'auto_charge'
+                          ? 'Charged automatically to the saved card'
+                          : 'Customer pays from their package page'}
+                      </div>
                     </>
                   )}
                 </div>
@@ -2548,6 +2594,58 @@ export function CreateCustomBookingForm({
             {loading ? 'Creating Custom Trip...' : 'Create & Send Payment Link'}
           </Button>
         )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * How the remaining balance is collected after the deposit. Shared look with
+ * the edit form (which has its own copy of this small component).
+ */
+function BalanceFlowChoice({
+  value,
+  onChange,
+}: {
+  value: BalanceFlow
+  onChange: (value: BalanceFlow) => void
+}) {
+  const options: { value: BalanceFlow; title: string; description: string }[] = [
+    {
+      value: 'auto_charge',
+      title: 'Charge the saved card automatically',
+      description:
+        'The card or bank account used for the deposit is saved and charged on the due date. The customer is texted 5 days before.',
+    },
+    {
+      value: 'pay_link',
+      title: 'Customer pays from their package page',
+      description:
+        'Nothing is saved. The package page shows a "Pay remaining balance" button, and the customer is texted 5 days before the due date.',
+    },
+  ]
+  return (
+    <div className="space-y-2">
+      <Label>Remaining balance *</Label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+            className={`rounded-lg border p-3 text-left transition-colors ${
+              value === option.value
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-primary/50'
+            }`}
+          >
+            <p className="text-sm font-medium">{option.title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {option.description}
+            </p>
+          </button>
+        ))}
       </div>
     </div>
   )

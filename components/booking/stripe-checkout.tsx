@@ -23,6 +23,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from '@/lib/i18n/provider'
 import { PaymentConsent } from '@/components/payment-consent'
+import { PhoneInput } from '@/components/phone-input'
+import { isE164, normalizeE164 } from '@/lib/phone'
 import {
   calculatePaymentAmounts,
   formatCents,
@@ -115,6 +117,8 @@ const NOTICE_MESSAGE_KEYS: Record<CheckoutNotice, string> = {
   PACKAGE_UNAVAILABLE: 'checkoutErrorPackageUnavailable',
   TRIP_UNAVAILABLE: 'checkoutErrorTripUnavailable',
   INVALID_DATES: 'checkoutErrorInvalidDates',
+  INVALID_PHONE: 'checkoutErrorInvalidPhone',
+  SMS_FAILED: 'checkoutErrorSmsFailed',
   CHECKOUT_FAILED: 'checkoutErrorFailed',
 }
 
@@ -157,7 +161,9 @@ export function StripeCheckout({
   const [paymentType, setPaymentType] = useState<PaymentType>('deposit')
   const [customerName, setCustomerName] = useState(prefillName || '')
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
-  const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
+  const [customerPhone, setCustomerPhone] = useState(
+    normalizeE164(prefillPhone) || '',
+  )
 
   // A created Checkout Session, with the amounts the SERVER will charge
   const [checkout, setCheckout] = useState<{
@@ -224,8 +230,8 @@ export function StripeCheckout({
       alert(t('emailAddress') + ' is invalid')
       return
     }
-    if (!customerPhone.trim()) {
-      alert(t('phoneNumber') + ' is required')
+    if (!isE164(customerPhone)) {
+      setNotice('INVALID_PHONE')
       return
     }
     if (!paymentMethod) {
@@ -429,14 +435,18 @@ export function StripeCheckout({
 
           <div>
             <Label htmlFor="customer-phone">{t('phoneNumber')} *</Label>
-            <Input
+            {/* Country picker + national number → E.164, so texts reach
+                e.g. Korean "010-…" numbers. Holds '' until valid. */}
+            <PhoneInput
               id="customer-phone"
-              type="tel"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="+1 (555) 000-0000"
+              value={prefillPhone || ''}
+              onChange={(e164) => setCustomerPhone(e164 || '')}
+              placeholder={t('phoneNumberPlaceholder')}
               className="mt-1"
             />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t('phoneNumberHint')}
+            </p>
           </div>
         </div>
       </div>

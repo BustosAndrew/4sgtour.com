@@ -41,11 +41,17 @@ export function BookingsContent({
   // stripe_bookings row for the same Stripe session. Show the booking once,
   // carrying the inquiry's message thread, instead of two cards.
   const inquiryBySession = new Map<string, any>()
+  const inquiryById = new Map<string, any>()
   for (const inquiry of inquiries || []) {
+    inquiryById.set(inquiry.id, inquiry)
     if (inquiry.stripe_session_id) {
       inquiryBySession.set(inquiry.stripe_session_id, inquiry)
     }
   }
+  // Custom-package payments are linked by inquiry_id (migration 058).
+  const bookedInquiryIds = new Set(
+    (bookings || []).map((booking) => booking.inquiry_id).filter(Boolean),
+  )
   const bookedSessionIds = new Set(
     (bookings || [])
       .map((booking) => booking.stripe_checkout_session_id)
@@ -53,6 +59,7 @@ export function BookingsContent({
   )
   const openInquiries = (inquiries || []).filter(
     (inquiry) =>
+      !bookedInquiryIds.has(inquiry.id) &&
       !(inquiry.stripe_session_id && bookedSessionIds.has(inquiry.stripe_session_id)),
   )
 
@@ -62,6 +69,8 @@ export function BookingsContent({
         return t('cancelled')
       case 'refunded':
         return t('refunded')
+      case 'processing':
+        return t('paymentProcessing')
       default:
         return t('confirmed')
     }
@@ -118,9 +127,11 @@ export function BookingsContent({
               const remaining = Number(booking.remaining_balance || 0)
               const hasBalanceDue =
                 isActive && remaining > 0 && !booking.remaining_balance_charged
-              const linkedInquiry = booking.stripe_checkout_session_id
-                ? inquiryBySession.get(booking.stripe_checkout_session_id)
-                : null
+              const linkedInquiry =
+                (booking.inquiry_id && inquiryById.get(booking.inquiry_id)) ||
+                (booking.stripe_checkout_session_id
+                  ? inquiryBySession.get(booking.stripe_checkout_session_id)
+                  : null)
 
               return (
                 <div
@@ -228,7 +239,9 @@ export function BookingsContent({
                           className={`inline-block px-3 py-1 text-xs font-medium ${
                             isActive
                               ? 'bg-primary/10 text-primary'
-                              : 'bg-destructive/10 text-destructive'
+                              : booking.status === 'processing'
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-destructive/10 text-destructive'
                           }`}
                         >
                           {getBookingStatusLabel(booking.status)}

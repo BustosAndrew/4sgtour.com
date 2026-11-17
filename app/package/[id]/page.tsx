@@ -7,319 +7,336 @@ import {
   RoomImageSection,
 } from '@/components/trip-image-gallery'
 import { PaymentConsent } from '@/components/payment-consent'
-import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { format } from 'date-fns'
-import { Calendar, DollarSign, Clock, User, Mail, Phone } from 'lucide-react'
+import {
+  AlertCircle,
+  Calendar,
+  Check,
+  CheckCircle2,
+  Clock,
+  Flag,
+  Mail,
+} from 'lucide-react'
 import type { Metadata } from 'next'
-import { getServerLocale } from '@/lib/i18n/server'
+import type { ReactNode } from 'react'
+import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import { getLocalizedField } from '@/lib/i18n/get-localized-field'
+import { loadCustomPackage, loadCustomTrip } from '@/lib/custom-package-server'
+import { getCustomPackageState, type CustomPaymentType } from '@/lib/custom-package'
+import { parseCalendarDate } from '@/lib/calendar-date'
+import { getSupportEmail } from '@/lib/site-email'
 
-// Prevent indexing of private package pages
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
+// A customer opens this from the SMS link, usually signed out. The inquiry is
+// read with the service role (lib/custom-package-server.ts) — the
+// unguessable id in the URL is the credential, as with a Stripe link. Reading
+// it with the visitor's session (as before) returned nothing for anyone but
+// admins, so every customer got a 404.
+
+const ROBOTS: Metadata['robots'] = {
+  index: false,
+  follow: false,
+  nocache: true,
+  googleBot: { index: false, follow: false },
 }
 
 interface PackagePageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ error?: string }>
 }
 
-export default async function PrivatePackagePage({ params }: PackagePageProps) {
+export async function generateMetadata({
+  params,
+}: PackagePageProps): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
+  const data = await loadCustomPackage(id)
+  if (!data) return { robots: ROBOTS }
   const locale = await getServerLocale()
-
-  // Fetch the custom package inquiry
-  const { data: inquiry, error } = await supabase
-    .from('inquiries')
-    .select('*')
-    .eq('id', id)
-    .eq('is_custom_package', true)
-    .single()
-
-  if (error || !inquiry) {
-    notFound()
-  }
-
-  // Fetch the linked trip with all relations (if it exists).
-  // Pull translation columns so the page can render content in the
-  // viewer's selected language (en / ko / de) with English fallback.
-  let trip: any = null
-  if (inquiry.trip_id) {
-    const { data: tripData } = await supabase
-      .from('trips')
-      .select(
-        `
-        *,
-        packages(id, name, name_ko, name_de, description, description_ko, description_de, price, price_per_extra_night),
-        trip_images(id, image_url, display_order),
-        trip_golf_courses(id, course_name, course_name_ko, course_name_de, max_rounds, num_holes, description, description_ko, description_de),
-        trip_meal_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included),
-        trip_transportation_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included),
-        trip_service_options(id, name, name_ko, name_de, description, description_ko, description_de, is_included)
-      `,
-      )
-      .eq('id', inquiry.trip_id)
-      .single()
-
-    trip = tripData
-  }
-
-  const isPaid = inquiry.status === 'paid' || inquiry.status === 'completed'
-  const configuredDepositPercentage = inquiry.deposit_percentage || 100
-  const totalPrice = inquiry.total_price || 0
-  const depositAmount = (totalPrice * configuredDepositPercentage) / 100
-  const remainderAmount = totalPrice - depositAmount
-
-  // Determine if we should show payment options (deposit vs full)
-  // Only show options when deposit percentage is less than 100%
-  const showPaymentOptions = configuredDepositPercentage < 100 && !isPaid
-
-  // Trip data — localize text fields based on the viewer's selected
-  // locale, falling back to English when a translation is missing.
-  const mainImage = trip?.courses_photo_url || null
-  const tripImages =
-    trip?.trip_images?.sort(
-      (a: any, b: any) => a.display_order - b.display_order,
-    ) || []
-  const additionalImages =
-    tripImages.length > 0 ? tripImages.map((img: any) => img.image_url) : []
-  const roomImage = trip?.room_photo_url || null
-
-  const tripTitle =
+  const trip = await loadCustomTrip(data.inquiry.trip_id)
+  const title =
     (trip ? (getLocalizedField(trip, 'title', locale) as string) : '') ||
-    inquiry.trip_title
-  const tripLocation = trip
-    ? (getLocalizedField(trip, 'location', locale) as string) || null
-    : null
+    data.inquiry.trip_title ||
+    'Custom Package'
+  return { title: `${title} | 4 Seasons Golf Tour`, robots: ROBOTS }
+}
+
+function formatMoney(cents: number) {
+  return `$${(cents / 100).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
+}
+
+const ERROR_KEYS: Record<string, string> = {
+  already_paid: 'errorAlreadyPaid',
+  not_available: 'errorNotAvailable',
+  invalid_request: 'errorNotAvailable',
+  checkout_failed: 'errorCheckoutFailed',
+}
+
+export default async function PrivatePackagePage({
+  params,
+  searchParams,
+}: PackagePageProps) {
+  const { id } = await params
+  const { error: errorCode } = await searchParams
+  const data = await loadCustomPackage(id)
+  if (!data) notFound()
+
+  const { inquiry, bookings } = data
+  const locale = await getServerLocale()
+  const t = await getServerTranslations('customPackage')
+  const trip = await loadCustomTrip(inquiry.trip_id)
+  const state = getCustomPackageState(inquiry, bookings)
+
+  const dateFormat = new Intl.DateTimeFormat(
+    locale === 'ko' ? 'ko-KR' : locale === 'de' ? 'de-DE' : 'en-US',
+    { year: 'numeric', month: 'long', day: 'numeric' },
+  )
+  const formatDate = (value: string) => dateFormat.format(parseCalendarDate(value))
+  const localized = (row: any, field: string) =>
+    (getLocalizedField(row, field, locale) as string) || row?.[field] || ''
+
+  // ── Trip content, in the visitor's language with English fallback ──
+  const tripTitle = (trip && localized(trip, 'title')) || inquiry.trip_title || ''
+  const tripLocation = trip ? localized(trip, 'location') : ''
   const tripOverview =
-    (trip
-      ? (getLocalizedField(trip, 'overview_content', locale) as string)
-      : '') ||
-    (trip ? (getLocalizedField(trip, 'description', locale) as string) : '') ||
+    (trip && (localized(trip, 'overview_content') || localized(trip, 'description'))) ||
     inquiry.custom_package_description ||
     ''
-  const tripRefundPolicy = trip
-    ? (getLocalizedField(trip, 'refund_policy', locale) as string) || null
-    : null
-  const tripHighlights: string[] = trip
-    ? (getLocalizedField(trip, 'highlights', locale, true) as string[])
+  const refundPolicy = trip ? localized(trip, 'refund_policy') : ''
+  const highlights: string[] = trip
+    ? ((getLocalizedField(trip, 'highlights', locale, true) as string[]) || [])
     : []
-  const tripPackages = (trip?.packages || []).map((pkg: any) => ({
-    ...pkg,
-    name: (getLocalizedField(pkg, 'name', locale) as string) || pkg.name,
-    description:
-      (getLocalizedField(pkg, 'description', locale) as string) ||
-      pkg.description,
-  }))
+  const mainImage = trip?.courses_photo_url || null
+  const galleryImages: string[] = (trip?.trip_images || [])
+    .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .map((img: any) => img.image_url)
+  const roomImage = trip?.room_photo_url || null
 
-  // Payment section JSX (shared between mobile and desktop)
+  // ── What's included: the only place a custom-package customer sees the
+  //    courses, meals, transport and services the admin put together ──
+  const packageDetails: { name: string; description: string }[] = (
+    trip?.packages || []
+  )
+    .map((pkg: any) => ({
+      name: localized(pkg, 'name'),
+      description: localized(pkg, 'description'),
+    }))
+    .filter((pkg: { description: string }) => pkg.description)
+  const golfCourses = (trip?.trip_golf_courses || []).map((course: any) => ({
+    id: course.id,
+    name: localized(course, 'course_name'),
+    description: localized(course, 'description'),
+    holes: course.num_holes,
+    rounds: course.max_rounds,
+  }))
+  const optionGroups = [
+    { key: 'meals', rows: trip?.trip_meal_options || [] },
+    { key: 'transportation', rows: trip?.trip_transportation_options || [] },
+    { key: 'services', rows: trip?.trip_service_options || [] },
+  ].map((group) => ({
+    key: group.key,
+    included: group.rows.filter((r: any) => r.is_included),
+    onRequest: group.rows.filter((r: any) => !r.is_included),
+  }))
+  const hasIncluded =
+    packageDetails.length > 0 ||
+    golfCourses.length > 0 ||
+    optionGroups.some((g) => g.included.length > 0)
+  const onRequest = optionGroups.flatMap((g) => g.onRequest)
+
+  const nights =
+    inquiry.start_date && inquiry.end_date
+      ? Math.round(
+          (parseCalendarDate(inquiry.end_date).getTime() -
+            parseCalendarDate(inquiry.start_date).getTime()) /
+            86_400_000,
+        )
+      : null
+
+  const supportEmail = getSupportEmail(inquiry.site_url)
+  const errorKey = errorCode ? ERROR_KEYS[errorCode] : undefined
+
+  // ── Payment ─────────────────────────────────────────────────────────
+  const remainingAfterDeposit = state.totalCents - state.depositCents
+  const payForm = (
+    type: CustomPaymentType,
+    label: string,
+    colors: { start: string; end: string },
+  ) => (
+    // A plain form POST: works without JavaScript, and the route creates a
+    // fresh Stripe session from today's price, then redirects to it.
+    <form action={`/api/package/${id}/checkout`} method="post" className="shrink-0">
+      <input type="hidden" name="type" value={type} />
+      <AnimatedButton
+        type="submit"
+        startColor={colors.start}
+        endColor={colors.end}
+        hoverText={t('letsGo')}
+        className="w-full sm:w-auto sm:px-8"
+      >
+        {label}
+      </AnimatedButton>
+    </form>
+  )
+
+  const optionBlock = (
+    borderColor: string,
+    title: string,
+    amount: string,
+    note: string | null,
+    action: ReactNode,
+  ) => (
+    <div
+      className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
+      style={{ borderColor }}
+    >
+      <div className="flex-1">
+        <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
+          {title}
+        </h3>
+        <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
+          {amount}
+        </p>
+        {note && <p className="mt-1 text-sm text-muted-foreground">{note}</p>}
+      </div>
+      {action}
+    </div>
+  )
+
+  const statusPanel = (
+    tone: 'success' | 'info',
+    title: string,
+    message: string,
+  ) => (
+    <div
+      className={`rounded-lg p-4 ${
+        tone === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-muted text-foreground'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <CheckCircle2
+          className={`mt-0.5 h-5 w-5 shrink-0 ${
+            tone === 'success' ? 'text-emerald-600' : 'text-[#274C77]'
+          }`}
+        />
+        <div>
+          <p className="font-semibold">{title}</p>
+          <p className="mt-1 text-sm opacity-90">{message}</p>
+        </div>
+      </div>
+    </div>
+  )
+
   const paymentSection = (
     <div className="space-y-4">
-      {/* Payment Options Description - show when options are available */}
-      {showPaymentOptions && (
-        <p className="text-sm text-muted-foreground">
-          Choose to pay a {configuredDepositPercentage}% deposit now or the full
-          amount.
-        </p>
-      )}
-
-      {/* Compliance consent (SMS opt-in + Terms/Privacy). Both are
-          optional — they do not gate the Pay button — but must be
-          presented per carrier compliance requirements. */}
-      {!isPaid && <PaymentConsent />}
-
-      {/* Deposit Payment Option */}
-      {showPaymentOptions && (
+      {errorKey && (
         <div
-          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-          style={{ borderColor: '#274C77' }}
+          role="alert"
+          className="flex gap-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
         >
-          <div className="flex-1">
-            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-              {configuredDepositPercentage}% Deposit
-            </h3>
-            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              $
-              {depositAmount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Remaining $
-              {remainderAmount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-              })}{' '}
-              due later
-            </p>
-          </div>
-
-          {inquiry.payment_link ? (
-            <a href={inquiry.payment_link} className="shrink-0">
-              <AnimatedButton
-                startColor="#274C77"
-                endColor="#1a3a5c"
-                hoverText="Let's Go!"
-                className="w-full sm:w-auto sm:px-8"
-              >
-                Pay Deposit
-              </AnimatedButton>
-            </a>
-          ) : (
-            <div className="rounded-lg bg-amber-50 p-4 text-center">
-              <p className="font-semibold text-amber-700">
-                Payment Link Pending
-              </p>
-              <p className="mt-1 text-sm text-amber-600">
-                A payment link will be sent to you shortly.
-              </p>
-            </div>
-          )}
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <p>{t(errorKey)}</p>
         </div>
       )}
 
-      {/* Full Payment Option */}
-      {showPaymentOptions && (
-        <div
-          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-          style={{ borderColor: '#6096BA' }}
-        >
-          <div className="flex-1">
-            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-              Full Payment
-            </h3>
-            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              $
-              {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+      {state.stage === 'unpaid' && (
+        <>
+          {state.depositPercentage < 100 && (
+            <p className="text-sm text-muted-foreground">
+              {t('chooseOption', { percentage: state.depositPercentage })}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Pay the complete package price today
-            </p>
-          </div>
-
-          {inquiry.remainder_payment_link ? (
-            <a href={inquiry.remainder_payment_link} className="shrink-0">
-              <AnimatedButton
-                startColor="#6096BA"
-                endColor="#4a7a9e"
-                hoverText="Let's Go!"
-                className="w-full sm:w-auto sm:px-8"
-              >
-                Pay Full Amount
-              </AnimatedButton>
-            </a>
-          ) : (
-            <div className="rounded-lg bg-muted p-4 text-center">
-              <p className="font-semibold text-muted-foreground">
-                Full Payment Link Pending
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Contact us to pay the full amount.
-              </p>
-            </div>
           )}
-        </div>
-      )}
-
-      {/* Single Payment Option - show when no options or 100% deposit or paid */}
-      {!showPaymentOptions && (
-        <div
-          className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-          style={{ borderColor: '#274C77' }}
-        >
-          <div className="flex-1">
-            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-              {configuredDepositPercentage === 100
-                ? 'Full Payment'
-                : `${configuredDepositPercentage}% Deposit`}
-            </h3>
-            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              $
-              {depositAmount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-            {configuredDepositPercentage < 100 && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Total: $
-                {totalPrice.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                })}
-              </p>
+          {/* Compliance consent (SMS opt-in + Terms/Privacy). Optional — it
+              does not gate payment — but must be presented. */}
+          <PaymentConsent />
+          {state.depositPercentage < 100 &&
+            optionBlock(
+              '#274C77',
+              t('depositTitle', { percentage: state.depositPercentage }),
+              formatMoney(state.depositCents),
+              inquiry.remainder_due_date
+                ? t('remainingDueBy', {
+                    amount: formatMoney(remainingAfterDeposit),
+                    date: formatDate(inquiry.remainder_due_date),
+                  })
+                : t('remainingLater', { amount: formatMoney(remainingAfterDeposit) }),
+              payForm('deposit', t('payDeposit'), { start: '#274C77', end: '#1a3a5c' }),
             )}
-          </div>
-
-          {isPaid ? (
-            <div className="rounded-lg bg-emerald-50 p-4 text-center">
-              <DollarSign className="mx-auto h-8 w-8 text-emerald-600" />
-              <p className="mt-2 font-semibold text-emerald-700">
-                Payment Complete
-              </p>
-              <p className="mt-1 text-sm text-emerald-600">
-                Thank you for your payment!
-              </p>
-            </div>
-          ) : inquiry.payment_link ? (
-            <a href={inquiry.payment_link} className="shrink-0">
-              <AnimatedButton
-                startColor="#274C77"
-                endColor="#1a3a5c"
-                hoverText="Let's Go!"
-                className="w-full sm:w-auto sm:px-8"
-              >
-                Pay Now
-              </AnimatedButton>
-            </a>
-          ) : (
-            <div className="rounded-lg bg-amber-50 p-4 text-center">
-              <p className="font-semibold text-amber-700">
-                Payment Link Pending
-              </p>
-              <p className="mt-1 text-sm text-amber-600">
-                A payment link will be sent to you shortly.
-              </p>
-            </div>
+          {optionBlock(
+            state.depositPercentage < 100 ? '#6096BA' : '#274C77',
+            t('fullTitle'),
+            formatMoney(state.totalCents),
+            t('fullDescription'),
+            payForm(
+              'full',
+              state.depositPercentage < 100 ? t('payFull') : t('payNow'),
+              state.depositPercentage < 100
+                ? { start: '#6096BA', end: '#4a7a9e' }
+                : { start: '#274C77', end: '#1a3a5c' },
+            ),
           )}
-        </div>
+        </>
       )}
 
-      {/* Remainder Info - only show after deposit is paid and there's a remainder */}
-      {configuredDepositPercentage < 100 && isPaid && remainderAmount > 0 && (
-        <div
-          className="group flex flex-col gap-2 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-          style={{ borderColor: '#6096BA' }}
-        >
-          <div className="flex-1">
-            <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-              Remainder Due
-            </h3>
-            <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-              $
-              {remainderAmount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-            {inquiry.remainder_due_date && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Due by{' '}
-                  {format(new Date(inquiry.remainder_due_date), 'MMMM d, yyyy')}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+      {state.stage === 'deposit_paid' && (
+        <>
+          {statusPanel(
+            'success',
+            t('depositReceived'),
+            state.legacy
+              ? t('depositReceivedLegacy')
+              : t('paidSoFar', { amount: formatMoney(state.paidCents) }),
+          )}
+          {optionBlock(
+            '#6096BA',
+            t('balanceTitle'),
+            formatMoney(state.remainingCents),
+            state.balanceProcessing
+              ? t('balanceProcessing')
+              : state.autoChargeDate
+              ? t('balanceAutoCharge', { date: formatDate(state.autoChargeDate) })
+              : inquiry.remainder_due_date
+                ? t('balanceDueBy', { date: formatDate(inquiry.remainder_due_date) })
+                : null,
+            state.allowed.includes('remainder')
+              ? payForm('remainder', t('payBalance'), { start: '#6096BA', end: '#4a7a9e' })
+              : null,
+          )}
+        </>
+      )}
+
+      {state.stage === 'paid' &&
+        statusPanel('success', t('paidInFull'), t('paidInFullMessage'))}
+
+      {state.stage === 'processing' &&
+        statusPanel('info', t('paymentProcessing'), t('paymentProcessingMessage'))}
+
+      {(state.stage === 'unpaid' || state.allowed.length > 0) && (
+        <p className="text-xs text-muted-foreground">{t('secureNote')}</p>
       )}
     </div>
+  )
+
+  const sectionHeading = (title: string) => (
+    <>
+      <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+        {title}
+      </h2>
+      <div className="mt-2 mb-4">
+        <AnimatedHr />
+      </div>
+    </>
+  )
+
+  const paymentBlock = (
+    <>
+      {sectionHeading(t('paymentHeading'))}
+      <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
+        {t('paymentIntro')}
+      </p>
+      <div className="mt-6">{paymentSection}</div>
+    </>
   )
 
   return (
@@ -329,11 +346,7 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
       {/* Hero Section */}
       <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] w-full">
         {mainImage ? (
-          <img
-            src={mainImage}
-            alt={tripTitle}
-            className="h-full w-full object-cover"
-          />
+          <img src={mainImage} alt={tripTitle} className="h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#274C77] to-[#6096BA]" />
         )}
@@ -341,7 +354,7 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
         <div className="absolute inset-x-0 top-0 pt-24 sm:pt-28 md:pt-32 lg:pt-36">
           <div className="container px-4 sm:px-6 lg:px-8">
             <p className="text-sm font-medium uppercase tracking-wider text-white/80">
-              Custom Package
+              {t('eyebrow')}
             </p>
             <h1 className="mt-2 text-2xl font-bold text-white drop-shadow-lg sm:text-3xl md:text-4xl lg:text-5xl">
               {tripTitle}
@@ -353,7 +366,7 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
             )}
             {inquiry.customer_name && (
               <p className="mt-1 text-sm text-white/80 drop-shadow-lg">
-                Prepared for {inquiry.customer_name}
+                {t('preparedFor', { name: inquiry.customer_name })}
               </p>
             )}
           </div>
@@ -365,29 +378,16 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
           {/* Right Column - Payment & Images */}
           <div className="order-1 lg:order-2 space-y-8">
             {/* Payment - Desktop Only */}
-            <div className="hidden lg:block">
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                Payment
-              </h2>
-              <div className="mt-2 mb-4">
-                <AnimatedHr />
-              </div>
-              <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
-                Review your package details and complete payment below.
-              </p>
-              <div className="mt-6">{paymentSection}</div>
-            </div>
+            <div className="hidden lg:block">{paymentBlock}</div>
 
-            {/* Course Images Gallery */}
-            {additionalImages.length > 0 && (
-              <TripImageGallery images={additionalImages} title={tripTitle} />
+            {galleryImages.length > 0 && (
+              <TripImageGallery images={galleryImages} title={tripTitle} />
             )}
 
-            {/* Accommodation Image */}
             {roomImage && (
               <RoomImageSection
                 imageUrl={roomImage}
-                heading="Accommodation"
+                heading={t('accommodation')}
                 title={tripTitle}
               />
             )}
@@ -397,44 +397,130 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
           <div className="order-2 space-y-8 lg:order-1">
             {/* Overview */}
             <div>
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                Overview
-              </h2>
-              <div className="mt-2 mb-4">
-                <AnimatedHr />
-              </div>
+              {sectionHeading(t('overview'))}
               <p className="text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg whitespace-pre-wrap">
-                {tripOverview ||
-                  'Your custom golf package has been prepared. Please review the details and complete your payment to confirm your booking.'}
+                {tripOverview || t('defaultOverview')}
               </p>
             </div>
 
-            {/* Refund Policy */}
-            {tripRefundPolicy && (
+            {/* Travel Dates */}
+            {inquiry.start_date && (
               <div>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  Refund Policy
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
-                </div>
-                <p className="max-h-[7.5rem] overflow-y-auto text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
-                  {tripRefundPolicy}
+                {sectionHeading(t('travelDates'))}
+                <p className="flex items-start gap-3 text-sm text-foreground sm:text-base">
+                  <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
+                  <span>
+                    {formatDate(inquiry.start_date)}
+                    {inquiry.end_date && ` – ${formatDate(inquiry.end_date)}`}
+                    {nights !== null && nights > 0 && (
+                      <span className="text-muted-foreground">
+                        {' '}
+                        · {t('nights', { nights })}
+                      </span>
+                    )}
+                  </span>
                 </p>
               </div>
             )}
 
-            {/* Highlights */}
-            {tripHighlights.length > 0 && (
+            {/* What's Included */}
+            {hasIncluded && (
               <div>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  Highlights
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
+                {sectionHeading(t('included'))}
+                <div className="space-y-6">
+                  {packageDetails.map((pkg, idx) => (
+                    <p
+                      key={idx}
+                      className="text-sm text-muted-foreground sm:text-base whitespace-pre-wrap"
+                    >
+                      {pkg.description}
+                    </p>
+                  ))}
+
+                  {golfCourses.length > 0 && (
+                    <div>
+                      <h3 className="mb-3 font-serif text-lg font-bold">
+                        {t('golfCourses')}
+                      </h3>
+                      <ul className="space-y-3">
+                        {golfCourses.map((course: any) => (
+                          <li key={course.id} className="flex items-start gap-3">
+                            <Flag className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
+                            <div className="text-sm sm:text-base">
+                              <p className="font-medium text-foreground">{course.name}</p>
+                              <p className="text-muted-foreground">
+                                {[
+                                  course.holes ? t('holes', { holes: course.holes }) : null,
+                                  course.rounds ? t('upToRounds', { rounds: course.rounds }) : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                              </p>
+                              {course.description && (
+                                <p className="mt-1 text-muted-foreground whitespace-pre-wrap">
+                                  {course.description}
+                                </p>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {optionGroups
+                    .filter((group) => group.included.length > 0)
+                    .map((group) => (
+                      <div key={group.key}>
+                        <h3 className="mb-3 font-serif text-lg font-bold">
+                          {t(group.key)}
+                        </h3>
+                        <ul className="space-y-3">
+                          {group.included.map((row: any) => (
+                            <li key={row.id} className="flex items-start gap-3">
+                              <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                              <div className="text-sm sm:text-base">
+                                <p className="font-medium text-foreground">
+                                  {localized(row, 'name')}
+                                </p>
+                                {localized(row, 'description') && (
+                                  <p className="text-muted-foreground whitespace-pre-wrap">
+                                    {localized(row, 'description')}
+                                  </p>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                 </div>
+              </div>
+            )}
+
+            {/* Optional extras the admin listed but didn't include */}
+            {onRequest.length > 0 && (
+              <div>
+                {sectionHeading(t('availableOnRequest'))}
+                <ul className="space-y-2">
+                  {onRequest.map((row: any) => (
+                    <li key={row.id} className="text-sm text-muted-foreground sm:text-base">
+                      <span className="font-medium text-foreground">
+                        {localized(row, 'name')}
+                      </span>
+                      {localized(row, 'description') && ` — ${localized(row, 'description')}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Highlights */}
+            {highlights.length > 0 && (
+              <div>
+                {sectionHeading(t('highlights'))}
                 <ul className="space-y-3">
-                  {tripHighlights.map((highlight: string, idx: number) => (
+                  {highlights.map((highlight, idx) => (
                     <li
                       key={idx}
                       className="flex items-start gap-3 text-sm text-foreground sm:text-base"
@@ -447,118 +533,41 @@ export default async function PrivatePackagePage({ params }: PackagePageProps) {
               </div>
             )}
 
-            {/* Packages */}
-            {tripPackages.length > 0 && (
+            {/* Refund Policy */}
+            {refundPolicy && (
               <div>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  Packages
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
-                </div>
-                <div className="space-y-4">
-                  {tripPackages.map((pkg: any) => {
-                    const isUpgrade = pkg.name === 'Upgrade'
-                    return (
-                      <div
-                        key={pkg.id}
-                        className="group flex flex-col gap-4 border-l-[3px] py-4 pl-5 pr-2 transition-colors"
-                        style={{
-                          borderColor: isUpgrade ? '#274C77' : '#6096BA',
-                        }}
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-serif text-lg font-bold text-foreground sm:text-xl">
-                            {pkg.name}
-                          </h3>
-                          <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-                            ${pkg.price?.toFixed(0)}
-                          </p>
-                          {pkg.description && (
-                            <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                              {pkg.description}
-                            </p>
-                          )}
-                          {pkg.price_per_extra_night && (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              +${pkg.price_per_extra_night}/extra night
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                {sectionHeading(t('refundPolicy'))}
+                <p className="max-h-[7.5rem] overflow-y-auto text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
+                  {refundPolicy}
+                </p>
               </div>
             )}
 
-            {/* Travel Dates */}
-            {(inquiry.start_date || inquiry.end_date) && (
-              <div>
-                <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                  Travel Dates
-                </h2>
-                <div className="mt-2 mb-4">
-                  <AnimatedHr />
-                </div>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3 text-sm text-foreground sm:text-base">
-                    <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
-                    <span>
-                      {inquiry.start_date &&
-                        format(new Date(inquiry.start_date), 'MMMM d, yyyy')}
-                      {inquiry.start_date && inquiry.end_date && ' - '}
-                      {inquiry.end_date &&
-                        format(new Date(inquiry.end_date), 'MMMM d, yyyy')}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {/* Contact Information */}
+            {/* Questions — how to reach us (previously this section echoed
+                the customer's own contact details back to them) */}
             <div>
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                Contact Information
-              </h2>
-              <div className="mt-2 mb-4">
-                <AnimatedHr />
-              </div>
-              <ul className="space-y-3">
-                {inquiry.customer_name && (
-                  <li className="flex items-start gap-3 text-sm text-foreground sm:text-base">
-                    <User className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
-                    <span>{inquiry.customer_name}</span>
-                  </li>
-                )}
-                {inquiry.customer_email && (
-                  <li className="flex items-start gap-3 text-sm text-foreground sm:text-base">
-                    <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
-                    <span>{inquiry.customer_email}</span>
-                  </li>
-                )}
-                {inquiry.customer_phone && (
-                  <li className="flex items-start gap-3 text-sm text-foreground sm:text-base">
-                    <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
-                    <span>{inquiry.customer_phone}</span>
-                  </li>
-                )}
-              </ul>
+              {sectionHeading(t('questions'))}
+              <p className="flex items-start gap-3 text-sm text-foreground sm:text-base">
+                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
+                <span>
+                  {t('questionsMessage')}{' '}
+                  <a href={`mailto:${supportEmail}`} className="text-[#274C77] underline">
+                    {supportEmail}
+                  </a>
+                </span>
+              </p>
+              {state.stage === 'deposit_paid' && inquiry.remainder_due_date && (
+                <p className="mt-3 flex items-start gap-3 text-sm text-muted-foreground">
+                  <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#274C77]" />
+                  <span>
+                    {t('balanceDueBy', { date: formatDate(inquiry.remainder_due_date) })}
+                  </span>
+                </p>
+              )}
             </div>
 
             {/* Payment - Mobile Only */}
-            <div className="lg:hidden">
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
-                Payment
-              </h2>
-              <div className="mt-2 mb-4">
-                <AnimatedHr />
-              </div>
-              <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
-                Review your package details and complete payment below.
-              </p>
-              <div className="mt-6">{paymentSection}</div>
-            </div>
+            <div className="lg:hidden">{paymentBlock}</div>
           </div>
         </div>
       </section>

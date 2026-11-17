@@ -94,7 +94,7 @@ export default async function AdminTripPage({ params }: AdminTripPageProps) {
     const { data: inquiryData } = await supabase
       .from('inquiries')
       .select(
-        'id, customer_name, customer_email, customer_phone, start_date, end_date, total_price, deposit_percentage, remainder_due_date, payment_link',
+        'id, customer_name, customer_email, customer_phone, start_date, end_date, total_price, deposit_percentage, remainder_due_date, payment_link, balance_flow',
       )
       .eq('trip_id', id)
       .eq('is_custom_package', true)
