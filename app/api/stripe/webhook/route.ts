@@ -215,17 +215,41 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   }
 }
 
+// Standard trip checkouts carry `package_name`; admin-created custom packages
+// carry `custom_package_name` instead. Reading only the former printed
+// "Package: undefined" on every custom-package confirmation.
+function getPackageName(metadata: Record<string, string>) {
+  return (
+    metadata.package_name ||
+    metadata.custom_package_name ||
+    metadata.trip_title ||
+    'Golf Package'
+  )
+}
+
+// Label the amount by what was actually charged, instead of always claiming
+// a 30% deposit (trips can set their own deposit %, and customers can pay in
+// full).
+function getPaymentLabel(metadata: Record<string, string>) {
+  if (metadata.payment_type === 'full' || metadata.deposit_percentage === '100') {
+    return 'Full Payment'
+  }
+  return `${metadata.deposit_percentage || '30'}% Deposit`
+}
+
 async function sendBookingConfirmationEmails(
   metadata: Record<string, string>,
   session: Stripe.Checkout.Session,
   booking: any,
 ) {
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const adminEmail = getAdminEmail()
+  const adminEmail = getAdminEmail(metadata.site_url)
   const isGuest = metadata.is_guest === 'true'
   const amountPaid = session.amount_total
     ? (session.amount_total / 100).toFixed(2)
     : '0.00'
+  const packageName = getPackageName(metadata)
+  const paymentLabel = getPaymentLabel(metadata)
 
   // Email to customer
   const customerEmailContent = `
@@ -237,12 +261,12 @@ BOOKING CONFIRMATION
 ====================
 
 Trip: ${metadata.trip_title}
-Package: ${metadata.package_name}
+Package: ${packageName}
 Travel Dates: ${metadata.start_date} to ${metadata.end_date}
 Room Type: ${metadata.room_type}
 
 Payment Details:
-- Amount Paid (30% Deposit): $${amountPaid}
+- Amount Paid (${paymentLabel}): $${amountPaid}
 - Payment Method: ${metadata.payment_method === 'ach' ? 'Bank Transfer (ACH)' : 'Credit/Debit Card'}
 
 ${metadata.additional_requests ? `Additional Requests:\n${metadata.additional_requests}\n` : ''}
@@ -261,7 +285,7 @@ We noticed you booked as a guest. Create an account to:
 - Communicate directly with our team
 - Access exclusive member benefits
 
-Sign up here: ${getSiteUrl()}/auth/sign-up
+Sign up here: ${metadata.site_url || getSiteUrl()}/auth/sign-up
 `
     : ''
 }
@@ -275,7 +299,7 @@ Best regards,
   // Send customer email
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(metadata.site_url),
       to: metadata.customer_email,
       subject: `Booking Confirmed: ${metadata.trip_title}`,
       text: customerEmailContent,
@@ -320,12 +344,12 @@ ${metadata.user_id ? `- User ID: ${metadata.user_id}` : ''}
 
 Booking Details:
 - Trip: ${metadata.trip_title}
-- Package: ${metadata.package_name}
+- Package: ${packageName}
 - Travel Dates: ${metadata.start_date} to ${metadata.end_date}
 - Room Type: ${metadata.room_type}
 
 Payment:
-- Amount Paid: $${amountPaid}
+- Amount Paid (${paymentLabel}): $${amountPaid}
 - Payment Method: ${metadata.payment_method === 'ach' ? 'ACH' : 'Card'}
 - Stripe Session ID: ${session.id}
 - Payment Intent: ${session.payment_intent}
@@ -339,7 +363,7 @@ Booking ID: ${booking?.id || 'N/A'}
   // Send admin email
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(metadata.site_url),
       replyTo: metadata.customer_email,
       to: adminEmail,
       subject: `New Booking: ${metadata.trip_title} - ${metadata.customer_name}`,
@@ -419,7 +443,7 @@ ${metadata.customer_phone}
 BOOKING DETAILS
 --------------
 Trip: ${metadata.trip_title}
-Package: ${metadata.package_name}
+Package: ${getPackageName(metadata)}
 Travel Dates: ${metadata.start_date} to ${metadata.end_date}
 Room Type: ${metadata.room_type}
 ${golfCourses.length > 0 ? `Golf Courses: ${golfCourses.join(', ')}` : ''}
@@ -428,7 +452,7 @@ ${metadata.transport_option ? `Transportation: ${metadata.transport_option}` : '
 
 PAYMENT SUMMARY
 ---------------
-30% Deposit Paid: $${amountPaid}
+${getPaymentLabel(metadata)} Paid: $${amountPaid}
 Payment Method: Text Message Payment Link
 Status: PAID
 ${autoChargeSection}
@@ -443,13 +467,13 @@ Thank you for choosing 4 Seasons Golf Tour!
 
 ---
 4 Seasons Golf Tour
-Website: ${getSiteUrl()}
-Email: ${getAdminEmail()}
+Website: ${metadata.site_url || getSiteUrl()}
+Email: ${getAdminEmail(metadata.site_url)}
   `.trim()
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getFromEmail(metadata.site_url),
       to: metadata.customer_email,
       subject: `Invoice: ${metadata.trip_title} - Payment Confirmed`,
       text: invoiceContent,

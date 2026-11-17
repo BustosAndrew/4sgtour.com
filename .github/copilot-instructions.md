@@ -168,7 +168,11 @@ versions through the shared `.prettierrc.json` and compare.
 Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit via
 `trips.deposit_percentage`, or full payment). `/api/stripe/webhook` handles
 `checkout.session.completed` / `.expired` and is the only writer that confirms a `stripe_bookings`
-row. Two Vercel Cron jobs (`vercel.json`, this repo only — see above) run daily and authenticate
+row. Never charge a price sent by the browser: `lib/booking-price.ts` holds the pricing rules
+(shared with the booking form) and `lib/resolve-booking-price.ts` recomputes the total, deposit %
+and package name server-side; the actions return `{ ok: false, code }` rather than throwing, and
+the payment screen creates the session before mounting Stripe so it can explain a refusal. Trip saves update `packages` in place by id — never
+delete-and-reinsert, which nulls `stripe_bookings.package_id`. Two Vercel Cron jobs (`vercel.json`, this repo only — see above) run daily and authenticate
 with `Bearer ${CRON_SECRET}`: `/api/cron/charge-remaining-balance` (08:00 UTC) and
 `/api/cron/send-payment-reminders` (09:00 UTC). Both process bookings from all three sites, so
 they resolve the sender and links from each row's `site_url` (migration `053`) rather than from
@@ -202,7 +206,8 @@ issue than a query bug.
 
 Numbered SQL files in `scripts/`, applied by hand in the Supabase SQL editor. No migration runner,
 no local Supabase. Numbers have collided historically — pick the next unused number, and don't
-assume ordering is total. `055` is the highest; `054`/`055` were applied on 2026-08-15.
+assume ordering is total. `057` is the highest. `054`/`055` were applied on 2026-08-15;
+`056`/`057` were written on 2026-11-16 and are applied by hand — check before assuming they are live.
 
 ### Partner API (this repo only)
 

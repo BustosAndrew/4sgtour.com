@@ -113,36 +113,76 @@ export async function PATCH(
   }
 
   if (body.packages) {
-    // Delete existing packages
-    await supabase.from("packages").delete().eq("trip_id", id)
+    // Update packages in place rather than deleting and re-inserting them.
+    // Re-inserting gave every package a new id on each Save, which
+    //  - nulled stripe_bookings.package_id (ON DELETE SET NULL) for every
+    //    existing booking on the trip, and
+    //  - made checkout fail with "Package not found" for any customer who
+    //    had the trip or booking page open while an admin saved.
+    const { data: existingRows } = await supabase
+      .from("packages")
+      .select("id")
+      .eq("trip_id", id)
+    const existingIds = new Set((existingRows || []).map((p: any) => p.id))
 
-    // Insert new packages (filter out ones with empty names)
+    // Filter out packages with empty names
     const validPackages = body.packages.filter((pkg: any) => pkg.name?.trim())
-    if (validPackages.length > 0) {
-      // Carry through any localized name/description fields the form
-      // submits. Without these the delete-and-reinsert cycle silently
-      // wipes every Korean/German package translation each time an admin
-      // hits Save.
-      const packagesToInsert = validPackages.map((pkg: any) => ({
-        trip_id: id,
-        name: pkg.name,
-        name_ko: pkg.name_ko || null,
-        name_de: pkg.name_de || null,
-        description: pkg.description || null,
-        description_ko: pkg.description_ko || null,
-        description_de: pkg.description_de || null,
-        price: pkg.price || 0,
-        price_per_extra_night: pkg.price_per_extra_night || null,
-        availability: pkg.availability || "unlimited",
-        quantity: pkg.availability === "limited" ? pkg.quantity : null,
-        participants_per_booking: pkg.participants_per_booking || 1,
-      }))
 
+    // Carry through any localized name/description fields the form submits,
+    // or every Korean/German package translation is wiped on Save.
+    const toRow = (pkg: any) => ({
+      trip_id: id,
+      name: pkg.name,
+      name_ko: pkg.name_ko || null,
+      name_de: pkg.name_de || null,
+      description: pkg.description || null,
+      description_ko: pkg.description_ko || null,
+      description_de: pkg.description_de || null,
+      price: pkg.price || 0,
+      price_per_extra_night: pkg.price_per_extra_night || null,
+      availability: pkg.availability || "unlimited",
+      quantity: pkg.availability === "limited" ? pkg.quantity : null,
+      participants_per_booking: pkg.participants_per_booking || 1,
+    })
+
+    // The edit form sends the real id for packages loaded from the DB and a
+    // placeholder ("premium", "upgrade") for ones added in the form.
+    const keptIds = new Set<string>()
+    const packagesToInsert: any[] = []
+    for (const pkg of validPackages) {
+      if (pkg.id && existingIds.has(pkg.id)) {
+        keptIds.add(pkg.id)
+        const { error: pkgError } = await supabase
+          .from("packages")
+          .update(toRow(pkg))
+          .eq("id", pkg.id)
+        if (pkgError) {
+          console.error("[v0] Error updating package:", pkg.id, pkgError)
+        }
+      } else {
+        packagesToInsert.push(toRow(pkg))
+      }
+    }
+
+    if (packagesToInsert.length > 0) {
       const { error: pkgError } = await supabase
         .from("packages")
         .insert(packagesToInsert)
       if (pkgError) {
-        console.error("Error updating packages:", pkgError)
+        console.error("[v0] Error inserting packages:", pkgError)
+      }
+    }
+
+    // Only delete packages the admin actually removed. Done last so a
+    // failed update/insert never leaves the trip with no packages.
+    const removedIds = [...existingIds].filter((pkgId) => !keptIds.has(pkgId))
+    if (removedIds.length > 0) {
+      const { error: pkgError } = await supabase
+        .from("packages")
+        .delete()
+        .in("id", removedIds)
+      if (pkgError) {
+        console.error("[v0] Error deleting removed packages:", pkgError)
       }
     }
   }

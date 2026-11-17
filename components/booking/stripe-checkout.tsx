@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useState, useRef, useMemo } from 'react'
+import { useCallback, useState, useRef, useMemo, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
@@ -22,6 +23,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from '@/lib/i18n/provider'
 import { PaymentConsent } from '@/components/payment-consent'
+import {
+  calculatePaymentAmounts,
+  formatCents,
+  type CheckoutErrorCode,
+  type PaymentAmounts,
+} from '@/lib/booking-price'
 
 // Initialize stripe once, outside of component
 let stripePromise: Promise<Stripe | null> | null = null
@@ -32,62 +39,26 @@ const getStripe = () => {
   return stripePromise
 }
 
-// Separate component for the embedded checkout to ensure clean mounting
-// All props must be stable - they cannot change after initial mount
-interface EmbeddedCheckoutWrapperProps {
-  checkoutParams: {
-    packageId: string
-    tripId: string
-    tripTitle: string
-    paymentMethod: 'card' | 'ach'
-    paymentType: 'deposit' | 'full'
-    depositPercentage: number
-    customerName: string
-    customerEmail: string
-    customerPhone: string
-    startDate: string
-    endDate: string
-    roomType: string
-    packageName: string
-    totalPrice: number
-    golfCourses?: string[]
-    mealOption?: string
-    transportOption?: string
-    additionalRequests?: string
-    guests?: Array<{
-      name: string
-      phone: string
-      occupancy: 'single' | 'double'
-    }>
-  }
-  onCompleteRef: React.RefObject<(() => void) | undefined>
-}
-
+// Mounts Stripe's embedded form for a session that was already created. The
+// session is created *before* this mounts (see validateAndProceed) so a
+// refused checkout — e.g. the price changed — is explained on our own screen
+// instead of surfacing as Stripe's generic "something went wrong".
 function EmbeddedCheckoutWrapper({
-  checkoutParams,
+  clientSecret,
   onCompleteRef,
-}: EmbeddedCheckoutWrapperProps) {
-  // Capture params at mount time using useMemo
-  const stableParams = useMemo(() => checkoutParams, [])
-
-  const fetchClientSecret = useCallback(async () => {
-    const secret = await createTripCheckoutSession(stableParams)
-    if (!secret) throw new Error('Failed to create checkout session')
-    return secret
-  }, [stableParams])
-
+}: {
+  clientSecret: string
+  onCompleteRef: React.RefObject<(() => void) | undefined>
+}) {
   // Stable onComplete that reads from ref
   const onComplete = useCallback(() => {
     onCompleteRef.current?.()
   }, [onCompleteRef])
 
-  // Memoize options to prevent any changes
+  // The provider's options must not change after mount
   const options = useMemo(
-    () => ({
-      fetchClientSecret,
-      onComplete,
-    }),
-    [fetchClientSecret, onComplete],
+    () => ({ clientSecret, onComplete }),
+    [clientSecret, onComplete],
   )
 
   return (
@@ -125,11 +96,27 @@ interface StripeCheckoutProps {
   isGuest: boolean
   onBack: () => void
   onSuccess?: () => void
+  /** The selected package was removed from the trip while the customer was booking. */
+  onPackageUnavailable?: () => void
   depositPercentage?: number // Configurable deposit percentage (default 30)
 }
 
 type PaymentMethod = 'card' | 'ach' | 'sms' | null
 type PaymentType = 'deposit' | 'full'
+
+// Why a checkout couldn't start. 'PRICE_CHECK_FAILED' is ours: the price was
+// refreshed and still didn't match, so refreshing again won't help and the
+// customer needs another way to book.
+type CheckoutNotice = CheckoutErrorCode | 'PRICE_CHECK_FAILED'
+
+const NOTICE_MESSAGE_KEYS: Record<CheckoutNotice, string> = {
+  PRICE_CHANGED: 'checkoutErrorPriceChanged',
+  PRICE_CHECK_FAILED: 'checkoutErrorPriceCheckFailed',
+  PACKAGE_UNAVAILABLE: 'checkoutErrorPackageUnavailable',
+  TRIP_UNAVAILABLE: 'checkoutErrorTripUnavailable',
+  INVALID_DATES: 'checkoutErrorInvalidDates',
+  CHECKOUT_FAILED: 'checkoutErrorFailed',
+}
 
 export function StripeCheckout({
   tripId,
@@ -155,9 +142,16 @@ export function StripeCheckout({
   isGuest,
   onBack,
   onSuccess,
+  onPackageUnavailable,
   depositPercentage = 30,
 }: StripeCheckoutProps) {
   const t = useTranslations('checkout')
+  const router = useRouter()
+  // True while router.refresh() is re-fetching the trip's current prices.
+  // Continue stays disabled until then, so a retry can't go out with the
+  // stale total and be refused a second time.
+  const [refreshingPrices, startPriceRefresh] = useTransition()
+  const refreshPrices = () => startPriceRefresh(() => router.refresh())
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null)
   const [paymentType, setPaymentType] = useState<PaymentType>('deposit')
@@ -165,27 +159,61 @@ export function StripeCheckout({
   const [customerEmail, setCustomerEmail] = useState(prefillEmail || '')
   const [customerPhone, setCustomerPhone] = useState(prefillPhone || '')
 
-  // Store checkout params when user proceeds - this freezes the values
-  const [checkoutParams, setCheckoutParams] = useState<
-    EmbeddedCheckoutWrapperProps['checkoutParams'] | null
-  >(null)
+  // A created Checkout Session, with the amounts the SERVER will charge
+  const [checkout, setCheckout] = useState<{
+    clientSecret: string
+    amounts: PaymentAmounts
+    paymentType: PaymentType
+  } | null>(null)
+
+  // Creating a session / sending a link, and why it last failed
+  const [submitting, setSubmitting] = useState(false)
+  const [notice, setNotice] = useState<CheckoutNotice | null>(null)
+  // The total on screen when the server last said the price changed. If it
+  // says so again for the same total after refreshing, stop offering a retry.
+  const priceChangedForTotal = useRef<number | null>(null)
 
   // SMS payment link state
-  const [smsSending, setSmsSending] = useState(false)
-  const [smsSent, setSmsSent] = useState(false)
-  const [smsError, setSmsError] = useState<string | null>(null)
+  const [smsSentAmountCents, setSmsSentAmountCents] = useState<number | null>(
+    null,
+  )
   const [smsConsent, setSmsConsent] = useState(false)
 
   // Use ref for onSuccess to avoid changing the onComplete callback
   const onSuccessRef = useRef(onSuccess)
   onSuccessRef.current = onSuccess
 
-  // Calculate amounts based on payment type (deposit or full)
-  const depositOnlyAmount = packagePrice * (depositPercentage / 100)
-  const paymentAmount =
-    paymentType === 'full' ? packagePrice : depositOnlyAmount
-  const cardFee = paymentAmount * 0.04
-  const cardTotal = paymentAmount + cardFee
+  // Every figure on this screen comes from the helper the server charges
+  // with (lib/booking-price.ts), so screen and charge agree to the cent.
+  const amountsFor = (method: 'card' | 'ach' | 'sms') =>
+    calculatePaymentAmounts(packagePrice, depositPercentage, paymentType, method)
+  const achAmounts = amountsFor('ach')
+  const cardAmounts = amountsFor('card')
+  const smsAmounts = amountsFor('sms')
+
+  const handleFailure = (code: CheckoutErrorCode) => {
+    if (code === 'PACKAGE_UNAVAILABLE') {
+      // The package is gone; this screen can't continue. Send the customer
+      // back to choose another one (the booking form says why).
+      refreshPrices()
+      onPackageUnavailable?.()
+      return
+    }
+
+    if (code === 'PRICE_CHANGED') {
+      if (priceChangedForTotal.current === packagePrice) {
+        // Already refreshed for this exact total and it still doesn't match.
+        setNotice('PRICE_CHECK_FAILED')
+        return
+      }
+      priceChangedForTotal.current = packagePrice
+      // Re-fetch the trip's current prices. Server components re-render with
+      // fresh data and every field the customer filled in is kept.
+      refreshPrices()
+    }
+
+    setNotice(code)
+  }
 
   const validateAndProceed = async () => {
     if (!customerName.trim()) {
@@ -205,50 +233,10 @@ export function StripeCheckout({
       return
     }
 
-    // SMS payment link flow
-    if (paymentMethod === 'sms') {
-      setSmsSending(true)
-      setSmsError(null)
-      try {
-        await sendPaymentLinkSms({
-          packageId,
-          tripId,
-          tripTitle,
-          customerName,
-          customerEmail,
-          customerPhone,
-          startDate,
-          endDate,
-          roomType,
-          packageName,
-          totalPrice: packagePrice,
-          golfCourses,
-          mealOption,
-          transportOption,
-          additionalRequests,
-          guests,
-        })
-        setSmsSent(true)
-      } catch (error: any) {
-        console.error('[v0] Error sending SMS payment link:', error)
-        setSmsError(
-          error.message || 'Failed to send payment link. Please try again.',
-        )
-      } finally {
-        setSmsSending(false)
-      }
-      return
-    }
-
-    // Freeze the params at this moment - this ensures the checkout wrapper
-    // gets stable props and won't try to change fetchClientSecret
-    setCheckoutParams({
+    const params = {
       packageId,
       tripId,
       tripTitle,
-      paymentMethod,
-      paymentType,
-      depositPercentage,
       customerName,
       customerEmail,
       customerPhone,
@@ -256,22 +244,63 @@ export function StripeCheckout({
       endDate,
       roomType,
       packageName,
-      totalPrice: packagePrice, // packagePrice is now the calculated total including extra nights
+      // What the customer is looking at. The server recomputes the real
+      // price and refuses if these differ.
+      totalPrice: packagePrice,
+      depositPercentage,
+      paymentType,
       golfCourses,
       mealOption,
       transportOption,
       additionalRequests,
       guests,
-    })
+    }
+
+    setSubmitting(true)
+    setNotice(null)
+    try {
+      if (paymentMethod === 'sms') {
+        const result = await sendPaymentLinkSms(params)
+        if (!result.ok) {
+          handleFailure(result.code)
+          return
+        }
+        priceChangedForTotal.current = null
+        setSmsSentAmountCents(result.amounts.chargeCents)
+        return
+      }
+
+      const result = await createTripCheckoutSession({
+        ...params,
+        paymentMethod,
+      })
+      if (!result.ok) {
+        handleFailure(result.code)
+        return
+      }
+      priceChangedForTotal.current = null
+      setCheckout({
+        clientSecret: result.clientSecret,
+        amounts: result.amounts,
+        paymentType,
+      })
+    } catch (error) {
+      // Network failure, or a server error the action didn't catch
+      console.error('[checkout] Could not start payment:', error)
+      setNotice('CHECKOUT_FAILED')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleBackToPayment = () => {
-    // Clear checkout params to unmount the EmbeddedCheckoutProvider
-    setCheckoutParams(null)
+    // Unmounts the EmbeddedCheckoutProvider. The abandoned session expires on
+    // its own and the webhook marks its pending row expired.
+    setCheckout(null)
   }
 
   // Show SMS sent confirmation
-  if (smsSent) {
+  if (smsSentAmountCents !== null) {
     return (
       <div className="w-full max-w-2xl mx-auto text-center py-16">
         <div className="mb-6">
@@ -286,7 +315,9 @@ export function StripeCheckout({
           {t('smsLinkSentMessage', { phone: customerPhone })}
         </p>
         <p className="text-sm text-muted-foreground mb-6">
-          {t('smsLinkSentDeposit', { amount: `$${paymentAmount.toFixed(2)}` })}
+          {t('smsLinkSentDeposit', {
+            amount: `$${formatCents(smsSentAmountCents)}`,
+          })}
         </p>
         <div className="bg-muted/50 border border-border p-4 rounded-lg mb-6 max-w-md mx-auto">
           <p className="text-sm text-muted-foreground">{t('smsLinkExpiry')}</p>
@@ -295,8 +326,8 @@ export function StripeCheckout({
           <Button
             variant="outline"
             onClick={() => {
-              setSmsSent(false)
-              setSmsError(null)
+              setSmsSentAmountCents(null)
+              setNotice(null)
             }}
           >
             {t('smsLinkResend')}
@@ -312,8 +343,8 @@ export function StripeCheckout({
     )
   }
 
-  // Show Stripe checkout when params are set
-  if (checkoutParams) {
+  // Show Stripe checkout once the session exists
+  if (checkout) {
     return (
       <div className="space-y-4">
         <Button variant="ghost" onClick={handleBackToPayment} className="mb-4">
@@ -321,38 +352,35 @@ export function StripeCheckout({
           {t('backToPaymentOptions')}
         </Button>
 
+        {/* Amounts from the server's session — exactly what Stripe charges */}
         <div className="border border-border bg-muted/30 p-4 mb-4">
           <h3 className="font-medium mb-2">{t('paymentSummary')}</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
               <span>
-                {checkoutParams.paymentType === 'full'
+                {checkout.paymentType === 'full'
                   ? t('fullPayment')
                   : t('deposit')}
               </span>
-              <span>${paymentAmount.toFixed(2)}</span>
+              <span>${formatCents(checkout.amounts.paymentCents)}</span>
             </div>
-            {checkoutParams.paymentMethod === 'card' && (
+            {checkout.amounts.feeCents > 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>{t('cardProcessingFee')}</span>
-                <span>${cardFee.toFixed(2)}</span>
+                <span>${formatCents(checkout.amounts.feeCents)}</span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-2 border-t border-border mt-2">
               <span>{t('total')}</span>
-              <span>
-                $
-                {checkoutParams.paymentMethod === 'card'
-                  ? cardTotal.toFixed(2)
-                  : paymentAmount.toFixed(2)}
-              </span>
+              <span>${formatCents(checkout.amounts.chargeCents)}</span>
             </div>
           </div>
         </div>
 
         <div id="checkout">
           <EmbeddedCheckoutWrapper
-            checkoutParams={checkoutParams}
+            key={checkout.clientSecret}
+            clientSecret={checkout.clientSecret}
             onCompleteRef={onSuccessRef}
           />
         </div>
@@ -441,7 +469,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${depositOnlyAmount.toFixed(2)}</div>
+              <div className="font-medium">${formatCents(achAmounts.depositCents)}</div>
             </div>
           </button>
 
@@ -461,7 +489,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${packagePrice.toFixed(2)}</div>
+              <div className="font-medium">${formatCents(achAmounts.totalCents)}</div>
             </div>
           </button>
         </div>
@@ -474,10 +502,10 @@ export function StripeCheckout({
         <p className="text-sm text-muted-foreground mb-4">
           {paymentType === 'full'
             ? t('fullPaymentRequired', {
-                amount: `$${packagePrice.toFixed(2)}`,
+                amount: `$${formatCents(achAmounts.totalCents)}`,
               })
             : t('depositRequired', {
-                amount: `$${depositOnlyAmount.toFixed(2)}`,
+                amount: `$${formatCents(achAmounts.depositCents)}`,
               })}
         </p>
 
@@ -492,7 +520,7 @@ export function StripeCheckout({
                 </p>
                 <p className="text-amber-700">
                   {t('autoChargeDescription', {
-                    remainingAmount: `$${(packagePrice - depositOnlyAmount).toFixed(2)}`,
+                    remainingAmount: `$${formatCents(achAmounts.totalCents - achAmounts.depositCents)}`,
                   })}
                 </p>
               </div>
@@ -520,7 +548,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${paymentAmount.toFixed(2)}</div>
+              <div className="font-medium">${formatCents(achAmounts.paymentCents)}</div>
             </div>
           </button>
 
@@ -538,12 +566,14 @@ export function StripeCheckout({
               <div className="text-left">
                 <div className="font-medium">{t('creditDebitCard')}</div>
                 <div className="text-sm text-muted-foreground">
-                  {t('processingFee', { fee: `$${cardFee.toFixed(2)}` })}
+                  {t('processingFee', {
+                    fee: `$${formatCents(cardAmounts.feeCents)}`,
+                  })}
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${cardTotal.toFixed(2)}</div>
+              <div className="font-medium">${formatCents(cardAmounts.chargeCents)}</div>
             </div>
           </button>
 
@@ -566,7 +596,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${paymentAmount.toFixed(2)}</div>
+              <div className="font-medium">${formatCents(smsAmounts.chargeCents)}</div>
             </div>
           </button>
         </div>
@@ -613,29 +643,39 @@ export function StripeCheckout({
               )}
               <div className="flex justify-between font-medium">
                 <span>{t('packageTotal')}</span>
-                <span>${packagePrice.toFixed(2)}</span>
+                <span>${formatCents(achAmounts.totalCents)}</span>
               </div>
             </>
           ) : (
             <div className="flex justify-between pt-2 border-t border-border mt-2">
               <span>{t('packageTotal')}</span>
-              <span className="font-medium">${packagePrice.toFixed(2)}</span>
+              <span className="font-medium">
+                ${formatCents(achAmounts.totalCents)}
+              </span>
             </div>
           )}
           <div className="flex justify-between text-[#3D5A80] font-medium">
             <span>
               {paymentType === 'full' ? t('totalDue') : t('depositDue')}
             </span>
-            <span>${paymentAmount.toFixed(2)}</span>
+            <span>${formatCents(achAmounts.paymentCents)}</span>
           </div>
         </div>
       </div>
 
       {/* SMS consent handled inside PaymentConsent (below) */}
 
-      {smsError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-3 text-sm rounded">
-          {smsError}
+      {notice && (
+        <div
+          role="alert"
+          className={`flex gap-3 p-3 text-sm rounded border ${
+            notice === 'PRICE_CHANGED'
+              ? 'bg-amber-50 border-amber-200 text-amber-800'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}
+        >
+          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <p>{t(NOTICE_MESSAGE_KEYS[notice])}</p>
         </div>
       )}
 
@@ -653,16 +693,21 @@ export function StripeCheckout({
           !customerName ||
           !customerEmail ||
           !customerPhone ||
-          smsSending ||
+          submitting ||
+          refreshingPrices ||
           (paymentMethod === 'sms' && !smsConsent)
         }
         className="w-full bg-[#3D5A80] hover:bg-[#3D5A80]/90"
         size="lg"
       >
-        {smsSending ? (
+        {submitting || refreshingPrices ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('smsLinkSending')}
+            {refreshingPrices
+              ? t('updatingPrices')
+              : paymentMethod === 'sms'
+                ? t('smsLinkSending')
+                : t('preparingCheckout')}
           </>
         ) : paymentMethod === 'sms' ? (
           t('smsLinkSendButton')

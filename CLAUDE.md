@@ -240,6 +240,17 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 
 - Server Actions in [app/actions/stripe.ts](app/actions/stripe.ts) create Checkout Sessions —
   card or ACH, deposit (`trips.deposit_percentage`) or full payment.
+- **Never charge a price the browser sends.** Server actions are public POST endpoints. Pricing
+  rules live in [lib/booking-price.ts](lib/booking-price.ts), shared by the booking form and
+  the server; [lib/resolve-booking-price.ts](lib/resolve-booking-price.ts) recomputes the total,
+  deposit % and package name from the database and refuses if the customer's figure differs.
+  Both the checkout action and the SMS payment link go through it — change prices there only.
+  Those actions **return** `{ ok: false, code }` instead of throwing (Next.js hides thrown
+  messages in production), and the payment screen creates the session *before* mounting
+  Stripe's embedded form, so it can explain a refusal and refresh the price in place.
+- Saving a trip updates its `packages` rows **in place** (by id). Never go back to
+  delete-and-reinsert: new ids null `stripe_bookings.package_id` (`ON DELETE SET NULL`) and
+  break checkout for anyone mid-booking with "Package not found".
 - [app/api/stripe/webhook/route.ts](app/api/stripe/webhook/route.ts) handles
   `checkout.session.completed` and `checkout.session.expired`, and is the only writer that
   confirms a `stripe_bookings` row. Verify signatures with `STRIPE_WEBHOOK_SECRET`.
@@ -328,8 +339,9 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `055` is the highest so far, and `054`/`055` were applied on
-2026-08-15. Schema changes require a new script *and* a matching edit to
+and don't assume ordering is total. `057` is the highest so far. `054`/`055` were applied on
+2026-08-15; `056` (booking status/RLS) and `057` (block self-promotion to admin) were written on
+2026-11-16 and must be applied by hand — check before assuming they are live. Schema changes require a new script *and* a matching edit to
 `lib/types/database.ts`.
 
 The script is applied by hand, so **a migration and the code that depends on it deploy

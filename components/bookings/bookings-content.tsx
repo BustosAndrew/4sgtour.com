@@ -8,19 +8,64 @@ import Link from 'next/link'
 import { UserInquiryMessages } from '@/components/user-inquiry-messages'
 
 interface BookingsContentProps {
+  bookings: any[]
   inquiries: any[]
   showSuccess: boolean
   profile: { email?: string; display_name?: string } | null
   userEmail: string
 }
 
+// `yyyy-MM-dd` strings are calendar dates. `new Date('2026-12-01')` parses
+// them as UTC midnight, which renders as the previous day west of UTC.
+function parseCalendarDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  return match
+    ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+    : new Date(value)
+}
+
+function formatMoney(amount: unknown) {
+  return `$${Number(amount || 0).toFixed(2)}`
+}
+
 export function BookingsContent({
+  bookings,
   inquiries,
   showSuccess,
   profile,
   userEmail,
 }: BookingsContentProps) {
   const t = useTranslations('bookingsPage')
+
+  // An SMS payment link (and a custom package) writes both an inquiry and a
+  // stripe_bookings row for the same Stripe session. Show the booking once,
+  // carrying the inquiry's message thread, instead of two cards.
+  const inquiryBySession = new Map<string, any>()
+  for (const inquiry of inquiries || []) {
+    if (inquiry.stripe_session_id) {
+      inquiryBySession.set(inquiry.stripe_session_id, inquiry)
+    }
+  }
+  const bookedSessionIds = new Set(
+    (bookings || [])
+      .map((booking) => booking.stripe_checkout_session_id)
+      .filter(Boolean),
+  )
+  const openInquiries = (inquiries || []).filter(
+    (inquiry) =>
+      !(inquiry.stripe_session_id && bookedSessionIds.has(inquiry.stripe_session_id)),
+  )
+
+  const getBookingStatusLabel = (status: string) => {
+    switch (status) {
+      case 'cancelled':
+        return t('cancelled')
+      case 'refunded':
+        return t('refunded')
+      default:
+        return t('confirmed')
+    }
+  }
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -42,11 +87,13 @@ export function BookingsContent({
           <div className="flex items-start gap-4">
             <CheckCircle2 className="h-6 w-6 flex-shrink-0 text-primary" />
             <div>
+              {/* Every link to /bookings?success=true comes from a completed
+                  Stripe payment (embedded checkout, SMS link, custom package). */}
               <h2 className="font-semibold text-foreground">
-                {t('inquirySubmitted')}
+                {t('paymentReceived')}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t('inquirySubmittedMessage')}
+                {t('paymentReceivedMessage')}
               </p>
             </div>
           </div>
@@ -55,9 +102,177 @@ export function BookingsContent({
 
       <h1 className="mb-8 text-2xl font-semibold sm:text-3xl">{t('title')}</h1>
 
-      {inquiries && inquiries.length > 0 ? (
+      {bookings && bookings.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-lg font-semibold">{t('bookingsHeading')}</h2>
+          <div className="space-y-4">
+            {bookings.map((booking) => {
+              const details = (booking.booking_details || {}) as Record<
+                string,
+                any
+              >
+              const startDate = details.start_date || booking.trip_start_date
+              const endDate = details.end_date
+              const isActive =
+                booking.status === 'confirmed' || booking.status === 'completed'
+              const remaining = Number(booking.remaining_balance || 0)
+              const hasBalanceDue =
+                isActive && remaining > 0 && !booking.remaining_balance_charged
+              const linkedInquiry = booking.stripe_checkout_session_id
+                ? inquiryBySession.get(booking.stripe_checkout_session_id)
+                : null
+
+              return (
+                <div
+                  key={booking.id}
+                  className="border border-border bg-card p-4 sm:p-6"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground text-lg">
+                        {booking.trip?.slug ? (
+                          <Link
+                            href={`/trips/${booking.trip.slug}`}
+                            className="hover:underline"
+                          >
+                            {details.trip_title || booking.trip_title}
+                          </Link>
+                        ) : (
+                          details.trip_title || booking.trip_title
+                        )}
+                      </h3>
+                      {details.package_name && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5" />
+                            {t('package')} {details.package_name}
+                          </span>
+                        </p>
+                      )}
+                      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                        {startDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('start')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {format(parseCalendarDate(startDate), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                        )}
+                        {endDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              {t('end')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {format(parseCalendarDate(endDate), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {t('booked')}
+                          </span>{' '}
+                          <span className="font-medium">
+                            {format(new Date(booking.created_at), 'MMM d, yyyy')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-1 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">
+                            {t('amountPaid')}
+                          </span>{' '}
+                          <span className="font-medium">
+                            {formatMoney(booking.total_paid)}
+                          </span>
+                        </div>
+                        {hasBalanceDue ? (
+                          <div>
+                            <span className="text-muted-foreground">
+                              {t('remainingBalance')}
+                            </span>{' '}
+                            <span className="font-medium">
+                              {formatMoney(remaining)}
+                            </span>
+                            {booking.auto_charge_date && (
+                              <span className="text-muted-foreground">
+                                {' '}
+                                (
+                                {t('autoChargeOn', {
+                                  date: format(
+                                    parseCalendarDate(booking.auto_charge_date),
+                                    'MMM d, yyyy',
+                                  ),
+                                })}
+                                )
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          isActive && (
+                            <div className="font-medium text-primary">
+                              {t('paidInFull')}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right">
+                      <div className="mb-0 sm:mb-2">
+                        <span
+                          className={`inline-block px-3 py-1 text-xs font-medium ${
+                            isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-destructive/10 text-destructive'
+                          }`}
+                        >
+                          {getBookingStatusLabel(booking.status)}
+                        </span>
+                      </div>
+                      {Number(booking.total_price) > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            {t('tripTotal')}
+                          </p>
+                          <p className="text-lg font-bold sm:text-xl">
+                            {formatMoney(booking.total_price)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {linkedInquiry && (
+                    <UserInquiryMessages
+                      inquiryId={linkedInquiry.id}
+                      userName={
+                        profile?.display_name || profile?.email || 'Guest'
+                      }
+                      userEmail={profile?.email || userEmail || ''}
+                      tripTitle={linkedInquiry.trip_title}
+                    />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {openInquiries.length > 0 ? (
+        <section>
+          {bookings && bookings.length > 0 && (
+            <h2 className="mb-4 text-lg font-semibold">
+              {t('inquiriesHeading')}
+            </h2>
+          )}
         <div className="space-y-4">
-          {inquiries.map((inquiry) => (
+          {openInquiries.map((inquiry) => (
             <div
               key={inquiry.id}
               className="border border-border bg-card p-4 sm:p-6"
@@ -198,7 +413,8 @@ export function BookingsContent({
             </div>
           ))}
         </div>
-      ) : (
+        </section>
+      ) : (bookings || []).length > 0 ? null : (
         <div className="border border-border bg-card p-8 text-center sm:p-12">
           <p className="text-muted-foreground">{t('empty')}</p>
           <Button asChild className="mt-4">

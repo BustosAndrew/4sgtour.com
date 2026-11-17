@@ -21,6 +21,15 @@ import {
 } from 'lucide-react'
 import { StripeCheckout } from '@/components/booking/stripe-checkout'
 import {
+  SINGLE_OCCUPANCY_SURCHARGE,
+  calculateBookingTotal,
+  getDepositPercentage,
+  getPerPersonBase as getSharedPerPersonBase,
+  nightsBetween,
+  priceForPerson,
+  type Occupancy,
+} from '@/lib/booking-price'
+import {
   format,
   addDays,
   differenceInDays,
@@ -237,6 +246,8 @@ export function BookingForm({
   const [galleryIndex, setGalleryIndex] = useState(0)
   const [showStripeCheckout, setShowStripeCheckout] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
+  // Set when checkout found the chosen package had been removed from the trip
+  const [packageUnavailable, setPackageUnavailable] = useState(false)
   const [showAccommodationModal, setShowAccommodationModal] = useState(false)
 
   interface Guest {
@@ -620,43 +631,33 @@ export function BookingForm({
     }
   }
 
-  const SINGLE_OCCUPANCY_SURCHARGE = 0.12
 
   // Per-person base price (package price + extra nights)
+  // Nights counted from the same yyyy-MM-dd strings sent to the server, so
+  // the price shown here is exactly the price the server will charge.
+  const getNightsBooked = () =>
+    travelDateRange.from && travelDateRange.to
+      ? nightsBetween(
+          format(travelDateRange.from, 'yyyy-MM-dd'),
+          format(travelDateRange.to, 'yyyy-MM-dd'),
+        )
+      : null
+
+  // Pricing lives in lib/booking-price.ts, shared with the checkout server
+  // actions — never compute a price here that the server doesn't also use.
   const getPerPersonBase = () => {
     const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
     if (!selectedPackage) return 0
-    let base = Number(selectedPackage.price)
-    if (
-      selectedPackage.price_per_extra_night &&
-      travelDateRange.from &&
-      travelDateRange.to
-    ) {
-      const nightsBooked = differenceInDays(travelDateRange.to, travelDateRange.from)
-      const extraNights = Math.max(0, nightsBooked - minNights)
-      if (extraNights > 0) {
-        base += extraNights * Number(selectedPackage.price_per_extra_night)
-      }
-    }
-    return base
-  }
-
-  // Price for a single person given their occupancy
-  const priceForPerson = (occupancy: 'single' | 'double', perPersonBase: number) => {
-    return occupancy === 'single'
-      ? perPersonBase * (1 + SINGLE_OCCUPANCY_SURCHARGE)
-      : perPersonBase
+    return getSharedPerPersonBase(selectedPackage, trip as any, getNightsBooked())
   }
 
   const calculateTotal = () => {
-    const base = getPerPersonBase()
-    // Primary booker
-    let total = priceForPerson(roomType as 'single' | 'double', base)
-    // Additional guests
-    for (const guest of guests) {
-      total += priceForPerson(guest.occupancy, base)
-    }
-    return total
+    const selectedPackage = packages.find((p: any) => p.id === selectedPlan)
+    if (!selectedPackage) return 0
+    return calculateBookingTotal(selectedPackage, trip as any, getNightsBooked(), [
+      roomType as Occupancy,
+      ...guests.map((guest) => guest.occupancy),
+    ])
   }
 
   // Surcharge amount for the primary booker only (used in existing sidebar display)
@@ -991,7 +992,15 @@ export function BookingForm({
           isGuest={!currentUser}
           onBack={() => setShowStripeCheckout(false)}
           onSuccess={() => setBookingSuccess(true)}
-          depositPercentage={trip.deposit_percentage || 30}
+          onPackageUnavailable={() => {
+            // Back to the form, with nothing selected and a note explaining
+            // why; the page refresh brings in the trip's current packages.
+            setSelectedPlan('')
+            setPackageUnavailable(true)
+            setShowStripeCheckout(false)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          depositPercentage={getDepositPercentage(trip as any)}
         />
       </div>
     )
@@ -1009,13 +1018,25 @@ export function BookingForm({
           {/* Section 1: Select Your Plan */}
           <div className="overflow-hidden">
             <SectionHeader number={1} title={t('selectPlan')} />
+            {packageUnavailable && (
+              <div
+                role="alert"
+                className="mt-6 flex gap-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
+              >
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
+                <p>{t('packageUnavailableNotice')}</p>
+              </div>
+            )}
             <div className="mt-6 space-y-4">
               {packages.map((pkg) => (
                 <PlanCard
                   key={pkg.id}
                   pkg={pkg}
                   selected={selectedPlan === pkg.id}
-                  onSelect={() => setSelectedPlan(pkg.id)}
+                  onSelect={() => {
+                    setSelectedPlan(pkg.id)
+                    setPackageUnavailable(false)
+                  }}
                   t={t}
                   locale={locale}
                 />
@@ -1830,7 +1851,14 @@ export function BookingForm({
                     )
                   })()}
                   <div className="text-sm text-muted-foreground mt-1">
-                    {t('depositDue')} ${(calculateTotal() * 0.3).toFixed(2)}
+                    {t('depositDue', {
+                      percentage: getDepositPercentage(trip as any),
+                    })}{' '}
+                    $
+                    {(
+                      calculateTotal() *
+                      (getDepositPercentage(trip as any) / 100)
+                    ).toFixed(2)}
                   </div>
                 </div>
 

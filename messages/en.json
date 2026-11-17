@@ -178,10 +178,10 @@
     "browseTrips": "Browse Trips"
   },
   "bookingsPage": {
-    "title": "My Inquiries",
+    "title": "My Bookings",
     "inquirySubmitted": "Inquiry Submitted!",
     "inquirySubmittedMessage": "Your booking inquiry has been successfully submitted. We'll contact you shortly to confirm the details.",
-    "empty": "You haven't submitted any booking inquiries yet.",
+    "empty": "You don't have any bookings or inquiries yet.",
     "browseDestinations": "Browse Destinations",
     "start": "Start:",
     "end": "End:",
@@ -195,7 +195,19 @@
     "cancelled": "Cancelled",
     "pending": "Pending",
     "tournamentInquiry": "Tournament",
-    "participants": "Participants:"
+    "participants": "Participants:",
+    "paymentReceived": "Payment received!",
+    "paymentReceivedMessage": "Thank you — your payment went through and a confirmation email is on its way. Your booking will appear below within a minute or two.",
+    "bookingsHeading": "Booked trips",
+    "inquiriesHeading": "Inquiries",
+    "package": "Package:",
+    "booked": "Booked:",
+    "tripTotal": "Trip total:",
+    "amountPaid": "Paid so far:",
+    "remainingBalance": "Remaining balance:",
+    "autoChargeOn": "charged automatically on {date}",
+    "paidInFull": "Paid in full",
+    "refunded": "Refunded"
   },
   "auth": {
     "signedInAs": "Signed in as",
@@ -339,7 +351,7 @@
     "extraNights": "Extra Nights",
     "extraNightsCost": "{nights} extra night(s) x ${price}",
     "proceedToPayment": "Proceed to Payment",
-    "depositDue": "30% deposit due at booking:",
+    "depositDue": "{percentage}% deposit due at booking:",
     "bookingConfirmed": "Booking Confirmed!",
     "bookingConfirmedMessage": "Thank you for your booking! We've sent a confirmation email with all the details.",
     "createAccountPrompt": "Create an account to manage your booking",
@@ -367,7 +379,8 @@
     "requestAccommodationMessage": "This trip has a maximum capacity of {max} guests total. If your group exceeds this limit, please fill out our contact form and our team will be happy to discuss custom arrangements.",
     "requestAccommodationContact": "Our team will work with you to find the best solution for your group.",
     "goToContactForm": "Go to Contact Form",
-    "dismissModal": "Continue with Current Guests"
+    "dismissModal": "Continue with Current Guests",
+    "packageUnavailableNotice": "The package you selected is no longer offered for this trip. Please choose a package to continue."
   },
   "checkout": {
     "contactInformation": "Contact Information",
@@ -416,7 +429,7 @@
     "smsLinkSending": "Sending payment link...",
     "smsLinkSentTitle": "Payment Link Sent!",
     "smsLinkSentMessage": "We've texted a payment link to {phone}.",
-    "smsLinkSentDeposit": "Open the link on your phone to complete your 30% deposit ({amount}).",
+    "smsLinkSentDeposit": "Open the link on your phone to complete your payment ({amount}).",
     "smsLinkExpiry": "This payment link will expire in 24 hours. If it expires, you can request a new one.",
     "smsLinkResend": "Resend Payment Link",
     "smsLinkViewBookings": "View My Bookings",
@@ -424,7 +437,15 @@
     "termsConsentLabel": "By checking, I accept ",
     "termsOfService": "Terms of Service",
     "autoChargeTitle": "Automatic Payment Notice",
-    "autoChargeDescription": "The remaining balance ({remainingAmount}) will be automatically charged to your payment method. If your trip is more than 60 days away, you will be charged 60 days before the trip. If your trip is within 60 days, you will be charged 30 days before the trip starts."
+    "autoChargeDescription": "The remaining balance ({remainingAmount}) will be automatically charged to your payment method. If your trip is more than 60 days away, you will be charged 60 days before the trip. If your trip is within 60 days, you will be charged 30 days before the trip starts.",
+    "preparingCheckout": "Preparing secure checkout…",
+    "updatingPrices": "Updating prices…",
+    "checkoutErrorPriceChanged": "The price of this trip changed since you opened this page. We've updated the amounts above — please review them, then continue.",
+    "checkoutErrorPriceCheckFailed": "We couldn't confirm the current price for this trip. Please reload the page, or contact us and we'll help you book.",
+    "checkoutErrorPackageUnavailable": "The package you selected is no longer available. Please choose another package.",
+    "checkoutErrorTripUnavailable": "This trip is no longer available for online booking. Please contact us and we will help you.",
+    "checkoutErrorInvalidDates": "Your travel dates are no longer valid. Please go back and choose your dates again.",
+    "checkoutErrorFailed": "We couldn't start the payment. Nothing was charged. Please try again in a moment, or contact us."
   },
   "destinations": {
     "title": "Destinations",

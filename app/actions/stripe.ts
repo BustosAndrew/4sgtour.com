@@ -3,6 +3,14 @@
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/site-url'
+import {
+  BookingPriceError,
+  resolveBookingPrice,
+} from '@/lib/resolve-booking-price'
+import {
+  calculatePaymentAmounts,
+  type TripCheckoutResult,
+} from '@/lib/booking-price'
 
 interface CheckoutSessionParams {
   packageId: string
@@ -25,24 +33,49 @@ interface CheckoutSessionParams {
   mealOption?: string
   transportOption?: string
   additionalRequests?: string
+  guests?: Array<{
+    name: string
+    phone: string
+    occupancy: 'single' | 'double'
+  }>
 }
 
-export async function createTripCheckoutSession(params: CheckoutSessionParams) {
+/**
+ * Creates the embedded Checkout Session. Returns a result instead of
+ * throwing: Next.js replaces thrown server-action errors with a generic
+ * message in production, and the payment screen needs to know *why* it
+ * failed (e.g. the price changed) to tell the customer what to do.
+ */
+export async function createTripCheckoutSession(
+  params: CheckoutSessionParams,
+): Promise<TripCheckoutResult> {
+  try {
+    return await createTripCheckoutSessionInner(params)
+  } catch (error) {
+    if (error instanceof BookingPriceError) {
+      console.warn('[checkout] Refused checkout:', error.code, error.message)
+      return { ok: false, code: error.code }
+    }
+    console.error('[checkout] Failed to create checkout session:', error)
+    return { ok: false, code: 'CHECKOUT_FAILED' }
+  }
+}
+
+async function createTripCheckoutSessionInner(
+  params: CheckoutSessionParams,
+): Promise<TripCheckoutResult> {
   const {
     packageId,
     tripId,
     tripTitle,
     paymentMethod,
     paymentType,
-    depositPercentage,
     customerName,
     customerEmail,
     customerPhone,
     startDate,
     endDate,
     roomType,
-    packageName,
-    totalPrice,
     golfCourses,
     mealOption,
     transportOption,
@@ -51,21 +84,25 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
 
   const supabase = await createClient()
 
-  // Get the package with Stripe price info
-  const { data: pkg, error: pkgError } = await supabase
-    .from('packages')
-    .select('id, name, price, stripe_product_id, stripe_price_id')
-    .eq('id', packageId)
-    .single()
+  // The price is recomputed here from the database. `totalPrice` and
+  // `depositPercentage` from the browser are only what the customer was
+  // shown — if they disagree (stale page, edited trip, or a tampered
+  // request) we refuse rather than charge an amount the customer never saw.
+  // The package name is taken from the same row, so the receipt, email and
+  // booking record always name the package actually being charged.
+  const { totalPrice, depositPercentage, packageName } =
+    await resolveBookingPrice(supabase, params)
 
-  if (pkgError || !pkg) {
-    throw new Error('Package not found')
-  }
-
-  // Calculate payment amount based on payment type (deposit or full)
+  // Every amount comes from the same helper the payment screen uses, so what
+  // the customer saw and what Stripe charges are identical to the cent.
   const isFullPayment = paymentType === 'full'
-  const depositOnlyAmount = Math.round(totalPrice * (depositPercentage / 100) * 100) // Convert to cents
-  const paymentAmountCents = isFullPayment ? Math.round(totalPrice * 100) : depositOnlyAmount
+  const amounts = calculatePaymentAmounts(
+    totalPrice,
+    depositPercentage,
+    isFullPayment ? 'full' : 'deposit',
+    paymentMethod === 'ach' ? 'ach' : 'card',
+  )
+  const paymentAmountCents = amounts.paymentCents
 
   // Determine the line item description
   const paymentDescription = isFullPayment
@@ -88,8 +125,8 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
   ]
 
   // Add 4% processing fee for card payments
-  if (paymentMethod === 'card') {
-    const processingFee = Math.round(paymentAmountCents * 0.04)
+  if (amounts.feeCents > 0) {
+    const processingFee = amounts.feeCents
     lineItems.push({
       price_data: {
         currency: 'usd',
@@ -110,7 +147,7 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
 
   // Calculate remaining balance and auto-charge date
   // For full payments, remaining balance is 0
-  const remainingBalance = isFullPayment ? 0 : totalPrice - paymentAmountCents / 100
+  const remainingBalance = amounts.remainingCents / 100
   const tripStartDate = new Date(startDate)
   const today = new Date()
   const daysUntilTrip = Math.ceil(
@@ -196,16 +233,15 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
     },
   })
 
-  // Calculate amounts for the booking record
-  const totalAmountCents = lineItems.reduce(
-    (sum, item) => sum + item.price_data.unit_amount,
-    0,
-  )
-  const processingFeeCents =
-    paymentMethod === 'card' ? Math.round(paymentAmountCents * 0.04) : 0
+  // Amounts for the booking record
+  const totalAmountCents = amounts.chargeCents
+  const processingFeeCents = amounts.feeCents
 
   // Create a pending booking record with auto-charge info
-  const { data: booking, error: bookingError } = await supabase
+  // No .select() on this insert: reading the row back needs a SELECT policy
+  // a guest doesn't have (and must not have — the old public SELECT policy
+  // exposed every customer's booking to the anon key).
+  const { error: bookingError } = await supabase
     .from('stripe_bookings')
     .insert({
       trip_id: tripId,
@@ -242,13 +278,20 @@ export async function createTripCheckoutSession(params: CheckoutSessionParams) {
         additional_requests: additionalRequests || '',
       },
     })
-    .select()
-    .single()
 
   if (bookingError) {
     console.error('[v0] Error creating booking record:', bookingError)
     // Don't fail - we can reconcile from webhook
   }
 
-  return session.client_secret
+  if (!session.client_secret) {
+    throw new Error(`Checkout session ${session.id} has no client_secret`)
+  }
+
+  return {
+    ok: true,
+    clientSecret: session.client_secret,
+    amounts,
+    depositPercentage,
+  }
 }

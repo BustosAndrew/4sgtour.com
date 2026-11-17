@@ -178,10 +178,10 @@
     "browseTrips": "Reisen durchsuchen"
   },
   "bookingsPage": {
-    "title": "Meine Anfragen",
+    "title": "Meine Buchungen",
     "inquirySubmitted": "Anfrage eingereicht!",
     "inquirySubmittedMessage": "Ihre Buchungsanfrage wurde erfolgreich eingereicht. Wir werden uns in Kürze mit Ihnen in Verbindung setzen, um die Details zu bestätigen.",
-    "empty": "Sie haben noch keine Buchungsanfragen eingereicht.",
+    "empty": "Sie haben noch keine Buchungen oder Anfragen.",
     "browseDestinations": "Reiseziele durchsuchen",
     "start": "Start:",
     "end": "Ende:",
@@ -195,7 +195,19 @@
     "cancelled": "Storniert",
     "pending": "Ausstehend",
     "tournamentInquiry": "Turnier",
-    "participants": "Teilnehmer:"
+    "participants": "Teilnehmer:",
+    "paymentReceived": "Zahlung erhalten!",
+    "paymentReceivedMessage": "Vielen Dank – Ihre Zahlung ist eingegangen und eine Bestätigungs-E-Mail ist unterwegs. Ihre Buchung erscheint in ein bis zwei Minuten unten.",
+    "bookingsHeading": "Gebuchte Reisen",
+    "inquiriesHeading": "Anfragen",
+    "package": "Paket:",
+    "booked": "Gebucht am:",
+    "tripTotal": "Reisepreis gesamt:",
+    "amountPaid": "Bisher bezahlt:",
+    "remainingBalance": "Restbetrag:",
+    "autoChargeOn": "wird am {date} automatisch abgebucht",
+    "paidInFull": "Vollständig bezahlt",
+    "refunded": "Erstattet"
   },
   "auth": {
     "signedInAs": "Angemeldet als",
@@ -339,7 +351,7 @@
     "extraNights": "Zusätzliche Nächte",
     "extraNightsCost": "{nights} zusätzliche Nacht(e) x ${price}",
     "proceedToPayment": "Zur Zahlung",
-    "depositDue": "30% Anzahlung bei Buchung:",
+    "depositDue": "{percentage}% Anzahlung bei Buchung:",
     "bookingConfirmed": "Buchung bestätigt!",
     "bookingConfirmedMessage": "Vielen Dank für Ihre Buchung! Wir haben Ihnen eine Bestätigungs-E-Mail mit allen Details gesendet.",
     "createAccountPrompt": "Erstellen Sie ein Konto, um Ihre Buchung zu verwalten",
@@ -367,7 +379,8 @@
     "requestAccommodationMessage": "Diese Reise hat eine maximale Kapazität von {max} Gästen. Falls Ihre Gruppe größer ist, füllen Sie bitte unser Kontaktformular aus und wir finden gemeinsam die beste Lösung.",
     "requestAccommodationContact": "Unser Team hilft Ihnen gerne, die beste Lösung für Ihre Gruppe zu finden.",
     "goToContactForm": "Zum Kontaktformular",
-    "dismissModal": "Mit aktuellen Gästen fortfahren"
+    "dismissModal": "Mit aktuellen Gästen fortfahren",
+    "packageUnavailableNotice": "Das gewählte Paket wird für diese Reise nicht mehr angeboten. Bitte wählen Sie ein Paket, um fortzufahren."
   },
   "checkout": {
     "contactInformation": "Kontaktinformationen",
@@ -416,7 +429,7 @@
     "smsLinkSending": "Zahlungslink wird gesendet...",
     "smsLinkSentTitle": "Zahlungslink gesendet!",
     "smsLinkSentMessage": "Wir haben einen Zahlungslink an {phone} gesendet.",
-    "smsLinkSentDeposit": "Öffnen Sie den Link auf Ihrem Telefon, um Ihre 30% Anzahlung ({amount}) abzuschließen.",
+    "smsLinkSentDeposit": "Öffnen Sie den Link auf Ihrem Telefon, um Ihre Zahlung ({amount}) abzuschließen.",
     "smsLinkExpiry": "Dieser Zahlungslink läuft in 24 Stunden ab. Falls er abläuft, können Sie einen neuen anfordern.",
     "smsLinkResend": "Zahlungslink erneut senden",
     "smsLinkViewBookings": "Meine Buchungen ansehen",
@@ -424,7 +437,15 @@
     "termsConsentLabel": "Mit dem Ankreuzen akzeptiere ich ",
     "termsOfService": "Nutzungsbedingungen",
     "autoChargeTitle": "Hinweis zur automatischen Zahlung",
-    "autoChargeDescription": "Der Restbetrag ({remainingAmount}) wird automatisch von Ihrer Zahlungsmethode abgebucht. Wenn Ihre Reise mehr als 60 Tage entfernt ist, erfolgt die Abbuchung 60 Tage vor Reisebeginn. Bei weniger als 60 Tagen erfolgt sie 30 Tage vor Reisebeginn."
+    "autoChargeDescription": "Der Restbetrag ({remainingAmount}) wird automatisch von Ihrer Zahlungsmethode abgebucht. Wenn Ihre Reise mehr als 60 Tage entfernt ist, erfolgt die Abbuchung 60 Tage vor Reisebeginn. Bei weniger als 60 Tagen erfolgt sie 30 Tage vor Reisebeginn.",
+    "preparingCheckout": "Sichere Zahlung wird vorbereitet…",
+    "updatingPrices": "Preise werden aktualisiert…",
+    "checkoutErrorPriceChanged": "Der Preis dieser Reise hat sich geändert, seit Sie diese Seite geöffnet haben. Wir haben die Beträge oben aktualisiert – bitte prüfen Sie sie und fahren Sie dann fort.",
+    "checkoutErrorPriceCheckFailed": "Wir konnten den aktuellen Preis dieser Reise nicht bestätigen. Bitte laden Sie die Seite neu oder kontaktieren Sie uns – wir helfen Ihnen gerne bei der Buchung.",
+    "checkoutErrorPackageUnavailable": "Das gewählte Paket ist nicht mehr verfügbar. Bitte wählen Sie ein anderes Paket.",
+    "checkoutErrorTripUnavailable": "Diese Reise kann nicht mehr online gebucht werden. Bitte kontaktieren Sie uns, wir helfen Ihnen gerne.",
+    "checkoutErrorInvalidDates": "Ihre Reisedaten sind nicht mehr gültig. Bitte gehen Sie zurück und wählen Sie Ihre Daten erneut.",
+    "checkoutErrorFailed": "Die Zahlung konnte nicht gestartet werden. Es wurde nichts belastet. Bitte versuchen Sie es gleich noch einmal oder kontaktieren Sie uns."
   },
   "destinations": {
     "title": "Reiseziele",

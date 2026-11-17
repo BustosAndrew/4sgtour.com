@@ -178,10 +178,10 @@
     "browseTrips": "여행 둘러보기"
   },
   "bookingsPage": {
-    "title": "내 문의",
+    "title": "내 예약",
     "inquirySubmitted": "문의가 제출되었습니다!",
     "inquirySubmittedMessage": "예약 문의가 성공적으로 제출되었습니다. 세부 사항 확인을 위해 곧 연락드리겠습니다.",
-    "empty": "아직 제출한 예약 문의가 없습니다.",
+    "empty": "아직 예약이나 문의 내역이 없습니다.",
     "browseDestinations": "목적지 둘러보기",
     "start": "시작:",
     "end": "종료:",
@@ -195,7 +195,19 @@
     "cancelled": "취소됨",
     "pending": "대기 중",
     "tournamentInquiry": "토너먼트",
-    "participants": "참가자:"
+    "participants": "참가자:",
+    "paymentReceived": "결제가 완료되었습니다!",
+    "paymentReceivedMessage": "감사합니다. 결제가 정상적으로 처리되었으며 확인 이메일이 곧 발송됩니다. 예약 내역은 1~2분 내에 아래에 표시됩니다.",
+    "bookingsHeading": "예약된 여행",
+    "inquiriesHeading": "문의",
+    "package": "패키지:",
+    "booked": "예약일:",
+    "tripTotal": "여행 총액:",
+    "amountPaid": "결제 금액:",
+    "remainingBalance": "잔액:",
+    "autoChargeOn": "{date}에 자동 결제됩니다",
+    "paidInFull": "전액 결제 완료",
+    "refunded": "환불됨"
   },
   "auth": {
     "signedInAs": "로그인 계정",
@@ -339,7 +351,7 @@
     "extraNights": "추가 숙박",
     "extraNightsCost": "{nights}박 추가 x ${price}",
     "proceedToPayment": "결제 진행",
-    "depositDue": "예약 시 30% 보증금:",
+    "depositDue": "예약 시 {percentage}% 보증금:",
     "bookingConfirmed": "예약 확정!",
     "bookingConfirmedMessage": "예약해 주셔서 감사합니다! 모든 세부 정보가 담긴 확인 이메일을 보내드렸습니다.",
     "createAccountPrompt": "계정을 만들어 예약을 관리하세요",
@@ -367,7 +379,8 @@
     "requestAccommodationMessage": "이 여행의 최대 수용 인원은 {max}명입니다. 인원이 초과하는 경우 문의 양식을 작성해 주시면 팀에서 맞춤 방안을 안내해 드리겠습니다.",
     "requestAccommodationContact": "저희 팀이 그룹에 가장 적합한 솔루션을 찾아드리겠습니다.",
     "goToContactForm": "문의 양식으로 이동",
-    "dismissModal": "현재 투숙객으로 계속"
+    "dismissModal": "현재 투숙객으로 계속",
+    "packageUnavailableNotice": "선택하신 패키지는 이 여행에서 더 이상 제공되지 않습니다. 계속하려면 패키지를 선택해 주세요."
   },
   "checkout": {
     "contactInformation": "연락처 정보",
@@ -416,7 +429,7 @@
     "smsLinkSending": "결제 링크 전송 중...",
     "smsLinkSentTitle": "결제 링크가 전송되었습니다!",
     "smsLinkSentMessage": "{phone}으로 결제 링크를 보냈습니다.",
-    "smsLinkSentDeposit": "휴대폰에서 링크를 열어 30% 보증금({amount})을 완료하세요.",
+    "smsLinkSentDeposit": "휴대폰에서 링크를 열어 결제({amount})를 완료하세요.",
     "smsLinkExpiry": "이 결제 링크는 24시간 후에 만료됩니다. 만료되면 새로운 링크를 요청할 수 있습니다.",
     "smsLinkResend": "결제 링크 재전송",
     "smsLinkViewBookings": "내 예약 보기",
@@ -424,7 +437,15 @@
     "termsConsentLabel": "확인함으로써 ",
     "termsOfService": "서비스 이용약관",
     "autoChargeTitle": "자동 결제 안내",
-    "autoChargeDescription": "잔여 금액({remainingAmount})은 등록된 결제 수단으로 자동 청구됩니다. 여행이 60일 이상 남은 경우 여행 60일 전에 청구되며, 60일 이내인 경우 여행 30일 전에 청구됩니다."
+    "autoChargeDescription": "잔여 금액({remainingAmount})은 등록된 결제 수단으로 자동 청구됩니다. 여행이 60일 이상 남은 경우 여행 60일 전에 청구되며, 60일 이내인 경우 여행 30일 전에 청구됩니다.",
+    "preparingCheckout": "안전한 결제를 준비하는 중…",
+    "updatingPrices": "가격을 업데이트하는 중…",
+    "checkoutErrorPriceChanged": "이 페이지를 연 이후 여행 가격이 변경되었습니다. 위의 금액을 최신 정보로 업데이트했으니 확인 후 계속 진행해 주세요.",
+    "checkoutErrorPriceCheckFailed": "현재 여행 가격을 확인할 수 없습니다. 페이지를 새로고침하시거나 저희에게 연락 주시면 예약을 도와드리겠습니다.",
+    "checkoutErrorPackageUnavailable": "선택하신 패키지는 더 이상 이용할 수 없습니다. 다른 패키지를 선택해 주세요.",
+    "checkoutErrorTripUnavailable": "이 여행은 더 이상 온라인 예약이 불가능합니다. 저희에게 연락 주시면 도와드리겠습니다.",
+    "checkoutErrorInvalidDates": "선택하신 여행 날짜가 더 이상 유효하지 않습니다. 이전 단계로 돌아가 날짜를 다시 선택해 주세요.",
+    "checkoutErrorFailed": "결제를 시작할 수 없습니다. 결제된 금액은 없습니다. 잠시 후 다시 시도하시거나 저희에게 연락해 주세요."
   },
   "destinations": {
     "title": "여행지",

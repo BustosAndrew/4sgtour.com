@@ -4,6 +4,14 @@ import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
+import {
+  BookingPriceError,
+  resolveBookingPrice,
+} from '@/lib/resolve-booking-price'
+import {
+  calculatePaymentAmounts,
+  type PaymentLinkResult,
+} from '@/lib/booking-price'
 
 interface SendPaymentLinkParams {
   packageId: string
@@ -17,6 +25,8 @@ interface SendPaymentLinkParams {
   roomType: string
   packageName: string
   totalPrice: number
+  depositPercentage?: number
+  paymentType?: 'deposit' | 'full'
   golfCourses?: string[]
   mealOption?: string
   transportOption?: string
@@ -28,7 +38,29 @@ interface SendPaymentLinkParams {
   }>
 }
 
-export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
+/**
+ * Returns a result instead of throwing: Next.js replaces thrown server-action
+ * errors with a generic message in production, and the payment screen needs
+ * the reason (e.g. the price changed) to tell the customer what to do.
+ */
+export async function sendPaymentLinkSms(
+  params: SendPaymentLinkParams,
+): Promise<PaymentLinkResult> {
+  try {
+    return await sendPaymentLinkSmsInner(params)
+  } catch (error) {
+    if (error instanceof BookingPriceError) {
+      console.warn('[sms-link] Refused payment link:', error.code, error.message)
+      return { ok: false, code: error.code }
+    }
+    console.error('[sms-link] Failed to send payment link:', error)
+    return { ok: false, code: 'CHECKOUT_FAILED' }
+  }
+}
+
+async function sendPaymentLinkSmsInner(
+  params: SendPaymentLinkParams,
+): Promise<PaymentLinkResult> {
   const {
     packageId,
     tripId,
@@ -39,8 +71,6 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
     startDate,
     endDate,
     roomType,
-    packageName,
-    totalPrice,
     golfCourses,
     mealOption,
     transportOption,
@@ -54,23 +84,27 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
 
   const supabase = await createClient()
 
-  // Get the package
-  const { data: pkg, error: pkgError } = await supabase
-    .from('packages')
-    .select('id, name, price, stripe_product_id, stripe_price_id')
-    .eq('id', packageId)
-    .single()
+  // Recompute the price from the database — never charge what the browser
+  // sends. Also pins the package name to the package actually charged.
+  const { totalPrice, depositPercentage, packageName } =
+    await resolveBookingPrice(supabase, params)
 
-  if (pkgError || !pkg) {
-    throw new Error('Package not found')
-  }
+  const isFullPayment = params.paymentType === 'full'
+  const paymentLabel = isFullPayment
+    ? 'Full Payment'
+    : `${depositPercentage}% Deposit`
+  // Same helper the payment screen uses, so the amount on screen, in the
+  // text message and on Stripe's page are identical to the cent.
+  const amounts = calculatePaymentAmounts(
+    totalPrice,
+    depositPercentage,
+    isFullPayment ? 'full' : 'deposit',
+    'sms',
+  )
+  const depositAmount = amounts.chargeCents // cents charged by this link
+  const remainingBalance = amounts.remainingCents / 100
 
-  // Calculate 30% deposit
-  const depositPercentage = 30
-  const depositAmount = Math.round(totalPrice * 0.3 * 100) // cents
-  const remainingBalance = Math.round((totalPrice - depositAmount / 100) * 100) / 100
-
-  // Calculate auto-charge date for the remaining 70% balance.
+  // Calculate auto-charge date for the remaining balance.
   // Mirrors the logic in app/actions/stripe.ts so the cron picks these up.
   // - Trip > 60 days away: charge 60 days before the trip
   // - Trip 31-60 days away: charge 30 days before the trip
@@ -104,7 +138,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       price_data: {
         currency: 'usd',
         product_data: {
-          name: `${tripTitle} - ${packageName} (30% Deposit)`,
+          name: `${tripTitle} - ${packageName} (${paymentLabel})`,
           description: `Travel dates: ${startDate} to ${endDate}. Room: ${roomType}.`,
         },
         unit_amount: depositAmount,
@@ -130,10 +164,11 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
     // Allow both payment methods on the hosted page
     payment_method_types: ['card', 'us_bank_account'],
     // Save the payment method for off-session use so the cron job can
-    // auto-charge the remaining 70% balance on the auto_charge_date.
-    payment_intent_data: {
-      setup_future_usage: 'off_session',
-    },
+    // auto-charge the remaining balance on the auto_charge_date. Not needed
+    // (and it triggers stricter issuer checks) when paying in full.
+    ...(isFullPayment
+      ? {}
+      : { payment_intent_data: { setup_future_usage: 'off_session' as const } }),
     metadata: {
       site_url: appUrl,
       trip_id: tripId,
@@ -152,11 +187,12 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       transport_option: transportOption || '',
       additional_requests: additionalRequests || '',
       payment_method: 'sms_link',
+      payment_type: isFullPayment ? 'full' : 'deposit',
       is_guest: user ? 'false' : 'true',
       total_price: String(totalPrice),
       deposit_percentage: String(depositPercentage),
       remaining_balance: String(remainingBalance),
-      auto_charge_date: autoChargeDateIso,
+      auto_charge_date: isFullPayment ? '' : autoChargeDateIso,
     },
     // Expire after 24 hours
     expires_at: Math.floor(Date.now() / 1000) + 86400,
@@ -179,7 +215,7 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       customer_email: customerEmail,
       customer_phone: customerPhone,
       deposit_amount: depositAmount / 100,
-      total_package_price: pkg.price,
+      total_package_price: totalPrice,
       total_price: totalPrice,
       trip_title: tripTitle,
       deposit_percentage: depositPercentage,
@@ -190,8 +226,8 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
       // Auto-charge fields so the cron can collect the remaining balance
       trip_start_date: startDate,
       remaining_balance: remainingBalance,
-      auto_charge_date: autoChargeDateOnly,
-      remaining_balance_charged: false,
+      auto_charge_date: isFullPayment ? null : autoChargeDateOnly,
+      remaining_balance_charged: isFullPayment, // nothing left to charge
       booking_details: {
         trip_title: tripTitle,
         package_name: packageName,
@@ -252,8 +288,10 @@ export async function sendPaymentLinkSms(params: SendPaymentLinkParams) {
   await twilioClient.messages.create({
     to: customerPhone,
     from: process.env.TWILIO_PHONE_NUMBER!,
-    body: `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your 30% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
+    body: isFullPayment
+      ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`
+      : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
   })
 
-  return { success: true }
+  return { ok: true, amounts, depositPercentage }
 }
