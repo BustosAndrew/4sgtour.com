@@ -765,7 +765,9 @@
     "paymentProcessing": "Zahlung in Bearbeitung",
     "paymentProcessingMessage": "Vielen Dank – Ihre Bankzahlung ist unterwegs. Banküberweisungen brauchen bis zu 4 Werktage; wir benachrichtigen Sie per E-Mail, sobald sie bestätigt ist.",
     "balanceProcessing": "Ihre Bankzahlung für den Restbetrag wird bearbeitet (bis zu 4 Werktage). Wir benachrichtigen Sie per E-Mail, sobald sie bestätigt ist.",
-    "depositReceivedLegacy": "Vielen Dank – Ihre Anzahlung ist eingegangen."
+    "depositReceivedLegacy": "Vielen Dank – Ihre Anzahlung ist eingegangen.",
+    "packageCancelled": "Paket storniert",
+    "packageCancelledMessage": "Dieses Paket wurde storniert. Bei Fragen kontaktieren Sie uns bitte."
   },
   "paymentSuccess": {
     "title": "Zahlung erfolgreich",

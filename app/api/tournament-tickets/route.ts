@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { createClient } from "@/lib/supabase/server"
 import { getFromEmail, getAdminEmail } from "@/lib/site-email"
+import { getSiteUrl } from "@/lib/site-url"
+import { escapeHtml, escapeHtmlMultiline } from "@/lib/escape-html"
 
 export async function POST(request: Request) {
   try {
@@ -27,11 +29,20 @@ export async function POST(request: Request) {
       )
     }
 
-    // Save to inquiries table
-    const { data: inquiry, error: dbError } = await supabase
+    // Save to inquiries so the request shows in Admin → Inquiries.
+    // - The event goes in tournament_event_id (migration 059): trip_id
+    //   references trips, so writing the event id there failed every insert.
+    // - No .select() read-back: visitors are signed out and may not read
+    //   inquiries, which also failed the whole insert. The id is made here.
+    // Either way the admin email still went out, so nobody noticed.
+    const inquiryId = crypto.randomUUID()
+    const { error: dbError } = await supabase
       .from("inquiries")
       .insert({
-        trip_id: eventId || null,
+        id: inquiryId,
+        site_url: getSiteUrl(),
+        trip_id: null,
+        tournament_event_id: eventId || null,
         trip_title: eventTitle,
         customer_name: name,
         customer_email: email,
@@ -41,8 +52,6 @@ export async function POST(request: Request) {
         inquiry_type: "tournament",
         status: "pending",
       })
-      .select()
-      .single()
 
     if (dbError) {
       console.error("[v0] Tournament inquiry DB error:", dbError)
@@ -70,20 +79,20 @@ export async function POST(request: Request) {
       <h2>New Tournament Ticket Inquiry</h2>
     </div>
     <div class="content">
-      <h3 style="color: #22333b; margin-top: 0;">${eventTitle}</h3>
-      ${tierName ? `<p><span class="detail-label">Package:</span> ${tierName} — ${tierPrice}</p>` : ""}
+      <h3 style="color: #22333b; margin-top: 0;">${escapeHtml(eventTitle)}</h3>
+      ${tierName ? `<p><span class="detail-label">Package:</span> ${escapeHtml(tierName)} — ${escapeHtml(tierPrice)}</p>` : ""}
 
       <div class="detail-row">
         <span class="detail-label">Name:</span>
-        <span class="detail-value"> ${name}</span>
+        <span class="detail-value"> ${escapeHtml(name)}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Email:</span>
-        <span class="detail-value"> ${email}</span>
+        <span class="detail-value"> ${escapeHtml(email)}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Number of Participants:</span>
-        <span class="detail-value"> ${participants}</span>
+        <span class="detail-value"> ${escapeHtml(participants)}</span>
       </div>
 
       ${
@@ -91,7 +100,7 @@ export async function POST(request: Request) {
           ? `
       <div class="notes-box">
         <p class="detail-label" style="margin-top:0;">Additional Notes:</p>
-        <p style="margin-bottom:0;">${notes.replace(/\n/g, "<br>")}</p>
+        <p style="margin-bottom:0;">${escapeHtmlMultiline(notes)}</p>
       </div>
       `
           : ""
@@ -131,7 +140,7 @@ This inquiry was submitted through the tournament tickets form.
       text: textContent,
     })
 
-    return NextResponse.json({ success: true, inquiryId: inquiry?.id })
+    return NextResponse.json({ success: true, inquiryId: dbError ? null : inquiryId })
   } catch (error) {
     console.error("Error sending tournament ticket inquiry:", error)
     return NextResponse.json(

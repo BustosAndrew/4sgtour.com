@@ -260,16 +260,21 @@ export function BookingsContent({
                     </div>
                   </div>
 
-                  {linkedInquiry && (
-                    <UserInquiryMessages
-                      inquiryId={linkedInquiry.id}
-                      userName={
-                        profile?.display_name || profile?.email || 'Guest'
-                      }
-                      userEmail={profile?.email || userEmail || ''}
-                      tripTitle={linkedInquiry.trip_title}
-                    />
-                  )}
+                  {/* Every paid booking gets a thread. Without a linked
+                      inquiry the booking id is passed; the messages API
+                      finds or starts its conversation. */}
+                  <UserInquiryMessages
+                    inquiryId={linkedInquiry?.id || booking.id}
+                    userName={
+                      profile?.display_name || profile?.email || 'Guest'
+                    }
+                    userEmail={profile?.email || userEmail || ''}
+                    tripTitle={
+                      linkedInquiry?.trip_title ||
+                      details.trip_title ||
+                      booking.trip_title
+                    }
+                  />
                 </div>
               )
             })}

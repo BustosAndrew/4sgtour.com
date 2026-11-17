@@ -309,6 +309,9 @@ export default async function PrivatePackagePage({
       {state.stage === 'paid' &&
         statusPanel('success', t('paidInFull'), t('paidInFullMessage'))}
 
+      {state.stage === 'cancelled' &&
+        statusPanel('info', t('packageCancelled'), t('packageCancelledMessage'))}
+
       {state.stage === 'processing' &&
         statusPanel('info', t('paymentProcessing'), t('paymentProcessingMessage'))}
 

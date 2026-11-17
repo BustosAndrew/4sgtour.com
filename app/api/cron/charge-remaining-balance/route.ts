@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
+import { getSiteUrl } from '@/lib/site-url'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -15,6 +16,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
+// A declined remaining-balance charge is retried on this many daily runs
+// (attempts are counted in stripe_bookings.charge_attempts, migration 059).
+const MAX_CHARGE_ATTEMPTS = 3
+
 // Verify cron secret to prevent unauthorized access
 const CRON_SECRET = process.env.CRON_SECRET
 
@@ -22,8 +27,11 @@ export async function GET(request: Request) {
   const headersList = await headers()
   const authHeader = headersList.get('authorization')
 
-  // Verify cron secret (Vercel Cron sends this automatically)
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  // Verify cron secret (Vercel Cron sends this automatically). Fail CLOSED:
+  // this job charges real cards for every site's bookings, so a deployment
+  // without CRON_SECRET must refuse rather than run for anyone who asks
+  // (it used to skip the check entirely when the secret was unset).
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
     console.error('[v0] Unauthorized cron access attempt')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -170,10 +178,35 @@ export async function GET(request: Request) {
       } catch (error: any) {
         console.error(`[v0] Error charging booking ${booking.id}:`, error)
         
-        // Handle specific Stripe errors
-        if (error.type === 'StripeCardError') {
-          // Card was declined - notify admin
-          await sendPaymentFailedEmail(booking, error.message)
+        // A decline is retried on the next daily runs, up to
+        // MAX_CHARGE_ATTEMPTS; then automatic charging stops for the
+        // booking. (It used to retry — and email the admin — every day,
+        // forever.) A card that needs the customer to authenticate (3-D
+        // Secure) can never succeed off-session, so that stops at once.
+        if (error.type === 'StripeCardError' || error.code === 'authentication_required') {
+          const attempts = (booking.charge_attempts || 0) + 1
+          const needsCustomer = error.code === 'authentication_required'
+          const giveUp = needsCustomer || attempts >= MAX_CHARGE_ATTEMPTS
+
+          const { error: updateError } = await supabase
+            .from('stripe_bookings')
+            .update({
+              charge_attempts: attempts,
+              last_charge_error: String(error.message || error.code || 'declined').slice(0, 500),
+              ...(giveUp ? { auto_charge_date: null } : {}),
+            })
+            .eq('id', booking.id)
+          if (updateError) {
+            console.error(`[v0] Error recording failed charge for ${booking.id}:`, updateError)
+          }
+
+          // Admin: on the first failure and when retries stop — not daily.
+          if (attempts === 1 || giveUp) {
+            await sendPaymentFailedEmail(booking, error.message, { attempts, giveUp })
+          }
+          if (giveUp) {
+            await sendBalanceUnpaidCustomerEmail(booking)
+          }
         }
         
         results.failed.push({ id: booking.id, error: error.message })
@@ -277,14 +310,24 @@ This booking is now fully paid.
   }
 }
 
-async function sendPaymentFailedEmail(booking: any, errorMessage: string) {
+async function sendPaymentFailedEmail(
+  booking: any,
+  errorMessage: string,
+  { attempts, giveUp }: { attempts: number; giveUp: boolean },
+) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const adminEmail = getAdminEmail(booking.site_url)
 
-  const adminEmailContent = `
-PAYMENT FAILED - ACTION REQUIRED
+  const status = giveUp
+    ? `Automatic charging has STOPPED for this booking after ${attempts} attempt${attempts === 1 ? '' : 's'}. The customer has been emailed. Please contact them to arrange payment.`
+    : `It will be retried automatically on the next daily run (attempt ${attempts} of ${MAX_CHARGE_ATTEMPTS}). You'll be emailed again only if it still fails after the last attempt.`
 
-A remaining balance charge has failed and requires manual follow-up.
+  const adminEmailContent = `
+PAYMENT FAILED - ${giveUp ? 'ACTION REQUIRED' : 'WILL RETRY'}
+
+A remaining balance charge has failed.
+
+${status}
 
 Customer: ${booking.customer_name}
 Email: ${booking.customer_email}
@@ -298,17 +341,50 @@ Failed Payment:
 - Error: ${errorMessage}
 - Booking ID: ${booking.id}
 
-Please contact the customer to arrange alternative payment.
+- Attempt: ${attempts} of ${MAX_CHARGE_ATTEMPTS}
   `.trim()
 
   try {
     await resend.emails.send({
       from: getFromEmail(booking.site_url),
       to: adminEmail,
-      subject: `URGENT: Payment Failed - ${booking.customer_name}`,
+      subject: giveUp
+        ? `URGENT: Payment Failed - ${booking.customer_name}`
+        : `Payment Failed (will retry) - ${booking.customer_name}`,
       text: adminEmailContent,
     })
   } catch (error) {
     console.error('[v0] Error sending payment failed email:', error)
+  }
+}
+
+/** Retries are over: tell the customer their balance still needs paying. */
+async function sendBalanceUnpaidCustomerEmail(booking: any) {
+  if (!booking.customer_email) return
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const siteUrl = (booking.site_url || getSiteUrl()).replace(/\/+$/, '')
+  const trip = booking.booking_details?.trip_title || booking.trip_title || 'your golf trip'
+  const amount = `$${Number(booking.remaining_balance || 0).toFixed(2)}`
+  const howToPay = booking.inquiry_id
+    ? `You can pay it with a card or bank account here:\n${siteUrl}/package/${booking.inquiry_id}`
+    : `Please reply to this email or contact us so we can arrange payment.`
+
+  try {
+    await resend.emails.send({
+      from: getFromEmail(booking.site_url),
+      replyTo: getAdminEmail(booking.site_url),
+      to: booking.customer_email,
+      subject: `Action needed: remaining balance for ${trip}`,
+      text: `Dear ${booking.customer_name},
+
+We weren't able to charge the remaining balance of ${amount} for ${trip} to the payment method on file.
+
+${howToPay}
+
+Best regards,
+4 Seasons Golf Tour Team`,
+    })
+  } catch (error) {
+    console.error('[v0] Error sending balance unpaid email:', error)
   }
 }

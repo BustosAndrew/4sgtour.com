@@ -28,9 +28,10 @@ const REMINDER_DAYS_AHEAD = 5
 //    the custom-package page link where it can be paid
 export async function GET(request: Request) {
   try {
-    // Verify cron secret for security
+    // Verify cron secret for security. Fail closed: with CRON_SECRET unset
+    // the expected header would be the literal "Bearer undefined".
     const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 

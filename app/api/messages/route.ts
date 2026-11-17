@@ -3,6 +3,9 @@ import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { getSiteUrl } from "@/lib/site-url"
 import { getFromEmail, getAdminEmail, getSupportEmail } from "@/lib/site-email"
+import { getUserType } from "@/lib/supabase/get-user-type"
+import { escapeHtml, escapeHtmlMultiline } from "@/lib/escape-html"
+import { resolveConversationInquiryId } from "@/lib/booking-conversation"
 
 export async function GET(request: Request) {
   const supabase = await createClient()
@@ -23,10 +26,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    // The UI may pass a paid booking's id; find the inquiry holding its
+    // conversation (none yet → no messages).
+    const conversationId = await resolveConversationInquiryId(supabase, inquiryId, {
+      create: false,
+    })
+    if (!conversationId) return NextResponse.json([])
+
     const { data: messages, error } = await supabase
       .from("messages")
       .select("*")
-      .eq("inquiry_id", inquiryId)
+      .eq("inquiry_id", conversationId)
       .order("created_at", { ascending: true })
 
     if (error) {
@@ -56,32 +66,37 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const {
-      inquiryId,
-      messageText,
-      isAdmin,
-      senderName,
-      senderEmail,
-      tripTitle: bodyTripTitle,
-      customerName: bodyCustomerName,
-      customerEmail: bodyCustomerEmail,
-    } = body
+    const { inquiryId: requestedId, messageText, senderName } = body
 
-    if (!inquiryId || !messageText) {
+    if (!requestedId || !messageText) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       )
     }
 
+    // Paid bookings are listed by booking id; messages need an inquiry.
+    // Find the booking's conversation, or start one (lib/booking-conversation.ts).
+    const inquiryId = await resolveConversationInquiryId(supabase, requestedId, {
+      create: true,
+    })
+    if (!inquiryId) {
+      return NextResponse.json({ error: "Inquiry not found" }, { status: 404 })
+    }
+
+    // Decided here, never taken from the browser: a customer sending
+    // isAdmin=true could post "as the team", and the flag also decides who
+    // is emailed. The RLS insert policy enforces the same (migration 059).
+    const isAdmin = (await getUserType()) === "admin"
+
     const { data: message, error } = await supabase
       .from("messages")
       .insert({
         inquiry_id: inquiryId,
         sender_id: user.id,
-        sender_email: senderEmail || user.email,
-        sender_name: senderName || user.email,
-        is_admin: isAdmin || false,
+        sender_email: user.email,
+        sender_name: (isAdmin && senderName) || senderName || user.email,
+        is_admin: isAdmin,
         message_text: messageText,
       })
       .select()
@@ -94,28 +109,25 @@ export async function POST(request: Request) {
     // Send email notification
     try {
       const resend = new Resend(process.env.RESEND_API_KEY)
-      const supportEmail = getSupportEmail()
-      const siteUrl = getSiteUrl()
 
-      // Get inquiry details for context
+      // Read with the sender's own session: an admin may read every inquiry,
+      // a customer only their own. (The old fallback to customer details
+      // sent in the request body let the caller choose who got emailed.)
       const { data: inquiry } = await supabase
         .from("inquiries")
-        .select("trip_title, customer_name, customer_email")
+        .select("trip_title, customer_name, customer_email, site_url")
         .eq("id", inquiryId)
         .single()
 
-      // Fallback to request body context if RLS prevents reading the inquiry row
-      const inquiryContext =
-        inquiry ||
-        (bodyTripTitle && bodyCustomerName && bodyCustomerEmail
-          ? {
-              trip_title: bodyTripTitle,
-              customer_name: bodyCustomerName,
-              customer_email: bodyCustomerEmail,
-            }
-          : null)
+      if (inquiry) {
+        // The site the customer used — this route can run on any of the
+        // three deployments (an admin replying from 4sgtour.com to a .de
+        // customer must still send .de mail with .de links).
+        const siteUrl = (inquiry.site_url || getSiteUrl()).replace(/\/+$/, "")
+        const tripTitle = escapeHtml(inquiry.trip_title)
+        const customerName = escapeHtml(inquiry.customer_name)
+        const messageHtml = escapeHtmlMultiline(messageText)
 
-      if (inquiryContext) {
         if (isAdmin) {
           // Admin sent message -> notify customer
           const emailHtml = `
@@ -138,22 +150,20 @@ export async function POST(request: Request) {
       <h2>New Message About Your Trip</h2>
     </div>
     <div class="content">
-      <p>Hello ${inquiryContext.customer_name},</p>
-      <p>You have received a new message regarding your inquiry for <strong>"${
-        inquiryContext.trip_title
-      }"</strong>.</p>
-      
+      <p>Hello ${customerName},</p>
+      <p>You have received a new message regarding your inquiry for <strong>"${tripTitle}"</strong>.</p>
+
       <div class="message-box">
         <p><strong>Message from our team:</strong></p>
-        <p>${messageText.replace(/\n/g, "<br>")}</p>
+        <p>${messageHtml}</p>
       </div>
-      
+
       <p>You can respond in two ways:</p>
       <ul>
         <li><strong>Reply directly</strong> to this email</li>
         <li><strong>Log in</strong> to your account for the full conversation</li>
       </ul>
-      
+
       <a href="${siteUrl}/bookings" class="cta-button">View Your Inquiries</a>
     </div>
     <div class="footer">
@@ -165,16 +175,17 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: getFromEmail(),
-            replyTo: supportEmail,
-            to: inquiryContext.customer_email,
-            subject: `New Message: ${inquiryContext.trip_title}`,
+            from: getFromEmail(inquiry.site_url),
+            replyTo: getSupportEmail(inquiry.site_url),
+            to: inquiry.customer_email,
+            subject: `New Message: ${inquiry.trip_title}`,
             html: emailHtml,
-            text: `Hello ${inquiryContext.customer_name},\n\nYou have received a new message regarding your inquiry for "${inquiryContext.trip_title}".\n\nMessage from our team:\n${messageText}\n\n---\nYou can reply directly to this email or log in to your account to view the full conversation.\n\nView your inquiries: ${siteUrl}/bookings`,
+            text: `Hello ${inquiry.customer_name},\n\nYou have received a new message regarding your inquiry for "${inquiry.trip_title}".\n\nMessage from our team:\n${messageText}\n\n---\nYou can reply directly to this email or log in to your account to view the full conversation.\n\nView your inquiries: ${siteUrl}/bookings`,
           })
         } else {
-          // Customer sent message -> notify admin
-          const adminEmail = getAdminEmail()
+          // Customer sent message -> notify admin. The inbox is a tab on
+          // /admin (there is no /admin/inbox page).
+          const inboxUrl = `${siteUrl}/admin?tab=inbox&inquiryId=${encodeURIComponent(inquiryId)}`
 
           const emailHtml = `
 <!DOCTYPE html>
@@ -197,27 +208,25 @@ export async function POST(request: Request) {
       <h2>New Customer Message</h2>
     </div>
     <div class="content">
-      <p>A customer has sent a new message regarding <strong>"${
-        inquiryContext.trip_title
-      }"</strong>.</p>
-      
+      <p>A customer has sent a new message regarding <strong>"${tripTitle}"</strong>.</p>
+
       <div class="customer-info">
-        <strong>Customer:</strong> ${inquiryContext.customer_name}<br>
-        <strong>Email:</strong> ${inquiryContext.customer_email}
+        <strong>Customer:</strong> ${customerName}<br>
+        <strong>Email:</strong> ${escapeHtml(inquiry.customer_email)}
       </div>
-      
+
       <div class="message-box">
         <p><strong>Message:</strong></p>
-        <p>${messageText.replace(/\n/g, "<br>")}</p>
+        <p>${messageHtml}</p>
       </div>
-      
+
       <p>You can respond in two ways:</p>
       <ul>
         <li><strong>Reply directly</strong> to this email (goes to customer)</li>
         <li><strong>Use the admin dashboard</strong> for full conversation history</li>
       </ul>
-      
-      <a href="${siteUrl}/admin/inbox" class="cta-button">Open Admin Inbox</a>
+
+      <a href="${inboxUrl}" class="cta-button">Open Admin Inbox</a>
     </div>
     <div class="footer">
       <p>Reply directly to respond to the customer via email.</p>
@@ -228,12 +237,12 @@ export async function POST(request: Request) {
           `.trim()
 
           await resend.emails.send({
-            from: getFromEmail(),
-            replyTo: inquiryContext.customer_email,
-            to: adminEmail,
-            subject: `New Customer Message: ${inquiryContext.trip_title}`,
+            from: getFromEmail(inquiry.site_url),
+            replyTo: inquiry.customer_email,
+            to: getAdminEmail(inquiry.site_url),
+            subject: `New Customer Message: ${inquiry.trip_title}`,
             html: emailHtml,
-            text: `New message from ${inquiryContext.customer_name} (${inquiryContext.customer_email}) regarding "${inquiryContext.trip_title}".\n\nMessage:\n${messageText}\n\n---\nReply directly to this email to respond to the customer, or log in to the admin dashboard.\n\nAdmin Inbox: ${siteUrl}/admin/inbox`,
+            text: `New message from ${inquiry.customer_name} (${inquiry.customer_email}) regarding "${inquiry.trip_title}".\n\nMessage:\n${messageText}\n\n---\nReply directly to this email to respond to the customer, or log in to the admin dashboard.\n\nAdmin Inbox: ${inboxUrl}`,
           })
         }
       }

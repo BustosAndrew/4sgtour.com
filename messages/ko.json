@@ -765,7 +765,9 @@
     "paymentProcessing": "결제 처리 중",
     "paymentProcessingMessage": "감사합니다. 계좌 결제가 진행 중입니다. 계좌이체는 처리에 최대 영업일 기준 4일이 걸리며, 확인되는 대로 이메일로 알려드리겠습니다.",
     "balanceProcessing": "잔액에 대한 계좌 결제가 처리 중입니다(최대 영업일 기준 4일). 확인되면 이메일로 알려드리겠습니다.",
-    "depositReceivedLegacy": "감사합니다. 보증금이 결제되었습니다."
+    "depositReceivedLegacy": "감사합니다. 보증금이 결제되었습니다.",
+    "packageCancelled": "패키지가 취소되었습니다",
+    "packageCancelledMessage": "이 패키지는 취소되었습니다. 문의 사항이 있으시면 저희에게 연락해 주세요."
   },
   "paymentSuccess": {
     "title": "결제가 완료되었습니다",

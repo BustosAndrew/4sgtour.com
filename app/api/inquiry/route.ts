@@ -40,9 +40,15 @@ export async function POST(request: Request) {
         roomType ? `Room: ${roomType}` : null,
       ].filter(Boolean)
 
-    const { data: inquiry, error: dbError } = await supabase
+    // The id is made here instead of reading the row back: a read-back needs
+    // a SELECT policy the sender may not satisfy (inquiries are matched on
+    // the confirmed sign-in email, migration 059), and a failed read-back
+    // fails the whole insert.
+    const inquiry = { id: crypto.randomUUID() }
+    const { error: dbError } = await supabase
       .from("inquiries")
       .insert({
+        id: inquiry.id,
         site_url: getSiteUrl(),
         trip_id: tripId,
         trip_title: tripTitle,
@@ -58,8 +64,6 @@ export async function POST(request: Request) {
         guests: guests || [],
         status: "pending",
       })
-      .select()
-      .single()
 
     if (dbError) {
       console.error("[v0] Database error:", dbError)

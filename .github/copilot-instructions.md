@@ -171,7 +171,9 @@ Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit v
 row. US bank (ACH) payments arrive as `completed` with `payment_status: 'unpaid'` and are stored
 as `processing` until `checkout.session.async_payment_succeeded` / `_failed` (the balance cron's
 bank debits settle via `payment_intent.succeeded` / `payment_failed`) — never treat `completed`
-alone as paid. Never charge a price sent by the browser: `lib/booking-price.ts` holds the pricing rules
+alone as paid. Declined balance charges retry on up to 3 daily runs (`charge_attempts`), then
+stop. Messages belong to inquiries; the messages API maps a paid booking's id to its conversation
+(`lib/booking-conversation.ts`). Never charge a price sent by the browser: `lib/booking-price.ts` holds the pricing rules
 (shared with the booking form) and `lib/resolve-booking-price.ts` recomputes the total, deposit %
 and package name server-side; the actions return `{ ok: false, code }` rather than throwing, and
 the payment screen creates the session before mounting Stripe so it can explain a refusal. Trip saves update `packages` in place by id — never
@@ -217,7 +219,7 @@ issue than a query bug.
 Numbered SQL files in `scripts/`, applied by hand in the Supabase SQL editor. No migration runner,
 no local Supabase. Numbers have collided historically — pick the next unused number, and don't
 assume ordering is total. `057` is the highest. `054`/`055` were applied on 2026-08-15;
-`056`–`058` were written on 2026-11-16 and are applied by hand — check before assuming they are live. `058` must run before the code that writes its columns ships.
+`056`–`058` are applied (2026-11-16). `059` (tournament ticket inquiries, customer RLS) must run before the code that writes `inquiries.tournament_event_id` ships.
 
 ### Partner API (this repo only)
 
@@ -250,7 +252,9 @@ Access**. Reference: `docs/partner-api.md`; partner-facing copy: `docs/partner-a
    descriptions and `is_included` flags — never prices.
 2. `trips.continent` is current; `trips.destination_id` is nullable legacy. Filter on `continent`.
 3. Trip slugs append a timestamp, so they aren't derivable from a title.
-4. `/api/upload` requires authentication but deliberately not admin — don't "fix" it.
+4. `/api/upload`, `/api/translate` and `/api/translate/batch` are admin-only (uploads: images
+   only, ≤ 4.5 MB). Customer RLS matches the confirmed sign-in email, never `profiles.email`;
+   never take a role (`is_admin`) from a request body; escape visitor text in HTML emails.
 5. Adding a trip/tournament field means editing three places: the create form, the edit form (both
    in `components/admin/`, 2400+ and 3000+ lines), and the API route handler. Miss one and the
    field silently fails to persist.

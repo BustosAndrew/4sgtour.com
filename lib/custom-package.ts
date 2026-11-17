@@ -36,6 +36,7 @@ export type CustomPackageStage =
   | 'processing' // a bank payment is clearing; nothing confirmed yet
   | 'deposit_paid' // deposit paid, balance outstanding
   | 'paid' // fully paid
+  | 'cancelled' // cancelled by the admin; no further payments
 
 export interface CustomPackageState {
   stage: CustomPackageStage
@@ -78,6 +79,14 @@ export function getCustomPackageState(
     autoChargeDate: null,
     balanceProcessing: false,
     legacy: false,
+  }
+
+  // Cancelled in Admin → Inquiries: show it, take no more payments.
+  if (inquiry.status === 'cancelled') {
+    const paidCents = bookings
+      .filter((b) => b.status !== 'failed' && b.status !== 'expired' && b.status !== 'pending')
+      .reduce((sum, b) => sum + toCents(Number(b.total_paid) || 0), 0)
+    return { ...base, stage: 'cancelled', paidCents, remainingCents: 0, allowed: [] }
   }
 
   const live = bookings.filter(

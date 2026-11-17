@@ -2,6 +2,9 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 
+/** What an item in Admin → Inquiries is about — drives the type filter. */
+type InquiryKind = "trip" | "tournament" | "custom"
+
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -11,12 +14,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get all inquiries ordered by most recent first
+    // Get all inquiries ordered by most recent first. Tournament ticket
+    // requests link to their event (migration 059) for the "View" button.
     const { data: inquiries, error } = await supabase
       .from("inquiries")
       .select(`
         *,
-        trip:trips(title, slug)
+        trip:trips(title, slug),
+        tournament_event:tournament_events(slug, tournament:tournaments(slug))
       `)
       .order("created_at", { ascending: false })
 
@@ -35,12 +40,22 @@ export async function GET() {
       console.error("[v0] Error fetching stripe bookings:", stripeError)
     }
 
+    const inquiriesWithKind = (inquiries || []).map((inquiry: any) => ({
+      ...inquiry,
+      kind: (inquiry.inquiry_type === "tournament"
+        ? "tournament"
+        : inquiry.is_custom_package
+          ? "custom"
+          : "trip") as InquiryKind,
+    }))
+
     // Convert stripe bookings to inquiry format for display
     const stripeBookingsAsInquiries = (stripeBookings || []).map((booking) => {
       const bookingDetails = (booking.booking_details as Record<string, unknown>) || {}
       return {
         id: booking.id,
         trip_id: booking.trip_id,
+        inquiry_id: booking.inquiry_id,
         customer_name: booking.customer_name,
         customer_email: booking.customer_email,
         customer_phone: booking.customer_phone,
@@ -50,6 +65,8 @@ export async function GET() {
         end_date: (bookingDetails.end_date as string) || null,
         status: booking.status === "confirmed" ? "converted" : booking.status,
         inquiry_type: "stripe_booking",
+        // Payments for a custom package carry its inquiry id (migration 058)
+        kind: (booking.inquiry_id ? "custom" : "trip") as InquiryKind,
         total_price: booking.total_package_price || booking.total_paid,
         additional_requests: (bookingDetails.additional_requests as string) || null,
         created_at: booking.created_at,
@@ -64,8 +81,25 @@ export async function GET() {
       }
     })
 
+    // The SMS payment link (and a booking's message thread) write an inquiry
+    // with the same Stripe session as the booking. Show the booking once:
+    // its "View in Inbox" reaches that inquiry's messages through
+    // lib/booking-conversation.ts. Custom-package inquiries always stay —
+    // they are the package itself.
+    const bookingSessions = new Set(
+      (stripeBookings || [])
+        .map((booking) => booking.stripe_checkout_session_id)
+        .filter(Boolean),
+    )
+    const visibleInquiries = inquiriesWithKind.filter(
+      (inquiry: any) =>
+        inquiry.is_custom_package ||
+        !inquiry.stripe_session_id ||
+        !bookingSessions.has(inquiry.stripe_session_id),
+    )
+
     // Combine and sort by created_at (most recent first)
-    const allInquiries = [...(inquiries || []), ...stripeBookingsAsInquiries].sort(
+    const allInquiries = [...visibleInquiries, ...stripeBookingsAsInquiries].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
 

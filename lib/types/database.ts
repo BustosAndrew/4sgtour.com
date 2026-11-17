@@ -115,6 +115,10 @@ export interface Inquiry {
   /** Origin site, e.g. https://4sgtour.de. Null for rows predating migration 053. */
   site_url: string | null
   trip_id: string | null
+  /** Tournament ticket requests: the event asked about. Migration 059. */
+  tournament_event_id: string | null
+  inquiry_type: 'trip' | 'tournament' | null
+  participants: number | null
   trip_title: string
   customer_name: string
   customer_email: string
@@ -187,6 +191,9 @@ export interface StripeBooking {
   remaining_balance_charged: boolean
   remaining_balance_charged_at: string | null
   remaining_balance_payment_intent_id: string | null
+  /** Declined remaining-balance charges so far (cron retries up to 3). Migration 059. */
+  charge_attempts: number
+  last_charge_error: string | null
   deposit_percentage: number | null
   remainder_due_date: string | null
   remainder_payment_link: string | null

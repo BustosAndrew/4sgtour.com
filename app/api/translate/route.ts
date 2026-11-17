@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server'
+import { getUserType } from '@/lib/supabase/get-user-type'
 import { TranslationError, translateSingleText } from '@/lib/translate-text'
 
 // Thin HTTP wrapper over `translateSingleText`. Browser callers use this;
 // server-side callers import the lib directly rather than paying for a
 // second function invocation to reach it.
 export async function POST(req: Request) {
+  // Admin-only: these call the paid AI model. Only admin screens use them,
+  // and left open they were a free translation API on our AI Gateway bill.
+  if ((await getUserType()) !== 'admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const {
       text,

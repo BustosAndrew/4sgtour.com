@@ -45,11 +45,15 @@ export default async function BookingsPage({
     .eq("id", user.id)
     .single()
 
-  const { data: inquiries } = await supabase
-    .from("inquiries")
-    .select("*")
-    .eq("customer_email", profile?.email || user.email)
-    .order("created_at", { ascending: false })
+  // Matched on the sign-in email, case-insensitively — the same rule as the
+  // RLS policy (migration 059), which ignores the user-editable profile email.
+  const { data: inquiries } = user.email
+    ? await supabase
+        .from("inquiries")
+        .select("*")
+        .ilike("customer_email", escapeLike(user.email))
+        .order("created_at", { ascending: false })
+    : { data: [] as any[] }
 
   // Bookings live in stripe_bookings, not inquiries. Match both bookings made
   // while signed in (user_id) and guest checkouts under the account's email.

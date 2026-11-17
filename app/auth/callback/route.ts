@@ -43,7 +43,10 @@ export async function GET(request: Request) {
             session.user.user_metadata?.full_name ||
             session.user.user_metadata?.name ||
             session.user.email?.split("@")[0],
-          user_type: "customer",
+          // The role constraint only allows regular | wholesale | admin;
+          // "customer" made this fallback insert fail. (Normally the
+          // on_auth_user_created trigger has already made the profile.)
+          user_type: "regular",
         })
 
         if (profileError) {

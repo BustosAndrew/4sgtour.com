@@ -765,7 +765,9 @@
     "paymentProcessing": "Payment processing",
     "paymentProcessingMessage": "Thank you — your bank payment is on its way. Bank transfers take up to 4 business days to clear; we'll email you as soon as it's confirmed.",
     "balanceProcessing": "Your bank payment for the balance is clearing (up to 4 business days). We'll email you once it's confirmed.",
-    "depositReceivedLegacy": "Thank you — your deposit has been received."
+    "depositReceivedLegacy": "Thank you — your deposit has been received.",
+    "packageCancelled": "Package cancelled",
+    "packageCancelledMessage": "This package has been cancelled. If you have questions about it, please contact us."
   },
   "paymentSuccess": {
     "title": "Payment Successful",

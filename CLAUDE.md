@@ -90,6 +90,19 @@ const userType = await getUserType()      // '@/lib/supabase/get-user-type'
 if (userType !== 'admin') redirect('/')
 ```
 
+Rules that follow from incidents found on 2026-11-16:
+
+- **Customer RLS matches the confirmed sign-in email**, via `public.current_user_confirmed_email()`
+  (migration `056`), never `profiles.email` — users can edit their own profile row, so matching
+  on it let anyone read another customer's inquiries, messages and bookings (`056`, `059`).
+- **Never take a role or privilege from the request body.** The messages API decides `is_admin`
+  with `getUserType()`; the RLS insert policy also forbids customers setting it.
+- **Escape visitor text in HTML emails** with `escapeHtml()` from
+  [lib/escape-html.ts](lib/escape-html.ts).
+- **Routes that cost money are admin-only**: `/api/translate`, `/api/translate/batch` (AI
+  Gateway) and `/api/upload` (Blob storage).
+- **Cron routes fail closed**: no `CRON_SECRET` → 401, never "run for anyone".
+
 ### Internationalization
 
 Locales are `en | ko | de` ([lib/i18n/config.ts](lib/i18n/config.ts)), selected by the
@@ -266,6 +279,10 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   the balance charged at once (so the next run can't debit again) and the webhook's
   `payment_intent.*` handlers settle or re-open it. Cron charges carry a per-booking-per-day
   idempotency key.
+- **Declined balance charges** are retried on up to 3 daily runs (`stripe_bookings.charge_attempts`,
+  migration `059`); then auto-charging stops for that booking (`auto_charge_date = null`) and the
+  admin and customer are emailed. The admin is emailed on the first failure and when it stops —
+  not daily. `authentication_required` (3-D Secure) stops at once: off-session can't pass it.
 - [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a hosted Stripe
   payment link when a customer picks "SMS payment link" at checkout on a standard trip.
 - Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
@@ -297,6 +314,17 @@ Admin-built, per-customer trips (`trips.is_custom`) with one `inquiries` row
 - `inquiries.balance_flow` is the admin's choice for the remaining balance: `auto_charge` (card
   saved at deposit; the charge cron bills it on `remainder_due_date`) or `pay_link` (the page shows
   "Pay remaining balance"). If a card wasn't actually saved, the page falls back to the button.
+- **Cancel vs delete** (Admin → Inquiries): anything with payments can be cancelled (record and
+  payment history kept, `status = 'cancelled'`, no further charges or reminders, no automatic
+  refund) or deleted permanently. A cancelled custom package's page takes no more payments.
+- **Messages belong to inquiries**, but paid bookings are listed by booking id. The messages API
+  accepts either and maps a booking to its conversation, starting one if needed
+  ([lib/booking-conversation.ts](lib/booking-conversation.ts)). Admin → Inquiries hides the
+  inquiry an SMS payment link writes beside its booking (same Stripe session), so each paid
+  booking is listed once and its thread is reached through it.
+- Tournament ticket requests are saved as inquiries with `inquiry_type = 'tournament'` and
+  `tournament_event_id` (migration `059`) — not `trip_id`, which references `trips`. Admin →
+  Inquiries filters by type (trips / tournaments / custom).
 - Packages paid through the old pre-created links have no linked rows; an inquiry marked
   `converted` with a deposit under 100% is treated as deposit-paid (remainder payable, reminded
   from the inquiry). Editing the price after a deposit recalculates the balance on the booking row.
@@ -400,7 +428,9 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `058` is the highest so far. `054`/`055` were applied on
+and don't assume ordering is total. `059` is the highest so far. `056`, `057` and `058` were
+applied by 2026-11-16; `059` (tournament ticket inquiries, customer RLS on the confirmed email)
+must be run by hand *before* the code that writes `inquiries.tournament_event_id` is deployed. `054`/`055` were applied on
 2026-08-15; `056` (booking status/RLS), `057` (block self-promotion to admin) and `058` (custom
 package payments: `stripe_bookings.inquiry_id`, `inquiries.balance_flow`) were written on
 2026-11-16 and must be applied by hand — check before assuming they are live. `058` must run
@@ -428,15 +458,16 @@ or every insert fails. Say so explicitly when handing over a migration.
 1. **Type errors fail the build.** `ignoreBuildErrors` is not set, so `pnpm build` is a real gate.
 2. **`getUserType()` returns `'regular'` on any failure** — missing profile, RLS denial, thrown
    error. It fails closed, so never treat a non-admin result as evidence the user is signed out.
-   Note the DB migration `034` renamed the role to `basic`, but the code still compares against
-   `'regular'`; check the actual `profiles.user_type` values before changing either side.
+   Roles are `regular | wholesale | admin` (CHECK constraint, migration `001`); the sign-up
+   trigger (`024`) always creates `regular`. Migration `034` renamed *packages* named "Regular" to
+   "Basic" — it did not touch roles. Migration `057` blocks non-admins from changing `user_type`.
 3. **Only `packages` carry a price.** Golf courses, meals, transportation, and service options
    have `is_included` flags and descriptions, never prices.
 4. **`trips.continent` is current; `trips.destination_id` is nullable legacy.** Filter on
    `continent`.
 5. **Trip slugs append a timestamp** to avoid collisions, so they are not derivable from a title.
-6. **`/api/upload` only requires authentication**, not admin — deliberate, don't "fix" it without
-   asking.
+6. **`/api/upload` is admin-only and images-only** (JPEG/PNG/WebP/AVIF/GIF, ≤ 4.5 MB), by the
+   user's decision on 2026-11-16 — every caller is an admin screen. No SVG: it can carry scripts.
 7. **Trip/tournament fields are edited in three places**: the create form, the edit form (both in
    `components/admin/`, and both large — 2400+ and 3000+ lines), and the API route handler. A
    field added to only one of them will silently not persist.

@@ -23,6 +23,9 @@ interface InquiryWithPayment extends Inquiry {
   is_fully_paid?: boolean
   trip?: { title: string; slug: string } | null
   custom_package_title?: string | null
+  /** Set by /api/admin/inquiries: what the item is about */
+  kind?: "trip" | "tournament" | "custom"
+  tournament_event?: { slug: string; tournament: { slug: string } | null } | null
 }
 
 interface InquiriesListProps {
@@ -30,6 +33,24 @@ interface InquiriesListProps {
 }
 
 type FilterType = "all" | "paid" | "unpaid"
+type KindFilter = "all" | "trip" | "tournament" | "custom"
+
+const KIND_FILTERS: { value: KindFilter; label: string }[] = [
+  { value: "all", label: "All types" },
+  { value: "trip", label: "Trips" },
+  { value: "tournament", label: "Tournaments" },
+  { value: "custom", label: "Custom" },
+]
+
+// Something paid (or a custom package that may carry payments): deleting it
+// erases payment history, so the admin is also offered "cancel, keep record".
+function hasPayments(inquiry: InquiryWithPayment) {
+  return (
+    ((inquiry as any).inquiry_type === "stripe_booking" ||
+      !!inquiry.is_custom_package) &&
+    inquiry.status !== "cancelled"
+  )
+}
 
 export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiries, setInquiries] = useState<InquiryWithPayment[]>([])
@@ -38,6 +59,8 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
   const [inquiryToDelete, setInquiryToDelete] = useState<InquiryWithPayment | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [filter, setFilter] = useState<FilterType>("all")
+  const [kindFilter, setKindFilter] = useState<KindFilter>("all")
+  const [actionError, setActionError] = useState<string | null>(null)
   const [translateTarget, setTranslateTarget] = useState<{
     tripId: string
     name: string
@@ -61,33 +84,49 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
 
   const handleDeleteClick = (inquiry: InquiryWithPayment) => {
     setInquiryToDelete(inquiry)
+    setActionError(null)
     setDeleteDialogOpen(true)
   }
 
-  const handleDeleteConfirm = async () => {
+  // mode "delete": remove permanently. mode "cancel": keep the record, mark
+  // it cancelled and stop any further charges (no automatic refund).
+  const handleDeleteConfirm = async (mode: "delete" | "cancel" = "delete") => {
     if (!inquiryToDelete) return
 
     setDeleting(true)
+    setActionError(null)
     try {
-      const response = await fetch(`/api/admin/inquiries/${inquiryToDelete.id}`, {
-        method: "DELETE",
-      })
+      const response = await fetch(
+        `/api/admin/inquiries/${inquiryToDelete.id}${mode === "cancel" ? "?mode=cancel" : ""}`,
+        { method: "DELETE" },
+      )
 
       if (response.ok) {
-        setInquiries((prev) => prev.filter((i) => i.id !== inquiryToDelete.id))
+        if (mode === "cancel") {
+          setInquiries((prev) =>
+            prev.map((i) =>
+              i.id === inquiryToDelete.id ? { ...i, status: "cancelled" as any } : i,
+            ),
+          )
+        } else {
+          setInquiries((prev) => prev.filter((i) => i.id !== inquiryToDelete.id))
+        }
         setDeleteDialogOpen(false)
         setInquiryToDelete(null)
       } else {
-        console.error("Failed to delete inquiry")
+        const data = await response.json().catch(() => ({}))
+        setActionError(data.error || "Something went wrong. Please try again.")
       }
     } catch (error) {
-      console.error("Error deleting inquiry:", error)
+      console.error("Error updating inquiry:", error)
+      setActionError("Something went wrong. Please try again.")
     } finally {
       setDeleting(false)
     }
   }
 
   const filteredInquiries = inquiries.filter((inquiry) => {
+    if (kindFilter !== "all" && (inquiry.kind || "trip") !== kindFilter) return false
     if (filter === "all") return true
     if (filter === "paid") return (inquiry as any).inquiry_type === "stripe_booking"
     if (filter === "unpaid") return (inquiry as any).inquiry_type !== "stripe_booking"
@@ -115,7 +154,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
 
   return (
     <>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="text-sm text-muted-foreground">Filter:</span>
         <div className="flex rounded-lg border border-input bg-background p-1">
           <button
@@ -149,6 +188,21 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
             Unpaid
           </button>
         </div>
+        <div className="flex rounded-lg border border-input bg-background p-1">
+          {KIND_FILTERS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setKindFilter(option.value)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                kindFilter === option.value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
         <span className="text-sm text-muted-foreground ml-2">
           ({filteredInquiries.length} {filteredInquiries.length === 1 ? "inquiry" : "inquiries"})
         </span>
@@ -157,8 +211,10 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
       <div className="space-y-4">
         {filteredInquiries.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground">
-            {filter === "all"
+            {filter === "all" && kindFilter === "all"
               ? "No inquiries yet. When customers submit booking inquiries, they'll appear here."
+              : filter === "all"
+                ? "Nothing matches this filter."
               : filter === "paid"
                 ? "No paid bookings found."
                 : "No unpaid inquiries found."}
@@ -346,6 +402,19 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         )}
                       </>
                     )}
+                    {inquiry.tournament_event?.slug &&
+                      inquiry.tournament_event.tournament?.slug && (
+                        <a
+                          href={`/tournaments/${inquiry.tournament_event.tournament.slug}/${inquiry.tournament_event.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button variant="outline" size="sm" title="View Tournament Event">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View Event
+                          </Button>
+                        </a>
+                      )}
                     {inquiry.trip?.slug && !inquiry.is_custom_package && (
                       <a
                         href={`/trips/${inquiry.trip.slug}/book`}
@@ -389,12 +458,38 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Inquiry</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the inquiry from{" "}
-              <span className="font-medium">{inquiryToDelete?.customer_name}</span>{" "}
-              for <span className="font-medium">{inquiryToDelete?.trip_title}</span>?
-              This action cannot be undone and will also delete any associated messages.
+            <DialogTitle>
+              {inquiryToDelete && hasPayments(inquiryToDelete)
+                ? "Cancel or Delete Booking"
+                : "Delete Inquiry"}
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  <span className="font-medium">{inquiryToDelete?.customer_name}</span>{" "}
+                  — <span className="font-medium">{inquiryToDelete?.trip_title}</span>
+                </p>
+                {inquiryToDelete && hasPayments(inquiryToDelete) ? (
+                  <>
+                    <p>
+                      <strong>Cancel booking</strong> keeps the record and its
+                      payment history, marks it cancelled and stops any further
+                      charges or reminders. Nothing is refunded automatically —
+                      refund in Stripe if needed.
+                    </p>
+                    <p>
+                      <strong>Delete permanently</strong> erases it, its payment
+                      record and its messages. This cannot be undone.
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    This cannot be undone and will also delete any associated
+                    messages.
+                  </p>
+                )}
+                {actionError && <p className="text-red-600">{actionError}</p>}
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -403,14 +498,23 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleting}
             >
-              Cancel
+              Back
             </Button>
+            {inquiryToDelete && hasPayments(inquiryToDelete) && (
+              <Button
+                variant="outline"
+                onClick={() => handleDeleteConfirm("cancel")}
+                disabled={deleting}
+              >
+                {deleting ? "Working..." : "Cancel booking (keep record)"}
+              </Button>
+            )}
             <Button
               variant="destructive"
-              onClick={handleDeleteConfirm}
+              onClick={() => handleDeleteConfirm("delete")}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? "Working..." : "Delete permanently"}
             </Button>
           </DialogFooter>
         </DialogContent>
