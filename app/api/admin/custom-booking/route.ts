@@ -10,6 +10,7 @@ import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 import { normalizeE164 } from '@/lib/phone'
 import { toCalendarDate } from '@/lib/calendar-date'
+import { toCancellationSchedule } from '@/lib/cancellation-policy'
 import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
 
 export async function POST(request: Request) {
@@ -137,6 +138,7 @@ export async function POST(request: Request) {
       room_photo_url: room_photo_url || null,
       highlights: highlights || [],
       show_from_price: show_from_price || false,
+      cancellation_schedule: toCancellationSchedule(body.cancellation_schedule),
       is_payment_link_trip: false,
       is_custom: true,
     }

@@ -77,6 +77,15 @@ export async function GET() {
         stripe_checkout_session_id: booking.stripe_checkout_session_id,
         remaining_balance: booking.remaining_balance,
         deposit_amount: booking.deposit_amount,
+        // Cancellation and refund (migration 060)
+        cancelled_at: booking.cancelled_at,
+        cancelled_by: booking.cancelled_by,
+        cancellation_reason: booking.cancellation_reason,
+        cancellation_fee_percent: booking.cancellation_fee_percent,
+        cancellation_fee: booking.cancellation_fee,
+        cancellation_refund_due: booking.cancellation_refund_due,
+        refund_amount: booking.refund_amount,
+        refunded_at: booking.refunded_at,
         trip: booking.trip,
       }
     })

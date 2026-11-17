@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { NextResponse } from "next/server"
+import { cancelBookingsAsAdmin } from "@/lib/booking-cancellation"
 
 /**
  * DELETE /api/admin/inquiries/[id]            — delete permanently
@@ -9,7 +10,8 @@ import { NextResponse } from "next/server"
  *
  * Cancelling a paid booking keeps its payment history and stops any further
  * charges (the balance cron skips it; reminders stop). Nothing is refunded
- * automatically — refund in Stripe if needed. Cancelling a custom package
+ * automatically — the admin issues the refund from Admin → Inquiries
+ * (/api/admin/bookings/[id]/refund). Cancelling a custom package
  * also cancels its payments and closes its /package/[id] page to payment.
  */
 export async function DELETE(
@@ -105,12 +107,12 @@ export async function DELETE(
   }
 }
 
-// Stop every future charge on a booking row and mark it cancelled.
-const CANCELLED_BOOKING = {
-  status: "cancelled",
-  remaining_balance_charged: true, // the balance cron skips it
-  auto_charge_date: null,
-}
+// What cancelBookingsAsAdmin() needs to record the amount paid.
+const CANCELLABLE_COLUMNS = `
+  id, status, created_at, total_price, total_package_price, total_paid,
+  remaining_balance, remaining_balance_charged, trip_start_date,
+  booking_details, cancelled_at
+`
 
 async function cancelRecord(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,17 +121,22 @@ async function cancelRecord(
 ) {
   const now = new Date().toISOString()
 
-  // A paid booking (listed in Admin → Inquiries with its stripe_bookings id)
+  // A paid booking (listed in Admin → Inquiries with its stripe_bookings id).
+  // Cancelling records what was paid first, so the refund can be issued
+  // from the list afterwards.
   const { data: bookings, error: bookingError } = await adminClient
     .from("stripe_bookings")
-    .update({ ...CANCELLED_BOOKING, updated_at: now })
+    .select(CANCELLABLE_COLUMNS)
     .eq("id", id)
-    .select("id")
   if (bookingError) {
-    console.error("[admin] Error cancelling booking:", bookingError)
+    console.error("[admin] Error reading booking:", bookingError)
     return NextResponse.json({ error: "Failed to cancel booking" }, { status: 500 })
   }
   if (bookings && bookings.length > 0) {
+    const cancelled = await cancelBookingsAsAdmin(adminClient, bookings)
+    if (cancelled.length === 0) {
+      return NextResponse.json({ error: "Failed to cancel booking" }, { status: 500 })
+    }
     return NextResponse.json({ success: true, cancelled: "booking" })
   }
 
@@ -148,12 +155,15 @@ async function cancelRecord(
   }
 
   if ((inquiries[0] as any).is_custom_package) {
-    const { error } = await adminClient
+    const { data: payments, error } = await adminClient
       .from("stripe_bookings")
-      .update({ ...CANCELLED_BOOKING, updated_at: now })
+      .select(CANCELLABLE_COLUMNS)
       .eq("inquiry_id", id)
       .in("status", ["pending", "processing", "confirmed", "completed"])
-    if (error) console.error("[admin] Error cancelling custom package payments:", error)
+    if (error) console.error("[admin] Error reading custom package payments:", error)
+    if (payments && payments.length > 0) {
+      await cancelBookingsAsAdmin(adminClient, payments)
+    }
   }
 
   return NextResponse.json({ success: true, cancelled: "inquiry" })

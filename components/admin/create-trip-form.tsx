@@ -27,6 +27,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { CancellationScheduleField } from "@/components/admin/cancellation-schedule-field"
+import {
+  DEFAULT_CANCELLATION_SCHEDULE,
+  type CancellationSchedule,
+} from "@/lib/cancellation-policy"
 
 const CONTINENTS = ["World", "Asia", "Europe", "North America", "Latin America"]
 
@@ -167,7 +172,9 @@ export function CreateTripForm() {
   const [showFromPrice, setShowFromPrice] = useState(false)
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
   const [depositPercentage, setDepositPercentage] = useState(30)
-  
+  const [cancellationSchedule, setCancellationSchedule] =
+    useState<CancellationSchedule>(DEFAULT_CANCELLATION_SCHEDULE)
+
   // Package translations
   const [packageTranslations, setPackageTranslations] = useState({
     premium_ko: "",
@@ -512,6 +519,8 @@ export function CreateTripForm() {
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
+          deposit_percentage: depositPercentage,
+          cancellation_schedule: cancellationSchedule,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages: packages.map((pkg) => ({
             name: pkg.name,
@@ -1466,6 +1475,11 @@ export function CreateTripForm() {
                 </p>
               )}
             </div>
+
+            <CancellationScheduleField
+              value={cancellationSchedule}
+              onChange={setCancellationSchedule}
+            />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

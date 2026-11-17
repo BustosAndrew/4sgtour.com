@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/provider'
 import { Button } from '@/components/ui/button'
 import { differenceInDays, format } from 'date-fns'
 import { CheckCircle2, Calendar, MapPin, Users, Clock, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { UserInquiryMessages } from '@/components/user-inquiry-messages'
+import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog'
+import { selfCancelBlock } from '@/lib/cancellation-policy'
 
 interface BookingsContentProps {
   bookings: any[]
@@ -36,6 +39,7 @@ export function BookingsContent({
   userEmail,
 }: BookingsContentProps) {
   const t = useTranslations('bookingsPage')
+  const [cancelTarget, setCancelTarget] = useState<any | null>(null)
 
   // An SMS payment link (and a custom package) writes both an inquiry and a
   // stripe_bookings row for the same Stripe session. Show the booking once,
@@ -231,6 +235,44 @@ export function BookingsContent({
                             </div>
                           )
                         )}
+                        {booking.cancelled_at && (
+                          <div className="mt-2 space-y-1 border-t border-border pt-2">
+                            <div className="text-muted-foreground">
+                              {t('cancelledOn', {
+                                date: format(new Date(booking.cancelled_at), 'MMM d, yyyy'),
+                              })}
+                            </div>
+                            {booking.cancellation_fee_percent != null && (
+                              <div>
+                                <span className="text-muted-foreground">
+                                  {t('cancellationFeeLabel', {
+                                    percent: Number(booking.cancellation_fee_percent),
+                                  })}
+                                </span>{' '}
+                                <span className="font-medium">
+                                  {formatMoney(booking.cancellation_fee)}
+                                </span>
+                              </div>
+                            )}
+                            {booking.refunded_at ? (
+                              <div className="font-medium">
+                                {Number(booking.refund_amount) > 0
+                                  ? t('refundIssued', {
+                                      amount: formatMoney(booking.refund_amount),
+                                    })
+                                  : t('noRefundDue')}
+                              </div>
+                            ) : booking.cancellation_refund_due != null ? (
+                              <div className="font-medium">
+                                {Number(booking.cancellation_refund_due) > 0
+                                  ? t('refundPending', {
+                                      amount: formatMoney(booking.cancellation_refund_due),
+                                    })
+                                  : t('noRefundDue')}
+                              </div>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center justify-between sm:ml-4 sm:flex-col sm:items-end sm:text-right">
@@ -256,6 +298,16 @@ export function BookingsContent({
                             {formatMoney(booking.total_price)}
                           </p>
                         </div>
+                      )}
+                      {!selfCancelBlock(booking) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-0 sm:mt-3 text-destructive hover:text-destructive"
+                          onClick={() => setCancelTarget(booking)}
+                        >
+                          {t('cancelBooking')}
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -439,6 +491,19 @@ export function BookingsContent({
             <Link href="/destinations">{t('browseDestinations')}</Link>
           </Button>
         </div>
+      )}
+
+      {cancelTarget && (
+        <CancelBookingDialog
+          booking={cancelTarget}
+          tripTitle={
+            cancelTarget.booking_details?.trip_title || cancelTarget.trip_title || ''
+          }
+          open={!!cancelTarget}
+          onOpenChange={(open) => {
+            if (!open) setCancelTarget(null)
+          }}
+        />
       )}
     </>
   )

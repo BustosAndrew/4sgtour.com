@@ -9,6 +9,11 @@ import { PhoneInput } from '@/components/phone-input'
 import { isE164 } from '@/lib/phone'
 import { formatCalendarDate } from '@/lib/calendar-date'
 import type { BalanceFlow } from '@/lib/custom-package'
+import { CancellationScheduleField } from '@/components/admin/cancellation-schedule-field'
+import {
+  DEFAULT_CANCELLATION_SCHEDULE,
+  type CancellationSchedule,
+} from '@/lib/cancellation-policy'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Calendar } from '@/components/ui/calendar'
@@ -183,6 +188,8 @@ export function CreateCustomBookingForm({
     },
   ])
   const [showFromPrice, setShowFromPrice] = useState(false)
+  const [cancellationSchedule, setCancellationSchedule] =
+    useState<CancellationSchedule>(DEFAULT_CANCELLATION_SCHEDULE)
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
 
   // Step 3: Booking Options
@@ -615,6 +622,7 @@ export function CreateCustomBookingForm({
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
+          cancellation_schedule: cancellationSchedule,
           highlights: highlights.filter((h) => h.trim() !== ''),
           packages: packages.map((pkg) => ({
             name: pkg.name,
@@ -1479,6 +1487,11 @@ export function CreateCustomBookingForm({
                 onCheckedChange={setShowFromPrice}
               />
             </div>
+
+            <CancellationScheduleField
+              value={cancellationSchedule}
+              onChange={setCancellationSchedule}
+            />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

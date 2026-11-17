@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { stripe } from "@/lib/stripe"
+import { toCancellationSchedule } from "@/lib/cancellation-policy"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
       highlights: highlights || [],
       show_from_price: body.show_from_price || false,
       deposit_percentage: body.deposit_percentage ?? 30,
+      cancellation_schedule: toCancellationSchedule(body.cancellation_schedule),
       is_payment_link_trip: false,
     }
 

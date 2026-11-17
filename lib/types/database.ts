@@ -46,6 +46,8 @@ export interface Trip {
   show_from_price: boolean
   is_custom: boolean
   deposit_percentage: number | null
+  /** Fee schedule from the cancellation policy. Migration 060. */
+  cancellation_schedule: 'standard' | 'western_us'
   created_at: string
   updated_at: string
 }
@@ -198,6 +200,21 @@ export interface StripeBooking {
   remainder_due_date: string | null
   remainder_payment_link: string | null
   payment_reminder_sent_at: string | null
+  /** Cancellation, frozen when it happened (migration 060). */
+  cancelled_at: string | null
+  cancelled_by: 'customer' | 'admin' | null
+  cancellation_reason: string | null
+  cancellation_schedule: 'standard' | 'western_us' | null
+  cancellation_fee_percent: number | null
+  cancellation_fee: number | null
+  /** Paid toward the trip price at cancellation, excluding card fees. */
+  cancellation_paid_amount: number | null
+  /** Paid − fee (floored at 0), before the 8% card refund fee. */
+  cancellation_refund_due: number | null
+  /** Refund the admin issued; 0 = closed with no refund. */
+  refund_amount: number | null
+  refunded_at: string | null
+  stripe_refund_ids: string[] | null
   created_at: string
   updated_at: string
 }

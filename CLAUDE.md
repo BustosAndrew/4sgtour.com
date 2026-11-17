@@ -331,6 +331,34 @@ Admin-built, per-customer trips (`trips.is_custom`) with one `inquiries` row
 - Edits update child rows (packages, courses, meals, transport, services) **in place by id** so
   their `_ko`/`_de` translations survive; never delete-and-reinsert them.
 
+### Cancellations & refunds
+
+The cancellation policy on `/terms` is enforced in code by
+[lib/cancellation-policy.ts](lib/cancellation-policy.ts) — pure, shared by the browser and the
+server. Change fee tiers there and in the Terms copy together.
+
+- **Customers cancel, admins refund.** My Bookings → *Cancel booking* shows the fee and estimated
+  refund, then posts to `/api/bookings/[id]/cancel`, which recomputes the quote (refusing with
+  `quote_changed` if it differs from what was shown), cancels at once (no further charges or
+  reminders; a custom package's inquiry is cancelled too) and emails both sides. Nothing is
+  refunded automatically: Admin → Inquiries shows *Refund pending* and a **Refund** button
+  (`/api/admin/bookings/[id]/refund`) offering the policy refund, a full refund (company
+  cancellation, e.g. too few participants), another amount, or closing with none.
+- Each trip has `trips.cancellation_schedule` (`standard` 50/60/80/100% or `western_us`
+  20/50/80/100%, migration `060`), set in all four trip/custom-package forms.
+- Fee = tier % × **trip total**, by calendar days before departure in **US Eastern** time.
+  Refund = paid toward the trip (excluding card processing fees) − fee, floored at 0 — an unpaid
+  balance is never charged. Booked the day before departure → no refund. Card refunds issued after
+  the day of payment lose 8%, applied at refund time (it depends on the refund date).
+- The fee is **frozen on the row at cancellation** (`cancellation_*` columns), because cancelling
+  sets `remaining_balance_charged = true` and the paid amount can't be recovered afterwards.
+  Admin cancels record `cancellation_paid_amount` too (via `cancelBookingsAsAdmin()`); unpaid
+  `pending` rows are just closed.
+- Self-cancel is refused while a bank payment is clearing and after departure.
+- Refunds draw from the balance PaymentIntent first, then the deposit, with per-portion Stripe
+  idempotency keys; the row becomes `refunded` (or stays `cancelled` with `refund_amount = 0`).
+  The 4% company-check refund fee in the policy is not modelled — refunds go back through Stripe.
+
 ### SMS (Twilio)
 
 - Every number sent to Twilio must be **E.164**. Collect phones with
@@ -385,9 +413,10 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 `/admin/tournaments/[id]/events/[eventId]`
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
-translate-*, api-keys), `/api/inquiry`, `/api/messages`, `/api/tournament-tickets`,
-`/api/upload`, `/api/translate`, `/api/translate/batch`, `/api/stripe/webhook`, `/api/cron/*`,
-`/api/package/[id]/checkout` (custom-package payments, public)
+translate-*, api-keys, bookings/[id]/refund), `/api/inquiry`, `/api/messages`,
+`/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
+`/api/stripe/webhook`, `/api/cron/*`, `/api/package/[id]/checkout` (custom-package payments,
+public), `/api/bookings/[id]/cancel` (customer self-cancellation, signed in)
 
 Partner (this repo only, bearer-authenticated): `/api/v1/trips/latest` — see
 [Partner API](#partner-api-4sgtourcom-only).
@@ -428,7 +457,10 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `059` is the highest so far. `056`, `057` and `058` were
+and don't assume ordering is total. `060` is the highest so far. `060` (booking cancellations:
+`trips.cancellation_schedule`, `stripe_bookings.cancelled_at`/`cancellation_*`/`refund_*`) was
+written on 2026-11-17 and must run *before* its code ships — My Bookings and the trip forms read
+and write its columns. `056`, `057` and `058` were
 applied by 2026-11-16; `059` (tournament ticket inquiries, customer RLS on the confirmed email)
 must be run by hand *before* the code that writes `inquiries.tournament_event_id` is deployed. `054`/`055` were applied on
 2026-08-15; `056` (booking status/RLS), `057` (block self-promotion to admin) and `058` (custom

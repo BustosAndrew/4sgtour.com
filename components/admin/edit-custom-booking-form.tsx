@@ -10,6 +10,11 @@ import { PhoneInput } from '@/components/phone-input'
 import { isE164, normalizeE164 } from '@/lib/phone'
 import { formatCalendarDate, parseCalendarDate } from '@/lib/calendar-date'
 import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
+import { CancellationScheduleField } from '@/components/admin/cancellation-schedule-field'
+import {
+  toCancellationSchedule,
+  type CancellationSchedule,
+} from '@/lib/cancellation-policy'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Calendar } from '@/components/ui/calendar'
@@ -148,6 +153,7 @@ export interface EditCustomBookingFormProps {
     courses_photo_url: string | null
     room_photo_url: string | null
     show_from_price?: boolean
+    cancellation_schedule?: string | null
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
     golf_courses?: any[]
@@ -284,6 +290,10 @@ export function EditCustomBookingForm({
   const [showFromPrice, setShowFromPrice] = useState(
     trip.show_from_price ?? false,
   )
+  const [cancellationSchedule, setCancellationSchedule] =
+    useState<CancellationSchedule>(
+      toCancellationSchedule(trip.cancellation_schedule),
+    )
   const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
     (trip.packages || []).some((p: any) => p.name === 'Upgrade'),
   )
@@ -712,6 +722,7 @@ export function EditCustomBookingForm({
           course_images: coursePhotos,
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
+          cancellation_schedule: cancellationSchedule,
           highlights: highlights.filter((h) => h.trim() !== ''),
           packages: packages.map((pkg) => ({
             id: pkg.id,
@@ -1402,6 +1413,11 @@ export function EditCustomBookingForm({
                 onCheckedChange={setShowFromPrice}
               />
             </div>
+
+            <CancellationScheduleField
+              value={cancellationSchedule}
+              onChange={setCancellationSchedule}
+            />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

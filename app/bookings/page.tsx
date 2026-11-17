@@ -13,8 +13,11 @@ const BOOKING_COLUMNS = `
   id, created_at, status, trip_id, trip_title, booking_details,
   total_price, total_package_price, total_paid, remaining_balance,
   remaining_balance_charged, auto_charge_date, trip_start_date,
-  stripe_checkout_session_id, inquiry_id,
-  trip:trips(slug)
+  stripe_checkout_session_id, inquiry_id, payment_method,
+  remaining_balance_charged_at, remaining_balance_payment_intent_id,
+  cancelled_at, cancellation_fee_percent, cancellation_fee,
+  cancellation_refund_due, refund_amount, refunded_at,
+  trip:trips(slug, cancellation_schedule)
 `
 
 // Escape LIKE wildcards so an address such as first_last@x.com matches only

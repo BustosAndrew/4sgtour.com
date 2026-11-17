@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Mail, DollarSign, MessageSquare, Trash2, CheckCircle, ExternalLink, Languages } from "lucide-react"
+import { Calendar, Mail, DollarSign, MessageSquare, Trash2, CheckCircle, ExternalLink, Languages, RotateCcw } from "lucide-react"
 import { TranslateDialog } from "@/components/admin/translate-dialog"
+import { RefundDialog } from "@/components/admin/refund-dialog"
 import { differenceInDays } from "date-fns"
 import {
   Dialog,
@@ -26,6 +27,25 @@ interface InquiryWithPayment extends Inquiry {
   /** Set by /api/admin/inquiries: what the item is about */
   kind?: "trip" | "tournament" | "custom"
   tournament_event?: { slug: string; tournament: { slug: string } | null } | null
+  /** Paid bookings: cancellation and refund (migration 060) */
+  cancelled_at?: string | null
+  cancelled_by?: "customer" | "admin" | null
+  cancellation_reason?: string | null
+  cancellation_fee_percent?: number | null
+  cancellation_fee?: number | null
+  cancellation_refund_due?: number | null
+  refund_amount?: number | null
+  refunded_at?: string | null
+}
+
+// A cancelled paid booking whose refund hasn't been issued or closed yet.
+function needsRefund(inquiry: InquiryWithPayment) {
+  return (
+    (inquiry as any).inquiry_type === "stripe_booking" &&
+    inquiry.status === "cancelled" &&
+    !!inquiry.cancelled_at &&
+    !inquiry.refunded_at
+  )
 }
 
 interface InquiriesListProps {
@@ -48,7 +68,8 @@ function hasPayments(inquiry: InquiryWithPayment) {
   return (
     ((inquiry as any).inquiry_type === "stripe_booking" ||
       !!inquiry.is_custom_package) &&
-    inquiry.status !== "cancelled"
+    inquiry.status !== "cancelled" &&
+    (inquiry.status as string) !== "refunded"
   )
 }
 
@@ -65,6 +86,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
     tripId: string
     name: string
   } | null>(null)
+  const [refundTarget, setRefundTarget] = useState<InquiryWithPayment | null>(null)
 
   useEffect(() => {
     fetchInquiries()
@@ -108,6 +130,8 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
               i.id === inquiryToDelete.id ? { ...i, status: "cancelled" as any } : i,
             ),
           )
+          // Pick up the recorded cancellation so its Refund button appears.
+          fetchInquiries()
         } else {
           setInquiries((prev) => prev.filter((i) => i.id !== inquiryToDelete.id))
         }
@@ -258,7 +282,44 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         {inquiry.is_fully_paid ? "Fully Paid" : "Paid"}
                       </Badge>
                     )}
+                    {needsRefund(inquiry) && (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20">
+                        Refund pending
+                      </Badge>
+                    )}
+                    {inquiry.refunded_at && (
+                      <Badge className="bg-slate-500/10 text-slate-700 border-slate-500/20">
+                        {Number(inquiry.refund_amount) > 0
+                          ? `Refunded $${Number(inquiry.refund_amount).toFixed(2)}`
+                          : "Closed, no refund"}
+                      </Badge>
+                    )}
                   </div>
+
+                  {inquiry.cancelled_at && (
+                    <div className="rounded border border-red-500/20 bg-red-500/5 p-2 text-sm">
+                      <div>
+                        Cancelled by{" "}
+                        <span className="font-medium">
+                          {inquiry.cancelled_by === "customer" ? "the customer" : "the team"}
+                        </span>{" "}
+                        on {new Date(inquiry.cancelled_at).toLocaleDateString()}
+                        {inquiry.cancellation_fee_percent != null && (
+                          <>
+                            {" "}
+                            · {Number(inquiry.cancellation_fee_percent)}% fee ($
+                            {Number(inquiry.cancellation_fee || 0).toFixed(2)}) · refund due $
+                            {Number(inquiry.cancellation_refund_due || 0).toFixed(2)} before card fee
+                          </>
+                        )}
+                      </div>
+                      {inquiry.cancellation_reason && (
+                        <div className="mt-1 text-muted-foreground">
+                          Reason: {inquiry.cancellation_reason}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid gap-2 text-sm">
                     <div className="flex items-center gap-2">
@@ -431,6 +492,17 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         </Button>
                       </a>
                     )}
+                    {needsRefund(inquiry) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRefundTarget(inquiry)}
+                        className="border-amber-500/40 text-amber-700 hover:bg-amber-50"
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Refund
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -475,7 +547,7 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                       <strong>Cancel booking</strong> keeps the record and its
                       payment history, marks it cancelled and stops any further
                       charges or reminders. Nothing is refunded automatically —
-                      refund in Stripe if needed.
+                      issue it afterwards with the booking&apos;s Refund button.
                     </p>
                     <p>
                       <strong>Delete permanently</strong> erases it, its payment
@@ -519,6 +591,19 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RefundDialog
+        bookingId={refundTarget?.id ?? null}
+        customerName={refundTarget?.customer_name}
+        tripTitle={refundTarget?.trip_title}
+        onOpenChange={(open) => {
+          if (!open) setRefundTarget(null)
+        }}
+        onDone={() => {
+          setRefundTarget(null)
+          fetchInquiries()
+        }}
+      />
 
       {translateTarget && (
         <TranslateDialog

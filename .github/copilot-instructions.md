@@ -192,6 +192,14 @@ their own deployment — pass it through as `getFromEmail(booking.site_url)`.
 Admin-created custom bookings can be paid via a Twilio SMS link
 (`app/actions/send-payment-link.ts`).
 
+Cancellations follow the `/terms` policy, coded in `lib/cancellation-policy.ts` (shared by browser
+and server). Customers cancel from My Bookings (`/api/bookings/[id]/cancel`): the server recomputes
+the fee, cancels at once (charges and reminders stop) and freezes the fee on the row. Nothing is
+refunded automatically — admins issue the refund from Admin → Inquiries
+(`/api/admin/bookings/[id]/refund`). Fee = tier % × trip total by calendar days before departure
+(US Eastern), per `trips.cancellation_schedule` (`standard` / `western_us`); refund = paid toward
+the trip − fee, floored at 0; card refunds after the day of payment lose 8%.
+
 ### Database
 
 Active tables: `profiles`, `trips`, `trip_images`, `trip_golf_courses`, `trip_meal_options`,
@@ -220,6 +228,8 @@ Numbered SQL files in `scripts/`, applied by hand in the Supabase SQL editor. No
 no local Supabase. Numbers have collided historically — pick the next unused number, and don't
 assume ordering is total. `057` is the highest. `054`/`055` were applied on 2026-08-15;
 `056`–`058` are applied (2026-11-16). `059` (tournament ticket inquiries, customer RLS) must run before the code that writes `inquiries.tournament_event_id` ships.
+`060` (booking cancellations: `trips.cancellation_schedule`, `stripe_bookings` cancellation/refund
+columns) must run before its code ships.
 
 ### Partner API (this repo only)
 

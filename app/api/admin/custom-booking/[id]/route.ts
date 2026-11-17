@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { normalizeE164 } from '@/lib/phone'
 import { toCalendarDate } from '@/lib/calendar-date'
 import { getBalanceFlow } from '@/lib/custom-package'
+import { toCancellationSchedule } from '@/lib/cancellation-policy'
 
 // Translation columns are never written from here unless the form sends
 // them: child rows are updated in place by id, so their Korean/German
@@ -222,6 +223,11 @@ export async function PATCH(
     room_photo_url: body.room_photo_url,
     show_from_price: body.show_from_price ?? false,
     updated_at: new Date().toISOString(),
+  }
+  if ('cancellation_schedule' in body) {
+    updateData.cancellation_schedule = toCancellationSchedule(
+      body.cancellation_schedule,
+    )
   }
 
   // Korean and German only when the form sends them (German is the primary
