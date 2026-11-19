@@ -5,6 +5,8 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 import { getSiteUrl } from '@/lib/site-url'
+import { cardFeeCents } from '@/lib/booking-price'
+import { isCardPaymentMethod } from '@/lib/stripe-card-fee'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -96,12 +98,16 @@ export async function GET(request: Request) {
           continue
         }
 
-        // Calculate remaining balance amount in cents
-        // Add 4% processing fee for card payments
+        // The card processing fee applies whenever the saved method is a
+        // card — decided from the payment method itself, because SMS-link and
+        // custom-package bookings are recorded as 'sms_link' even when the
+        // customer paid by card.
         const remainingBalanceCents = Math.round(booking.remaining_balance * 100)
-        const processingFee = booking.payment_method === 'card' 
-          ? Math.round(remainingBalanceCents * 0.04) 
-          : 0
+        const isCard = await isCardPaymentMethod(
+          stripe,
+          booking.stripe_payment_method_id,
+        )
+        const processingFee = isCard ? cardFeeCents(remainingBalanceCents) : 0
         const totalChargeCents = remainingBalanceCents + processingFee
 
         console.log(`[v0] Charging booking ${booking.id}: $${(totalChargeCents / 100).toFixed(2)}`)
@@ -126,8 +132,9 @@ export async function GET(request: Request) {
           // One charge per booking per day: a re-run (or a run whose DB
           // update failed) gets the same PaymentIntent back from Stripe
           // instead of charging again. A declined card still retries the
-          // next day under a new key.
-          idempotencyKey: `remaining-balance-${booking.id}-${today}`,
+          // next day under a new key. ('-fee' keeps a key used before the
+          // card fee applied here from being replayed with a new amount.)
+          idempotencyKey: `remaining-balance-${booking.id}-${today}-fee`,
         })
 
         if (paymentIntent.status === 'succeeded') {
@@ -138,7 +145,9 @@ export async function GET(request: Request) {
               remaining_balance_charged: true,
               remaining_balance_charged_at: new Date().toISOString(),
               remaining_balance_payment_intent_id: paymentIntent.id,
-              total_paid: booking.total_paid + (totalChargeCents / 100),
+              total_paid: Number(booking.total_paid || 0) + totalChargeCents / 100,
+              // Every card fee collected, not only the deposit's.
+              processing_fee: Number(booking.processing_fee || 0) + processingFee / 100,
             })
             .eq('id', booking.id)
 

@@ -76,7 +76,15 @@ export function toCents(amount: number): number {
   return Math.round(amount * 100)
 }
 
+// Every payment made by card carries this fee, on top of the amount paid
+// toward the trip — deposits, full payments, balances, SMS links, custom
+// packages and the balance auto-charge alike. Bank (ACH) payments have none.
 export const CARD_PROCESSING_FEE_RATE = 0.04
+
+/** The card processing fee on an amount, both in integer cents. */
+export function cardFeeCents(amountCents: number): number {
+  return Math.round(amountCents * CARD_PROCESSING_FEE_RATE)
+}
 
 export type PaymentType = 'deposit' | 'full'
 export type PaymentMethodKind = 'card' | 'ach' | 'sms'
@@ -110,12 +118,9 @@ export function calculatePaymentAmounts(
   const totalCents = toCents(totalPrice)
   const depositCents = Math.round(totalCents * (depositPercentage / 100))
   const paymentCents = paymentType === 'full' ? totalCents : depositCents
-  // SMS links let the customer choose card or bank on Stripe's hosted page,
-  // so no card fee is added there (matches the previous behaviour).
-  const feeCents =
-    paymentMethod === 'card'
-      ? Math.round(paymentCents * CARD_PROCESSING_FEE_RATE)
-      : 0
+  // 'sms' is the amount the text quotes before the customer picks a method:
+  // the /pay/[id] page adds the card fee if they then choose card.
+  const feeCents = paymentMethod === 'card' ? cardFeeCents(paymentCents) : 0
   return {
     totalCents,
     depositCents,

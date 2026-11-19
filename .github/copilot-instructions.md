@@ -189,8 +189,16 @@ with `Bearer ${CRON_SECRET}`: `/api/cron/charge-remaining-balance` (08:00 UTC) a
 `/api/cron/send-payment-reminders` (09:00 UTC). Both process bookings from all three sites, so
 they resolve the sender and links from each row's `site_url` (migration `053`) rather than from
 their own deployment — pass it through as `getFromEmail(booking.site_url)`.
-Admin-created custom bookings can be paid via a Twilio SMS link
-(`app/actions/send-payment-link.ts`).
+Customers can ask for a Twilio SMS payment link at checkout (`app/actions/send-payment-link.ts`);
+it points at `/pay/[id]` (id = the pending `stripe_bookings` row), where `/api/pay/[id]/checkout`
+creates the Stripe session for the method chosen.
+
+**Every card payment carries the 4% card processing fee** (`cardFeeCents()` in
+`lib/booking-price.ts`); bank (ACH) payments have none. Stripe can't add a fee only when a card is
+chosen, so never create a session that accepts both card and bank — each Pay button names its
+method. The balance cron decides from the saved payment method's type
+(`isCardPaymentMethod()` in `lib/stripe-card-fee.ts`), not from `payment_method`, because older
+SMS-link and custom-package rows say `'sms_link'`.
 
 Cancellations follow the `/terms` policy, coded in `lib/cancellation-policy.ts` (shared by browser
 and server). Customers cancel from My Bookings (`/api/bookings/[id]/cancel`): the server recomputes

@@ -283,8 +283,23 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   migration `059`); then auto-charging stops for that booking (`auto_charge_date = null`) and the
   admin and customer are emailed. The admin is emailed on the first failure and when it stops —
   not daily. `authentication_required` (3-D Secure) stops at once: off-session can't pass it.
-- [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a hosted Stripe
-  payment link when a customer picks "SMS payment link" at checkout on a standard trip.
+- **Every card payment carries the 4% card processing fee** (`CARD_PROCESSING_FEE_RATE` /
+  `cardFeeCents()` in [lib/booking-price.ts](lib/booking-price.ts)) — checkout, SMS links,
+  custom packages, balances and the balance auto-charge. Bank (ACH) payments have none. A Stripe
+  page can't add a fee only when a card is chosen, so **never create a session that accepts both
+  card and bank**: each Pay button names its method and gets a single-method session, the card
+  one with a fee line item. The charge cron decides by asking Stripe whether the *saved payment
+  method* is a card (`isCardPaymentMethod()`, [lib/stripe-card-fee.ts](lib/stripe-card-fee.ts)),
+  because older SMS-link and custom-package rows say `payment_method = 'sms_link'` whatever was
+  used. `processing_fee` accumulates every fee collected; `total_paid` includes them.
+- [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a link to
+  **`/pay/[id]`** (id = the pending `stripe_bookings` row, generated before the text so it can go
+  in it) when a customer picks "SMS payment link" at checkout on a standard trip. That page
+  offers bank transfer or card (+4%); `/api/pay/[id]/checkout` creates the session on demand,
+  closes any earlier one, and moves the booking and its inquiry from the `paylink_<id>`
+  placeholder to the real session id (the webhook matches by session id). Links last 24 hours.
+  Read with the service role ([lib/payment-link-server.ts](lib/payment-link-server.ts)) — the
+  unguessable id is the credential, as with `/package/[id]`.
 - Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
   are guests and `/bookings` requires signing in.
 - Vercel Cron ([vercel.json](vercel.json)) runs daily:
@@ -367,7 +382,8 @@ server. Change fee tiers there and in the Terms copy together.
   prefixes (Korean `010-…` → `+8210…`). Background senders use `phoneForSms()`, which keeps
   legacy non-E.164 values as they were.
 - Send the text **before** writing rows that depend on it, so a Twilio failure leaves nothing
-  behind (see the SMS payment link action, which also expires the unused Stripe session).
+  behind (the SMS payment link action is the exception: its row *is* the `/pay/[id]` link, so
+  it writes the row first and deletes it if Twilio refuses).
 - Texts are English-only by decision. Twilio's A2P campaign registration must be in English;
   translated texts later need samples (with English translations) added to the campaign first.
 - Reminders ([send-payment-reminders](app/api/cron/send-payment-reminders/route.ts)) are driven
@@ -400,7 +416,7 @@ authenticated with a key issued at **Admin → API Access**. Reference:
 
 Public: `/`, `/destinations`, `/destinations/[continent]`,
 `/destinations/[continent]/[destination]`, `/trips/[slug]`, `/trips/[slug]/book`,
-`/package/[id]`, `/tournaments`, `/tournaments/[slug]`, `/tournaments/[slug]/[eventSlug]`,
+`/package/[id]`, `/pay/[id]` (SMS payment links), `/tournaments`, `/tournaments/[slug]`, `/tournaments/[slug]/[eventSlug]`,
 `/tournaments/[slug]/[eventSlug]/tickets`, `/contact`, `/privacy`, `/terms`
 
 Authenticated: `/bookings`, `/favorites`, `/auth/*` (`login`, `sign-up`, `callback`,
@@ -415,7 +431,8 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
 translate-*, api-keys, bookings/[id]/refund), `/api/inquiry`, `/api/messages`,
 `/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
-`/api/stripe/webhook`, `/api/cron/*`, `/api/package/[id]/checkout` (custom-package payments,
+`/api/stripe/webhook`, `/api/cron/*`, `/api/pay/[id]/checkout` (SMS-link payments, public),
+`/api/package/[id]/checkout` (custom-package payments,
 public), `/api/bookings/[id]/cancel` (customer self-cancellation, signed in)
 
 Partner (this repo only, bearer-authenticated): `/api/v1/trips/latest` — see

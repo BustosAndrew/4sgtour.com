@@ -5,6 +5,17 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 /** What an item in Admin → Inquiries is about — drives the type filter. */
 type InquiryKind = "trip" | "tournament" | "custom"
 
+// stripe_bookings rows that are real bookings: money received, clearing, or
+// once received (cancelled / refunded). The same list My Bookings uses.
+//
+// A 'pending' row is written every time a customer presses "Continue to
+// payment" — before they enter a card — and also for every SMS payment link
+// sent. Abandoned ones become 'expired' a day later; bank payments that
+// bounce become 'failed'. Listing those rows labelled "Paid Booking" made
+// trips look booked by people who never paid (a customer who opened checkout
+// on two trips and paid for one showed as having booked both).
+const BOOKED_STATUSES = ["processing", "confirmed", "completed", "cancelled", "refunded"]
+
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -34,6 +45,7 @@ export async function GET() {
         *,
         trip:trips(title, slug)
       `)
+      .in("status", BOOKED_STATUSES)
       .order("created_at", { ascending: false })
 
     if (stripeError) {
@@ -94,7 +106,8 @@ export async function GET() {
     // with the same Stripe session as the booking. Show the booking once:
     // its "View in Inbox" reaches that inquiry's messages through
     // lib/booking-conversation.ts. Custom-package inquiries always stay —
-    // they are the package itself.
+    // they are the package itself. Only paid bookings are fetched above, so
+    // an SMS link that was never paid stays listed as its unpaid inquiry.
     const bookingSessions = new Set(
       (stripeBookings || [])
         .map((booking) => booking.stripe_checkout_session_id)

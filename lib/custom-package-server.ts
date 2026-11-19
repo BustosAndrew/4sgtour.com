@@ -31,6 +31,7 @@ const BOOKING_COLUMNS = [
   'id',
   'status',
   'total_paid',
+  'processing_fee',
   'remaining_balance',
   'remaining_balance_charged',
   'remaining_balance_payment_intent_id',

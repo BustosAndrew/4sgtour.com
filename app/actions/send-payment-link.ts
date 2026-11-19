@@ -1,7 +1,9 @@
 'use server'
 
-import { stripe } from '@/lib/stripe'
+import { randomUUID } from 'node:crypto'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { paymentLinkSessionKey } from '@/lib/payment-link-server'
 import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 import { normalizeE164 } from '@/lib/phone'
@@ -11,6 +13,7 @@ import {
 } from '@/lib/resolve-booking-price'
 import {
   calculatePaymentAmounts,
+  cardFeeCents,
   type PaymentLinkResult,
 } from '@/lib/booking-price'
 
@@ -101,9 +104,6 @@ async function sendPaymentLinkSmsInner(
     await resolveBookingPrice(supabase, params)
 
   const isFullPayment = params.paymentType === 'full'
-  const paymentLabel = isFullPayment
-    ? 'Full Payment'
-    : `${depositPercentage}% Deposit`
   // Same helper the payment screen uses, so the amount on screen, in the
   // text message and on Stripe's page are identical to the cent.
   const amounts = calculatePaymentAmounts(
@@ -143,21 +143,6 @@ async function sendPaymentLinkSmsInner(
     day: 'numeric',
   })
 
-  // Build line items (no card fee for SMS — they choose method on hosted page)
-  const lineItems: any[] = [
-    {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `${tripTitle} - ${packageName} (${paymentLabel})`,
-          description: `Travel dates: ${startDate} to ${endDate}. Room: ${roomType}.`,
-        },
-        unit_amount: depositAmount,
-      },
-      quantity: 1,
-    },
-  ]
-
   // Get current user if logged in
   const {
     data: { user },
@@ -165,89 +150,31 @@ async function sendPaymentLinkSmsInner(
 
   const appUrl = getSiteUrl()
 
-  // Create a HOSTED checkout session (produces a shareable URL)
-  const session = await stripe.checkout.sessions.create({
-    line_items: lineItems,
-    mode: 'payment',
-    // Public page — /bookings requires signing in, and most customers paying
-    // from a text are guests.
-    success_url: `${appUrl}/checkout/custom/success`,
-    cancel_url: `${appUrl}/trips`,
-    customer_email: customerEmail,
-    // Allow both payment methods on the hosted page
-    payment_method_types: ['card', 'us_bank_account'],
-    // Save the payment method for off-session use so the cron job can
-    // auto-charge the remaining balance on the auto_charge_date. Not needed
-    // (and it triggers stricter issuer checks) when paying in full.
-    ...(isFullPayment
-      ? {}
-      : { payment_intent_data: { setup_future_usage: 'off_session' as const } }),
-    metadata: {
-      site_url: appUrl,
-      trip_id: tripId,
-      trip_title: tripTitle,
-      package_id: packageId,
-      package_name: packageName,
-      user_id: user?.id || '',
-      customer_name: customerName,
-      customer_email: customerEmail,
-      customer_phone: toPhone,
-      start_date: startDate,
-      end_date: endDate,
-      room_type: roomType,
-      golf_courses: JSON.stringify(golfCourses || []),
-      meal_option: mealOption || '',
-      transport_option: transportOption || '',
-      additional_requests: additionalRequests || '',
-      payment_method: 'sms_link',
-      payment_type: isFullPayment ? 'full' : 'deposit',
-      is_guest: user ? 'false' : 'true',
-      total_price: String(totalPrice),
-      deposit_percentage: String(depositPercentage),
-      remaining_balance: String(remainingBalance),
-      auto_charge_date: isFullPayment ? '' : autoChargeDateIso,
-    },
-    // Expire after 24 hours
-    expires_at: Math.floor(Date.now() / 1000) + 86400,
-  })
+  // The text links to /pay/[id] on this site, not straight to Stripe: there
+  // the customer picks bank transfer or card, and a card payment carries the
+  // card processing fee. One Stripe page can't take both methods and add the
+  // fee only for cards, so the Stripe session is created when they choose
+  // (app/api/pay/[id]/checkout). The id is the pending booking row's, chosen
+  // here so it can go in the text before the row is written.
+  const bookingId = randomUUID()
+  const payUrl = `${appUrl}/pay/${bookingId}`
+  const sessionKey = paymentLinkSessionKey(bookingId)
+  const cardCents = depositAmount + cardFeeCents(depositAmount)
+  const amountText = `$${(depositAmount / 100).toFixed(2)} by bank transfer, or $${(cardCents / 100).toFixed(2)} by card incl. 4% card fee`
 
-  if (!session.url) {
-    throw new Error('Failed to create payment link')
-  }
-
-  // Text the link BEFORE writing any rows. If Twilio refuses (bad number,
-  // the customer previously replied STOP, carrier block), nothing is left
-  // behind: the session is expired and the customer can fix the number and
-  // retry without creating duplicate bookings and inquiries.
-  const twilioClient = Twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN,
-  )
-  try {
-    await twilioClient.messages.create({
-      to: toPhone,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      body: isFullPayment
-        ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} Reply STOP to opt out.`
-        : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit ($${(depositAmount / 100).toFixed(2)}) here: ${session.url} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
-    })
-  } catch (smsError) {
-    console.error('[sms-link] Twilio refused the message:', smsError)
-    await stripe.checkout.sessions.expire(session.id).catch((err) => {
-      console.error('[sms-link] Could not expire unused session:', err)
-    })
-    return { ok: false, code: 'SMS_FAILED' }
-  }
-
-  // Create a pending booking record in stripe_bookings
+  // The pending booking row IS the link: /pay/[id] reads it and fills in the
+  // Stripe session, payment method and card fee when a method is chosen. So
+  // it is written before the text goes out (a text pointing at a missing row
+  // would be a dead link), and removed again if Twilio refuses.
   const { error: bookingError } = await supabase
     .from('stripe_bookings')
     .insert({
+      id: bookingId,
       trip_id: tripId,
       package_id: packageId,
       user_id: user?.id || null,
       site_url: appUrl,
-      stripe_checkout_session_id: session.id,
+      stripe_checkout_session_id: sessionKey,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: toPhone,
@@ -275,14 +202,47 @@ async function sendPaymentLinkSmsInner(
         meal_option: mealOption || '',
         transport_option: transportOption || '',
         additional_requests: additionalRequests || '',
+        // Marks the row as an SMS link that /pay/[id] may open.
+        sms_payment_link: true,
       },
     })
 
   if (bookingError) {
     console.error(
-      '[v0] Error creating booking record for SMS link:',
+      '[sms-link] Error creating booking record for SMS link:',
       bookingError,
     )
+    return { ok: false, code: 'CHECKOUT_FAILED' }
+  }
+
+  // If Twilio refuses (bad number, the customer previously replied STOP,
+  // carrier block), nothing is left behind: the row is deleted and the
+  // customer can fix the number and retry without duplicate bookings and
+  // inquiries. Deleted with the service role — a guest can't delete under
+  // RLS — scoped to the id generated above.
+  const twilioClient = Twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN,
+  )
+  try {
+    await twilioClient.messages.create({
+      to: toPhone,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      body: isFullPayment
+        ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full (${amountText}) here: ${payUrl} Reply STOP to opt out.`
+        : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit (${amountText}) here: ${payUrl} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay} (plus 4% if by card). Reply STOP to opt out.`,
+    })
+  } catch (smsError) {
+    console.error('[sms-link] Twilio refused the message:', smsError)
+    const { error: deleteError } = await createServiceClient()
+      .from('stripe_bookings')
+      .delete()
+      .eq('id', bookingId)
+      .eq('status', 'pending')
+    if (deleteError) {
+      console.error('[sms-link] Could not remove unsent link row:', deleteError)
+    }
+    return { ok: false, code: 'SMS_FAILED' }
   }
 
   // Save inquiry with payment link info
@@ -307,8 +267,8 @@ async function sendPaymentLinkSmsInner(
     total_price: totalPrice,
     guests: guests || [],
     status: 'contacted',
-    payment_link: session.url,
-    stripe_session_id: session.id,
+    payment_link: payUrl,
+    stripe_session_id: sessionKey,
     payment_link_sent_at: new Date().toISOString(),
   })
 

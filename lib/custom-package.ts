@@ -23,6 +23,8 @@ export interface CustomPackageInquiry {
 export interface CustomPackageBooking {
   status: string
   total_paid: number | string | null
+  /** Card processing fees included in total_paid */
+  processing_fee?: number | string | null
   remaining_balance: number | string | null
   remaining_balance_charged: boolean | null
   remaining_balance_payment_intent_id?: string | null
@@ -59,6 +61,15 @@ export interface CustomPackageState {
   allowed: CustomPaymentType[]
 }
 
+/** Paid toward the package price: total_paid without card processing fees. */
+function paidTowardPackageCents(booking: CustomPackageBooking): number {
+  return Math.max(
+    0,
+    toCents(Number(booking.total_paid) || 0) -
+      toCents(Number(booking.processing_fee) || 0),
+  )
+}
+
 export function getBalanceFlow(value: string | null | undefined): BalanceFlow {
   return value === 'auto_charge' ? 'auto_charge' : 'pay_link'
 }
@@ -85,7 +96,7 @@ export function getCustomPackageState(
   if (inquiry.status === 'cancelled') {
     const paidCents = bookings
       .filter((b) => b.status !== 'failed' && b.status !== 'expired' && b.status !== 'pending')
-      .reduce((sum, b) => sum + toCents(Number(b.total_paid) || 0), 0)
+      .reduce((sum, b) => sum + paidTowardPackageCents(b), 0)
     return { ...base, stage: 'cancelled', paidCents, remainingCents: 0, allowed: [] }
   }
 
@@ -127,7 +138,7 @@ export function getCustomPackageState(
     }
   }
 
-  const paidCents = live.reduce((sum, b) => sum + toCents(Number(b.total_paid) || 0), 0)
+  const paidCents = live.reduce((sum, b) => sum + paidTowardPackageCents(b), 0)
   const outstanding = live.find(
     (b) => Number(b.remaining_balance) > 0 && !b.remaining_balance_charged,
   )

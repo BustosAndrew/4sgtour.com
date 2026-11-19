@@ -270,8 +270,13 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         Custom Package
                       </Badge>
                     )}
-                    {inquiry.payment_status && (
-                      <Badge 
+                    {inquiry.payment_status === "processing" && (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20">
+                        Bank payment clearing
+                      </Badge>
+                    )}
+                    {inquiry.payment_status && inquiry.payment_status !== "processing" && (
+                      <Badge
                         className={
                           inquiry.is_fully_paid 
                             ? "bg-green-500/10 text-green-700 border-green-500/20" 

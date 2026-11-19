@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js"
 import { getSiteUrl } from "@/lib/site-url"
 import { phoneForSms } from "@/lib/phone"
 import twilio from "twilio"
+import { stripe } from "@/lib/stripe"
+import { cardFeeCents } from "@/lib/booking-price"
+import { isCardPaymentMethod } from "@/lib/stripe-card-fee"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -103,9 +106,22 @@ export async function GET(request: Request) {
 
         let body: string
         if (willAutoCharge) {
-          body = `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${tripName}" will be charged automatically on ${displayDate} to the payment method used for your deposit. No action is needed. Reply STOP to opt out.`
+          // Quote what will actually be charged: a saved card carries the
+          // card processing fee (see the charge cron).
+          const balanceCents = Math.round(Number(booking.remaining_balance) * 100)
+          const feeCents = (await isCardPaymentMethod(
+            stripe,
+            booking.stripe_payment_method_id,
+          ))
+            ? cardFeeCents(balanceCents)
+            : 0
+          const charged =
+            feeCents > 0
+              ? `$${((balanceCents + feeCents) / 100).toFixed(2)} (balance ${amount} + 4% card processing fee $${(feeCents / 100).toFixed(2)})`
+              : amount
+          body = `4 Seasons Golf Tour: Reminder - the remaining balance for "${tripName}" will be charged automatically on ${displayDate} to the payment method used for your deposit: ${charged}. No action is needed. Reply STOP to opt out.`
         } else if (booking.inquiry_id) {
-          body = `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${tripName}" is due on ${displayDate}. Pay here: ${siteUrl}/package/${booking.inquiry_id} Reply STOP to opt out.`
+          body = `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${tripName}" is due on ${displayDate}. Pay here (card payments add a 4% processing fee): ${siteUrl}/package/${booking.inquiry_id} Reply STOP to opt out.`
         } else {
           body = `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${tripName}" is due on ${displayDate}. Please contact us to complete payment. Reply STOP to opt out.`
         }
@@ -178,7 +194,7 @@ export async function GET(request: Request) {
         await twilioClient.messages.create({
           to,
           from: process.env.TWILIO_PHONE_NUMBER,
-          body: `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${inquiry.trip_title || "your golf trip"}" is due on ${displayDate}. Pay here: ${siteUrl}/package/${inquiry.id} Reply STOP to opt out.`,
+          body: `4 Seasons Golf Tour: Reminder - the remaining balance of ${amount} for "${inquiry.trip_title || "your golf trip"}" is due on ${displayDate}. Pay here (card payments add a 4% processing fee): ${siteUrl}/package/${inquiry.id} Reply STOP to opt out.`,
         })
 
         await supabase

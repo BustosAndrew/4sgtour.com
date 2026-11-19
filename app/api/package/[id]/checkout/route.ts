@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getSiteUrl } from '@/lib/site-url'
 import { loadCustomPackage } from '@/lib/custom-package-server'
+import { cardFeeCents } from '@/lib/booking-price'
 import {
   getCustomPackageState,
   type CustomPaymentType,
@@ -24,6 +25,9 @@ export async function POST(
   const { id } = await params
   const form = await request.formData().catch(() => null)
   const type = String(form?.get('type') || '') as CustomPaymentType
+  // Each Pay button names its method, so a card session can carry the card
+  // processing fee and a bank session can't be paid by card without it.
+  const method = String(form?.get('method') || '')
 
   const data = await loadCustomPackage(id)
   if (!data) {
@@ -36,6 +40,7 @@ export async function POST(
     NextResponse.redirect(`${packageUrl}?error=${error}`, 303)
 
   if (!PAYMENT_TYPES.includes(type)) return backWith('invalid_request')
+  if (method !== 'card' && method !== 'ach') return backWith('invalid_request')
 
   const state = getCustomPackageState(inquiry, bookings)
   if (!state.allowed.includes(type)) {
@@ -52,6 +57,7 @@ export async function POST(
         ? state.totalCents
         : state.remainingCents
   if (amountCents <= 0) return backWith('not_available')
+  const feeCents = method === 'card' ? cardFeeCents(amountCents) : 0
 
   const remainingAfterCents =
     type === 'deposit' ? state.totalCents - state.depositCents : 0
@@ -63,35 +69,59 @@ export async function POST(
         ? 'Full Payment'
         : 'Remaining Balance'
 
-  // Save the card for the cron to charge the balance — only when the admin
-  // chose auto-charge and there will be a balance left.
+  // Save the payment method for the cron to charge the balance — only when
+  // the admin chose auto-charge and there will be a balance left.
   const saveCardForBalance =
     type === 'deposit' &&
     state.balanceFlow === 'auto_charge' &&
     remainingAfterCents > 0
 
+  const lineItems = [
+    {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `${title} (${label})`,
+          description:
+            inquiry.custom_package_description?.slice(0, 500) ||
+            `Custom package for ${inquiry.customer_name || 'you'}`,
+        },
+        unit_amount: amountCents,
+      },
+      quantity: 1,
+    },
+  ]
+  if (feeCents > 0) {
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Card Processing Fee (4%)',
+          description: 'Processing fee for card payments',
+        },
+        unit_amount: feeCents,
+      },
+      quantity: 1,
+    })
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${title} (${label})`,
-              description:
-                inquiry.custom_package_description?.slice(0, 500) ||
-                `Custom package for ${inquiry.customer_name || 'you'}`,
-            },
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `${siteUrl}/checkout/custom/success?package=${id}`,
       cancel_url: packageUrl,
       customer_email: inquiry.customer_email || undefined,
-      payment_method_types: ['card', 'us_bank_account'],
+      payment_method_types: method === 'card' ? ['card'] : ['us_bank_account'],
+      ...(method === 'ach'
+        ? {
+            payment_method_options: {
+              us_bank_account: {
+                financial_connections: { permissions: ['payment_method' as const] },
+              },
+            },
+          }
+        : {}),
       ...(saveCardForBalance
         ? {
             customer_creation: 'always' as const,
@@ -108,7 +138,8 @@ export async function POST(
         custom_package_name: title,
         site_url: siteUrl,
         payment_type: type,
-        payment_method: 'sms_link',
+        payment_method: method,
+        processing_fee: String(feeCents / 100),
         balance_flow: state.balanceFlow,
         total_price: String(state.totalCents / 100),
         deposit_percentage: String(

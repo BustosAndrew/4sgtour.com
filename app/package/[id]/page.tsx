@@ -25,6 +25,7 @@ import { loadCustomPackage, loadCustomTrip } from '@/lib/custom-package-server'
 import { getCustomPackageState, type CustomPaymentType } from '@/lib/custom-package'
 import { parseCalendarDate } from '@/lib/calendar-date'
 import { getSupportEmail } from '@/lib/site-email'
+import { cardFeeCents } from '@/lib/booking-price'
 
 // A customer opens this from the SMS link, usually signed out. The inquiry is
 // read with the service role (lib/custom-package-server.ts) — the
@@ -161,6 +162,7 @@ export default async function PrivatePackagePage({
   const remainingAfterDeposit = state.totalCents - state.depositCents
   const payForm = (
     type: CustomPaymentType,
+    method: 'ach' | 'card',
     label: string,
     colors: { start: string; end: string },
   ) => (
@@ -168,6 +170,7 @@ export default async function PrivatePackagePage({
     // fresh Stripe session from today's price, then redirects to it.
     <form action={`/api/package/${id}/checkout`} method="post" className="shrink-0">
       <input type="hidden" name="type" value={type} />
+      <input type="hidden" name="method" value={method} />
       <AnimatedButton
         type="submit"
         startColor={colors.start}
@@ -178,6 +181,28 @@ export default async function PrivatePackagePage({
         {label}
       </AnimatedButton>
     </form>
+  )
+  // One button per method: a card payment adds the card processing fee
+  // (lib/booking-price.ts), so the customer sees both totals before choosing.
+  const payButtons = (
+    type: CustomPaymentType,
+    amountCents: number,
+    colors: { start: string; end: string },
+  ) => (
+    <div className="space-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        {payForm(type, 'ach', t('payByBank', { amount: formatMoney(amountCents) }), colors)}
+        {payForm(
+          type,
+          'card',
+          t('payByCard', { amount: formatMoney(amountCents + cardFeeCents(amountCents)) }),
+          colors,
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t('cardFeeNote', { fee: formatMoney(cardFeeCents(amountCents)) })}
+      </p>
+    </div>
   )
 
   const optionBlock = (
@@ -261,16 +286,16 @@ export default async function PrivatePackagePage({
                     date: formatDate(inquiry.remainder_due_date),
                   })
                 : t('remainingLater', { amount: formatMoney(remainingAfterDeposit) }),
-              payForm('deposit', t('payDeposit'), { start: '#274C77', end: '#1a3a5c' }),
+              payButtons('deposit', state.depositCents, { start: '#274C77', end: '#1a3a5c' }),
             )}
           {optionBlock(
             state.depositPercentage < 100 ? '#6096BA' : '#274C77',
             t('fullTitle'),
             formatMoney(state.totalCents),
             t('fullDescription'),
-            payForm(
+            payButtons(
               'full',
-              state.depositPercentage < 100 ? t('payFull') : t('payNow'),
+              state.totalCents,
               state.depositPercentage < 100
                 ? { start: '#6096BA', end: '#4a7a9e' }
                 : { start: '#274C77', end: '#1a3a5c' },
@@ -300,7 +325,7 @@ export default async function PrivatePackagePage({
                 ? t('balanceDueBy', { date: formatDate(inquiry.remainder_due_date) })
                 : null,
             state.allowed.includes('remainder')
-              ? payForm('remainder', t('payBalance'), { start: '#6096BA', end: '#4a7a9e' })
+              ? payButtons('remainder', state.remainingCents, { start: '#6096BA', end: '#4a7a9e' })
               : null,
           )}
         </>

@@ -27,6 +27,7 @@ import { PhoneInput } from '@/components/phone-input'
 import { isE164, normalizeE164 } from '@/lib/phone'
 import {
   calculatePaymentAmounts,
+  cardFeeCents,
   formatCents,
   type CheckoutErrorCode,
   type PaymentAmounts,
@@ -323,6 +324,7 @@ export function StripeCheckout({
         <p className="text-sm text-muted-foreground mb-6">
           {t('smsLinkSentDeposit', {
             amount: `$${formatCents(smsSentAmountCents)}`,
+            cardAmount: `$${formatCents(smsSentAmountCents + cardFeeCents(smsSentAmountCents))}`,
           })}
         </p>
         <div className="bg-muted/50 border border-border p-4 rounded-lg mb-6 max-w-md mx-auto">

@@ -7,6 +7,7 @@ import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 import { phoneForSms } from '@/lib/phone'
+import { cardFeeCents } from '@/lib/booking-price'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -252,8 +253,10 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   await sendBookingConfirmationEmails(metadata, session, booking)
 
   // If this was a SMS payment link, update the inquiry status to converted
-  // and send an invoice email to the customer
-  if (metadata.payment_method === 'sms_link') {
+  // and send an invoice email to the customer. Links paid from /pay/[id]
+  // carry the method actually chosen (card / ach) plus via_sms_link;
+  // sessions texted before that page existed say 'sms_link'.
+  if (metadata.payment_method === 'sms_link' || metadata.via_sms_link === 'true') {
     const { error: inquiryError } = await supabase
       .from('inquiries')
       .update({
@@ -305,6 +308,13 @@ async function handleCustomPackagePayment(
   const metadata = session.metadata || {}
   const paymentIntentId = (session.payment_intent as string) || null
   const amountPaid = (session.amount_total || 0) / 100
+  // Card sessions carry a processing-fee line (amount_total includes it).
+  const processingFee = Math.max(0, parseFloat(metadata.processing_fee || '0') || 0)
+  // Sessions started before the page split card and bank say 'sms_link'.
+  const paymentMethod =
+    metadata.payment_method === 'card' || metadata.payment_method === 'ach'
+      ? metadata.payment_method
+      : 'sms_link'
   const paymentType = metadata.payment_type || 'deposit'
   const now = new Date().toISOString()
 
@@ -360,6 +370,7 @@ async function handleCustomPackagePayment(
           remaining_balance_charged_at: now,
           remaining_balance_payment_intent_id: paymentIntentId,
           total_paid: Number(open.total_paid || 0) + amountPaid,
+          processing_fee: Number(open.processing_fee || 0) + processingFee,
           updated_at: now,
         })
         .eq('id', open.id)
@@ -442,14 +453,14 @@ async function handleCustomPackagePayment(
           customer_email:
             metadata.customer_email || session.customer_details?.email || '',
           customer_phone: metadata.customer_phone || null,
-          deposit_amount: amountPaid,
-          processing_fee: 0,
+          deposit_amount: amountPaid - processingFee,
+          processing_fee: processingFee,
           total_paid: amountPaid,
           total_package_price: totalPrice,
           total_price: totalPrice,
           trip_title: title,
           deposit_percentage: parseInt(metadata.deposit_percentage || '100') || 100,
-          payment_method: 'sms_link',
+          payment_method: paymentMethod,
           status,
           trip_start_date: metadata.start_date || null,
           remaining_balance: remaining,
@@ -984,13 +995,21 @@ async function sendInvoiceEmail(
       })
     : null
 
+  const paidByCard = metadata.payment_method === 'card'
+  const processingFee = parseFloat(metadata.processing_fee || '0') || 0
+  const balanceFeeCents = paidByCard ? cardFeeCents(Math.round(remainingBalance * 100)) : 0
+
   const autoChargeSection =
     remainingBalance > 0 && autoChargeDateDisplay
       ? `
 
 REMAINING BALANCE - AUTOMATIC CHARGE
 ------------------------------------
-Remaining Balance: $${remainingBalance.toFixed(2)}
+Remaining Balance: $${remainingBalance.toFixed(2)}${
+          balanceFeeCents > 0
+            ? `\nCard Processing Fee (4%): $${(balanceFeeCents / 100).toFixed(2)}\nTo Be Charged: $${(remainingBalance + balanceFeeCents / 100).toFixed(2)}`
+            : ''
+        }
 Scheduled Charge Date: ${autoChargeDateDisplay}
 
 The remaining balance will be automatically charged to the same payment
@@ -1024,8 +1043,18 @@ ${metadata.transport_option ? `Transportation: ${metadata.transport_option}` : '
 
 PAYMENT SUMMARY
 ---------------
-${getPaymentLabel(metadata)} Paid: $${amountPaid}
-Payment Method: Text Message Payment Link
+${getPaymentLabel(metadata)} Paid: $${amountPaid}${
+    processingFee > 0
+      ? ` (includes 4% card processing fee of $${processingFee.toFixed(2)})`
+      : ''
+  }
+Payment Method: ${
+    paidByCard
+      ? 'Card (Text Message Payment Link)'
+      : metadata.payment_method === 'ach'
+        ? 'US Bank Account (Text Message Payment Link)'
+        : 'Text Message Payment Link'
+  }
 Status: PAID
 ${autoChargeSection}
 
