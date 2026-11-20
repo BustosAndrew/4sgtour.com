@@ -86,6 +86,16 @@ export function cardFeeCents(amountCents: number): number {
   return Math.round(amountCents * CARD_PROCESSING_FEE_RATE)
 }
 
+/**
+ * An amount for a text message sent before the customer has chosen how to
+ * pay: "$1500.00 by bank transfer, or $1560.00 by card incl. 4% card fee".
+ * Any price a text quotes includes the card fee for card payers.
+ */
+export function bankOrCardAmountText(amountCents: number): string {
+  const cardCents = amountCents + cardFeeCents(amountCents)
+  return `$${formatCents(amountCents)} by bank transfer, or $${formatCents(cardCents)} by card incl. 4% card fee`
+}
+
 export type PaymentType = 'deposit' | 'full'
 export type PaymentMethodKind = 'card' | 'ach' | 'sms'
 

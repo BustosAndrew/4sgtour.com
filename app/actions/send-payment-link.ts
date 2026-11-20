@@ -12,8 +12,8 @@ import {
   resolveBookingPrice,
 } from '@/lib/resolve-booking-price'
 import {
+  bankOrCardAmountText,
   calculatePaymentAmounts,
-  cardFeeCents,
   type PaymentLinkResult,
 } from '@/lib/booking-price'
 
@@ -159,8 +159,9 @@ async function sendPaymentLinkSmsInner(
   const bookingId = randomUUID()
   const payUrl = `${appUrl}/pay/${bookingId}`
   const sessionKey = paymentLinkSessionKey(bookingId)
-  const cardCents = depositAmount + cardFeeCents(depositAmount)
-  const amountText = `$${(depositAmount / 100).toFixed(2)} by bank transfer, or $${(cardCents / 100).toFixed(2)} by card incl. 4% card fee`
+  // Every price in the text includes the card fee for card payers.
+  const amountText = bankOrCardAmountText(depositAmount)
+  const balanceText = bankOrCardAmountText(amounts.remainingCents)
 
   // The pending booking row IS the link: /pay/[id] reads it and fills in the
   // Stripe session, payment method and card fee when a method is chosen. So
@@ -230,7 +231,7 @@ async function sendPaymentLinkSmsInner(
       from: process.env.TWILIO_PHONE_NUMBER,
       body: isFullPayment
         ? `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay in full (${amountText}) here: ${payUrl} Reply STOP to opt out.`
-        : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit (${amountText}) here: ${payUrl} The remaining balance of $${remainingBalance.toFixed(2)} will be automatically charged to the same payment method on ${autoChargeDateDisplay} (plus 4% if by card). Reply STOP to opt out.`,
+        : `4 Seasons Golf Tour: Your payment link for ${tripTitle} is ready. Pay your ${depositPercentage}% deposit (${amountText}) here: ${payUrl} The remaining balance (${balanceText}) will be automatically charged to the same payment method on ${autoChargeDateDisplay}. Reply STOP to opt out.`,
     })
   } catch (smsError) {
     console.error('[sms-link] Twilio refused the message:', smsError)
