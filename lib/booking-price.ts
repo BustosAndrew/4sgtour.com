@@ -5,7 +5,11 @@
 // never trust a total sent from the browser — server actions are public POST
 // endpoints, so a caller could otherwise name their own price.
 
+// Single-room surcharge, charged on each person who books a single room.
+// Each trip sets its own (trips.single_occupancy_surcharge, a percentage,
+// migration 061); this is the default for trips that don't.
 export const SINGLE_OCCUPANCY_SURCHARGE = 0.12
+export const DEFAULT_SINGLE_OCCUPANCY_SURCHARGE_PERCENT = 12
 export const DEFAULT_DEPOSIT_PERCENTAGE = 30
 
 export type Occupancy = 'single' | 'double'
@@ -19,6 +23,8 @@ export interface PricedTrip {
   min_nights?: number | null
   min_days?: number | null
   deposit_percentage?: number | null
+  /** Percent added per single-room person; null → the 12% default. */
+  single_occupancy_surcharge?: number | string | null
 }
 
 export function getMinNights(trip: PricedTrip): number {
@@ -27,6 +33,43 @@ export function getMinNights(trip: PricedTrip): number {
 
 export function getDepositPercentage(trip: PricedTrip): number {
   return trip.deposit_percentage || DEFAULT_DEPOSIT_PERCENTAGE
+}
+
+/**
+ * The trip's single-room surcharge as a percentage (0–100). 0 is a real
+ * value — "no surcharge" — so only a missing or unreadable one defaults.
+ */
+export function getSingleSurchargePercent(trip: PricedTrip): number {
+  const raw = trip.single_occupancy_surcharge
+  if (raw === null || raw === undefined || raw === '') {
+    return DEFAULT_SINGLE_OCCUPANCY_SURCHARGE_PERCENT
+  }
+  const value = Number(raw)
+  if (!Number.isFinite(value)) return DEFAULT_SINGLE_OCCUPANCY_SURCHARGE_PERCENT
+  return Math.min(100, Math.max(0, value))
+}
+
+/**
+ * A surcharge percentage from an admin form, made safe to store: 0–100,
+ * two decimals. Anything unreadable becomes the 12% default.
+ */
+export function toSurchargePercent(value: unknown): number {
+  if (value === null || value === undefined || value === '') {
+    return DEFAULT_SINGLE_OCCUPANCY_SURCHARGE_PERCENT
+  }
+  const n = Number(value)
+  if (!Number.isFinite(n)) return DEFAULT_SINGLE_OCCUPANCY_SURCHARGE_PERCENT
+  return Math.round(Math.min(100, Math.max(0, n)) * 100) / 100
+}
+
+/** The surcharge as a rate, e.g. 0.12. */
+export function getSingleSurchargeRate(trip: PricedTrip): number {
+  return getSingleSurchargePercent(trip) / 100
+}
+
+/** "12%", "7.5%" — for the badges beside "Single occupancy". */
+export function formatSurchargePercent(trip: PricedTrip): string {
+  return `${Number(getSingleSurchargePercent(trip).toFixed(2))}%`
 }
 
 /** Nights between two `yyyy-MM-dd` dates, or null if either is invalid. */
@@ -54,9 +97,13 @@ export function getPerPersonBase(
   return base
 }
 
-export function priceForPerson(occupancy: Occupancy, perPersonBase: number) {
+export function priceForPerson(
+  occupancy: Occupancy,
+  perPersonBase: number,
+  surchargeRate: number = SINGLE_OCCUPANCY_SURCHARGE,
+) {
   return occupancy === 'single'
-    ? perPersonBase * (1 + SINGLE_OCCUPANCY_SURCHARGE)
+    ? perPersonBase * (1 + surchargeRate)
     : perPersonBase
 }
 
@@ -68,7 +115,11 @@ export function calculateBookingTotal(
   occupancies: Occupancy[],
 ): number {
   const base = getPerPersonBase(pkg, trip, nights)
-  return occupancies.reduce((sum, occ) => sum + priceForPerson(occ, base), 0)
+  const rate = getSingleSurchargeRate(trip)
+  return occupancies.reduce(
+    (sum, occ) => sum + priceForPerson(occ, base, rate),
+    0,
+  )
 }
 
 /** Rounds to cents so client and server compare the same number. */

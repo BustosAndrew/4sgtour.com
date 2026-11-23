@@ -3,16 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
-import { FileText, Home, KeyRound, LogOut, MessageSquare, Trophy, X } from 'lucide-react'
+import { CreditCard, FileText, Home, KeyRound, LogOut, MessageSquare, Trophy, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-export type AdminTab = 'courses' | 'tournaments' | 'inquiries' | 'inbox'
+export type AdminTab = 'courses' | 'tournaments' | 'inquiries' | 'payments' | 'inbox'
 
 interface AdminSidebarProps {
   mobileMenuOpen?: boolean
   onMobileMenuClose?: () => void
   /**
-   * The four main sections are tabs inside /admin, not routes. That page
+   * The main sections are tabs inside /admin, not routes. That page
    * passes `onSelectTab` and switches in place; every other admin page omits
    * it and the items become links back to /admin?tab=…, which it reads.
    */
@@ -24,6 +24,7 @@ const TABS: Array<{ tab: AdminTab; label: string }> = [
   { tab: 'courses', label: 'Courses' },
   { tab: 'tournaments', label: 'Tournaments' },
   { tab: 'inquiries', label: 'Inquiries' },
+  { tab: 'payments', label: 'Payments' },
   { tab: 'inbox', label: 'Inbox' },
 ]
 
@@ -59,6 +60,7 @@ function TabIcon({ tab }: { tab: AdminTab }) {
   if (tab === 'courses') return <CoursesIcon />
   if (tab === 'tournaments') return <Trophy className="h-5 w-5 flex-shrink-0" />
   if (tab === 'inquiries') return <FileText className="h-5 w-5 flex-shrink-0" />
+  if (tab === 'payments') return <CreditCard className="h-5 w-5 flex-shrink-0" />
   return <MessageSquare className="h-5 w-5 flex-shrink-0" />
 }
 

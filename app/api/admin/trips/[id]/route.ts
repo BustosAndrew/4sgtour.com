@@ -3,6 +3,7 @@ import { getUserType } from "@/lib/supabase/get-user-type"
 import { type NextRequest, NextResponse } from "next/server"
 import { diffLocalizedFields } from "@/lib/translation-dirty"
 import { toCancellationSchedule } from "@/lib/cancellation-policy"
+import { toSurchargePercent } from "@/lib/booking-price"
 
 // Base names of the trip columns that carry translations. Used to report
 // which fields an admin actually changed so the translate route can redo
@@ -63,6 +64,9 @@ export async function PATCH(
   // Only when sent, so a caller that doesn't know the field leaves it alone.
   if ("cancellation_schedule" in body) {
     updateData.cancellation_schedule = toCancellationSchedule(body.cancellation_schedule)
+  }
+  if ("single_occupancy_surcharge" in body) {
+    updateData.single_occupancy_surcharge = toSurchargePercent(body.single_occupancy_surcharge)
   }
 
   // Only update Korean fields if they were explicitly provided in the request

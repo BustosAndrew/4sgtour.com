@@ -21,9 +21,10 @@ import {
 } from 'lucide-react'
 import { StripeCheckout } from '@/components/booking/stripe-checkout'
 import {
-  SINGLE_OCCUPANCY_SURCHARGE,
   calculateBookingTotal,
+  formatSurchargePercent,
   getDepositPercentage,
+  getSingleSurchargeRate,
   getPerPersonBase as getSharedPerPersonBase,
   nightsBetween,
   priceForPerson,
@@ -57,6 +58,8 @@ interface Trip {
   min_days_advance?: number
   max_guests?: number | null
   deposit_percentage?: number | null
+  /** Percent per single-room person (migration 061); null → 12% */
+  single_occupancy_surcharge?: number | null
   courses_photo_url?: string | null
   room_photo_url?: string | null
   images?: Array<{
@@ -660,18 +663,22 @@ export function BookingForm({
     ])
   }
 
+  // The trip's own single-room surcharge (admin-set, default 12%)
+  const surchargeRate = getSingleSurchargeRate(trip as any)
+  const surchargeLabel = `+${formatSurchargePercent(trip as any)}`
+
   // Surcharge amount for the primary booker only (used in existing sidebar display)
   const calculateSingleOccupancySurcharge = () => {
     const base = getPerPersonBase()
-    return roomType === 'single' ? base * SINGLE_OCCUPANCY_SURCHARGE : 0
+    return roomType === 'single' ? base * surchargeRate : 0
   }
 
   // Total surcharge across all people with single occupancy
   const calculateTotalSingleSurcharge = () => {
     const base = getPerPersonBase()
-    let surcharge = roomType === 'single' ? base * SINGLE_OCCUPANCY_SURCHARGE : 0
+    let surcharge = roomType === 'single' ? base * surchargeRate : 0
     for (const guest of guests) {
-      if (guest.occupancy === 'single') surcharge += base * SINGLE_OCCUPANCY_SURCHARGE
+      if (guest.occupancy === 'single') surcharge += base * surchargeRate
     }
     return surcharge
   }
@@ -978,6 +985,7 @@ export function BookingForm({
           extraNights={extraNightsCount}
           extraNightPrice={selectedPackage.price_per_extra_night || 0}
           singleOccupancySurcharge={surchargeAmount}
+          singleOccupancySurchargeLabel={surchargeLabel}
           startDate={bookingDetails.startDate}
           endDate={bookingDetails.endDate}
           roomType={bookingDetails.roomType}
@@ -1077,7 +1085,7 @@ export function BookingForm({
                         {t('singleOccupancy')}
                       </h3>
                       <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                        +12%
+                        {surchargeLabel}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -1195,7 +1203,7 @@ export function BookingForm({
                         <User className="h-4 w-4" />
                         {t('singleOccupancy')}
                         <span className="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
-                          +12%
+                          {surchargeLabel}
                         </span>
                       </button>
                     </div>
@@ -1205,7 +1213,7 @@ export function BookingForm({
                   <div className="border-t border-gray-200 pt-2 flex justify-between text-sm">
                     <span className="text-muted-foreground">{t('guestPrice')}</span>
                     <span className="font-medium">
-                      ${priceForPerson(guest.occupancy, getPerPersonBase()).toFixed(2)}
+                      ${priceForPerson(guest.occupancy, getPerPersonBase(), surchargeRate).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -1837,7 +1845,7 @@ export function BookingForm({
                             )}
                             {totalSurcharge > 0 && (
                               <div className="flex justify-between text-amber-700">
-                                <span>{t('singleOccupancySurcharge')} (+12%)</span>
+                                <span>{t('singleOccupancySurcharge')} ({surchargeLabel})</span>
                                 <span>+${totalSurcharge.toFixed(2)}</span>
                               </div>
                             )}

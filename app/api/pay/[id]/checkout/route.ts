@@ -156,7 +156,7 @@ export async function POST(
   // Point the booking and its inquiry at the new session: the webhook
   // confirms the booking, and converts the inquiry, by session id.
   const supabase = createServiceClient()
-  const { error: bookingError } = await supabase
+  const { data: updatedRows, error: bookingError } = await supabase
     .from('stripe_bookings')
     .update({
       stripe_checkout_session_id: session.id,
@@ -169,8 +169,19 @@ export async function POST(
       updated_at: new Date().toISOString(),
     })
     .eq('id', row.id)
+    // Unless an admin cancelled the link meanwhile (Admin → Payments): then
+    // close the session just made instead of sending the customer to it.
+    .is('booking_details->>admin_cancelled_at', null)
+    .select('id')
   if (bookingError) {
     console.error('[pay-link] Error updating booking for new session:', bookingError)
+  } else if (!updatedRows || updatedRows.length === 0) {
+    try {
+      await stripe.checkout.sessions.expire(session.id)
+    } catch (error) {
+      console.error('[pay-link] Could not close session for cancelled link:', error)
+    }
+    return backWith('expired')
   }
 
   const { error: inquiryError } = await supabase

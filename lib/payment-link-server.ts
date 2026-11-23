@@ -77,6 +77,9 @@ export type PaymentLinkStage = 'payable' | 'paid' | 'processing' | 'expired'
 
 export function getPaymentLinkStage(row: PaymentLinkRow): PaymentLinkStage {
   if (row.status === 'processing') return 'processing'
+  // Cancelled by an admin (Admin → Payments). The row is also 'expired', but
+  // this holds even if a Pay press in flight wrote 'pending' back.
+  if (row.booking_details?.admin_cancelled_at) return 'expired'
   if (row.status !== 'pending') {
     return ['confirmed', 'completed'].includes(row.status) ? 'paid' : 'expired'
   }

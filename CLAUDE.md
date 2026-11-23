@@ -263,6 +263,9 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   Those actions **return** `{ ok: false, code }` instead of throwing (Next.js hides thrown
   messages in production), and the payment screen creates the session *before* mounting
   Stripe's embedded form, so it can explain a refusal and refresh the price in place.
+- The **single-room surcharge is per trip** (`trips.single_occupancy_surcharge`, a percentage,
+  default 12, migration `061`), added for each traveler who picks a single room. Read it with
+  `getSingleSurchargeRate(trip)` — never hard-code 12%; 0 is a real value (no surcharge).
 - Saving a trip updates its `packages` rows **in place** (by id). Never go back to
   delete-and-reinsert: new ids null `stripe_bookings.package_id` (`ON DELETE SET NULL`) and
   break checkout for anyone mid-booking with "Package not found".
@@ -300,6 +303,17 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   placeholder to the real session id (the webhook matches by session id). Links last 24 hours.
   Read with the service role ([lib/payment-link-server.ts](lib/payment-link-server.ts)) — the
   unguessable id is the credential, as with `/package/[id]`.
+- **Admin → Payments** ([components/admin/payments-list.tsx](components/admin/payments-list.tsx),
+  `GET /api/admin/payments`) lists pending checkouts / SMS links, clearing bank payments, balances
+  due and paid bookings, read through [lib/admin-payments.ts](lib/admin-payments.ts)
+  `toAdminPayment()` — the one place that decides what a row has paid (a `pending` row's
+  `total_paid` is what it *would* charge, not money received). *Cancel payment*
+  (`/api/admin/bookings/[id]/cancel-pending`) expires the Stripe session and marks the row
+  `expired` with `booking_details.admin_cancelled_at`, which `/pay/[id]` also honours.
+  *Change charge date* (`/api/admin/bookings/[id]/schedule`) sets `auto_charge_date` (saved
+  payment method; `null` stops auto-charging, a date restarts the 3 retries) or
+  `remainder_due_date` (no saved method), re-arms the reminder, and for a custom package updates
+  the inquiry's `remainder_due_date` / `balance_flow` too.
 - Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
   are guests and `/bookings` requires signing in.
 - Vercel Cron ([vercel.json](vercel.json)) runs daily:
@@ -429,7 +443,8 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 `/admin/tournaments/[id]/events/[eventId]`
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
-translate-*, api-keys, bookings/[id]/refund), `/api/inquiry`, `/api/messages`,
+translate-*, api-keys, payments, bookings/[id]/refund, bookings/[id]/cancel-pending,
+bookings/[id]/schedule), `/api/inquiry`, `/api/messages`,
 `/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
 `/api/stripe/webhook`, `/api/cron/*`, `/api/pay/[id]/checkout` (SMS-link payments, public),
 `/api/package/[id]/checkout` (custom-package payments,
@@ -474,7 +489,9 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `060` is the highest so far. `060` (booking cancellations:
+and don't assume ordering is total. `061` is the highest so far. `061`
+(`trips.single_occupancy_surcharge`) was written on 2026-11-22 and must run *before* its code
+ships — checkout's price check selects the column, so without it every checkout fails. `060` (booking cancellations:
 `trips.cancellation_schedule`, `stripe_bookings.cancelled_at`/`cancellation_*`/`refund_*`) was
 written on 2026-11-17 and must run *before* its code ships — My Bookings and the trip forms read
 and write its columns. `056`, `057` and `058` were

@@ -24,6 +24,8 @@ interface InquiryWithPayment extends Inquiry {
   is_fully_paid?: boolean
   trip?: { title: string; slug: string } | null
   custom_package_title?: string | null
+  /** Paid bookings: balance still owed (see Admin → Payments) */
+  remaining_balance?: number | null
   /** Set by /api/admin/inquiries: what the item is about */
   kind?: "trip" | "tournament" | "custom"
   tournament_event?: { slug: string; tournament: { slug: string } | null } | null
@@ -429,6 +431,14 @@ export function InquiriesList({ onViewInInbox }: InquiriesListProps) {
                         </span>
                       </div>
                     )}
+                    {(inquiry as any).inquiry_type === "stripe_booking" &&
+                      !inquiry.is_fully_paid &&
+                      inquiry.status !== "cancelled" &&
+                      Number(inquiry.remaining_balance) > 0 && (
+                        <div className="text-sm text-blue-700">
+                          ${Number(inquiry.remaining_balance).toFixed(2)} remaining
+                        </div>
+                      )}
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
                     {inquiry.is_custom_package && (

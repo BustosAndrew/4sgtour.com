@@ -29,6 +29,10 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { CancellationScheduleField } from "@/components/admin/cancellation-schedule-field"
 import {
+  SingleSurchargeField,
+  isValidSurcharge,
+} from "@/components/admin/single-surcharge-field"
+import {
   DEFAULT_CANCELLATION_SCHEDULE,
   type CancellationSchedule,
 } from "@/lib/cancellation-policy"
@@ -172,6 +176,8 @@ export function CreateTripForm() {
   const [showFromPrice, setShowFromPrice] = useState(false)
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
   const [depositPercentage, setDepositPercentage] = useState(30)
+  // Percent per single-room traveler (migration 061), as typed
+  const [singleSurcharge, setSingleSurcharge] = useState("12")
   const [cancellationSchedule, setCancellationSchedule] =
     useState<CancellationSchedule>(DEFAULT_CANCELLATION_SCHEDULE)
 
@@ -377,6 +383,10 @@ export function CreateTripForm() {
   const validateForm = (): { valid: boolean; errors: string[] } => {
     const errors: string[] = []
 
+    if (!isValidSurcharge(singleSurcharge)) {
+      errors.push("Single room surcharge must be a percentage from 0 to 100 (Step 2)")
+    }
+
     // Step 1 validation
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
     if (!formData.location.trim()) errors.push("Location is required (Step 1)")
@@ -520,6 +530,7 @@ export function CreateTripForm() {
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           deposit_percentage: depositPercentage,
+          single_occupancy_surcharge: Number(singleSurcharge),
           cancellation_schedule: cancellationSchedule,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages: packages.map((pkg) => ({
@@ -1479,6 +1490,12 @@ export function CreateTripForm() {
             <CancellationScheduleField
               value={cancellationSchedule}
               onChange={setCancellationSchedule}
+            />
+
+            <SingleSurchargeField
+              value={singleSurcharge}
+              onChange={setSingleSurcharge}
+              basePrice={Number(packages.find((p) => p.name === "Premium")?.price) || undefined}
             />
 
             <div className="space-y-4 rounded-lg border border-border p-6">

@@ -48,6 +48,8 @@ export interface Trip {
   deposit_percentage: number | null
   /** Fee schedule from the cancellation policy. Migration 060. */
   cancellation_schedule: 'standard' | 'western_us'
+  /** Percent added per single-room traveler (default 12). Migration 061. */
+  single_occupancy_surcharge: number
   created_at: string
   updated_at: string
 }

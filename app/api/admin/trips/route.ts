@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { stripe } from "@/lib/stripe"
 import { toCancellationSchedule } from "@/lib/cancellation-policy"
+import { toSurchargePercent } from "@/lib/booking-price"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
       highlights: highlights || [],
       show_from_price: body.show_from_price || false,
       deposit_percentage: body.deposit_percentage ?? 30,
+      single_occupancy_surcharge: toSurchargePercent(body.single_occupancy_surcharge),
       cancellation_schedule: toCancellationSchedule(body.cancellation_schedule),
       is_payment_link_trip: false,
     }

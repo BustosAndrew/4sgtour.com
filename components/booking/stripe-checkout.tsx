@@ -81,6 +81,8 @@ interface StripeCheckoutProps {
   extraNights: number
   extraNightPrice: number
   singleOccupancySurcharge?: number
+  /** e.g. "+12%" — the trip's own surcharge */
+  singleOccupancySurchargeLabel?: string
   startDate: string
   endDate: string
   roomType: string
@@ -133,6 +135,7 @@ export function StripeCheckout({
   extraNights,
   extraNightPrice,
   singleOccupancySurcharge = 0,
+  singleOccupancySurchargeLabel = "+12%",
   startDate,
   endDate,
   roomType,
@@ -649,7 +652,7 @@ export function StripeCheckout({
               )}
               {singleOccupancySurcharge > 0 && (
                 <div className="flex justify-between text-amber-700">
-                  <span>{t('singleOccupancySurcharge')} (+12%)</span>
+                  <span>{t('singleOccupancySurcharge')} ({singleOccupancySurchargeLabel})</span>
                   <span>+${singleOccupancySurcharge.toFixed(2)}</span>
                 </div>
               )}

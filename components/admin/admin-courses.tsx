@@ -21,6 +21,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { InquiriesList } from "@/components/admin/inquiries-list"
 import { InboxList } from "@/components/admin/inbox-list"
+import { PaymentsList } from "@/components/admin/payments-list"
 import { AccountSettingsDialog } from "@/components/admin/account-settings-dialog"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -84,9 +85,9 @@ export function AdminCourses({
   userPhone: string | null
   userPhotoUrl: string | null
   initialInquiryId?: string
-  initialTab?: "courses" | "tournaments" | "inquiries" | "inbox"
+  initialTab?: "courses" | "tournaments" | "inquiries" | "payments" | "inbox"
 }) {
-  const [activeTab, setActiveTab] = useState<"courses" | "tournaments" | "inquiries" | "inbox">(
+  const [activeTab, setActiveTab] = useState<"courses" | "tournaments" | "inquiries" | "payments" | "inbox">(
     initialTab || "courses",
   )
   const [selectedContinent, setSelectedContinent] = useState<string>("All")
@@ -843,6 +844,20 @@ export function AdminCourses({
                   </div>
                 </>
               )}
+            </>
+          ) : activeTab === "payments" ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">Payments</h2>
+                <p className="text-sm text-gray-600">
+                  Pending checkouts and links, what each booking has paid, what is
+                  still owed and when it is charged
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-white p-4 shadow-sm sm:p-6">
+                <PaymentsList />
+              </div>
             </>
           ) : (
             <>

@@ -59,7 +59,7 @@ export default async function AdminDashboardPage({
       userPhone={profile?.phone || null}
       userPhotoUrl={profile?.photo_url || null}
       initialInquiryId={params.inquiryId}
-      initialTab={params.tab as "courses" | "tournaments" | "inquiries" | "inbox" | undefined}
+      initialTab={params.tab as "courses" | "tournaments" | "inquiries" | "payments" | "inbox" | undefined}
     />
   )
 }

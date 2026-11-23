@@ -73,7 +73,9 @@ export async function resolveBookingPrice(
 
   const { data: trip } = await supabase
     .from('trips')
-    .select('id, is_custom, min_nights, min_days, deposit_percentage')
+    .select(
+      'id, is_custom, min_nights, min_days, deposit_percentage, single_occupancy_surcharge',
+    )
     .eq('id', input.tripId)
     .maybeSingle()
 
