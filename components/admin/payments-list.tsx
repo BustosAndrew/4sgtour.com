@@ -31,7 +31,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 function inFilter(stage: PaymentStage, filter: Filter) {
   switch (filter) {
     case "pending":
-      return stage === "awaiting_payment" || stage === "stale"
+      return stage === "awaiting_payment" || stage === "stale" || stage === "unrecorded_payment"
     case "balance_due":
       return stage === "balance_due"
     case "clearing":
@@ -44,12 +44,16 @@ function inFilter(stage: PaymentStage, filter: Filter) {
 }
 
 const STAGE_BADGE: Record<PaymentStage, { label: string; className: string }> = {
+  unrecorded_payment: {
+    label: "Paid in Stripe — not recorded",
+    className: "bg-red-500/10 text-red-700 border-red-500/20",
+  },
   awaiting_payment: {
     label: "Awaiting payment",
     className: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   },
   stale: {
-    label: "Pending over 24h — likely lapsed",
+    label: "Lapsed — closed at the next daily cleanup",
     className: "bg-gray-500/10 text-gray-700 border-gray-500/20",
   },
   clearing: {
@@ -128,6 +132,7 @@ export function PaymentsList() {
   const [scheduleTarget, setScheduleTarget] = useState<AdminPayment | null>(null)
 
   const load = async () => {
+    // (also called after a refused cancel, which may have flagged a row)
     setLoading(true)
     setLoadError(null)
     try {
@@ -267,6 +272,10 @@ export function PaymentsList() {
       <CancelPendingDialog
         payment={cancelTarget}
         onClose={() => setCancelTarget(null)}
+        onFlagged={() => {
+          setCancelTarget(null)
+          load()
+        }}
         onDone={(id) => {
           setPayments((prev) => prev.filter((p) => p.id !== id))
           setCancelTarget(null)
@@ -305,6 +314,7 @@ function PaymentCard({
   onSchedule: () => void
 }) {
   const badge = STAGE_BADGE[payment.stage]
+  const unrecorded = payment.stage === "unrecorded_payment"
   const pending = payment.stage === "awaiting_payment" || payment.stage === "stale"
   const schedule = scheduleText(payment)
   const paidPercent =
@@ -357,6 +367,18 @@ function PaymentCard({
                 ? ` (${payment.depositPercentage}% deposit)`
                 : " (full payment)"}{" "}
               — nothing has been paid yet.
+            </div>
+          )}
+
+          {unrecorded && (
+            <div className="flex items-start gap-2 rounded border border-red-500/20 bg-red-500/5 p-2 text-sm text-red-700">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>
+                Stripe says this checkout ({money(payment.amountDueNow)}) was completed, but the booking
+                was never confirmed here, so it isn&apos;t in Inquiries or the customer&apos;s My Bookings.
+                Look it up in Stripe (Payments, search {payment.customerEmail}) and check the webhook
+                endpoint&apos;s delivery log.
+              </span>
             </div>
           )}
 
@@ -438,10 +460,13 @@ function CancelPendingDialog({
   payment,
   onClose,
   onDone,
+  onFlagged,
 }: {
   payment: AdminPayment | null
   onClose: () => void
   onDone: (id: string) => void
+  /** Stripe says it was paid; the row was flagged — reload the list */
+  onFlagged: () => void
 }) {
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -458,6 +483,10 @@ function CancelPendingDialog({
     try {
       const response = await fetch(`/api/admin/bookings/${payment.id}/cancel-pending`, { method: "POST" })
       const data = await response.json().catch(() => ({}))
+      if (data.unrecorded) {
+        onFlagged()
+        return
+      }
       if (!response.ok) throw new Error(data.error || "Could not cancel this payment.")
       onDone(payment.id)
     } catch (e: any) {

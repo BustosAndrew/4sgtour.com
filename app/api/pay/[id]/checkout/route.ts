@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { getSiteUrl } from '@/lib/site-url'
 import { createServiceClient } from '@/lib/supabase/service'
 import { cardFeeCents, toCents } from '@/lib/booking-price'
+import { linkSessionExpiresAt } from '@/lib/checkout-expiry'
 import {
   getPaymentLinkStage,
   loadPaymentLink,
@@ -95,6 +96,8 @@ export async function POST(
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
+      // Closes when the texted link does (24h after it was sent).
+      expires_at: linkSessionExpiresAt(row.created_at),
       // Public page — /bookings requires signing in, and most customers paying
       // from a text are guests.
       success_url: `${siteUrl}/checkout/custom/success`,

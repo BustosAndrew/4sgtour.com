@@ -34,7 +34,7 @@ export async function POST(
   const service = createServiceClient()
   const { data: row, error: readError } = await service
     .from('stripe_bookings')
-    .select('id, status, stripe_checkout_session_id, booking_details')
+    .select('id, status, created_at, stripe_checkout_session_id, booking_details')
     .eq('id', id)
     .maybeSingle()
   if (readError) {
@@ -62,10 +62,34 @@ export async function POST(
     try {
       const session = await stripe.checkout.sessions.retrieve(sessionId)
       if (session.status === 'complete') {
+        // Paid in Stripe. Normally the webhook confirms the row within
+        // seconds; if it is still 'pending' an hour on, the webhook never
+        // recorded it — flag it so Admin → Payments says so.
+        const ageMs = Date.now() - new Date(row.created_at).getTime()
+        const stuck = ageMs > 60 * 60 * 1000
+        if (stuck && !(row.booking_details as any)?.stripe_session_completed_at) {
+          const now = new Date().toISOString()
+          await service
+            .from('stripe_bookings')
+            .update({
+              booking_details: {
+                ...((row.booking_details as Record<string, unknown>) || {}),
+                stripe_session_completed_at: now,
+              },
+              updated_at: now,
+            })
+            .eq('id', id)
+            .eq('status', 'pending')
+          console.error(
+            `[admin-payments] Booking ${id}: Stripe session ${sessionId} is complete but the booking was never confirmed — check the webhook`,
+          )
+        }
         return NextResponse.json(
           {
-            error:
-              'The customer has just paid this. It will show as paid within a minute — refresh, and cancel the booking from Inquiries if needed.',
+            error: stuck
+              ? 'Stripe says this checkout was paid, but the booking was never recorded. Check the payment in Stripe — it has been flagged in this list.'
+              : 'The customer has just paid this. It will show as paid within a minute — refresh, and cancel the booking from Inquiries if needed.',
+            unrecorded: stuck,
           },
           { status: 409 },
         )

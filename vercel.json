@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/expire-abandoned-checkouts",
+      "schedule": "0 7 * * *"
+    },
+    {
       "path": "/api/cron/charge-remaining-balance",
       "schedule": "0 8 * * *"
     },

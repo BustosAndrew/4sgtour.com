@@ -1,6 +1,7 @@
 'use server'
 
 import { stripe } from '@/lib/stripe'
+import { checkoutExpiresAt } from '@/lib/checkout-expiry'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/site-url'
 import { normalizeE164 } from '@/lib/phone'
@@ -185,6 +186,9 @@ async function createTripCheckoutSessionInner(
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
+    // Payable for 24 hours; the pending row is expired after that (webhook,
+    // or the daily abandoned-checkout cleanup).
+    expires_at: checkoutExpiresAt(),
     line_items: lineItems,
     mode: 'payment',
     // This explicitly restricts to only the selected payment method

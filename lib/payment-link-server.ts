@@ -2,6 +2,7 @@ import 'server-only'
 
 import { cache } from 'react'
 import { createServiceClient } from '@/lib/supabase/service'
+import { CHECKOUT_TTL_MS } from '@/lib/checkout-expiry'
 
 // SMS payment links (app/actions/send-payment-link.ts). The text points at
 // /pay/[id], id = the pending stripe_bookings row, where the customer picks
@@ -14,7 +15,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 // with the custom-package page.
 
 /** How long a texted link can be used, matching the "expires in 24 hours" copy. */
-export const PAYMENT_LINK_TTL_MS = 24 * 60 * 60 * 1000
+export const PAYMENT_LINK_TTL_MS = CHECKOUT_TTL_MS
 
 /**
  * Placeholder session key for a link no session has been made for yet. The

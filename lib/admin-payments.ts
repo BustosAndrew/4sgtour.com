@@ -16,11 +16,18 @@
 //    bank debit; `remaining_balance_charged_at` stays empty until it settles.
 
 import { paidTowardTrip, bookingTripTotal } from '@/lib/cancellation-policy'
+import { CHECKOUT_TTL_MS } from '@/lib/checkout-expiry'
 
 /** How long a pending checkout / texted link can still be paid. */
-export const PENDING_PAYABLE_MS = 24 * 60 * 60 * 1000
+export const PENDING_PAYABLE_MS = CHECKOUT_TTL_MS
 
 export type PaymentStage =
+  /**
+   * Still 'pending' here, but Stripe says the checkout was completed: the
+   * webhook never recorded the payment. Flagged by the abandoned-checkout
+   * cleanup or a Cancel attempt; the admin must check it in Stripe.
+   */
+  | 'unrecorded_payment'
   /** Checkout opened or link texted in the last 24h; can still be paid */
   | 'awaiting_payment'
   /** Pending for more than 24h: the link / checkout has almost certainly lapsed */
@@ -96,6 +103,7 @@ function money(value: unknown): number {
 
 export function paymentStage(row: any, now = Date.now()): PaymentStage {
   if (row.status === 'pending') {
+    if (row.booking_details?.stripe_session_completed_at) return 'unrecorded_payment'
     return now - new Date(row.created_at).getTime() > PENDING_PAYABLE_MS
       ? 'stale'
       : 'awaiting_payment'
@@ -118,7 +126,8 @@ export function toAdminPayment(row: any, now = Date.now()): AdminPayment {
   const stage = paymentStage(row, now)
   const details = (row.booking_details || {}) as Record<string, any>
   const tripTotal = money(bookingTripTotal(row))
-  const pending = stage === 'awaiting_payment' || stage === 'stale'
+  const pending =
+    stage === 'awaiting_payment' || stage === 'stale' || stage === 'unrecorded_payment'
 
   let paid = 0
   let fees = 0

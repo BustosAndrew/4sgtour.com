@@ -323,8 +323,17 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 - Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
   are guests and `/bookings` requires signing in.
 - Vercel Cron ([vercel.json](vercel.json)) runs daily:
-  `/api/cron/charge-remaining-balance` (08:00 UTC) and `/api/cron/send-payment-reminders`
-  (09:00 UTC). Both authenticate with `Bearer ${CRON_SECRET}` and use the service-role client.
+  `/api/cron/expire-abandoned-checkouts` (07:00 UTC), `/api/cron/charge-remaining-balance`
+  (08:00 UTC) and `/api/cron/send-payment-reminders` (09:00 UTC). All authenticate with
+  `Bearer ${CRON_SECRET}` and use the service-role client.
+- **Checkouts expire after 24 hours** ([lib/checkout-expiry.ts](lib/checkout-expiry.ts)): every
+  session sets `expires_at` (an SMS link's session closes when the link does). Expiry doesn't rely
+  on the `checkout.session.expired` webhook alone — `expire-abandoned-checkouts`
+  ([lib/abandoned-checkouts.ts](lib/abandoned-checkouts.ts)) checks each `pending` row older than
+  25 hours with Stripe and marks it `expired`. A session Stripe reports **complete** is never
+  expired: it is flagged `booking_details.stripe_session_completed_at` and shown in Admin →
+  Payments as "Paid in Stripe — not recorded" (the webhook missed it; two such rows from
+  2026-11-07 were found on 2026-11-22).
 
 ### Custom packages
 
