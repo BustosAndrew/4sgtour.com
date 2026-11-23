@@ -224,13 +224,22 @@ function CardPaymentFields({
           : t('introNoFee')}
       </p>
 
-      <PaymentElement
-        options={{
-          readOnly: stage !== 'entry',
-          wallets: { applePay: 'never', googlePay: 'never' },
-        }}
-        onChange={(event) => setComplete(event.complete)}
-      />
+      {/* Hidden (not unmounted, so "Use a different card" brings the same
+          card back) once the total for the card is on screen: editing the
+          card there would leave the quote for the old one. */}
+      <div className={stage === 'entry' || stage === 'checking' ? undefined : 'hidden'}>
+        <PaymentElement
+          options={{
+            readOnly: stage !== 'entry',
+            wallets: { applePay: 'never', googlePay: 'never' },
+          }}
+          onChange={(event) => {
+            setComplete(event.complete)
+            // The card changed after it was quoted: quote it again.
+            if (stage === 'review') backToEntry(null)
+          }}
+        />
+      </div>
 
       {error && (
         <div
