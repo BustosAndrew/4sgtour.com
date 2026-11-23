@@ -11,6 +11,7 @@ import {
 } from '@/lib/resolve-booking-price'
 import {
   calculatePaymentAmounts,
+  cardFeeLineItem,
   type TripCheckoutResult,
 } from '@/lib/booking-price'
 
@@ -99,7 +100,7 @@ async function createTripCheckoutSessionInner(
   // request) we refuse rather than charge an amount the customer never saw.
   // The package name is taken from the same row, so the receipt, email and
   // booking record always name the package actually being charged.
-  const { totalPrice, depositPercentage, packageName } =
+  const { totalPrice, depositPercentage, packageName, cardFeePercent } =
     await resolveBookingPrice(supabase, params)
 
   // Every amount comes from the same helper the payment screen uses, so what
@@ -110,6 +111,7 @@ async function createTripCheckoutSessionInner(
     depositPercentage,
     isFullPayment ? 'full' : 'deposit',
     paymentMethod === 'ach' ? 'ach' : 'card',
+    cardFeePercent,
   )
   const paymentAmountCents = amounts.paymentCents
 
@@ -133,16 +135,14 @@ async function createTripCheckoutSessionInner(
     },
   ]
 
-  // Add 4% processing fee for card payments
+  // The trip's credit card fee. The webhook refunds it, in whole or part,
+  // once Stripe reports a debit, prepaid, Canadian or Québec card.
   if (amounts.feeCents > 0) {
     const processingFee = amounts.feeCents
     lineItems.push({
       price_data: {
         currency: 'usd',
-        product_data: {
-          name: 'Card Processing Fee (4%)',
-          description: 'Processing fee for card payments',
-        },
+        product_data: cardFeeLineItem(cardFeePercent),
         unit_amount: processingFee,
       },
       quantity: 1,
@@ -242,6 +242,9 @@ async function createTripCheckoutSessionInner(
       total_price: String(totalPrice),
       remaining_balance: String(remainingBalance),
       auto_charge_date: autoChargeDate.toISOString(),
+      // Read by the webhook to settle the fee to the card actually used.
+      processing_fee: String(amounts.feeCents / 100),
+      card_fee_percent: String(cardFeePercent),
     },
   })
 
@@ -288,6 +291,9 @@ async function createTripCheckoutSessionInner(
         meal_option: mealOption || '',
         transport_option: transportOption || '',
         additional_requests: additionalRequests || '',
+        // The fee this booking was made with; the balance auto-charge uses
+        // it even if the trip's fee changes later.
+        card_fee_percent: cardFeePercent,
       },
     })
 
@@ -305,5 +311,6 @@ async function createTripCheckoutSessionInner(
     clientSecret: session.client_secret,
     amounts,
     depositPercentage,
+    cardFeePercent,
   }
 }

@@ -11,6 +11,8 @@ import { isE164, normalizeE164 } from '@/lib/phone'
 import { formatCalendarDate, parseCalendarDate } from '@/lib/calendar-date'
 import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
 import { CancellationScheduleField } from '@/components/admin/cancellation-schedule-field'
+import { CardFeeField, isValidCardFee } from '@/components/admin/card-fee-field'
+import { getTripCardFeePercent } from '@/lib/booking-price'
 import {
   toCancellationSchedule,
   type CancellationSchedule,
@@ -154,6 +156,7 @@ export interface EditCustomBookingFormProps {
     room_photo_url: string | null
     show_from_price?: boolean
     cancellation_schedule?: string | null
+    credit_card_fee_percent?: number | null
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
     golf_courses?: any[]
@@ -294,6 +297,7 @@ export function EditCustomBookingForm({
     useState<CancellationSchedule>(
       toCancellationSchedule(trip.cancellation_schedule),
     )
+  const [cardFee, setCardFee] = useState(String(getTripCardFeePercent(trip)))
   const [hasUpgradePackage, setHasUpgradePackage] = useState(() =>
     (trip.packages || []).some((p: any) => p.name === 'Upgrade'),
   )
@@ -559,6 +563,8 @@ export function EditCustomBookingForm({
           errors.push('Minimum trip duration must be a positive number')
         break
       case 2: {
+        if (!isValidCardFee(cardFee))
+          errors.push('Credit card fee must be a percentage from 0 to 10')
         const premium = packages.find((p) => p.name === 'Premium')
         if (!premium) {
           errors.push('Premium package is required')
@@ -723,6 +729,7 @@ export function EditCustomBookingForm({
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           cancellation_schedule: cancellationSchedule,
+          credit_card_fee_percent: Number(cardFee),
           highlights: highlights.filter((h) => h.trim() !== ''),
           packages: packages.map((pkg) => ({
             id: pkg.id,
@@ -1418,6 +1425,8 @@ export function EditCustomBookingForm({
               value={cancellationSchedule}
               onChange={setCancellationSchedule}
             />
+
+            <CardFeeField value={cardFee} onChange={setCardFee} />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

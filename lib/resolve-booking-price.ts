@@ -5,6 +5,7 @@ import { getServerLocale } from '@/lib/i18n/server'
 import {
   calculateBookingTotal,
   getDepositPercentage,
+  getTripCardFeePercent,
   nightsBetween,
   toCents,
   type CheckoutErrorCode,
@@ -29,6 +30,8 @@ export interface ResolvedBookingPrice {
   depositPercentage: number
   /** Built from the database row, e.g. "Premium - Double Occupancy" */
   packageName: string
+  /** The trip's credit card fee, a percentage (migration 062) */
+  cardFeePercent: number
 }
 
 /**
@@ -74,7 +77,7 @@ export async function resolveBookingPrice(
   const { data: trip } = await supabase
     .from('trips')
     .select(
-      'id, is_custom, min_nights, min_days, deposit_percentage, single_occupancy_surcharge',
+      'id, is_custom, min_nights, min_days, deposit_percentage, single_occupancy_surcharge, credit_card_fee_percent',
     )
     .eq('id', input.tripId)
     .maybeSingle()
@@ -138,5 +141,6 @@ export async function resolveBookingPrice(
     totalPrice,
     depositPercentage,
     packageName: `${localizedName} - ${roomLabel}`,
+    cardFeePercent: getTripCardFeePercent(trip),
   }
 }

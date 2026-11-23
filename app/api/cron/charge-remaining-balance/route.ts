@@ -5,8 +5,8 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 import { getSiteUrl } from '@/lib/site-url'
-import { cardFeeCents } from '@/lib/booking-price'
-import { isCardPaymentMethod } from '@/lib/stripe-card-fee'
+import { cardFeeCents, getBookingCardFeePercent } from '@/lib/booking-price'
+import { cardFeePercentForPaymentMethod } from '@/lib/stripe-card-fee'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -98,16 +98,18 @@ export async function GET(request: Request) {
           continue
         }
 
-        // The card processing fee applies whenever the saved method is a
-        // card — decided from the payment method itself, because SMS-link and
-        // custom-package bookings are recorded as 'sms_link' even when the
-        // customer paid by card.
+        // The fee the booking was made with (the trip's at the time), and
+        // only when the saved method is a credit card: at most 2.4% if
+        // Canadian, none for debit, prepaid, Québec or bank. Decided from the
+        // payment method itself, because SMS-link and custom-package bookings
+        // are recorded as 'sms_link' even when the customer paid by card.
         const remainingBalanceCents = Math.round(booking.remaining_balance * 100)
-        const isCard = await isCardPaymentMethod(
+        const feePercent = await cardFeePercentForPaymentMethod(
           stripe,
           booking.stripe_payment_method_id,
+          getBookingCardFeePercent(booking.booking_details),
         )
-        const processingFee = isCard ? cardFeeCents(remainingBalanceCents) : 0
+        const processingFee = cardFeeCents(remainingBalanceCents, feePercent)
         const totalChargeCents = remainingBalanceCents + processingFee
 
         console.log(`[v0] Charging booking ${booking.id}: $${(totalChargeCents / 100).toFixed(2)}`)

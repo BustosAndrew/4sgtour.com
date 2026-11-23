@@ -6,7 +6,12 @@ import { AlertCircle, Building2, CheckCircle2, CreditCard } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getServerLocale, getServerTranslations } from '@/lib/i18n/server'
 import { getPaymentLinkStage, loadPaymentLink } from '@/lib/payment-link-server'
-import { cardFeeCents, toCents } from '@/lib/booking-price'
+import {
+  cardFeeCents,
+  formatFeePercent,
+  getBookingCardFeePercent,
+  toCents,
+} from '@/lib/booking-price'
 import { parseCalendarDate, toCalendarDate } from '@/lib/calendar-date'
 import { getSupportEmail } from '@/lib/site-email'
 
@@ -60,7 +65,10 @@ export default async function PaymentLinkPage({
   const stage = getPaymentLinkStage(row)
   const details = row.booking_details || {}
   const paymentCents = toCents(Number(row.deposit_amount) || 0)
-  const feeCents = cardFeeCents(paymentCents)
+  // The fee quoted in the text (the trip's when the link was sent).
+  const feePercent = getBookingCardFeePercent(row.booking_details)
+  const feeCents = cardFeeCents(paymentCents, feePercent)
+  const rate = formatFeePercent(feePercent)
   const isFullPayment = !!row.remaining_balance_charged
   const remainingCents = toCents(Number(row.remaining_balance) || 0)
   const errorKey = errorCode ? ERROR_KEYS[errorCode] : undefined
@@ -170,15 +178,18 @@ export default async function PaymentLinkPage({
               {payForm(
                 'card',
                 t('payByCard', { amount: formatMoney(paymentCents + feeCents) }),
-                t('cardNote', { fee: formatMoney(feeCents) }),
+                feeCents > 0
+                  ? t('cardNote', { fee: formatMoney(feeCents), rate })
+                  : t('cardNoteNoFee'),
                 CreditCard,
                 { start: '#6096BA', end: '#4a7a9e' },
               )}
               {!isFullPayment && remainingCents > 0 && row.auto_charge_date && (
                 <p className="text-sm text-muted-foreground">
-                  {t('remainingAutoCharge', {
+                  {t(feePercent > 0 ? 'remainingAutoCharge' : 'remainingAutoChargeNoFee', {
                     amount: formatMoney(remainingCents),
                     date: formatDate(row.auto_charge_date),
+                    rate,
                   })}
                 </p>
               )}

@@ -17,6 +17,7 @@ import {
 import { AlertTriangle, CalendarClock, Mail, RefreshCw, Search, XCircle } from "lucide-react"
 import { parseCalendarDate } from "@/lib/calendar-date"
 import { todayUtc, type AdminPayment, type PaymentStage } from "@/lib/admin-payments"
+import { CardFeeSettings } from "@/components/admin/card-fee-settings"
 
 type Filter = "pending" | "balance_due" | "clearing" | "paid" | "all"
 
@@ -201,6 +202,8 @@ export function PaymentsList() {
 
   return (
     <>
+      <CardFeeSettings />
+
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <SummaryTile
           label="Awaiting payment"
@@ -619,7 +622,7 @@ function ScheduleDialog({
                 <span>
                   <span className="font-medium">Charge the saved payment method automatically</span>
                   <span className="block text-muted-foreground">
-                    Billed on the morning of the chosen date (08:00 UTC), with the 4% fee if it is a card.
+                    Billed on the morning of the chosen date (08:00 UTC), with the booking's credit card fee if it is a credit card (none for debit).
                   </span>
                 </span>
               </label>

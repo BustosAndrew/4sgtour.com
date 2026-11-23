@@ -69,7 +69,7 @@ export const loadCustomTrip = cache(async (tripId: string | null) => {
       overview_content, overview_content_ko, overview_content_de,
       refund_policy, refund_policy_ko, refund_policy_de,
       highlights, highlights_ko, highlights_de,
-      courses_photo_url, room_photo_url,
+      courses_photo_url, room_photo_url, credit_card_fee_percent,
       packages(id, name, name_ko, name_de, description, description_ko, description_de),
       trip_images(id, image_url, display_order),
       trip_golf_courses(id, course_name, course_name_ko, course_name_de, max_rounds, num_holes, description, description_ko, description_de),

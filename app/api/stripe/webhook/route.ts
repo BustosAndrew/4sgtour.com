@@ -7,7 +7,8 @@ import { getSiteUrl } from '@/lib/site-url'
 import Twilio from 'twilio'
 import { getFromEmail, getAdminEmail } from '@/lib/site-email'
 import { phoneForSms } from '@/lib/phone'
-import { cardFeeCents } from '@/lib/booking-price'
+import { cardFeeCents, formatFeePercent, toCardFeePercent } from '@/lib/booking-price'
+import { settleCardFee, withSettledFee } from '@/lib/stripe-card-fee'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover',
@@ -84,14 +85,20 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true })
 }
 
-async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
-  const metadata = session.metadata || {}
-  const sessionId = session.id
-
+async function handleCheckoutComplete(completedSession: Stripe.Checkout.Session) {
   // 'unpaid' = a bank payment that is still clearing. Record it as
   // 'processing'; it is confirmed by async_payment_succeeded, which calls
   // this function again with payment_status 'paid'.
-  const processing = session.payment_status === 'unpaid'
+  const processing = completedSession.payment_status === 'unpaid'
+
+  // Card sessions are priced with the credit-card fee before the card is
+  // known. Refund what doesn't apply to the card used (all of it for debit /
+  // prepaid or Québec, the part above 2.4% for a Canadian credit card), and carry on
+  // with the amounts the customer actually paid.
+  const feeSettlement = processing ? null : await settleCardFee(stripe, completedSession)
+  const session = withSettledFee(completedSession, feeSettlement)
+  const metadata = session.metadata || {}
+  const sessionId = session.id
 
   console.log(
     `[v0] Processing ${processing ? 'pending bank payment for' : 'completed'} checkout:`,
@@ -173,6 +180,13 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       stripe_payment_intent_id: session.payment_intent as string,
       stripe_customer_id: stripeCustomerId,
       stripe_payment_method_id: stripePaymentMethodId,
+      // The pending row recorded the full credit-card fee.
+      ...(feeSettlement
+        ? {
+            processing_fee: feeSettlement.keptFeeCents / 100,
+            total_paid: (session.amount_total || 0) / 100,
+          }
+        : {}),
     })
     .eq('stripe_checkout_session_id', sessionId)
     .select()
@@ -477,6 +491,9 @@ async function handleCustomPackagePayment(
             meal_option: '',
             transport_option: '',
             additional_requests: '',
+            // The package's credit card fee at payment; the balance
+            // auto-charge uses it.
+            card_fee_percent: toCardFeePercent(metadata.card_fee_percent),
           },
         })
         .select()
@@ -997,7 +1014,14 @@ async function sendInvoiceEmail(
 
   const paidByCard = metadata.payment_method === 'card'
   const processingFee = parseFloat(metadata.processing_fee || '0') || 0
-  const balanceFeeCents = paidByCard ? cardFeeCents(Math.round(remainingBalance * 100)) : 0
+  // What this card pays on the balance: set by settleCardFee for the card
+  // used (0 for debit / prepaid), else the booking's fee.
+  const balanceFeePercent = toCardFeePercent(
+    metadata.card_fee_applied_percent ?? metadata.card_fee_percent,
+  )
+  const balanceFeeCents = paidByCard
+    ? cardFeeCents(Math.round(remainingBalance * 100), balanceFeePercent)
+    : 0
 
   const autoChargeSection =
     remainingBalance > 0 && autoChargeDateDisplay
@@ -1007,7 +1031,7 @@ REMAINING BALANCE - AUTOMATIC CHARGE
 ------------------------------------
 Remaining Balance: $${remainingBalance.toFixed(2)}${
           balanceFeeCents > 0
-            ? `\nCard Processing Fee (4%): $${(balanceFeeCents / 100).toFixed(2)}\nTo Be Charged: $${(remainingBalance + balanceFeeCents / 100).toFixed(2)}`
+            ? `\nCard Processing Fee (${formatFeePercent(balanceFeePercent)}): $${(balanceFeeCents / 100).toFixed(2)}\nTo Be Charged: $${(remainingBalance + balanceFeeCents / 100).toFixed(2)}`
             : ''
         }
 Scheduled Charge Date: ${autoChargeDateDisplay}
@@ -1045,7 +1069,7 @@ PAYMENT SUMMARY
 ---------------
 ${getPaymentLabel(metadata)} Paid: $${amountPaid}${
     processingFee > 0
-      ? ` (includes 4% card processing fee of $${processingFee.toFixed(2)})`
+      ? ` (includes credit card processing fee of $${processingFee.toFixed(2)})`
       : ''
   }
 Payment Method: ${

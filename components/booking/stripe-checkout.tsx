@@ -29,6 +29,7 @@ import {
   calculatePaymentAmounts,
   cardFeeCents,
   formatCents,
+  formatFeePercent,
   type CheckoutErrorCode,
   type PaymentAmounts,
 } from '@/lib/booking-price'
@@ -104,6 +105,8 @@ interface StripeCheckoutProps {
   /** The selected package was removed from the trip while the customer was booking. */
   onPackageUnavailable?: () => void
   depositPercentage?: number // Configurable deposit percentage (default 30)
+  /** The trip's credit card fee, a percentage (getTripCardFeePercent) */
+  cardFeePercent: number
 }
 
 type PaymentMethod = 'card' | 'ach' | 'sms' | null
@@ -152,6 +155,7 @@ export function StripeCheckout({
   onSuccess,
   onPackageUnavailable,
   depositPercentage = 30,
+  cardFeePercent,
 }: StripeCheckoutProps) {
   const t = useTranslations('checkout')
   const router = useRouter()
@@ -174,6 +178,7 @@ export function StripeCheckout({
     clientSecret: string
     amounts: PaymentAmounts
     paymentType: PaymentType
+    cardFeePercent: number
   } | null>(null)
 
   // Creating a session / sending a link, and why it last failed
@@ -187,6 +192,8 @@ export function StripeCheckout({
   const [smsSentAmountCents, setSmsSentAmountCents] = useState<number | null>(
     null,
   )
+  // The fee the texted link carries, as the server set it
+  const [smsFeePercent, setSmsFeePercent] = useState(cardFeePercent)
   const [smsConsent, setSmsConsent] = useState(false)
 
   // Use ref for onSuccess to avoid changing the onComplete callback
@@ -196,7 +203,13 @@ export function StripeCheckout({
   // Every figure on this screen comes from the helper the server charges
   // with (lib/booking-price.ts), so screen and charge agree to the cent.
   const amountsFor = (method: 'card' | 'ach' | 'sms') =>
-    calculatePaymentAmounts(packagePrice, depositPercentage, paymentType, method)
+    calculatePaymentAmounts(
+      packagePrice,
+      depositPercentage,
+      paymentType,
+      method,
+      cardFeePercent,
+    )
   const achAmounts = amountsFor('ach')
   const cardAmounts = amountsFor('card')
   const smsAmounts = amountsFor('sms')
@@ -276,6 +289,7 @@ export function StripeCheckout({
           return
         }
         priceChangedForTotal.current = null
+        setSmsFeePercent(result.cardFeePercent)
         setSmsSentAmountCents(result.amounts.chargeCents)
         return
       }
@@ -293,6 +307,7 @@ export function StripeCheckout({
         clientSecret: result.clientSecret,
         amounts: result.amounts,
         paymentType,
+        cardFeePercent: result.cardFeePercent,
       })
     } catch (error) {
       // Network failure, or a server error the action didn't catch
@@ -325,10 +340,15 @@ export function StripeCheckout({
           {t('smsLinkSentMessage', { phone: customerPhone })}
         </p>
         <p className="text-sm text-muted-foreground mb-6">
-          {t('smsLinkSentDeposit', {
-            amount: `$${formatCents(smsSentAmountCents)}`,
-            cardAmount: `$${formatCents(smsSentAmountCents + cardFeeCents(smsSentAmountCents))}`,
-          })}
+          {smsFeePercent > 0
+            ? t('smsLinkSentDeposit', {
+                amount: `$${formatCents(smsSentAmountCents)}`,
+                cardAmount: `$${formatCents(smsSentAmountCents + cardFeeCents(smsSentAmountCents, smsFeePercent))}`,
+                rate: formatFeePercent(smsFeePercent),
+              })
+            : t('smsLinkSentDepositNoFee', {
+                amount: `$${formatCents(smsSentAmountCents)}`,
+              })}
         </p>
         <div className="bg-muted/50 border border-border p-4 rounded-lg mb-6 max-w-md mx-auto">
           <p className="text-sm text-muted-foreground">{t('smsLinkExpiry')}</p>
@@ -377,7 +397,11 @@ export function StripeCheckout({
             </div>
             {checkout.amounts.feeCents > 0 && (
               <div className="flex justify-between text-muted-foreground">
-                <span>{t('cardProcessingFee')}</span>
+                <span>
+                  {t('cardProcessingFee', {
+                    rate: formatFeePercent(checkout.cardFeePercent),
+                  })}
+                </span>
                 <span>${formatCents(checkout.amounts.feeCents)}</span>
               </div>
             )}
@@ -581,9 +605,12 @@ export function StripeCheckout({
               <div className="text-left">
                 <div className="font-medium">{t('creditDebitCard')}</div>
                 <div className="text-sm text-muted-foreground">
-                  {t('processingFee', {
-                    fee: `$${formatCents(cardAmounts.feeCents)}`,
-                  })}
+                  {cardAmounts.feeCents > 0
+                    ? t('processingFee', {
+                        fee: `$${formatCents(cardAmounts.feeCents)}`,
+                        rate: formatFeePercent(cardFeePercent),
+                      })
+                    : t('noProcessingFee')}
                 </div>
               </div>
             </div>
@@ -606,7 +633,11 @@ export function StripeCheckout({
               <div className="text-left">
                 <div className="font-medium">{t('smsPaymentLink')}</div>
                 <div className="text-sm text-muted-foreground">
-                  {t('smsPaymentLinkDescription')}
+                  {cardFeePercent > 0
+                    ? t('smsPaymentLinkDescription', {
+                        rate: formatFeePercent(cardFeePercent),
+                      })
+                    : t('smsPaymentLinkDescriptionNoFee')}
                 </div>
               </div>
             </div>

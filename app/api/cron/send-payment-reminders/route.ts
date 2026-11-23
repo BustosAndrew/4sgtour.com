@@ -4,8 +4,14 @@ import { getSiteUrl } from "@/lib/site-url"
 import { phoneForSms } from "@/lib/phone"
 import twilio from "twilio"
 import { stripe } from "@/lib/stripe"
-import { bankOrCardAmountText, cardFeeCents } from "@/lib/booking-price"
-import { isCardPaymentMethod } from "@/lib/stripe-card-fee"
+import {
+  bankOrCardAmountText,
+  cardFeeCents,
+  formatFeePercent,
+  getBookingCardFeePercent,
+  getTripCardFeePercent,
+} from "@/lib/booking-price"
+import { cardFeePercentForPaymentMethod } from "@/lib/stripe-card-fee"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -104,20 +110,22 @@ export async function GET(request: Request) {
           booking.stripe_customer_id &&
           booking.stripe_payment_method_id
 
+        // The fee the booking was made with (the trip's at the time).
+        const bookingFeePercent = getBookingCardFeePercent(booking.booking_details)
         let body: string
         if (willAutoCharge) {
-          // Quote what will actually be charged: a saved card carries the
-          // card processing fee (see the charge cron).
+          // Quote what will actually be charged: a saved credit card carries
+          // the card processing fee (see the charge cron).
           const balanceCents = Math.round(Number(booking.remaining_balance) * 100)
-          const feeCents = (await isCardPaymentMethod(
+          const feePercent = await cardFeePercentForPaymentMethod(
             stripe,
             booking.stripe_payment_method_id,
-          ))
-            ? cardFeeCents(balanceCents)
-            : 0
+            bookingFeePercent,
+          )
+          const feeCents = cardFeeCents(balanceCents, feePercent)
           const charged =
             feeCents > 0
-              ? `$${((balanceCents + feeCents) / 100).toFixed(2)} (balance ${amount} + 4% card processing fee $${(feeCents / 100).toFixed(2)})`
+              ? `$${((balanceCents + feeCents) / 100).toFixed(2)} (balance ${amount} + ${formatFeePercent(feePercent)} credit card processing fee $${(feeCents / 100).toFixed(2)})`
               : amount
           body = `4 Seasons Golf Tour: Reminder - the remaining balance for "${tripName}" will be charged automatically on ${displayDate} to the payment method used for your deposit: ${charged}. No action is needed. Reply STOP to opt out.`
         } else {
@@ -125,6 +133,7 @@ export async function GET(request: Request) {
           // both totals — any price in a text includes the card fee for card.
           const due = bankOrCardAmountText(
             Math.round(Number(booking.remaining_balance) * 100),
+            bookingFeePercent,
           )
           body = booking.inquiry_id
             ? `4 Seasons Golf Tour: Reminder - the remaining balance for "${tripName}" (${due}) is due on ${displayDate}. Pay here: ${siteUrl}/package/${booking.inquiry_id} Reply STOP to opt out.`
@@ -162,7 +171,7 @@ export async function GET(request: Request) {
     const { data: legacyInquiries, error: legacyError } = await supabase
       .from("inquiries")
       .select(
-        "id, site_url, customer_phone, trip_title, total_price, deposit_percentage",
+        "id, site_url, customer_phone, trip_title, total_price, deposit_percentage, trip_id",
       )
       .eq("is_custom_package", true)
       .in("status", ["converted", "paid", "completed"])
@@ -193,7 +202,18 @@ export async function GET(request: Request) {
         const depositCents = Math.round(
           totalCents * ((inquiry.deposit_percentage || 100) / 100),
         )
-        const due = bankOrCardAmountText(totalCents - depositCents)
+        // Paid from the package page, which charges the package's own fee.
+        const { data: trip } = inquiry.trip_id
+          ? await supabase
+              .from("trips")
+              .select("credit_card_fee_percent")
+              .eq("id", inquiry.trip_id)
+              .maybeSingle()
+          : { data: null }
+        const due = bankOrCardAmountText(
+          totalCents - depositCents,
+          getTripCardFeePercent(trip),
+        )
         const siteUrl = (inquiry.site_url || appUrl).replace(/\/+$/, "")
 
         await twilioClient.messages.create({

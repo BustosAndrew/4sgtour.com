@@ -50,6 +50,8 @@ export interface Trip {
   cancellation_schedule: 'standard' | 'western_us'
   /** Percent added per single-room traveler (default 12). Migration 061. */
   single_occupancy_surcharge: number
+  /** Percent added to credit card payments (0 = none). Migration 062. */
+  credit_card_fee_percent: number
   created_at: string
   updated_at: string
 }

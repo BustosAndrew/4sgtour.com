@@ -100,7 +100,7 @@ async function sendPaymentLinkSmsInner(
 
   // Recompute the price from the database — never charge what the browser
   // sends. Also pins the package name to the package actually charged.
-  const { totalPrice, depositPercentage, packageName } =
+  const { totalPrice, depositPercentage, packageName, cardFeePercent } =
     await resolveBookingPrice(supabase, params)
 
   const isFullPayment = params.paymentType === 'full'
@@ -111,6 +111,7 @@ async function sendPaymentLinkSmsInner(
     depositPercentage,
     isFullPayment ? 'full' : 'deposit',
     'sms',
+    cardFeePercent,
   )
   const depositAmount = amounts.chargeCents // cents charged by this link
   const remainingBalance = amounts.remainingCents / 100
@@ -160,8 +161,8 @@ async function sendPaymentLinkSmsInner(
   const payUrl = `${appUrl}/pay/${bookingId}`
   const sessionKey = paymentLinkSessionKey(bookingId)
   // Every price in the text includes the card fee for card payers.
-  const amountText = bankOrCardAmountText(depositAmount)
-  const balanceText = bankOrCardAmountText(amounts.remainingCents)
+  const amountText = bankOrCardAmountText(depositAmount, cardFeePercent)
+  const balanceText = bankOrCardAmountText(amounts.remainingCents, cardFeePercent)
 
   // The pending booking row IS the link: /pay/[id] reads it and fills in the
   // Stripe session, payment method and card fee when a method is chosen. So
@@ -205,6 +206,9 @@ async function sendPaymentLinkSmsInner(
         additional_requests: additionalRequests || '',
         // Marks the row as an SMS link that /pay/[id] may open.
         sms_payment_link: true,
+        // The trip's credit card fee when the link was texted: the price in
+        // the text, the /pay page and the balance auto-charge all use it.
+        card_fee_percent: cardFeePercent,
       },
     })
 
@@ -277,5 +281,5 @@ async function sendPaymentLinkSmsInner(
     console.error('[v0] Error saving inquiry for SMS link:', inquiryError)
   }
 
-  return { ok: true, amounts, depositPercentage }
+  return { ok: true, amounts, depositPercentage, cardFeePercent }
 }

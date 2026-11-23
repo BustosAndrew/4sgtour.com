@@ -25,6 +25,7 @@ import {
   formatSurchargePercent,
   getDepositPercentage,
   getSingleSurchargeRate,
+  getTripCardFeePercent,
   getPerPersonBase as getSharedPerPersonBase,
   nightsBetween,
   priceForPerson,
@@ -60,6 +61,7 @@ interface Trip {
   deposit_percentage?: number | null
   /** Percent per single-room person (migration 061); null → 12% */
   single_occupancy_surcharge?: number | null
+  credit_card_fee_percent?: number | null
   courses_photo_url?: string | null
   room_photo_url?: string | null
   images?: Array<{
@@ -1009,6 +1011,7 @@ export function BookingForm({
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }}
           depositPercentage={getDepositPercentage(trip as any)}
+          cardFeePercent={getTripCardFeePercent(trip as any)}
         />
       </div>
     )

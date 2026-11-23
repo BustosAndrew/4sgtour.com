@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getUserType } from "@/lib/supabase/get-user-type"
 import { toCancellationSchedule } from "@/lib/cancellation-policy"
-import { toSurchargePercent } from "@/lib/booking-price"
+import { toCardFeePercent, toSurchargePercent } from "@/lib/booking-price"
+import { getDefaultCardFeePercent } from "@/lib/card-fee-settings"
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -89,6 +90,11 @@ export async function POST(request: Request) {
       deposit_percentage: body.deposit_percentage ?? 30,
       single_occupancy_surcharge: toSurchargePercent(body.single_occupancy_surcharge),
       cancellation_schedule: toCancellationSchedule(body.cancellation_schedule),
+      // The form sends the trip's own fee; without one, the site default.
+      credit_card_fee_percent: toCardFeePercent(
+        body.credit_card_fee_percent,
+        await getDefaultCardFeePercent(supabase),
+      ),
       is_payment_link_trip: false,
     }
 

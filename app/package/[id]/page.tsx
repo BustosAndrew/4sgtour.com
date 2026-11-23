@@ -25,7 +25,11 @@ import { loadCustomPackage, loadCustomTrip } from '@/lib/custom-package-server'
 import { getCustomPackageState, type CustomPaymentType } from '@/lib/custom-package'
 import { parseCalendarDate } from '@/lib/calendar-date'
 import { getSupportEmail } from '@/lib/site-email'
-import { cardFeeCents } from '@/lib/booking-price'
+import {
+  cardFeeCents,
+  formatFeePercent,
+  getTripCardFeePercent,
+} from '@/lib/booking-price'
 
 // A customer opens this from the SMS link, usually signed out. The inquiry is
 // read with the service role (lib/custom-package-server.ts) — the
@@ -159,6 +163,9 @@ export default async function PrivatePackagePage({
   const errorKey = errorCode ? ERROR_KEYS[errorCode] : undefined
 
   // ── Payment ─────────────────────────────────────────────────────────
+  // The package's credit card fee (trips.credit_card_fee_percent).
+  const feePercent = getTripCardFeePercent(trip)
+  const rate = formatFeePercent(feePercent)
   const remainingAfterDeposit = state.totalCents - state.depositCents
   const payForm = (
     type: CustomPaymentType,
@@ -195,12 +202,16 @@ export default async function PrivatePackagePage({
         {payForm(
           type,
           'card',
-          t('payByCard', { amount: formatMoney(amountCents + cardFeeCents(amountCents)) }),
+          t('payByCard', {
+            amount: formatMoney(amountCents + cardFeeCents(amountCents, feePercent)),
+          }),
           colors,
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        {t('cardFeeNote', { fee: formatMoney(cardFeeCents(amountCents)) })}
+        {feePercent > 0
+          ? t('cardFeeNote', { fee: formatMoney(cardFeeCents(amountCents, feePercent)), rate })
+          : t('cardFeeNoteNoFee')}
       </p>
     </div>
   )
@@ -320,7 +331,10 @@ export default async function PrivatePackagePage({
             state.balanceProcessing
               ? t('balanceProcessing')
               : state.autoChargeDate
-              ? t('balanceAutoCharge', { date: formatDate(state.autoChargeDate) })
+              ? t(feePercent > 0 ? 'balanceAutoCharge' : 'balanceAutoChargeNoFee', {
+                  date: formatDate(state.autoChargeDate),
+                  rate,
+                })
               : inquiry.remainder_due_date
                 ? t('balanceDueBy', { date: formatDate(inquiry.remainder_due_date) })
                 : null,

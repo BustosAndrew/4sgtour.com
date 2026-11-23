@@ -127,24 +127,136 @@ export function toCents(amount: number): number {
   return Math.round(amount * 100)
 }
 
-// Every payment made by card carries this fee, on top of the amount paid
-// toward the trip — deposits, full payments, balances, SMS links, custom
+// The card processing fee, for CREDIT cards only, on top of the amount paid
+// toward the trip: deposits, full payments, balances, SMS links, custom
 // packages and the balance auto-charge alike. Bank (ACH) payments have none.
-export const CARD_PROCESSING_FEE_RATE = 0.04
+//
+// The admin sets the percentage: a default for new trips (Admin → Payments,
+// app_settings 'credit_card_fee_percent') and each trip's own
+// (trips.credit_card_fee_percent, on the trip forms) — migration 062. A
+// booking keeps the percentage it was made with (booking_details
+// .card_fee_percent), so editing the trip later doesn't change what an
+// existing customer's balance is charged.
+//
+// Some cards must not carry the trip's fee: debit and prepaid cards (card
+// rules), Québec billing addresses (Québec law) and Canadian credit cards
+// above 2.4% (Canada's cap). A Stripe page has to be priced before the card
+// is entered, so a card session is created with the trip's fee and the
+// webhook refunds what doesn't apply once Stripe reports the card
+// (lib/stripe-card-fee.ts settleCardFee). The balance auto-charge knows the
+// saved card in advance and charges the right fee from the start.
 
-/** The card processing fee on an amount, both in integer cents. */
-export function cardFeeCents(amountCents: number): number {
-  return Math.round(amountCents * CARD_PROCESSING_FEE_RATE)
+/** Fee for bookings and trips that predate the setting; also the stored default. */
+export const DEFAULT_CARD_FEE_PERCENT = 4
+/** Highest fee the admin can set. */
+export const MAX_CARD_FEE_PERCENT = 10
+/** Canadian-issued credit cards: Canada caps card surcharges at 2.4%. */
+export const CANADIAN_CARD_FEE_CAP_PERCENT = 2.4
+
+/** Settings key for the default, in app_settings. */
+export const CARD_FEE_SETTING_KEY = 'credit_card_fee_percent'
+
+/**
+ * A fee percentage from an admin form or the database, made safe to use:
+ * 0–MAX_CARD_FEE_PERCENT, two decimals. 0 is a real value (no fee); only a
+ * missing or unreadable one becomes `fallback`.
+ */
+export function toCardFeePercent(
+  value: unknown,
+  fallback: number = DEFAULT_CARD_FEE_PERCENT,
+): number {
+  if (value === null || value === undefined || value === '') return fallback
+  const n = Number(value)
+  if (!Number.isFinite(n)) return fallback
+  return Math.round(Math.min(MAX_CARD_FEE_PERCENT, Math.max(0, n)) * 100) / 100
+}
+
+/** A trip's credit card fee percentage. */
+export function getTripCardFeePercent(trip: {
+  credit_card_fee_percent?: number | string | null
+} | null | undefined): number {
+  return toCardFeePercent(trip?.credit_card_fee_percent)
+}
+
+/**
+ * The fee percentage a booking was made with. Bookings from before the
+ * setting existed were all made at the old fixed 4%.
+ */
+export function getBookingCardFeePercent(
+  bookingDetails: Record<string, any> | null | undefined,
+): number {
+  return toCardFeePercent(bookingDetails?.card_fee_percent)
+}
+
+/** What Stripe tells us about a card and its billing address. */
+export interface CardFeeFacts {
+  /** `card.funding`: 'credit' | 'debit' | 'prepaid' | 'unknown' */
+  funding?: string | null
+  /** `card.country`: where the card was issued */
+  country?: string | null
+  billingCountry?: string | null
+  billingState?: string | null
+  billingPostalCode?: string | null
+}
+
+/** Québec billing address: province QC, or a postal code starting G, H or J. */
+export function isQuebecAddress(facts: CardFeeFacts): boolean {
+  if (facts.billingState?.trim().toUpperCase() === 'QC') return true
+  return (
+    facts.billingCountry?.toUpperCase() === 'CA' &&
+    /^[GHJ]/i.test(facts.billingPostalCode?.trim() || '')
+  )
+}
+
+/**
+ * The fee percentage that applies to one card, given the booking's. Only a
+ * card Stripe reports as 'credit' carries a fee — 'debit', 'prepaid' and
+ * 'unknown' carry none — and never with a Québec billing address. A
+ * Canadian-issued credit card pays at most 2.4%.
+ */
+export function cardFeePercentFor(
+  facts: CardFeeFacts | null | undefined,
+  bookingPercent: number,
+): number {
+  if (!facts || facts.funding !== 'credit') return 0
+  if (isQuebecAddress(facts)) return 0
+  if (facts.country?.toUpperCase() === 'CA') {
+    return Math.min(bookingPercent, CANADIAN_CARD_FEE_CAP_PERCENT)
+  }
+  return bookingPercent
+}
+
+/** The card processing fee on an amount, in integer cents. */
+export function cardFeeCents(
+  amountCents: number,
+  percent: number,
+): number {
+  return Math.round((amountCents * percent) / 100)
+}
+
+/** 4 → "4%", 2.4 → "2.4%" */
+export function formatFeePercent(percent: number): string {
+  return `${Number(percent.toFixed(2))}%`
+}
+
+/** The fee line on a card Checkout Session, shown on Stripe's page. */
+export function cardFeeLineItem(percent: number) {
+  return {
+    name: `Credit Card Processing Fee (${formatFeePercent(percent)})`,
+    description:
+      'Credit cards only. Refunded automatically if you pay with a debit or prepaid card.',
+  }
 }
 
 /**
  * An amount for a text message sent before the customer has chosen how to
- * pay: "$1500.00 by bank transfer, or $1560.00 by card incl. 4% card fee".
- * Any price a text quotes includes the card fee for card payers.
+ * pay: "$1500.00 by bank transfer or debit card, or $1560.00 by credit card
+ * incl. 4% fee". With a 0% fee it is just the amount.
  */
-export function bankOrCardAmountText(amountCents: number): string {
-  const cardCents = amountCents + cardFeeCents(amountCents)
-  return `$${formatCents(amountCents)} by bank transfer, or $${formatCents(cardCents)} by card incl. 4% card fee`
+export function bankOrCardAmountText(amountCents: number, feePercent: number): string {
+  const feeCents = cardFeeCents(amountCents, feePercent)
+  if (feeCents <= 0) return `$${formatCents(amountCents)}`
+  return `$${formatCents(amountCents)} by bank transfer or debit card, or $${formatCents(amountCents + feeCents)} by credit card incl. ${formatFeePercent(feePercent)} fee`
 }
 
 export type PaymentType = 'deposit' | 'full'
@@ -175,13 +287,16 @@ export function calculatePaymentAmounts(
   depositPercentage: number,
   paymentType: PaymentType,
   paymentMethod: PaymentMethodKind,
+  /** The trip's credit card fee (getTripCardFeePercent) */
+  cardFeePercent: number,
 ): PaymentAmounts {
   const totalCents = toCents(totalPrice)
   const depositCents = Math.round(totalCents * (depositPercentage / 100))
   const paymentCents = paymentType === 'full' ? totalCents : depositCents
   // 'sms' is the amount the text quotes before the customer picks a method:
   // the /pay/[id] page adds the card fee if they then choose card.
-  const feeCents = paymentMethod === 'card' ? cardFeeCents(paymentCents) : 0
+  const feeCents =
+    paymentMethod === 'card' ? cardFeeCents(paymentCents, cardFeePercent) : 0
   return {
     totalCents,
     depositCents,
@@ -223,10 +338,16 @@ export type TripCheckoutResult =
       /** The server's amounts — what Stripe will actually charge. */
       amounts: PaymentAmounts
       depositPercentage: number
+      cardFeePercent: number
     }
   | CheckoutFailure
 
 /** Result of sending an SMS payment link. */
 export type PaymentLinkResult =
-  | { ok: true; amounts: PaymentAmounts; depositPercentage: number }
+  | {
+      ok: true
+      amounts: PaymentAmounts
+      depositPercentage: number
+      cardFeePercent: number
+    }
   | CheckoutFailure

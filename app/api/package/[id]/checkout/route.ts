@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getSiteUrl } from '@/lib/site-url'
-import { loadCustomPackage } from '@/lib/custom-package-server'
-import { cardFeeCents } from '@/lib/booking-price'
+import { loadCustomPackage, loadCustomTrip } from '@/lib/custom-package-server'
+import {
+  cardFeeCents,
+  cardFeeLineItem,
+  getTripCardFeePercent,
+} from '@/lib/booking-price'
 import {
   getCustomPackageState,
   type CustomPaymentType,
@@ -57,7 +61,9 @@ export async function POST(
         ? state.totalCents
         : state.remainingCents
   if (amountCents <= 0) return backWith('not_available')
-  const feeCents = method === 'card' ? cardFeeCents(amountCents) : 0
+  // The package's credit card fee, as the page shows it.
+  const feePercent = getTripCardFeePercent(await loadCustomTrip(inquiry.trip_id))
+  const feeCents = method === 'card' ? cardFeeCents(amountCents, feePercent) : 0
 
   const remainingAfterCents =
     type === 'deposit' ? state.totalCents - state.depositCents : 0
@@ -95,10 +101,7 @@ export async function POST(
     lineItems.push({
       price_data: {
         currency: 'usd',
-        product_data: {
-          name: 'Card Processing Fee (4%)',
-          description: 'Processing fee for card payments',
-        },
+        product_data: cardFeeLineItem(feePercent),
         unit_amount: feeCents,
       },
       quantity: 1,
@@ -140,6 +143,7 @@ export async function POST(
         payment_type: type,
         payment_method: method,
         processing_fee: String(feeCents / 100),
+        card_fee_percent: String(feePercent),
         balance_flow: state.balanceFlow,
         total_price: String(state.totalCents / 100),
         deposit_percentage: String(

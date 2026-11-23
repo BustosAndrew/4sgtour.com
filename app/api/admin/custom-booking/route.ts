@@ -11,6 +11,8 @@ import Twilio from 'twilio'
 import { normalizeE164 } from '@/lib/phone'
 import { toCalendarDate } from '@/lib/calendar-date'
 import { toCancellationSchedule } from '@/lib/cancellation-policy'
+import { toCardFeePercent } from '@/lib/booking-price'
+import { getDefaultCardFeePercent } from '@/lib/card-fee-settings'
 import { getBalanceFlow, type BalanceFlow } from '@/lib/custom-package'
 
 export async function POST(request: Request) {
@@ -139,6 +141,11 @@ export async function POST(request: Request) {
       highlights: highlights || [],
       show_from_price: show_from_price || false,
       cancellation_schedule: toCancellationSchedule(body.cancellation_schedule),
+      // The form sends the package's own fee; without one, the site default.
+      credit_card_fee_percent: toCardFeePercent(
+        body.credit_card_fee_percent,
+        await getDefaultCardFeePercent(supabase),
+      ),
       is_payment_link_trip: false,
       is_custom: true,
     }

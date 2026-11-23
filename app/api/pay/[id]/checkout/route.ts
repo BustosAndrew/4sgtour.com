@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getSiteUrl } from '@/lib/site-url'
 import { createServiceClient } from '@/lib/supabase/service'
-import { cardFeeCents, toCents } from '@/lib/booking-price'
+import {
+  cardFeeCents,
+  cardFeeLineItem,
+  getBookingCardFeePercent,
+  toCents,
+} from '@/lib/booking-price'
 import { linkSessionExpiresAt } from '@/lib/checkout-expiry'
 import {
   getPaymentLinkStage,
@@ -40,9 +45,11 @@ export async function POST(
 
   const paymentCents = toCents(Number(row.deposit_amount) || 0)
   if (paymentCents <= 0) return backWith('expired')
-  const feeCents = method === 'card' ? cardFeeCents(paymentCents) : 0
-  const isFullPayment = !!row.remaining_balance_charged
   const details = row.booking_details || {}
+  // The fee quoted in the text (the trip's when the link was sent).
+  const feePercent = getBookingCardFeePercent(details)
+  const feeCents = method === 'card' ? cardFeeCents(paymentCents, feePercent) : 0
+  const isFullPayment = !!row.remaining_balance_charged
   const packageName = details.package_name || 'Golf Package'
   const tripTitle = row.trip_title || details.trip_title || 'Golf Trip'
   const label = isFullPayment
@@ -81,10 +88,7 @@ export async function POST(
     lineItems.push({
       price_data: {
         currency: 'usd',
-        product_data: {
-          name: 'Card Processing Fee (4%)',
-          description: 'Processing fee for card payments',
-        },
+        product_data: cardFeeLineItem(feePercent),
         unit_amount: feeCents,
       },
       quantity: 1,
@@ -138,6 +142,7 @@ export async function POST(
         additional_requests: String(details.additional_requests || '').slice(0, 450),
         payment_method: method,
         processing_fee: String(feeCents / 100),
+        card_fee_percent: String(feePercent),
         via_sms_link: 'true',
         payment_type: isFullPayment ? 'full' : 'deposit',
         is_guest: row.user_id ? 'false' : 'true',

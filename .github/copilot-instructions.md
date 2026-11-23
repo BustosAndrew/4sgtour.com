@@ -193,12 +193,17 @@ Customers can ask for a Twilio SMS payment link at checkout (`app/actions/send-p
 it points at `/pay/[id]` (id = the pending `stripe_bookings` row), where `/api/pay/[id]/checkout`
 creates the Stripe session for the method chosen.
 
-**Every card payment carries the 4% card processing fee** (`cardFeeCents()` in
+**The credit card fee is an admin setting** (migration `062`): a default at Admin → Payments
+(`app_settings`) and each trip's `trips.credit_card_fee_percent`, set on the trip forms — read it
+with `getTripCardFeePercent()`, never hard-code it. A booking keeps its percentage in
+`booking_details.card_fee_percent`. Only credit cards pay it: none for debit / prepaid cards or a
+Québec billing address, at most 2.4% for a Canadian credit card (`cardFeePercentFor()` in
 `lib/booking-price.ts`); bank (ACH) payments have none. Stripe can't add a fee only when a card is
 chosen, so never create a session that accepts both card and bank — each Pay button names its
-method. The balance cron decides from the saved payment method's type
-(`isCardPaymentMethod()` in `lib/stripe-card-fee.ts`), not from `payment_method`, because older
-SMS-link and custom-package rows say `'sms_link'`.
+method. Card sessions charge the trip's fee and the webhook refunds what doesn't apply once the
+card is known (`settleCardFee()` in `lib/stripe-card-fee.ts`). The balance cron decides from the
+saved payment method (`cardFeePercentForPaymentMethod()`), not from `payment_method`, because
+older SMS-link and custom-package rows say `'sms_link'`.
 
 Cancellations follow the `/terms` policy, coded in `lib/cancellation-policy.ts` (shared by browser
 and server). Customers cancel from My Bookings (`/api/bookings/[id]/cancel`): the server recomputes
@@ -237,7 +242,8 @@ no local Supabase. Numbers have collided historically — pick the next unused n
 assume ordering is total. `057` is the highest. `054`/`055` were applied on 2026-08-15;
 `056`–`058` are applied (2026-11-16). `059` (tournament ticket inquiries, customer RLS) must run before the code that writes `inquiries.tournament_event_id` ships.
 `060` (booking cancellations: `trips.cancellation_schedule`, `stripe_bookings` cancellation/refund
-columns) must run before its code ships.
+columns) must run before its code ships. `062` (`app_settings`, `trips.credit_card_fee_percent`)
+must run before its code ships too.
 
 ### Partner API (this repo only)
 

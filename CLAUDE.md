@@ -292,15 +292,30 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   migration `059`); then auto-charging stops for that booking (`auto_charge_date = null`) and the
   admin and customer are emailed. The admin is emailed on the first failure and when it stops —
   not daily. `authentication_required` (3-D Secure) stops at once: off-session can't pass it.
-- **Every card payment carries the 4% card processing fee** (`CARD_PROCESSING_FEE_RATE` /
-  `cardFeeCents()` in [lib/booking-price.ts](lib/booking-price.ts)) — checkout, SMS links,
-  custom packages, balances and the balance auto-charge. Bank (ACH) payments have none. A Stripe
-  page can't add a fee only when a card is chosen, so **never create a session that accepts both
-  card and bank**: each Pay button names its method and gets a single-method session, the card
-  one with a fee line item. The charge cron decides by asking Stripe whether the *saved payment
-  method* is a card (`isCardPaymentMethod()`, [lib/stripe-card-fee.ts](lib/stripe-card-fee.ts)),
-  because older SMS-link and custom-package rows say `payment_method = 'sms_link'` whatever was
-  used. `processing_fee` accumulates every fee collected; `total_paid` includes them.
+- **The credit card fee is an admin setting** (decided 2026-11-22, migration `062`): a default
+  for new trips at **Admin → Payments** (`app_settings` key `credit_card_fee_percent`, which can
+  also be applied to every existing trip at once) and each trip's own
+  `trips.credit_card_fee_percent` on all four trip / custom-package forms. Read it with
+  `getTripCardFeePercent(trip)` — never hard-code 4%; 0 is a real value (no fee). A booking keeps
+  the percentage it was made with in `booking_details.card_fee_percent`
+  (`getBookingCardFeePercent()`; rows from before `062` were all 4%), so editing a trip never
+  changes an existing customer's balance charge.
+- **Only credit cards pay it**: none for debit, prepaid or 'unknown' cards (card rules) or a
+  Québec billing address, and at most 2.4% for a Canadian-issued credit card —
+  `cardFeePercentFor(card, bookingPercent)` in [lib/booking-price.ts](lib/booking-price.ts) is
+  the one rule. It applies to checkout, SMS links, custom packages, balances and the balance
+  auto-charge. Bank (ACH) payments have none. A Stripe page can't add a fee only when a card is
+  chosen, so **never create a session that accepts both card and bank**: each Pay button names
+  its method and gets a single-method session, the card one with a fee line item
+  (`cardFeeLineItem()`) and `metadata.processing_fee` / `card_fee_percent`.
+  - The card isn't known until it's paid, so card sessions charge the trip's fee and the webhook
+    **refunds what doesn't apply** to the card used (`settleCardFee()`,
+    [lib/stripe-card-fee.ts](lib/stripe-card-fee.ts)), before writing the row with the fee kept.
+    A session without `metadata.processing_fee` is never adjusted.
+  - The charge cron and reminders know the saved card, so they charge the right fee up front
+    (`cardFeePercentForPaymentMethod()`). They ask Stripe rather than reading `payment_method`,
+    because older SMS-link and custom-package rows say `'sms_link'` whatever was used.
+  - `processing_fee` accumulates every fee kept; `total_paid` includes them.
 - [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a link to
   **`/pay/[id]`** (id = the pending `stripe_bookings` row, generated before the text so it can go
   in it) when a customer picks "SMS payment link" at checkout on a standard trip. That page
@@ -459,7 +474,7 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 
 API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking,
 translate-*, api-keys, payments, bookings/[id]/refund, bookings/[id]/cancel-pending,
-bookings/[id]/schedule), `/api/inquiry`, `/api/messages`,
+bookings/[id]/schedule, settings/card-fee), `/api/inquiry`, `/api/messages`,
 `/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
 `/api/stripe/webhook`, `/api/cron/*`, `/api/pay/[id]/checkout` (SMS-link payments, public),
 `/api/package/[id]/checkout` (custom-package payments,
@@ -474,7 +489,7 @@ Tables in active use: `profiles`, `trips`, `trip_images`, `trip_golf_courses`,
 `trip_meal_options`, `trip_transportation_options`, `trip_service_options`, `packages`,
 `add_ons`, `inquiries`, `stripe_bookings`, `messages`, `favorites`, `destinations` (legacy),
 `tournaments`, `tournament_events`, `tournament_event_itinerary_days`,
-`tournament_event_pricing_tiers`, `tournament_event_gallery_images`, `api_keys`.
+`tournament_event_pricing_tiers`, `tournament_event_gallery_images`, `api_keys`, `app_settings`.
 
 `stripe_bookings.site_url` and `inquiries.site_url` (nullable, migration `053`) record which of
 the three sites the row came from. Set them at **every** new creation path — the checkout action,
@@ -504,7 +519,9 @@ not a query bug.
 Numbered SQL files in [scripts/](scripts/), applied **by hand in the Supabase SQL editor** —
 there is no migration runner and no local Supabase instance. Numbers have collided historically
 (two `043_`, `044_`, `045_`, `046_`, `050_`, `052_` files exist), so pick the next unused number
-and don't assume ordering is total. `061` is the highest so far. `061`
+and don't assume ordering is total. `062` is the highest so far. `062`
+(`app_settings` + `trips.credit_card_fee_percent`) was written on 2026-11-22 and must run
+*before* its code ships — checkout's price check and the payment pages select the column. `061`
 (`trips.single_occupancy_surcharge`) was written on 2026-11-22 and must run *before* its code
 ships — checkout's price check selects the column, so without it every checkout fails. `060` (booking cancellations:
 `trips.cancellation_schedule`, `stripe_bookings.cancelled_at`/`cancellation_*`/`refund_*`) was

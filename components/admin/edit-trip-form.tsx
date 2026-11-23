@@ -31,11 +31,12 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { CancellationScheduleField } from "@/components/admin/cancellation-schedule-field"
+import { CardFeeField, isValidCardFee } from "@/components/admin/card-fee-field"
 import {
   SingleSurchargeField,
   isValidSurcharge,
 } from "@/components/admin/single-surcharge-field"
-import { getSingleSurchargePercent } from "@/lib/booking-price"
+import { getSingleSurchargePercent, getTripCardFeePercent } from "@/lib/booking-price"
 import {
   toCancellationSchedule,
   type CancellationSchedule,
@@ -75,6 +76,7 @@ interface EditTripFormProps {
     show_from_price?: boolean
     deposit_percentage?: number | null
     single_occupancy_surcharge?: number | null
+    credit_card_fee_percent?: number | null
     cancellation_schedule?: string | null
     images?: { id: string; image_url: string; display_order: number | null }[]
     packages?: any[]
@@ -182,6 +184,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
   const [depositPercentage, setDepositPercentage] = useState(trip.deposit_percentage ?? 30)
   // Percent per single-room traveler (migration 061), as typed
   const [singleSurcharge, setSingleSurcharge] = useState(String(getSingleSurchargePercent(trip)))
+  const [cardFee, setCardFee] = useState(String(getTripCardFeePercent(trip)))
   const [cancellationSchedule, setCancellationSchedule] = useState<CancellationSchedule>(
     toCancellationSchedule(trip.cancellation_schedule),
   )
@@ -593,6 +596,9 @@ export function EditTripForm({ trip }: EditTripFormProps) {
     if (!isValidSurcharge(singleSurcharge)) {
       errors.push("Single room surcharge must be a percentage from 0 to 100 (Step 2)")
     }
+    if (!isValidCardFee(cardFee)) {
+      errors.push("Credit card fee must be a percentage from 0 to 10 (Step 2)")
+    }
 
     // Step 1 validation
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
@@ -684,6 +690,7 @@ export function EditTripForm({ trip }: EditTripFormProps) {
       show_from_price: showFromPrice,
       deposit_percentage: depositPercentage,
       single_occupancy_surcharge: Number(singleSurcharge),
+      credit_card_fee_percent: Number(cardFee),
       cancellation_schedule: cancellationSchedule,
       highlights: highlights.filter((h) => h.trim() !== ""),
           // Only send Korean / German highlights if any were entered
@@ -1617,6 +1624,8 @@ export function EditTripForm({ trip }: EditTripFormProps) {
               onChange={setSingleSurcharge}
               basePrice={Number(packages.find((p) => p.name === "Premium")?.price) || undefined}
             />
+
+            <CardFeeField value={cardFee} onChange={setCardFee} />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

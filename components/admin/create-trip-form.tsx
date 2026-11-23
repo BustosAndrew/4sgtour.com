@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { CancellationScheduleField } from "@/components/admin/cancellation-schedule-field"
+import { CardFeeField, isValidCardFee } from "@/components/admin/card-fee-field"
 import {
   SingleSurchargeField,
   isValidSurcharge,
@@ -178,6 +179,8 @@ export function CreateTripForm() {
   const [depositPercentage, setDepositPercentage] = useState(30)
   // Percent per single-room traveler (migration 061), as typed
   const [singleSurcharge, setSingleSurcharge] = useState("12")
+  // Filled with the site default by CardFeeField
+  const [cardFee, setCardFee] = useState("")
   const [cancellationSchedule, setCancellationSchedule] =
     useState<CancellationSchedule>(DEFAULT_CANCELLATION_SCHEDULE)
 
@@ -386,6 +389,9 @@ export function CreateTripForm() {
     if (!isValidSurcharge(singleSurcharge)) {
       errors.push("Single room surcharge must be a percentage from 0 to 100 (Step 2)")
     }
+    if (!isValidCardFee(cardFee)) {
+      errors.push("Credit card fee must be a percentage from 0 to 10 (Step 2)")
+    }
 
     // Step 1 validation
     if (!formData.title.trim()) errors.push("Trip title is required (Step 1)")
@@ -531,6 +537,7 @@ export function CreateTripForm() {
           show_from_price: showFromPrice,
           deposit_percentage: depositPercentage,
           single_occupancy_surcharge: Number(singleSurcharge),
+          credit_card_fee_percent: Number(cardFee),
           cancellation_schedule: cancellationSchedule,
           highlights: highlights.filter((h) => h.trim() !== ""),
           packages: packages.map((pkg) => ({
@@ -1497,6 +1504,8 @@ export function CreateTripForm() {
               onChange={setSingleSurcharge}
               basePrice={Number(packages.find((p) => p.name === "Premium")?.price) || undefined}
             />
+
+            <CardFeeField value={cardFee} onChange={setCardFee} fillDefault />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages

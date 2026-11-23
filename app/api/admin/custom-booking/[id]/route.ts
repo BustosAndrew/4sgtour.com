@@ -5,6 +5,7 @@ import { normalizeE164 } from '@/lib/phone'
 import { toCalendarDate } from '@/lib/calendar-date'
 import { getBalanceFlow } from '@/lib/custom-package'
 import { toCancellationSchedule } from '@/lib/cancellation-policy'
+import { toCardFeePercent } from '@/lib/booking-price'
 
 // Translation columns are never written from here unless the form sends
 // them: child rows are updated in place by id, so their Korean/German
@@ -228,6 +229,9 @@ export async function PATCH(
     updateData.cancellation_schedule = toCancellationSchedule(
       body.cancellation_schedule,
     )
+  }
+  if ('credit_card_fee_percent' in body) {
+    updateData.credit_card_fee_percent = toCardFeePercent(body.credit_card_fee_percent)
   }
 
   // Korean and German only when the form sends them (German is the primary

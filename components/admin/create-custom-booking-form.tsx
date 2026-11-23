@@ -10,6 +10,7 @@ import { isE164 } from '@/lib/phone'
 import { formatCalendarDate } from '@/lib/calendar-date'
 import type { BalanceFlow } from '@/lib/custom-package'
 import { CancellationScheduleField } from '@/components/admin/cancellation-schedule-field'
+import { CardFeeField, isValidCardFee } from '@/components/admin/card-fee-field'
 import {
   DEFAULT_CANCELLATION_SCHEDULE,
   type CancellationSchedule,
@@ -190,6 +191,8 @@ export function CreateCustomBookingForm({
   const [showFromPrice, setShowFromPrice] = useState(false)
   const [cancellationSchedule, setCancellationSchedule] =
     useState<CancellationSchedule>(DEFAULT_CANCELLATION_SCHEDULE)
+  // Filled with the site default by CardFeeField
+  const [cardFee, setCardFee] = useState('')
   const [hasUpgradePackage, setHasUpgradePackage] = useState(false)
 
   // Step 3: Booking Options
@@ -445,6 +448,8 @@ export function CreateCustomBookingForm({
           errors.push('Minimum trip duration must be a positive number')
         break
       case 2: {
+        if (!isValidCardFee(cardFee))
+          errors.push('Credit card fee must be a percentage from 0 to 10')
         const premium = packages.find((p) => p.name === 'Premium')
         if (!premium) {
           errors.push('Premium package is required')
@@ -623,6 +628,7 @@ export function CreateCustomBookingForm({
           room_photo_url: photos.room || null,
           show_from_price: showFromPrice,
           cancellation_schedule: cancellationSchedule,
+          credit_card_fee_percent: Number(cardFee),
           highlights: highlights.filter((h) => h.trim() !== ''),
           packages: packages.map((pkg) => ({
             name: pkg.name,
@@ -1492,6 +1498,8 @@ export function CreateCustomBookingForm({
               value={cancellationSchedule}
               onChange={setCancellationSchedule}
             />
+
+            <CardFeeField value={cardFee} onChange={setCardFee} fillDefault />
 
             <div className="space-y-4 rounded-lg border border-border p-6">
               {packages
