@@ -255,6 +255,12 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 
 - Server Actions in [app/actions/stripe.ts](app/actions/stripe.ts) create Checkout Sessions —
   card or ACH, deposit (`trips.deposit_percentage`) or full payment.
+- **No per-trip Stripe setup.** Every session prices its line items inline (`price_data`) from
+  the database at payment time, so a trip can take payments as soon as it is saved. Don't create
+  Stripe Products/Prices for trips: the old "Generate Stripe Configuration" button and the
+  products made on trip create were removed on 2026-11-22 — nothing ever read them, and their
+  prices went stale on every edit. `packages.stripe_product_id` / `stripe_price_id` and
+  `trips.stripe_payment_enabled` are leftover columns that nothing reads.
 - **Never charge a price the browser sends.** Server actions are public POST endpoints. Pricing
   rules live in [lib/booking-price.ts](lib/booking-price.ts), shared by the booking form and
   the server; [lib/resolve-booking-price.ts](lib/resolve-booking-price.ts) recomputes the total,
@@ -442,7 +448,7 @@ Admin: `/admin`, `/admin/api-access`, `/admin/trips/new`, `/admin/trips/[id]`,
 `/admin/tournaments`, `/admin/tournaments/[id]`, `/admin/tournaments/[id]/events/new`,
 `/admin/tournaments/[id]/events/[eventId]`
 
-API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking, stripe/generate,
+API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking,
 translate-*, api-keys, payments, bookings/[id]/refund, bookings/[id]/cancel-pending,
 bookings/[id]/schedule), `/api/inquiry`, `/api/messages`,
 `/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
