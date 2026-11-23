@@ -3,6 +3,7 @@ import 'server-only'
 import type Stripe from 'stripe'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ABANDONED_AFTER_MS } from '@/lib/checkout-expiry'
+import { inspectPaymentAttempt } from '@/lib/card-payment-server'
 
 /**
  * Closes checkouts that were started but never paid.
@@ -14,12 +15,19 @@ import { ABANDONED_AFTER_MS } from '@/lib/checkout-expiry'
  * delivery that failed, a link that was never opened so has no session),
  * the row stays 'pending' forever and clutters Admin → Payments.
  *
+ * Card payments made in the card form leave a row too, pointing at a
+ * PaymentIntent (pi_…) rather than a session — one that was declined, or
+ * whose 3-D Secure check was never finished. PaymentIntents don't expire on
+ * their own, so those are cancelled here.
+ *
  * This doesn't trust age alone. For each pending row older than
  * ABANDONED_AFTER_MS it asks Stripe:
- *   - session expired, or unknown to this Stripe account → row 'expired'
+ *   - session expired / payment cancelled, or unknown to
+ *     this Stripe account                               → row 'expired'
  *   - no session yet (an SMS link never opened)         → row 'expired'
  *   - session still open                                → left alone
- *   - session COMPLETE                                  → left 'pending' and
+ *   - card payment never completed                      → cancelled, 'expired'
+ *   - session COMPLETE / card payment succeeded         → left 'pending' and
  *     flagged (`booking_details.stripe_session_completed_at`): the customer
  *     paid but the webhook never recorded it. Admin → Payments shows it as
  *     "Paid in Stripe — not recorded" for someone to check, rather than this
@@ -75,19 +83,17 @@ export async function expireAbandonedCheckouts(
 
     const sessionId: string | null = row.stripe_checkout_session_id
     let outcome: 'expire' | 'open' | 'complete' = 'expire'
-    if (sessionId && sessionId.startsWith('cs_')) {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(sessionId)
-        if (session.status === 'complete') outcome = 'complete'
-        else if (session.status === 'open') outcome = 'open'
-      } catch (e: any) {
-        if (e?.code !== 'resource_missing') {
-          result.errors.push({ id: row.id, error: String(e?.message || e).slice(0, 200) })
-          continue
-        }
-        // Not in this Stripe account (e.g. made with another key): it can
-        // never be paid here.
+    try {
+      const state = await inspectPaymentAttempt(stripe, sessionId)
+      if (state === 'paid') outcome = 'complete'
+      else if (state === 'open' && sessionId?.startsWith('cs_')) outcome = 'open'
+      else if (state === 'open') {
+        // A card payment started over a day ago and never finished.
+        await stripe.paymentIntents.cancel(sessionId!)
       }
+    } catch (e: any) {
+      result.errors.push({ id: row.id, error: String(e?.message || e).slice(0, 200) })
+      continue
     }
 
     if (outcome === 'open') {

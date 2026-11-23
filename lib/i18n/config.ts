@@ -29,6 +29,7 @@ export const clientNamespaces = [
   'auth',
   'booking',
   'bookingsPage',
+  'cardPayment',
   'checkout',
   'common',
   'contact',

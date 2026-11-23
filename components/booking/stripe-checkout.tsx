@@ -6,9 +6,15 @@ import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from '@stripe/react-stripe-js'
-import { loadStripe, type Stripe } from '@stripe/stripe-js'
-import { createTripCheckoutSession } from '@/app/actions/stripe'
+import {
+  checkTripCardPayment,
+  createTripCheckoutSession,
+  payTripByCard,
+} from '@/app/actions/stripe'
 import { sendPaymentLinkSms } from '@/app/actions/send-payment-link'
+import { CardPaymentForm } from '@/components/payments/card-payment-form'
+import { getStripe } from '@/lib/stripe-client'
+import type { CardPaymentRequest } from '@/lib/card-payment'
 import {
   CreditCard,
   Building2,
@@ -34,14 +40,10 @@ import {
   type PaymentAmounts,
 } from '@/lib/booking-price'
 
-// Initialize stripe once, outside of component
-let stripePromise: Promise<Stripe | null> | null = null
-const getStripe = () => {
-  if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-  }
-  return stripePromise
-}
+// Bank transfer: Stripe's embedded Checkout. Card: our card form
+// (components/payments/card-payment-form.tsx), which reads the card before
+// charging it so a debit card pays no fee - a Checkout page has to be priced
+// before the card is known.
 
 // Mounts Stripe's embedded form for a session that was already created. The
 // session is created *before* this mounts (see validateAndProceed) so a
@@ -173,9 +175,18 @@ export function StripeCheckout({
     normalizeE164(prefillPhone) || '',
   )
 
-  // A created Checkout Session, with the amounts the SERVER will charge
+  // A created bank-transfer Checkout Session, with the amounts the SERVER
+  // will charge
   const [checkout, setCheckout] = useState<{
     clientSecret: string
+    amounts: PaymentAmounts
+    paymentType: PaymentType
+  } | null>(null)
+
+  // Card: the price the server checked, and the booking it is for. The card
+  // form quotes and charges against these.
+  const [cardPayment, setCardPayment] = useState<{
+    params: Parameters<typeof payTripByCard>[0]
     amounts: PaymentAmounts
     paymentType: PaymentType
     cardFeePercent: number
@@ -294,10 +305,23 @@ export function StripeCheckout({
         return
       }
 
-      const result = await createTripCheckoutSession({
-        ...params,
-        paymentMethod,
-      })
+      if (paymentMethod === 'card') {
+        const result = await checkTripCardPayment(params)
+        if (!result.ok) {
+          handleFailure(result.code)
+          return
+        }
+        priceChangedForTotal.current = null
+        setCardPayment({
+          params,
+          amounts: result.amounts,
+          paymentType,
+          cardFeePercent: result.cardFeePercent,
+        })
+        return
+      }
+
+      const result = await createTripCheckoutSession(params)
       if (!result.ok) {
         handleFailure(result.code)
         return
@@ -307,7 +331,6 @@ export function StripeCheckout({
         clientSecret: result.clientSecret,
         amounts: result.amounts,
         paymentType,
-        cardFeePercent: result.cardFeePercent,
       })
     } catch (error) {
       // Network failure, or a server error the action didn't catch
@@ -319,9 +342,23 @@ export function StripeCheckout({
   }
 
   const handleBackToPayment = () => {
-    // Unmounts the EmbeddedCheckoutProvider. The abandoned session expires on
-    // its own and the webhook marks its pending row expired.
+    // Unmounts the EmbeddedCheckoutProvider / card form. An abandoned session
+    // expires on its own; an unfinished card payment is cancelled by the
+    // daily abandoned-checkout cleanup.
     setCheckout(null)
+    setCardPayment(null)
+  }
+
+  // The card form's requests, for the booking being paid
+  const submitCard = async (request: CardPaymentRequest) => {
+    const result = await payTripByCard(cardPayment!.params, request)
+    if (!result.ok && result.checkoutCode) {
+      // The price or package changed: back to the payment screen, which
+      // refreshes the prices and explains, as for a bank transfer.
+      setCardPayment(null)
+      handleFailure(result.checkoutCode as CheckoutErrorCode)
+    }
+    return result
   }
 
   // Show SMS sent confirmation
@@ -374,6 +411,37 @@ export function StripeCheckout({
     )
   }
 
+  // Card form
+  if (cardPayment) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={handleBackToPayment} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t('backToPaymentOptions')}
+        </Button>
+
+        <div className="border border-border bg-background p-6">
+          <h2 className="font-serif text-xl font-medium mb-1">{t('creditDebitCard')}</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {cardPayment.paymentType === 'full' ? t('fullPayment') : t('deposit')}:{' '}
+            <span className="font-medium text-foreground">
+              ${formatCents(cardPayment.amounts.paymentCents)}
+            </span>
+          </p>
+          <CardPaymentForm
+            amountCents={cardPayment.amounts.paymentCents}
+            feePercent={cardPayment.cardFeePercent}
+            saveForLater={cardPayment.paymentType !== 'full'}
+            billingName={cardPayment.params.customerName}
+            billingEmail={cardPayment.params.customerEmail}
+            submit={submitCard}
+            onPaid={() => onSuccessRef.current?.()}
+          />
+        </div>
+      </div>
+    )
+  }
+
   // Show Stripe checkout once the session exists
   if (checkout) {
     return (
@@ -395,16 +463,6 @@ export function StripeCheckout({
               </span>
               <span>${formatCents(checkout.amounts.paymentCents)}</span>
             </div>
-            {checkout.amounts.feeCents > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>
-                  {t('cardProcessingFee', {
-                    rate: formatFeePercent(checkout.cardFeePercent),
-                  })}
-                </span>
-                <span>${formatCents(checkout.amounts.feeCents)}</span>
-              </div>
-            )}
             <div className="flex justify-between font-medium pt-2 border-t border-border mt-2">
               <span>{t('total')}</span>
               <span>${formatCents(checkout.amounts.chargeCents)}</span>
@@ -615,7 +673,7 @@ export function StripeCheckout({
               </div>
             </div>
             <div className="text-right">
-              <div className="font-medium">${formatCents(cardAmounts.chargeCents)}</div>
+              <div className="font-medium">${formatCents(cardAmounts.paymentCents)}</div>
             </div>
           </button>
 

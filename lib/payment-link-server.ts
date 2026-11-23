@@ -3,12 +3,14 @@ import 'server-only'
 import { cache } from 'react'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHECKOUT_TTL_MS } from '@/lib/checkout-expiry'
+import { getSiteUrl } from '@/lib/site-url'
+import { getBookingCardFeePercent, toCents } from '@/lib/booking-price'
 
 // SMS payment links (app/actions/send-payment-link.ts). The text points at
-// /pay/[id], id = the pending stripe_bookings row, where the customer picks
-// bank transfer or card. Card carries the card processing fee, so the method
-// has to be known before a Stripe session exists, and one Stripe page can't
-// offer both (it can't add a fee only when a card is used).
+// /pay/[id], id = the pending stripe_bookings row, where the customer pays by
+// bank transfer (a Stripe Checkout Session, /api/pay/[id]/checkout) or by
+// card (the card form, /api/pay/[id]/card, which charges a credit card the
+// fee and a debit card none).
 //
 // Read with the service role: customers open the text signed out, and RLS
 // hides stripe_bookings from them. The unguessable id is the credential, as
@@ -105,3 +107,92 @@ export const loadPaymentLink = cache(async (id: string) => {
   if (!row || row.booking_details?.sms_payment_link !== true) return null
   return row
 })
+
+/**
+ * What a payment link charges and what the webhook needs to record it, for
+ * either method. The amount was fixed when the link was texted (it's in the
+ * text) and is read from the row, never from the request.
+ */
+export function paymentLinkCharge(row: PaymentLinkRow) {
+  const details = row.booking_details || {}
+  const isFullPayment = !!row.remaining_balance_charged
+  const packageName = details.package_name || 'Golf Package'
+  const tripTitle = row.trip_title || details.trip_title || 'Golf Trip'
+  const label = isFullPayment ? 'Full Payment' : `${row.deposit_percentage || 30}% Deposit`
+  const siteUrl = (row.site_url || getSiteUrl()).replace(/\/+$/, '')
+  return {
+    paymentCents: toCents(Number(row.deposit_amount) || 0),
+    /** The fee quoted in the text (the trip's when the link was sent) */
+    feePercent: getBookingCardFeePercent(details),
+    isFullPayment,
+    siteUrl,
+    description: `${tripTitle} - ${packageName} (${label})`,
+    lineDescription: `Travel dates: ${details.start_date || ''} to ${details.end_date || ''}. Room: ${details.room_type || ''}.`,
+    metadata: {
+      site_url: siteUrl,
+      trip_id: row.trip_id || '',
+      trip_title: tripTitle,
+      package_id: row.package_id || '',
+      package_name: packageName,
+      user_id: row.user_id || '',
+      customer_name: row.customer_name || '',
+      customer_email: row.customer_email || '',
+      customer_phone: row.customer_phone || '',
+      start_date: details.start_date || '',
+      end_date: details.end_date || '',
+      room_type: details.room_type || '',
+      golf_courses: JSON.stringify(details.golf_courses || []),
+      meal_option: details.meal_option || '',
+      transport_option: details.transport_option || '',
+      additional_requests: String(details.additional_requests || '').slice(0, 450),
+      via_sms_link: 'true',
+      payment_type: isFullPayment ? 'full' : 'deposit',
+      is_guest: row.user_id ? 'false' : 'true',
+      total_price: String(row.total_price ?? ''),
+      deposit_percentage: String(row.deposit_percentage || 30),
+      remaining_balance: String(row.remaining_balance ?? 0),
+      auto_charge_date: isFullPayment ? '' : row.auto_charge_date || '',
+    } as Record<string, string>,
+  }
+}
+
+/**
+ * Points the link's booking row, and the inquiry written beside it, at a new
+ * payment attempt (a Checkout Session or a card PaymentIntent): the webhook
+ * confirms the booking, and converts the inquiry, by that id.
+ *
+ * Returns false — and changes nothing — if an admin cancelled the link
+ * meanwhile (Admin → Payments); the caller must then close the attempt.
+ */
+export async function pointPaymentLinkAt(
+  row: PaymentLinkRow,
+  attemptId: string,
+  fields: { payment_method: 'card' | 'ach'; processing_fee: number; total_paid: number },
+): Promise<boolean> {
+  const supabase = createServiceClient()
+  const { data: updatedRows, error: bookingError } = await supabase
+    .from('stripe_bookings')
+    .update({
+      ...fields,
+      stripe_checkout_session_id: attemptId,
+      // The earlier attempt's checkout.session.expired may already have
+      // marked this row expired.
+      status: 'pending',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', row.id)
+    .is('booking_details->>admin_cancelled_at', null)
+    .select('id')
+  if (bookingError) throw bookingError
+  if (!updatedRows || updatedRows.length === 0) return false
+
+  const previous = row.stripe_checkout_session_id
+  const { error: inquiryError } = await supabase
+    .from('inquiries')
+    .update({ stripe_session_id: attemptId, updated_at: new Date().toISOString() })
+    .in('stripe_session_id', [previous || '', paymentLinkSessionKey(row.id)].filter(Boolean))
+  if (inquiryError) {
+    console.error('[pay-link] Error updating inquiry for new payment:', inquiryError)
+  }
+  return true
+}

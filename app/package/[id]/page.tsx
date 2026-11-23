@@ -2,6 +2,7 @@ import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { AnimatedHr } from '@/components/ui/animated-hr'
+import { CardPayOption } from '@/components/payments/card-pay-option'
 import {
   TripImageGallery,
   RoomImageSection,
@@ -167,30 +168,10 @@ export default async function PrivatePackagePage({
   const feePercent = getTripCardFeePercent(trip)
   const rate = formatFeePercent(feePercent)
   const remainingAfterDeposit = state.totalCents - state.depositCents
-  const payForm = (
-    type: CustomPaymentType,
-    method: 'ach' | 'card',
-    label: string,
-    colors: { start: string; end: string },
-  ) => (
-    // A plain form POST: works without JavaScript, and the route creates a
-    // fresh Stripe session from today's price, then redirects to it.
-    <form action={`/api/package/${id}/checkout`} method="post" className="shrink-0">
-      <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="method" value={method} />
-      <AnimatedButton
-        type="submit"
-        startColor={colors.start}
-        endColor={colors.end}
-        hoverText={t('letsGo')}
-        className="w-full sm:w-auto sm:px-8"
-      >
-        {label}
-      </AnimatedButton>
-    </form>
-  )
-  // One button per method: a card payment adds the card processing fee
-  // (lib/booking-price.ts), so the customer sees both totals before choosing.
+  // One button per method. Bank: a plain form POST (works without
+  // JavaScript); the route creates a fresh Stripe session from today's price
+  // and redirects to it. Card: the card form opens here and quotes the card
+  // entered — the fee for a credit card, none for debit — before charging.
   const payButtons = (
     type: CustomPaymentType,
     amountCents: number,
@@ -198,15 +179,38 @@ export default async function PrivatePackagePage({
   ) => (
     <div className="space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        {payForm(type, 'ach', t('payByBank', { amount: formatMoney(amountCents) }), colors)}
-        {payForm(
-          type,
-          'card',
-          t('payByCard', {
-            amount: formatMoney(amountCents + cardFeeCents(amountCents, feePercent)),
-          }),
-          colors,
-        )}
+        <form action={`/api/package/${id}/checkout`} method="post" className="shrink-0">
+          <input type="hidden" name="type" value={type} />
+          <input type="hidden" name="method" value="ach" />
+          <AnimatedButton
+            type="submit"
+            startColor={colors.start}
+            endColor={colors.end}
+            hoverText={t('letsGo')}
+            className="w-full sm:w-auto sm:px-8"
+          >
+            {t('payByBank', { amount: formatMoney(amountCents) })}
+          </AnimatedButton>
+        </form>
+        <CardPayOption
+          label={t('payByCard', { amount: formatMoney(amountCents) })}
+          hoverText={t('letsGo')}
+          colors={colors}
+          buttonClassName="w-full sm:w-auto sm:px-8"
+          endpoint={`/api/package/${id}/card`}
+          extraBody={{ type }}
+          successUrl={`/checkout/custom/success?package=${id}`}
+          amountCents={amountCents}
+          feePercent={feePercent}
+          // Must match lib/custom-package-checkout.ts
+          saveForLater={
+            type === 'deposit' &&
+            state.balanceFlow === 'auto_charge' &&
+            remainingAfterDeposit > 0
+          }
+          billingName={inquiry.customer_name || undefined}
+          billingEmail={inquiry.customer_email || undefined}
+        />
       </div>
       <p className="text-xs text-muted-foreground">
         {feePercent > 0

@@ -1,6 +1,7 @@
 import { SiteHeaderWrapper } from '@/components/site-header-wrapper'
 import { SiteFooter } from '@/components/site-footer'
 import { AnimatedButton } from '@/components/ui/animated-button'
+import { CardPayOption } from '@/components/payments/card-pay-option'
 import { notFound } from 'next/navigation'
 import { AlertCircle, Building2, CheckCircle2, CreditCard } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -16,9 +17,9 @@ import { parseCalendarDate, toCalendarDate } from '@/lib/calendar-date'
 import { getSupportEmail } from '@/lib/site-email'
 
 // Opened from an SMS payment link, usually signed out (see
-// lib/payment-link-server.ts). The customer chooses bank transfer or card;
-// card payments carry the card processing fee, so each gets its own button
-// and its own Stripe session.
+// lib/payment-link-server.ts). The customer pays by bank transfer (a Stripe
+// Checkout page) or by card in the card form here, which reads the card
+// first: a credit card pays the link's fee, a debit or prepaid card none.
 
 export const metadata: Metadata = {
   title: 'Payment | 4 Seasons Golf Tour',
@@ -77,31 +78,11 @@ export default async function PaymentLinkPage({
     .filter(Boolean)
     .join(' – ')
 
-  const payForm = (
-    method: 'ach' | 'card',
-    label: string,
-    note: string,
-    Icon: typeof CreditCard,
-    colors: { start: string; end: string },
-  ) => (
-    // A plain form POST: works without JavaScript; the route creates the
-    // Stripe session for this method and redirects to it.
-    <form action={`/api/pay/${id}/checkout`} method="post" className="space-y-2">
-      <input type="hidden" name="method" value={method} />
-      <AnimatedButton
-        type="submit"
-        startColor={colors.start}
-        endColor={colors.end}
-        hoverText={t('letsGo')}
-        className="w-full"
-      >
-        {label}
-      </AnimatedButton>
-      <p className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Icon className="h-4 w-4 shrink-0" />
-        {note}
-      </p>
-    </form>
+  const optionNote = (Icon: typeof CreditCard, note: string) => (
+    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Icon className="h-4 w-4 shrink-0" />
+      {note}
+    </p>
   )
 
   const statusPanel = (title: string, message: string) => (
@@ -168,22 +149,42 @@ export default async function PaymentLinkPage({
 
           {stage === 'payable' && (
             <>
-              {payForm(
-                'ach',
-                t('payByBank', { amount: formatMoney(paymentCents) }),
-                t('bankNote'),
-                Building2,
-                { start: '#274C77', end: '#1a3a5c' },
-              )}
-              {payForm(
-                'card',
-                t('payByCard', { amount: formatMoney(paymentCents + feeCents) }),
-                feeCents > 0
-                  ? t('cardNote', { fee: formatMoney(feeCents), rate })
-                  : t('cardNoteNoFee'),
-                CreditCard,
-                { start: '#6096BA', end: '#4a7a9e' },
-              )}
+              {/* A plain form POST: works without JavaScript; the route
+                  creates a Stripe bank-transfer session and redirects to it. */}
+              <form action={`/api/pay/${id}/checkout`} method="post" className="space-y-2">
+                <input type="hidden" name="method" value="ach" />
+                <AnimatedButton
+                  type="submit"
+                  startColor="#274C77"
+                  endColor="#1a3a5c"
+                  hoverText={t('letsGo')}
+                  className="w-full"
+                >
+                  {t('payByBank', { amount: formatMoney(paymentCents) })}
+                </AnimatedButton>
+                {optionNote(Building2, t('bankNote'))}
+              </form>
+              <div className="space-y-2">
+                <CardPayOption
+                  label={t('payByCard', { amount: formatMoney(paymentCents) })}
+                  hoverText={t('letsGo')}
+                  colors={{ start: '#6096BA', end: '#4a7a9e' }}
+                  buttonClassName="w-full"
+                  endpoint={`/api/pay/${id}/card`}
+                  successUrl="/checkout/custom/success"
+                  amountCents={paymentCents}
+                  feePercent={feePercent}
+                  saveForLater={!isFullPayment}
+                  billingName={row.customer_name || undefined}
+                  billingEmail={row.customer_email || undefined}
+                />
+                {optionNote(
+                  CreditCard,
+                  feeCents > 0
+                    ? t('cardNote', { fee: formatMoney(feeCents), rate })
+                    : t('cardNoteNoFee'),
+                )}
+              </div>
               {!isFullPayment && remainingCents > 0 && row.auto_charge_date && (
                 <p className="text-sm text-muted-foreground">
                   {t(feePercent > 0 ? 'remainingAutoCharge' : 'remainingAutoChargeNoFee', {

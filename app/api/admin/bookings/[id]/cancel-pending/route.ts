@@ -3,13 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserType } from '@/lib/supabase/get-user-type'
 import { stripe } from '@/lib/stripe'
+import { closePaymentAttempt } from '@/lib/card-payment-server'
 
 /**
  * POST /api/admin/bookings/[id]/cancel-pending — admin only.
  *
  * Cancels a payment that was started but never made: a checkout the customer
  * opened, or an SMS payment link (/pay/[id]) that was texted. Its Stripe
- * Checkout Session is expired, so the customer can no longer pay it, and the
+ * Checkout Session is expired (or a card payment left unfinished, cancelled),
+ * so the customer can no longer pay it, and the
  * row becomes 'expired' — the status an abandoned checkout ends in anyway, so
  * it drops out of every booking list and no refund is ever owed.
  *
@@ -56,12 +58,11 @@ export async function POST(
 
   // Close the Stripe page first, so nothing can be paid after we say it's
   // cancelled. An SMS link no one has opened yet has only a 'paylink_…'
-  // placeholder and no session.
+  // placeholder and no session; a card payment has a PaymentIntent (pi_…).
   const sessionId: string | null = row.stripe_checkout_session_id
-  if (sessionId && sessionId.startsWith('cs_')) {
+  if (sessionId && (sessionId.startsWith('cs_') || sessionId.startsWith('pi_'))) {
     try {
-      const session = await stripe.checkout.sessions.retrieve(sessionId)
-      if (session.status === 'complete') {
+      if ((await closePaymentAttempt(stripe, sessionId)) === 'paid') {
         // Paid in Stripe. Normally the webhook confirms the row within
         // seconds; if it is still 'pending' an hour on, the webhook never
         // recorded it — flag it so Admin → Payments says so.
@@ -94,18 +95,12 @@ export async function POST(
           { status: 409 },
         )
       }
-      if (session.status === 'open') {
-        await stripe.checkout.sessions.expire(sessionId)
-      }
     } catch (error: any) {
-      // A session Stripe no longer has can't be paid either.
-      if (error?.code !== 'resource_missing') {
-        console.error('[admin-payments] Could not expire checkout session:', error)
-        return NextResponse.json(
-          { error: 'Stripe could not close the checkout. Nothing was changed; please try again.' },
-          { status: 502 },
-        )
-      }
+      console.error('[admin-payments] Could not close the payment in Stripe:', error)
+      return NextResponse.json(
+        { error: 'Stripe could not close the checkout. Nothing was changed; please try again.' },
+        { status: 502 },
+      )
     }
   }
 

@@ -253,8 +253,33 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 
 ### Payments
 
-- Server Actions in [app/actions/stripe.ts](app/actions/stripe.ts) create Checkout Sessions —
-  card or ACH, deposit (`trips.deposit_percentage`) or full payment.
+- **Bank (ACH) payments use Stripe Checkout; card payments use our card form.** Deposit
+  (`trips.deposit_percentage`) or full payment either way. Server Actions in
+  [app/actions/stripe.ts](app/actions/stripe.ts): `createTripCheckoutSession` (bank, embedded
+  Checkout), `checkTripCardPayment` (price check before the card form) and `payTripByCard`.
+- **The card form** (decided 2026-11-23, so a debit card is never charged the credit card fee):
+  [components/payments/card-payment-form.tsx](components/payments/card-payment-form.tsx) is
+  Stripe's Payment Element in deferred mode. *Continue* turns the card into a ConfirmationToken
+  and the server reads it (funding, issuing country, billing address) and **quotes** the exact
+  total for that card — nothing is charged; *Pay* sends the token again with
+  `confirmTotalCents`, and the server charges only if its total still matches (otherwise it
+  returns a fresh quote). Then 3-D Secure runs in the page (`handleNextAction`). One
+  request/response shape ([lib/card-payment.ts](lib/card-payment.ts)) and one server helper
+  ([lib/card-payment-server.ts](lib/card-payment-server.ts) `startCardPayment`) serve the trip
+  booking page, `/api/pay/[id]/card` and `/api/package/[id]/card`.
+  - `startCardPayment` creates the PaymentIntent, runs `beforeConfirm` (point the booking row at
+    it — the webhook can arrive within a second of confirming), then confirms. A decline cancels
+    the intent; the next attempt makes a new one. The row records the **PaymentIntent id in
+    `stripe_checkout_session_id`** (`pi_…` instead of `cs_…`), and so does the SMS-link
+    inquiry's `stripe_session_id`. Code that reads that column must accept both —
+    `inspectPaymentAttempt()` / `closePaymentAttempt()` do.
+  - The webhook records card-form payments from `payment_intent.succeeded` when
+    `metadata.card_payment = 'true'`, through the same `handleCheckoutComplete` path as a
+    session (`sessionFromCardPayment()`), taking the fee as exact. The PaymentIntent carries the
+    same metadata keys a session for that payment would.
+  - Apple Pay / Google Pay are off in the form: their sheet shows the amount before the card is
+    known. The Payment Element's `setupFutureUsage` must match the server's (deposits that will be
+    auto-charged), or Stripe rejects the confirm.
 - **No per-trip Stripe setup.** Every session prices its line items inline (`price_data`) from
   the database at payment time, so a trip can take payments as soon as it is saved. Don't create
   Stripe Products/Prices for trips: the old "Generate Stripe Configuration" button and the
@@ -304,14 +329,13 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   Québec billing address, and at most 2.4% for a Canadian-issued credit card —
   `cardFeePercentFor(card, bookingPercent)` in [lib/booking-price.ts](lib/booking-price.ts) is
   the one rule. It applies to checkout, SMS links, custom packages, balances and the balance
-  auto-charge. Bank (ACH) payments have none. A Stripe page can't add a fee only when a card is
-  chosen, so **never create a session that accepts both card and bank**: each Pay button names
-  its method and gets a single-method session, the card one with a fee line item
-  (`cardFeeLineItem()`) and `metadata.processing_fee` / `card_fee_percent`.
-  - The card isn't known until it's paid, so card sessions charge the trip's fee and the webhook
-    **refunds what doesn't apply** to the card used (`settleCardFee()`,
-    [lib/stripe-card-fee.ts](lib/stripe-card-fee.ts)), before writing the row with the fee kept.
-    A session without `metadata.processing_fee` is never adjusted.
+  auto-charge. Bank (ACH) payments have none. **Never take a card through Stripe Checkout**: a
+  Checkout page is priced before the card is entered, so it can't charge a credit card the fee
+  and a debit card none. Cards go through the card form, which quotes per card.
+  - Card *sessions* made before the card form (2026-11-23) were priced with the fee, and the
+    webhook **refunds what doesn't apply** to the card used (`settleCardFee()`,
+    [lib/stripe-card-fee.ts](lib/stripe-card-fee.ts)). Kept for those; a session without
+    `metadata.processing_fee` — every bank session — is never adjusted.
   - The charge cron and reminders know the saved card, so they charge the right fee up front
     (`cardFeePercentForPaymentMethod()`). They ask Stripe rather than reading `payment_method`,
     because older SMS-link and custom-package rows say `'sms_link'` whatever was used.
@@ -319,9 +343,10 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
 - [app/actions/send-payment-link.ts](app/actions/send-payment-link.ts) texts a link to
   **`/pay/[id]`** (id = the pending `stripe_bookings` row, generated before the text so it can go
   in it) when a customer picks "SMS payment link" at checkout on a standard trip. That page
-  offers bank transfer or card (+4%); `/api/pay/[id]/checkout` creates the session on demand,
-  closes any earlier one, and moves the booking and its inquiry from the `paylink_<id>`
-  placeholder to the real session id (the webhook matches by session id). Links last 24 hours.
+  offers bank transfer (`/api/pay/[id]/checkout`, a Checkout Session made on demand) or card (the
+  card form, `/api/pay/[id]/card`). Each closes any earlier attempt and moves the booking and its
+  inquiry from the `paylink_<id>` placeholder to the new session / PaymentIntent id
+  (`pointPaymentLinkAt()`; the webhook matches by that id). Links last 24 hours.
   Read with the service role ([lib/payment-link-server.ts](lib/payment-link-server.ts)) — the
   unguessable id is the credential, as with `/package/[id]`.
 - **Admin → Payments** ([components/admin/payments-list.tsx](components/admin/payments-list.tsx),
@@ -329,14 +354,16 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   due and paid bookings, read through [lib/admin-payments.ts](lib/admin-payments.ts)
   `toAdminPayment()` — the one place that decides what a row has paid (a `pending` row's
   `total_paid` is what it *would* charge, not money received). *Cancel payment*
-  (`/api/admin/bookings/[id]/cancel-pending`) expires the Stripe session and marks the row
+  (`/api/admin/bookings/[id]/cancel-pending`) expires the Stripe session (or cancels an
+  unfinished card PaymentIntent) and marks the row
   `expired` with `booking_details.admin_cancelled_at`, which `/pay/[id]` also honours.
   *Change charge date* (`/api/admin/bookings/[id]/schedule`) sets `auto_charge_date` (saved
   payment method; `null` stops auto-charging, a date restarts the 3 retries) or
   `remainder_due_date` (no saved method), re-arms the reminder, and for a custom package updates
   the inquiry's `remainder_due_date` / `balance_flow` too.
-- Stripe's hosted pages return customers to `/checkout/custom/success` — public, because most
-  are guests and `/bookings` requires signing in.
+- Stripe's hosted pages, and the card form on `/pay/[id]` and `/package/[id]`, send customers to
+  `/checkout/custom/success` — public, because most are guests and `/bookings` requires signing
+  in.
 - Vercel Cron ([vercel.json](vercel.json)) runs daily:
   `/api/cron/expire-abandoned-checkouts` (07:00 UTC), `/api/cron/charge-remaining-balance`
   (08:00 UTC) and `/api/cron/send-payment-reminders` (09:00 UTC). All authenticate with
@@ -345,7 +372,9 @@ routes invoke it after writing a row so `_ko`/`_de` columns are filled in the ba
   session sets `expires_at` (an SMS link's session closes when the link does). Expiry doesn't rely
   on the `checkout.session.expired` webhook alone — `expire-abandoned-checkouts`
   ([lib/abandoned-checkouts.ts](lib/abandoned-checkouts.ts)) checks each `pending` row older than
-  25 hours with Stripe and marks it `expired`. A session Stripe reports **complete** is never
+  25 hours with Stripe and marks it `expired`; a card-form PaymentIntent left unfinished
+  (declined, 3-D Secure abandoned) doesn't expire on its own, so it is cancelled first. A session
+  Stripe reports **complete** (or a PaymentIntent that succeeded) is never
   expired: it is flagged `booking_details.stripe_session_completed_at` and shown in Admin →
   Payments as "Paid in Stripe — not recorded" (the webhook missed it; two such rows from
   2026-11-07 were found on 2026-11-22).
@@ -358,14 +387,17 @@ Admin-built, per-customer trips (`trips.is_custom`) with one `inquiries` row
 `/admin/trips/[id]`.
 
 - The customer is texted a link to **`/package/[id]`** (id = inquiry id) and pays there. That
-  page and `/api/package/[id]/checkout` read with the **service-role** client
+  page, `/api/package/[id]/checkout` (bank) and `/api/package/[id]/card` (card form) read with the
+  **service-role** client
   ([lib/supabase/service.ts](lib/supabase/service.ts)): customers arrive signed out, and RLS only
   lets admins read inquiries. The unguessable id is the credential. Select only the columns the
   page shows ([lib/custom-package-server.ts](lib/custom-package-server.ts)).
-- **No Stripe session is created up front.** Each Pay button posts to
+- **No Stripe session is created up front.** Each bank Pay button posts to
   `/api/package/[id]/checkout`, which creates a fresh session from the inquiry's current
-  `total_price` / `deposit_percentage`. Stripe caps `expires_at` at 24 hours, and a pre-made
-  session kept charging the old price after an admin edit.
+  `total_price` / `deposit_percentage`; each card button opens the card form, whose route works
+  the amount out the same way on every call (`prepareCustomPackagePayment()`,
+  [lib/custom-package-checkout.ts](lib/custom-package-checkout.ts)). Stripe caps `expires_at`
+  at 24 hours, and a pre-made session kept charging the old price after an admin edit.
 - What has been paid comes from `stripe_bookings` rows linked by `inquiry_id` (migration `058`),
   written by the webhook's custom-package branch — never from `inquiries.status`.
   [lib/custom-package.ts](lib/custom-package.ts) `getCustomPackageState()` is the one place that
@@ -476,8 +508,9 @@ API: `/api/admin/*` (trips, tournaments, inquiries, messages, custom-booking,
 translate-*, api-keys, payments, bookings/[id]/refund, bookings/[id]/cancel-pending,
 bookings/[id]/schedule, settings/card-fee), `/api/inquiry`, `/api/messages`,
 `/api/tournament-tickets`, `/api/upload`, `/api/translate`, `/api/translate/batch`,
-`/api/stripe/webhook`, `/api/cron/*`, `/api/pay/[id]/checkout` (SMS-link payments, public),
-`/api/package/[id]/checkout` (custom-package payments,
+`/api/stripe/webhook`, `/api/cron/*`, `/api/pay/[id]/checkout` and `/api/pay/[id]/card`
+(SMS-link payments, public), `/api/package/[id]/checkout` and `/api/package/[id]/card`
+(custom-package payments,
 public), `/api/bookings/[id]/cancel` (customer self-cancellation, signed in)
 
 Partner (this repo only, bearer-authenticated): `/api/v1/trips/latest` — see

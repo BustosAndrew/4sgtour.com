@@ -68,10 +68,18 @@ export async function POST(request: Request) {
       await handleCheckoutExpired(session)
       break
     }
-    // Remaining-balance charges made by the cron. A bank account debit
-    // returns 'processing' and settles here; card charges settle in the cron.
+    // Card payments made in the card form (lib/card-payment-server.ts), and
+    // remaining-balance charges made by the cron (a bank account debit
+    // returns 'processing' and settles here; card charges settle in the cron).
     case 'payment_intent.succeeded': {
-      await handleBalanceChargeSucceeded(event.data.object as Stripe.PaymentIntent)
+      const paymentIntent = event.data.object as Stripe.PaymentIntent
+      if (paymentIntent.metadata?.card_payment === 'true') {
+        await handleCheckoutComplete(sessionFromCardPayment(paymentIntent), {
+          cardPayment: true,
+        })
+      } else {
+        await handleBalanceChargeSucceeded(paymentIntent)
+      }
       break
     }
     case 'payment_intent.payment_failed': {
@@ -85,20 +93,51 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true })
 }
 
-async function handleCheckoutComplete(completedSession: Stripe.Checkout.Session) {
+/**
+ * A card payment from the card form, in the shape of the Checkout Session
+ * the rest of this file records. Its metadata carries the same keys a session
+ * for the same payment would, and the booking row records the PaymentIntent
+ * id where a session id would go (stripe_checkout_session_id).
+ */
+function sessionFromCardPayment(paymentIntent: Stripe.PaymentIntent) {
+  return {
+    object: 'checkout.session',
+    id: paymentIntent.id,
+    payment_intent: paymentIntent.id,
+    amount_total: paymentIntent.amount_received || paymentIntent.amount,
+    payment_status: 'paid',
+    metadata: paymentIntent.metadata,
+    customer_details: {
+      email: paymentIntent.receipt_email || paymentIntent.metadata?.customer_email || null,
+    },
+  } as unknown as Stripe.Checkout.Session
+}
+
+async function handleCheckoutComplete(
+  completedSession: Stripe.Checkout.Session,
+  options: { cardPayment?: boolean } = {},
+) {
   // 'unpaid' = a bank payment that is still clearing. Record it as
   // 'processing'; it is confirmed by async_payment_succeeded, which calls
   // this function again with payment_status 'paid'.
   const processing = completedSession.payment_status === 'unpaid'
 
-  // Card sessions are priced with the credit-card fee before the card is
-  // known. Refund what doesn't apply to the card used (all of it for debit /
-  // prepaid or Québec, the part above 2.4% for a Canadian credit card), and carry on
-  // with the amounts the customer actually paid.
-  const feeSettlement = processing ? null : await settleCardFee(stripe, completedSession)
+  // Card form payments were charged the right fee for the card (it was read
+  // before charging). Card *sessions* — from before the card form, still
+  // payable for up to 24 hours after it shipped — were priced with the
+  // credit-card fee before the card was known: refund what doesn't apply to
+  // the card used, and carry on with the amounts actually paid.
+  const feeSettlement =
+    processing || options.cardPayment ? null : await settleCardFee(stripe, completedSession)
   const session = withSettledFee(completedSession, feeSettlement)
   const metadata = session.metadata || {}
   const sessionId = session.id
+  // The fee kept, when known exactly: settled, or charged by the card form.
+  const keptFeeCents = feeSettlement
+    ? feeSettlement.keptFeeCents
+    : options.cardPayment
+      ? Math.round(Math.max(0, parseFloat(metadata.processing_fee || '0') || 0) * 100)
+      : null
 
   console.log(
     `[v0] Processing ${processing ? 'pending bank payment for' : 'completed'} checkout:`,
@@ -180,10 +219,10 @@ async function handleCheckoutComplete(completedSession: Stripe.Checkout.Session)
       stripe_payment_intent_id: session.payment_intent as string,
       stripe_customer_id: stripeCustomerId,
       stripe_payment_method_id: stripePaymentMethodId,
-      // The pending row recorded the full credit-card fee.
-      ...(feeSettlement
+      // The pending row recorded the fee it was priced with.
+      ...(keptFeeCents !== null
         ? {
-            processing_fee: feeSettlement.keptFeeCents / 100,
+            processing_fee: keptFeeCents / 100,
             total_paid: (session.amount_total || 0) / 100,
           }
         : {}),

@@ -165,10 +165,14 @@ versions through the shared `.prettierrc.json` and compare.
 
 ### Payments
 
-Checkout Sessions are created in `app/actions/stripe.ts` (card or ACH; deposit via
-`trips.deposit_percentage`, or full payment). `/api/stripe/webhook` handles
-`checkout.session.completed` / `.expired` and is the only writer that confirms a `stripe_bookings`
-row. US bank (ACH) payments arrive as `completed` with `payment_status: 'unpaid'` and are stored
+Bank (ACH) payments use Stripe Checkout Sessions; card payments use our card form
+(`components/payments/card-payment-form.tsx`: Stripe's Payment Element → ConfirmationToken → the
+server quotes the exact total for that card, then charges it on Pay — `lib/card-payment.ts`,
+`lib/card-payment-server.ts`). Deposit via `trips.deposit_percentage`, or full payment.
+`/api/stripe/webhook` handles `checkout.session.completed` / `.expired`, records card-form
+payments from `payment_intent.succeeded` (`metadata.card_payment = 'true'`), and is the only
+writer that confirms a `stripe_bookings` row. A card-form row stores its PaymentIntent id
+(`pi_…`) in `stripe_checkout_session_id`, so code reading that column must accept both. US bank (ACH) payments arrive as `completed` with `payment_status: 'unpaid'` and are stored
 as `processing` until `checkout.session.async_payment_succeeded` / `_failed` (the balance cron's
 bank debits settle via `payment_intent.succeeded` / `payment_failed`) — never treat `completed`
 alone as paid. Declined balance charges retry on up to 3 daily runs (`charge_attempts`), then
@@ -179,8 +183,9 @@ and package name server-side; the actions return `{ ok: false, code }` rather th
 the payment screen creates the session before mounting Stripe so it can explain a refusal. Trip saves update `packages` in place by id — never
 delete-and-reinsert, which nulls `stripe_bookings.package_id`.
 
-Custom packages are paid on `/package/[id]`: each Pay button posts to `/api/package/[id]/checkout`,
-which creates a fresh Stripe session (never pre-create them — Stripe caps sessions at 24 hours).
+Custom packages are paid on `/package/[id]`: each bank Pay button posts to
+`/api/package/[id]/checkout`, which creates a fresh Stripe session (never pre-create them — Stripe
+caps sessions at 24 hours); card buttons open the card form (`/api/package/[id]/card`).
 Payment state comes from `stripe_bookings.inquiry_id` rows via `lib/custom-package.ts`; the page
 and route read with the service-role client because customers are signed out. All SMS numbers must
 be E.164 — use `components/phone-input.tsx` and `normalizeE164()` from `lib/phone.ts`. Texts stay
@@ -191,17 +196,17 @@ they resolve the sender and links from each row's `site_url` (migration `053`) r
 their own deployment — pass it through as `getFromEmail(booking.site_url)`.
 Customers can ask for a Twilio SMS payment link at checkout (`app/actions/send-payment-link.ts`);
 it points at `/pay/[id]` (id = the pending `stripe_bookings` row), where `/api/pay/[id]/checkout`
-creates the Stripe session for the method chosen.
+creates a bank-transfer session and `/api/pay/[id]/card` takes card payments.
 
 **The credit card fee is an admin setting** (migration `062`): a default at Admin → Payments
 (`app_settings`) and each trip's `trips.credit_card_fee_percent`, set on the trip forms — read it
 with `getTripCardFeePercent()`, never hard-code it. A booking keeps its percentage in
 `booking_details.card_fee_percent`. Only credit cards pay it: none for debit / prepaid cards or a
 Québec billing address, at most 2.4% for a Canadian credit card (`cardFeePercentFor()` in
-`lib/booking-price.ts`); bank (ACH) payments have none. Stripe can't add a fee only when a card is
-chosen, so never create a session that accepts both card and bank — each Pay button names its
-method. Card sessions charge the trip's fee and the webhook refunds what doesn't apply once the
-card is known (`settleCardFee()` in `lib/stripe-card-fee.ts`). The balance cron decides from the
+`lib/booking-price.ts`); bank (ACH) payments have none. Never take a card through Stripe
+Checkout — it is priced before the card is entered; the card form reads the card first, so a
+debit card is never charged the fee. (`settleCardFee()` in `lib/stripe-card-fee.ts` still refunds
+the fee on card sessions made before the card form.) The balance cron decides from the
 saved payment method (`cardFeePercentForPaymentMethod()`), not from `payment_method`, because
 older SMS-link and custom-package rows say `'sms_link'`.
 

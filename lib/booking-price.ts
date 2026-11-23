@@ -140,11 +140,12 @@ export function toCents(amount: number): number {
 //
 // Some cards must not carry the trip's fee: debit and prepaid cards (card
 // rules), Québec billing addresses (Québec law) and Canadian credit cards
-// above 2.4% (Canada's cap). A Stripe page has to be priced before the card
-// is entered, so a card session is created with the trip's fee and the
-// webhook refunds what doesn't apply once Stripe reports the card
-// (lib/stripe-card-fee.ts settleCardFee). The balance auto-charge knows the
-// saved card in advance and charges the right fee from the start.
+// above 2.4% (Canada's cap). Card payments are made in our own card form,
+// which reads the card before charging it and quotes the exact total for
+// that card (lib/card-payment.ts) — a debit card is never charged the fee.
+// The balance auto-charge knows the saved card in advance and does the same.
+// (Card Checkout Sessions made before the card form were priced with the
+// fee and the webhook refunded what didn't apply: lib/stripe-card-fee.ts.)
 
 /** Fee for bookings and trips that predate the setting; also the stored default. */
 export const DEFAULT_CARD_FEE_PERCENT = 4
@@ -239,15 +240,6 @@ export function formatFeePercent(percent: number): string {
   return `${Number(percent.toFixed(2))}%`
 }
 
-/** The fee line on a card Checkout Session, shown on Stripe's page. */
-export function cardFeeLineItem(percent: number) {
-  return {
-    name: `Credit Card Processing Fee (${formatFeePercent(percent)})`,
-    description:
-      'Credit cards only. Refunded automatically if you pay with a debit or prepaid card.',
-  }
-}
-
 /**
  * An amount for a text message sent before the customer has chosen how to
  * pay: "$1500.00 by bank transfer or debit card, or $1560.00 by credit card
@@ -330,12 +322,25 @@ export type CheckoutErrorCode =
 
 export type CheckoutFailure = { ok: false; code: CheckoutErrorCode }
 
-/** Result of creating an embedded card / bank checkout. */
+/** Result of creating an embedded bank (ACH) checkout. */
 export type TripCheckoutResult =
   | {
       ok: true
       clientSecret: string
       /** The server's amounts — what Stripe will actually charge. */
+      amounts: PaymentAmounts
+      depositPercentage: number
+      cardFeePercent: number
+    }
+  | CheckoutFailure
+
+/**
+ * The price check before the card form is shown: the amounts without any
+ * card fee (each card's own fee is quoted once it has been entered).
+ */
+export type TripPriceResult =
+  | {
+      ok: true
       amounts: PaymentAmounts
       depositPercentage: number
       cardFeePercent: number
